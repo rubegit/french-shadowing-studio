@@ -2572,6 +2572,17 @@ body:not(.bk-hl-saved) .bk-w.bk-saved { text-decoration:none; background:none; }
     .dc-input[readonly] { color: #aebbd6; }
     .dc-input.shake { animation: dcShake .35s; border-color: #ef4444; }
     @keyframes dcShake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-6px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(4px); } }
+    /* Hàng phím ký tự đặc biệt tiếng Pháp */
+    .dc-accents-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 9px; margin-bottom: 2px; }
+    .dc-acc-btn { display: inline-flex; align-items: center; justify-content: center; min-width: 32px; height: 32px; padding: 0 7px; border-radius: 8px; background: #0b132b; border: 1px solid #1e2d5c; color: #93c5fd; font: 700 14px/1 system-ui, -apple-system, sans-serif; cursor: pointer; user-select: none; -webkit-user-select: none; touch-action: manipulation; transition: all .12s ease; }
+    .dc-acc-btn:hover { background: #1e3a8a; border-color: #3b82f6; color: #fff; transform: translateY(-1px); }
+    .dc-acc-btn:active { transform: translateY(1px); background: #2563eb; }
+    .dc-acc-btn.dc-acc-shift { background: #131f45; border-color: #2b3f7a; color: #60a5fa; font-size: 15px; }
+    .dc-acc-btn.dc-acc-shift.active { background: #2563eb; border-color: #60a5fa; color: #fff; box-shadow: 0 0 10px rgba(37,99,235,.55); }
+    @media (max-width: 640px) {
+      .dc-accents-bar { gap: 4px; margin-top: 7px; }
+      .dc-acc-btn { min-width: 27px; height: 30px; font-size: 13px; padding: 0 4px; border-radius: 6px; }
+    }
     .dc-hint { display: flex; flex-wrap: wrap; gap: 4px 10px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px dashed #17224a; font-size: 16px; line-height: 1.5; font-weight: 700; color: #3f5183; min-height: 26px; }
     .dc-hw { letter-spacing: .05em; border-radius: 6px; padding: 0 2px; cursor: pointer; transition: background .08s, color .08s; }
     .dc-hw:hover { background: rgba(148, 163, 184, .14); }
@@ -2592,7 +2603,7 @@ body:not(.bk-hl-saved) .bk-w.bk-saved { text-decoration:none; background:none; }
     .dc-keys { margin-top: 0; font-size: 11.5px; color: #64748b; display: flex; gap: 6px 16px; flex-wrap: wrap; align-items: center; font-weight: 500; }
     .dc-keys kbd { display: inline-block; min-width: 22px; padding: 1px 6px; border-radius: 6px; border: 1px solid #28407a; background: #0f1a38; color: #bcd0ff; font: 700 10.5px 'JetBrains Mono', monospace; text-align: center; margin-right: 5px; }
     @media (hover: none) { .dc-keys { display: none; } }
-    #dc-type.is-checked .dc-actions { display: none; }
+    #dc-type.is-checked .dc-actions, #dc-type.is-checked .dc-accents-bar { display: none; }
 
     /* Kết quả */
     .dc-result { animation: dcIn .28s ease both; }
@@ -3294,12 +3305,20 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
 </style>
 
   <style id="cs-style">
-  /* ==================== THẺ PHỤ ĐỀ CÂU HIỆN TẠI (giao diện Mặc định, chỉ máy tính + iPad ngang) ==================== */
-  #cs-card { display: none; }
-  @media (min-width: 1024px) and (orientation: landscape), (min-width: 1101px) {
-    body:not(.text-mode) #cs-card { display: block; }
-  }
+  /* ==================== THẺ PHỤ ĐỀ CÂU HIỆN TẠI (giao diện Mặc định) ==================== */
+  body:not(.text-mode) #cs-card { display: block; }
   #cs-card.empty { display: none !important; }
+  @media (max-width: 768px) {
+    .cs-card { padding: 12px 14px 10px; border-radius: 12px; margin-top: 10px; }
+    .cs-text { font-size: 16px; line-height: 1.45; }
+    .cs-nav { gap: 6px; margin-top: 8px; padding-top: 8px; }
+    .cs-nav .dc-btn { padding: 6px 10px; font-size: 12px; }
+    .cs-auto { font-size: 12px; gap: 6px; }
+    .cs-auto .sw { width: 30px; height: 18px; }
+    .cs-auto .sw::after { width: 12px; height: 12px; }
+    .cs-auto[aria-checked="true"] .sw::after { transform: translateX(12px); }
+    .cs-ts { margin-top: 6px; padding-top: 6px; }
+  }
   .cs-card { position: relative; flex: none; min-width: 0; padding: 18px 22px 14px; border-radius: 16px; background: #091024; border: 1px solid #1e293b; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, .3); }
   .cs-text { min-width: 0; text-align: center; font-size: calc(var(--sub-font-size, 19px) * 1.15); line-height: 1.5; font-weight: 600; color: #f1f5f9; user-select: text; -webkit-user-select: text; overflow-wrap: anywhere; }
   .cs-w { border-radius: 6px; padding: 0 2px; cursor: pointer; transition: background .08s, color .08s; }
@@ -3612,13 +3631,6 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
           <span class="vocab-count-badge vocab-count-pill" style="display:none">0</span>
           <span id="vocab-due-badge-2" class="vocab-due-badge" style="display:none">0</span>
         </button>
-        <button type="button" class="coffee-btn home-top-btn" onclick="openDonateScreen()" title="Ủng hộ tác giả 1 ly cafe">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <g class="cb-steam"><path d="M6 2v2"/><path d="M10 2v2"/><path d="M14 2v2"/></g>
-            <path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1"/>
-          </svg>
-          <span>Ủng hộ tác giả</span>
-        </button>
       </div>
       
       <div class="text-center space-y-4 hero-title-block">
@@ -3649,6 +3661,10 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
             <svg class="tab-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="3" width="13" height="11" rx="3.2" fill="#a78bfa"/><path d="M5 14v3.5l3.5-3.5Z" fill="#a78bfa"/><rect x="9" y="9" width="13" height="11" rx="3.2" fill="#38bdf8"/><path d="M19 20v3l-3.2-3Z" fill="#38bdf8"/><path d="M5.5 7.2h6M8.5 6v1.2M7 10c.8-1.4 2-2.2 3.2-2.6M9.2 7.2c-.4 1.6-1.8 2.8-3.2 3.4" stroke="#fff" stroke-width="1.2" stroke-linecap="round" fill="none"/><path d="m13.2 17.6 2.2-5.4 2.2 5.4M14 16h2.8" stroke="#fff" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
             <span>Luyện dịch Việt → Pháp</span>
           </button>
+          <button type="button" id="mode-tab-custom-yt" onclick="setInputMode('custom-yt')">
+            <svg class="tab-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="1.5" y="4.5" width="21" height="15" rx="4.5" fill="#f43f5e"/><rect x="1.5" y="4.5" width="21" height="7" rx="3.5" fill="#fff" fill-opacity=".18"/><path d="M10 8.8v6.4l5.6-3.2z" fill="#fff"/></svg>
+            <span>Luyện video của bạn</span>
+          </button>
         </div>
       </div>
 
@@ -3666,59 +3682,7 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
             </button>
           </div>
 
-          <!-- ===== Luyện video YouTube tiếng Pháp: extension hoặc phụ đề tải lên ===== -->
-          <div id="own-yt-wrap" class="oy-wrap">
-            <button type="button" id="own-yt-toggle" class="ext-guide-btn oy-toggle" aria-expanded="true" aria-controls="own-yt-panel">
-              <span class="ext-guide-ico">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="4"/><path d="m10 9.5 5 2.5-5 2.5z" fill="currentColor"/></svg>
-              </span>
-                  <span class="ext-guide-label"><span class="oy-l">Luyện tiếng Pháp với video YouTube</span> <span class="oy-l">của bạn</span></span>
-              <svg class="ext-guide-arrow oy-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-            </button>
 
-            <div id="own-yt-panel" class="oy-panel">
-              <div class="oy-step">
-                <div class="oy-step-head"><span class="oy-n">1</span><span class="oy-step-title">Link hoặc ID video YouTube</span></div>
-                <div class="oy-row">
-                  <input id="own-yt-url" class="oy-input" type="text" inputmode="url" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Dán link YouTube hoặc ID video (11 ký tự)" />
-                  <button type="button" id="own-yt-paste" class="oy-mini" title="Dán từ bộ nhớ tạm">Dán</button>
-                </div>
-                <div id="own-yt-url-fb" class="oy-fb"></div>
-              </div>
-
-              <div class="oy-step">
-                <div class="oy-step-head"><span class="oy-n">2</span><span class="oy-step-title">Nạp phụ đề tiếng Pháp</span></div>
-                <input id="own-yt-file" type="file" accept=".srt,.vtt,.txt,.json,.json3,.xml,.ttml,.srv1,.srv2,.srv3,.sbv,.lrc,.ass,.ssa,text/plain,text/vtt,application/json,application/x-subrip,application/xml" class="oy-file-hidden" tabindex="-1" />
-                <button type="button" id="own-yt-pick" class="oy-pick">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m17 8-5-5-5 5"/><path d="M12 3v12"/></svg>
-                  <span id="own-yt-pick-label">Chọn file phụ đề từ máy</span>
-                </button>
-                <div id="own-yt-file-ok" class="oy-ok" hidden></div>
-                <div id="own-yt-file-err" class="oy-err" hidden></div>
-                <div class="oy-paste-sub-wrap" style="margin-top: 10px; margin-bottom: 10px; padding: 10px 12px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px;">
-                  <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-size:13px; color:#cbd5e1; font-weight:600;">Dán trực tiếp bản chép lời (Transcript) / SRT:</span>
-                    <button type="button" id="oy-toggle-paste-sub" style="font-size:12px; color:#60a5fa; font-weight:600; cursor:pointer; background:rgba(37,99,235,0.15); border:1px solid rgba(37,99,235,0.4); border-radius:6px; padding:3px 8px;">Mở ô dán</button>
-                  </div>
-                  <div id="oy-paste-sub-box" style="display:none; margin-top:8px;">
-                    <textarea id="oy-sub-textarea" rows="4" style="width:100%; border-radius:8px; background:#070d1e; border:1px solid #1e3a8a; color:#f1f5f9; padding:8px 10px; font-size:12px; font-family:monospace; resize:vertical; box-sizing:border-box;" placeholder="Dán phụ đề .srt hoặc copy bản chép lời YouTube vào đây..."></textarea>
-                    <button type="button" id="oy-apply-sub-btn" style="margin-top:6px; padding:6px 14px; background:#2563eb; color:white; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; border:none;">Áp dụng phụ đề</button>
-                  </div>
-                </div>
-
-                <a class="oy-dl" href="https://downsub.com/" target="_blank" rel="noopener noreferrer">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>
-                  <span>Chưa có phụ đề? Tải phụ đề tiếng Pháp tại <b>downsub.com</b></span>
-                </a>
-                <div class="oy-hint">Có extension: mở video YouTube tiếng Pháp rồi dùng nút Shadowing Studio để gửi captions tự động, thường có timestamp từng từ chính xác hơn. Nếu không dùng extension, tải file SRT/VTT/TXT từ video rồi chọn ở đây. SRT/VTT thường chỉ có mốc thời gian theo câu nên thời gian từng từ sẽ được ước lượng.</div>
-              </div>
-
-              <button type="button" id="own-yt-start" class="oy-start" disabled>
-                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg>
-                <span>Bắt đầu luyện tập</span>
-              </button>
-            </div>
-          </div>
 
           <!-- Phần tử ẩn: giữ lại để code cũ (lưu lịch sử, import từ extension, chia sẻ...) không bị lỗi null.
                Người dùng không nhìn thấy và không tương tác với các phần tử này. -->
@@ -3842,6 +3806,73 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
           <div class="bk-lib-title"><h4>Thư viện sách của bạn</h4><small id="bk-lib-count"></small></div>
           <div id="bk-lib" class="bk-lib"></div>
           <p class="txt-note" style="margin-top:14px">Sách, vị trí đọc và bản dịch được lưu ngay trong trình duyệt này (không cần tải lên đâu cả). Nhớ dùng nút <b>sao lưu</b> trên thẻ sách để xuất file .json phòng khi xóa dữ liệu trình duyệt.</p>
+        </div>
+
+        <!-- ===== Pane Luyện tiếng Pháp với video YouTube của bạn ===== -->
+        <div id="custom-yt-input-mode" class="hidden">
+          <div class="bk-intro" style="margin-bottom: 20px;">
+            <span class="bk-intro-ico" style="background: linear-gradient(135deg, #f43f5e, #ec4899); box-shadow: 0 8px 24px rgba(244, 63, 94, .35);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="2" y="5" width="20" height="14" rx="4"/><path d="m10 9.5 5 2.5-5 2.5z" fill="#fff"/>
+              </svg>
+            </span>
+            <div>
+              <h3>Luyện tiếng Pháp với video YouTube của bạn</h3>
+              <p>Dán link bất kỳ video YouTube tiếng Pháp nào và nạp file phụ đề (hoặc dán bản chép transcript) để bắt đầu luyện Shadowing, tra từ vựng và xem phụ đề song ngữ.</p>
+            </div>
+          </div>
+          <div id="own-yt-wrap" class="oy-wrap">
+            <button type="button" id="own-yt-toggle" class="ext-guide-btn oy-toggle" aria-expanded="true" aria-controls="own-yt-panel">
+              <span class="ext-guide-ico">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="4"/><path d="m10 9.5 5 2.5-5 2.5z" fill="currentColor"/></svg>
+              </span>
+              <span class="ext-guide-label"><span class="oy-l">Luyện tiếng Pháp với video YouTube</span> <span class="oy-l">của bạn</span></span>
+              <svg class="ext-guide-arrow oy-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+
+            <div id="own-yt-panel" class="oy-panel">
+              <div class="oy-step">
+                <div class="oy-step-head"><span class="oy-n">1</span><span class="oy-step-title">Link hoặc ID video YouTube</span></div>
+                <div class="oy-row">
+                  <input id="own-yt-url" class="oy-input" type="text" inputmode="url" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Dán link YouTube hoặc ID video (11 ký tự)" />
+                  <button type="button" id="own-yt-paste" class="oy-mini" title="Dán từ bộ nhớ tạm">Dán</button>
+                </div>
+                <div id="own-yt-url-fb" class="oy-fb"></div>
+              </div>
+
+              <div class="oy-step">
+                <div class="oy-step-head"><span class="oy-n">2</span><span class="oy-step-title">Nạp phụ đề tiếng Pháp</span></div>
+                <input id="own-yt-file" type="file" accept=".srt,.vtt,.txt,.json,.json3,.xml,.ttml,.srv1,.srv2,.srv3,.sbv,.lrc,.ass,.ssa,text/plain,text/vtt,application/json,application/x-subrip,application/xml" class="oy-file-hidden" tabindex="-1" />
+                <button type="button" id="own-yt-pick" class="oy-pick">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m17 8-5-5-5 5"/><path d="M12 3v12"/></svg>
+                  <span id="own-yt-pick-label">Chọn file phụ đề từ máy</span>
+                </button>
+                <div id="own-yt-file-ok" class="oy-ok" hidden></div>
+                <div id="own-yt-file-err" class="oy-err" hidden></div>
+                <div class="oy-paste-sub-wrap" style="margin-top: 10px; margin-bottom: 10px; padding: 10px 12px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px;">
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:13px; color:#cbd5e1; font-weight:600;">Dán trực tiếp bản chép lời (Transcript) / SRT:</span>
+                    <button type="button" id="oy-toggle-paste-sub" style="font-size:12px; color:#60a5fa; font-weight:600; cursor:pointer; background:rgba(37,99,235,0.15); border:1px solid rgba(37,99,235,0.4); border-radius:6px; padding:3px 8px;">Mở ô dán</button>
+                  </div>
+                  <div id="oy-paste-sub-box" style="display:none; margin-top:8px;">
+                    <textarea id="oy-sub-textarea" rows="4" style="width:100%; border-radius:8px; background:#070d1e; border:1px solid #1e3a8a; color:#f1f5f9; padding:8px 10px; font-size:12px; font-family:monospace; resize:vertical; box-sizing:border-box;" placeholder="Dán phụ đề .srt hoặc copy bản chép lời YouTube vào đây..."></textarea>
+                    <button type="button" id="oy-apply-sub-btn" style="margin-top:6px; padding:6px 14px; background:#2563eb; color:white; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; border:none;">Áp dụng phụ đề</button>
+                  </div>
+                </div>
+
+                <a class="oy-dl" href="https://downsub.com/" target="_blank" rel="noopener noreferrer">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>
+                  <span>Chưa có phụ đề? Tải phụ đề tiếng Pháp tại <b>downsub.com</b></span>
+                </a>
+                <div class="oy-hint">Có extension: mở video YouTube tiếng Pháp rồi dùng nút Shadowing Studio để gửi captions tự động, thường có timestamp từng từ chính xác hơn. Nếu không dùng extension, tải file SRT/VTT/TXT từ video rồi chọn ở đây. SRT/VTT thường chỉ có mốc thời gian theo câu nên thời gian từng từ sẽ được ước lượng.</div>
+              </div>
+
+              <button type="button" id="own-yt-start" class="oy-start" disabled>
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg>
+                <span>Bắt đầu luyện tập</span>
+              </button>
+            </div>
+          </div>
         </div>
 
          <!-- THƯ VIỆN VIDEO (ĐỔI SANG IN HOA TOÀN BỘ VÀ TÁCH RỘNG KHÔNG GIAN BÊN DƯỚI - ITEM 4) -->
@@ -4769,6 +4800,24 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
           <div class="dc-card" id="dc-type">
             <div class="dc-hint" id="dc-hint"></div>
             <textarea id="dc-input" class="dc-input" rows="3" placeholder="Gõ những gì bạn nghe được…" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" aria-label="Nhập câu bạn nghe được"></textarea>
+            <!-- Hàng phím ký tự đặc biệt tiếng Pháp -->
+            <div id="dc-accents-bar" class="dc-accents-bar" role="toolbar" aria-label="Ký tự đặc biệt tiếng Pháp">
+              <button type="button" class="dc-acc-btn" data-char="é">é</button>
+              <button type="button" class="dc-acc-btn" data-char="è">è</button>
+              <button type="button" class="dc-acc-btn" data-char="ê">ê</button>
+              <button type="button" class="dc-acc-btn" data-char="ë">ë</button>
+              <button type="button" class="dc-acc-btn" data-char="à">à</button>
+              <button type="button" class="dc-acc-btn" data-char="â">â</button>
+              <button type="button" class="dc-acc-btn" data-char="ù">ù</button>
+              <button type="button" class="dc-acc-btn" data-char="û">û</button>
+              <button type="button" class="dc-acc-btn" data-char="ô">ô</button>
+              <button type="button" class="dc-acc-btn" data-char="î">î</button>
+              <button type="button" class="dc-acc-btn" data-char="ï">ï</button>
+              <button type="button" class="dc-acc-btn" data-char="ç">ç</button>
+              <button type="button" class="dc-acc-btn" data-char="œ">œ</button>
+              <button type="button" class="dc-acc-btn" data-char="æ">æ</button>
+              <button type="button" class="dc-acc-btn dc-acc-shift" id="dc-acc-shift" title="Chuyển chữ hoa / thường" aria-pressed="false">⇧</button>
+            </div>
             <div class="dc-foot">
               <div class="dc-keys"><span><kbd>Enter</kbd>kiểm tra</span><span><kbd>Tab</kbd>Phát/dừng</span></div>
               <div class="dc-actions">
@@ -8233,10 +8282,10 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
     }
 
     // ==================== CHUYỂN ĐỔI TAB "LUYỆN VỚI VIDEO" / "LUYỆN VỚI VĂN BẢN" ====================
-    let currentInputMode = 'video';   // tab đang mở ở trang chủ: video | text | book | vt (router dùng để tạo link riêng cho từng mục)
+    let currentInputMode = 'video';   // tab đang mở ở trang chủ: video | text | book | vt | custom-yt
     function setInputMode(mode) {
-      const isText = mode === 'text', isBook = mode === 'book', isVt = mode === 'vt', isVideo = !isText && !isBook && !isVt;
-      currentInputMode = isText ? 'text' : isBook ? 'book' : isVt ? 'vt' : 'video';
+      const isText = mode === 'text', isBook = mode === 'book', isVt = mode === 'vt', isCustomYt = mode === 'custom-yt', isVideo = !isText && !isBook && !isVt && !isCustomYt;
+      currentInputMode = isText ? 'text' : isBook ? 'book' : isVt ? 'vt' : isCustomYt ? 'custom-yt' : 'video';
       const set = (tab, pane, on) => {
         const t = document.getElementById(tab), p = document.getElementById(pane);
         if (t) t.classList.toggle('active', on);
@@ -8246,8 +8295,9 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
       set('mode-tab-text', 'text-input-mode', isText);
       set('mode-tab-book', 'book-input-mode', isBook);
       set('mode-tab-vt', 'vt-input-mode', isVt);
+      set('mode-tab-custom-yt', 'custom-yt-input-mode', isCustomYt);
       try {   // tab vừa chọn nằm lọt giữa thanh tab (chỉ cuộn ngang trong thanh, không cuộn cả trang)
-        const wrap = document.querySelector('.mode-tabs-wrap'), cur = document.getElementById('mode-tab-' + (isText ? 'text' : isBook ? 'book' : isVt ? 'vt' : 'video'));
+        const wrap = document.querySelector('.mode-tabs-wrap'), cur = document.getElementById('mode-tab-' + (isText ? 'text' : isBook ? 'book' : isVt ? 'vt' : isCustomYt ? 'custom-yt' : 'video'));
         if (wrap && cur && wrap.scrollWidth > wrap.clientWidth + 2) {
           wrap.scrollTo({ left: Math.max(0, cur.getBoundingClientRect().left - wrap.getBoundingClientRect().left + wrap.scrollLeft - (wrap.clientWidth - cur.offsetWidth) / 2), behavior: 'smooth' });
         }
@@ -15745,7 +15795,7 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
 
       // Mỗi mục ở trang chủ có link riêng:  #/ (Luyện với Video) · #/articles (Đọc báo/IELTS) · #/books (Đọc sách) · #/translate (Luyện dịch Việt → Pháp)
       // Bài trong mục Luyện dịch Việt → Pháp:  #/translate/<mã bài>.   (Còn #/watch, #/read, #/book như cũ.)
-      const MODE_ROUTE = { video: '/', text: '/articles', book: '/books', vt: '/translate' };
+      const MODE_ROUTE = { video: '/', text: '/articles', book: '/books', vt: '/translate', 'custom-yt': '/custom-video' };
 
       // ----- trạng thái màn hình -> route -----
       function stateRoute() {
@@ -15842,8 +15892,9 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
           }
           case 'articles':
           case 'books':
-          case 'translate': {
-            const mode = kind === 'articles' ? 'text' : (kind === 'books' ? 'book' : 'vt');
+          case 'translate':
+          case 'custom-video': {
+            const mode = kind === 'articles' ? 'text' : (kind === 'books' ? 'book' : (kind === 'custom-video' ? 'custom-yt' : 'vt'));
             if (!vis('screen-input')) leaveToHome();
             setInputMode(mode);
             if (kind === 'translate' && id && window.vtOpenKey) await window.vtOpenKey(id);
@@ -16906,16 +16957,30 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
     /* ====================== GỢI Ý (mức \"Có gợi ý\") ======================
        Hiện mỗi từ thành một dãy dấu • (đúng số chữ, KHÔNG lộ chữ cái đầu); từ nào bạn gõ đúng sẽ tự mở.
        Bấm vào một từ = nghe từ từ đó; khi đang phát, từ đang đọc được tô sáng (karaoke, giống Shadowing). */
-    function matchedPrefix() {
+    function matchedWordIndices() {
         const val = $('dc-input').value, R = DC.ref, T = tokenize(val);
         if (T.length && !/\s$/.test(val)) {
-            const pos = T.length - 1;
-            if (!(R[pos] && R[pos].key === T[pos].key)) T.pop();   // từ cuối còn đang gõ dở thì chưa tính
+            const last = T[T.length - 1];
+            // Nếu từ cuối đang gõ dở và không khớp với bất kỳ từ nào trong câu thì tạm bỏ qua
+            if (!R.some((r) => r.key === last.key)) T.pop();
         }
+        if (!T.length || !R.length) return new Set();
         const rc = reconcile(R, T);
-        let k = 0, cnt = 0;
-        while (k < rc.T.length && k < rc.R.length && rc.T[k].key === rc.R[k].key) { cnt += rc.R[k].span || 1; k++; }
-        return cnt;
+        let rIdx = 0;
+        const rMap = rc.R.map((item) => {
+            const span = item.span || 1;
+            const start = rIdx;
+            rIdx += span;
+            return { start: start, end: rIdx };
+        });
+        const cmp = compare(rc.R, rc.T);
+        const okIndices = new Set();
+        cmp.items.forEach((it) => {
+            if (it.t === 'ok' && rMap[it.r]) {
+                for (let i = rMap[it.r].start; i < rMap[it.r].end; i++) okIndices.add(i);
+            }
+        });
+        return okIndices;
     }
     function dcHLset(cur) {
         DC.hlCur = cur;
@@ -16943,14 +17008,20 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
         el.classList.remove('pv-x');
         const s = sentences[DC.idx] || { text: '' };
         const chunks = String(s.text || '').split(/\s+/).filter(Boolean);
-        const k = matchedPrefix();
-        let acc = 0;
+        const okIndices = matchedWordIndices();
+        let acc = 0, firstUnmatched = false;
         el.innerHTML = chunks.map((c, i) => {
             const a = acc, b = acc + tokenize(c).length; acc = b;
             const core = c.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '') || c;
             if (b === a) return '<span class="dc-hw" data-i="' + i + '">' + esc(c) + '</span>';   // chỉ có dấu câu: giữ nguyên
-            if (b <= k) return '<span class="dc-hw ok" data-i="' + i + '">' + esc(core) + '</span>';
-            return '<span class="dc-hw' + (a <= k ? ' nx' : '') + '" data-i="' + i + '">' + '•'.repeat(Math.max(1, Array.from(core).length)) + '</span>';
+            let isOk = true;
+            for (let tIdx = a; tIdx < b; tIdx++) {
+                if (!okIndices.has(tIdx)) { isOk = false; break; }
+            }
+            if (isOk) return '<span class="dc-hw ok" data-i="' + i + '">' + esc(core) + '</span>';
+            const isNx = !firstUnmatched;
+            firstUnmatched = true;
+            return '<span class="dc-hw' + (isNx ? ' nx' : '') + '" data-i="' + i + '">' + '•'.repeat(Math.max(1, Array.from(core).length)) + '</span>';
         }).join('');
         DC.hwEls = Array.from(el.querySelectorAll('.dc-hw'));
         // Mốc thời gian từng từ: chỉ dùng khi số từ trong phụ đề khớp số từ của câu, nếu không thì chia đều
@@ -17333,7 +17404,7 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
     document.addEventListener('pointerdown', (e) => {
         if (!DC.sel || view !== 'dictation') return;
         const t = e.target;
-        if (t && t.closest && t.closest('#dc-wave, .dc-mid, .dc-loop-pop, .dc-toolrow, #dc-input, #dc-play, #dc-replay')) return;
+        if (t && t.closest && t.closest('#dc-wave, .dc-mid, .dc-loop-pop, .dc-toolrow, #dc-input, #dc-accents-bar, #dc-play, #dc-replay')) return;
         dcClearSel();
     }, true);
     const dcRePlace = () => { if (DC.sel) dcPlacePop(); };
@@ -17498,6 +17569,50 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
         }
     });
     window.addEventListener('beforeunload', () => { try { if (DC.vid) saveProgress(); } catch (e) {} });
+
+    // Hàng nút ký tự đặc biệt tiếng Pháp cho ô Chép chính tả
+    (function () {
+        const bar = $('dc-accents-bar'), shiftBtn = $('dc-acc-shift');
+        if (!bar || !shiftBtn) return;
+        let isShift = false;
+        function updateShift() {
+            shiftBtn.classList.toggle('active', isShift);
+            shiftBtn.setAttribute('aria-pressed', isShift ? 'true' : 'false');
+            const btns = bar.querySelectorAll('.dc-acc-btn:not(.dc-acc-shift)');
+            btns.forEach((btn) => {
+                const orig = btn.getAttribute('data-orig') || btn.getAttribute('data-char');
+                if (!btn.getAttribute('data-orig')) btn.setAttribute('data-orig', orig);
+                const ch = isShift ? orig.toUpperCase() : orig.toLowerCase();
+                btn.setAttribute('data-char', ch);
+                btn.textContent = ch;
+            });
+        }
+        bar.addEventListener('mousedown', (e) => e.preventDefault());
+        bar.addEventListener('click', (e) => {
+            const btn = e.target.closest('.dc-acc-btn');
+            if (!btn) return;
+            e.preventDefault();
+            if (btn === shiftBtn) {
+                isShift = !isShift;
+                updateShift();
+                if (!DC.checked) inp.focus();
+                return;
+            }
+            const ch = btn.getAttribute('data-char');
+            if (!ch) return;
+            const start = inp.selectionStart ?? inp.value.length;
+            const end = inp.selectionEnd ?? inp.value.length;
+            const v = inp.value;
+            inp.value = v.substring(0, start) + ch + v.substring(end);
+            inp.selectionStart = inp.selectionEnd = start + ch.length;
+            if (!DC.checked) inp.focus();
+            inp.dispatchEvent(new Event('input', { bubbles: true }));
+            if (isShift) {
+                isShift = false;
+                updateShift();
+            }
+        });
+    })();
     /* ====================== SHADOWING (CHỈ NGHE, KHÔNG HIỆN VIDEO) ====================== */
     const SHP_KEY = 'shadowing_shadow_progress_v1', SHPREF_KEY = 'shadowing_shadow_prefs_v1';
     const shPrefs = Object.assign({ tr: true, hide: false }, readJSON(SHPREF_KEY) || {}, { ipa: false });   // ipa KHÔNG lưu: mỗi lần mở app đều tắt, chỉ tải từ điển khi người dùng bấm nút
@@ -18591,7 +18706,7 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
         }
         let lastTsKey = '';
         function tick() {
-            if (view !== 'default' || !mq.matches || isTextMode) return;
+            if (view !== 'default' || isTextMode) return;
             const n = (sentences && sentences.length) || 0;
             const idx = n ? Math.max(0, Math.min(n - 1, currentSentenceIndex || 0)) : -1;
             if (idx >= 0) {   // ô Thời gian: cập nhật khi đổi câu, hoặc khi mốc được chỉnh ở giao diện khác
@@ -19459,9 +19574,11 @@ ${list}`;
 </script>
 <!-- ============ ĐÁNH DẤU NHẸ TỪ / CỤM / CÂU ĐÃ LƯU (chỉ tính các mục lưu từ chính video / bài viết đang mở) ============ -->
 <style id="mobile-tweaks">
-  /* Điện thoại / iPad: bỏ thẻ hướng dẫn cài extension (không cài được trên thiết bị cảm ứng) */
+  /* Điện thoại / iPad: hiển thị thẻ hướng dẫn cài extension/userscript gọn gàng */
   @media (hover: none) and (pointer: coarse), (max-width: 640px) {
-    #ext-install-strip { display: none !important; }
+    #ext-install-strip { width: 100% !important; padding: 12px 14px !important; margin-bottom: 16px !important; }
+    #ext-install-strip .ext-strip-text { font-size: 13px !important; line-height: 1.4 !important; }
+    #ext-install-strip .ext-guide-btn { width: 100% !important; justify-content: center !important; }
     #main-card:has(#video-input-mode:not(.hidden)) > #video-input-mode { margin-bottom: 0; }
     #main-card:has(#video-input-mode:not(.hidden)) > .lib-wrap { padding-top: 0; border-top: 0; margin-top: 0; }
   }
