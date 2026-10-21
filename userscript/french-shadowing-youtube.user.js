@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         French Shadowing Studio - Trợ thủ YouTube (Word Timestamps & 1-Click Import)
 // @namespace    https://french-shadowing-studio.vercel.app/
-// @version      1.3.0
+// @version      1.3.1
 // @description  Tự động trích xuất phụ đề tiếng Pháp dạng JSON3 (chuẩn word-level timestamp) trên YouTube: Tải file .json3 về máy hoặc 1-click chuyển video sang French Shadowing Studio để luyện tập.
 // @author       French Shadowing Studio
 // @downloadURL  https://french-shadowing-studio.vercel.app/userscript/french-shadowing-youtube.user.js
@@ -30,7 +30,7 @@
   var STUDIO_URL = 'https://french-shadowing-studio.vercel.app/';
   var uWin = (typeof unsafeWindow !== 'undefined') ? unsafeWindow : window;
 
-  console.log('[French Shadowing Studio] Userscript v1.3.0 active on:', location.href);
+  console.log('[French Shadowing Studio] Userscript v1.3.1 active on:', location.href);
 
   // =========================================================================
   // 1. NẾU ĐANG Ở TRANG FRENCH SHADOWING STUDIO: NHẬN DỮ LIỆU TỪ YOUTUBE CHUYỂN QUA
@@ -101,30 +101,37 @@
     return { tracks: tracks, playerResponse: pr };
   }
 
-  // Tìm track tiếng Pháp (hoặc dịch tự động sang tiếng Pháp)
+  // Tìm track tiếng Pháp:
+  // QUAN TRỌNG: Ưu tiên track ASR vì ASR của YouTube chứa mốc thời gian chính xác từng miligiây của từng từ (tOffsetMs).
+  // Đồng thời lấy thêm track manual (nếu có) để Studio ghép câu chữ, dấu câu và chính tả chuẩn đẹp của người làm video.
   function selectFrenchTrack(tracks) {
     if (!tracks || !tracks.length) return null;
-
-    var manual = tracks.find(function (t) {
-      return (t.languageCode === 'fr' || (t.languageCode && t.languageCode.startsWith('fr-'))) && t.kind !== 'asr';
-    });
-    if (manual) return { track: manual, type: 'manual' };
 
     var asr = tracks.find(function (t) {
       return (t.languageCode === 'fr' || (t.languageCode && t.languageCode.startsWith('fr-'))) && t.kind === 'asr';
     });
-    if (asr) return { track: asr, type: 'asr' };
+
+    var manual = tracks.find(function (t) {
+      return (t.languageCode === 'fr' || (t.languageCode && t.languageCode.startsWith('fr-'))) && t.kind !== 'asr';
+    });
+
+    if (asr) {
+      return { primaryTrack: asr, manualTrack: manual, type: 'asr' };
+    }
+    if (manual) {
+      return { primaryTrack: manual, manualTrack: null, type: 'manual' };
+    }
 
     var anyFr = tracks.find(function (t) {
       return (t.languageCode || '').toLowerCase().startsWith('fr');
     });
-    if (anyFr) return { track: anyFr, type: 'fr' };
+    if (anyFr) return { primaryTrack: anyFr, manualTrack: null, type: 'fr' };
 
     if (tracks[0] && tracks[0].baseUrl) {
       var transTrack = Object.assign({}, tracks[0]);
       transTrack.baseUrl = tracks[0].baseUrl + '&tlang=fr';
       transTrack.name = { simpleText: 'Français (Dịch tự động)' };
-      return { track: transTrack, type: 'auto-translate' };
+      return { primaryTrack: transTrack, manualTrack: null, type: 'auto-translate' };
     }
     return null;
   }
@@ -213,7 +220,7 @@
     btn.style.cursor = 'pointer';
   }
 
-  // Hành động Luyện tập: Mở studio & truyền gói data
+  // Hành động Luyện tập: Mở studio & truyền gói data (ASR word timestamps + manual text)
   async function handlePractice(vid, btnEl) {
     setBtnLoading(btnEl, '⏳', 'Đang nạp...');
     showToast('Đang trích xuất phụ đề tiếng Pháp dạng JSON3...');
@@ -223,12 +230,25 @@
       var chosen = selectFrenchTrack(info.tracks);
       if (!chosen) throw new Error('Video này không có phụ đề tiếng Pháp (kể cả dịch tự động).');
 
-      var json3 = await fetchJson3(chosen.track.baseUrl);
+      // Tải track chính (ASR) chứa mốc thời gian từng từ
+      var json3 = await fetchJson3(chosen.primaryTrack.baseUrl);
+
+      // Nếu video có cả track thủ công của người làm -> tải thêm để Studio tự ghép chữ đẹp
+      var manualJson3 = null;
+      if (chosen.manualTrack && chosen.manualTrack.baseUrl) {
+        try {
+          manualJson3 = await fetchJson3(chosen.manualTrack.baseUrl);
+        } catch (mErr) {
+          console.warn('[French Shadowing Studio] Không tải được track manual, dùng ASR gốc:', mErr);
+        }
+      }
+
       var pr = info.playerResponse;
       var payload = {
         videoId: vid,
         title: (pr && pr.videoDetails && pr.videoDetails.title) || document.title.replace(' - YouTube', ''),
         raw: json3,
+        manual: manualJson3 ? { raw: manualJson3 } : null,
         channelTitle: (pr && pr.videoDetails && pr.videoDetails.author) || '',
         duration: (pr && pr.videoDetails && parseInt(pr.videoDetails.lengthSeconds, 10)) || 0
       };
@@ -258,7 +278,7 @@
     }
   }
 
-  // Hành động Tải file .json3
+  // Hành động Tải file .json3 (luôn tải bản ASR word-level timestamps)
   async function handleDownload(vid, btnEl) {
     setBtnLoading(btnEl, '⏳', 'Đang tải...');
     showToast('Đang tải file .json3 từ YouTube...');
@@ -268,7 +288,7 @@
       var chosen = selectFrenchTrack(info.tracks);
       if (!chosen) throw new Error('Video không có phụ đề tiếng Pháp.');
 
-      var json3 = await fetchJson3(chosen.track.baseUrl);
+      var json3 = await fetchJson3(chosen.primaryTrack.baseUrl);
       triggerDownload(vid + '.fr.json3', JSON.stringify(json3, null, 2));
       showToast('✓ Đã tải file ' + vid + '.fr.json3 thành công!');
     } catch (err) {

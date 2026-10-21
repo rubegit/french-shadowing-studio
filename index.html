@@ -4025,7 +4025,7 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
             <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center;">
               <a class="gd-cta" href="userscript/french-shadowing-youtube.user.js" target="_blank" style="background: linear-gradient(135deg, #059669, #2563eb);">
                 <span class="gd-cta-ico">⚡</span>
-                <span>Cài đặt / Cập nhật Userscript v1.3.0 (1-Click)</span>
+                <span>Cài đặt / Cập nhật Userscript v1.3.1 (1-Click)</span>
               </a>
               <a class="gd-cta" href="https://www.tampermonkey.net/" target="_blank" rel="noopener" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2);">
                 <span>Chưa có Tampermonkey? Tải tại đây</span>
@@ -9825,7 +9825,9 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
                   const sel2 = window.getSelection();
                   if (sel2 && sel2.toString().trim().length > 0) return;
                   const origIdx = sentences.findIndex((s) => s.id === sentence.id);
-                  seekToTime(w.startTime, origIdx, true, sp, false);
+                  // Bù trễ âm thanh YouTube và đón trước phụ âm đầu: tua trước 80ms để chữ phát ra tròn vành, tự nhiên
+                  const targetTime = Math.max(0, Number((w.startTime - 0.08).toFixed(3)));
+                  seekToTime(targetTime, origIdx, true, sp, false);
                 }, MULTI_CLICK_MS);
               };
               sp.ondblclick = () => {
@@ -9856,7 +9858,9 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
                   const sel2 = window.getSelection();
                   if (sel2 && sel2.toString().trim().length > 0) return;
                   const origIdx = sentences.findIndex((s) => s.id === sentence.id);
-                  seekToTime(sentence.startTime + (wIdx * step), origIdx, true, sp, false);
+                  const estTime = sentence.startTime + (wIdx * step);
+                  const targetTime = Math.max(0, Number((estTime - 0.08).toFixed(3)));
+                  seekToTime(targetTime, origIdx, true, sp, false);
                 }, MULTI_CLICK_MS);
               };
               sp.ondblclick = () => {
@@ -18633,7 +18637,8 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
                 if (s2 && s2.toString().trim().length > 0) return;
                 const idx = parseInt(box.getAttribute('data-idx'), 10), t = parseFloat(sp.getAttribute('data-start'));
                 if (isNaN(t) || !sentences[idx]) return;
-                seekToTime(t, idx, true, null, false);
+                const targetTime = Math.max(0, Number((t - 0.08).toFixed(3)));
+                seekToTime(targetTime, idx, true, null, false);
                 markCur(sp);
             }, typeof MULTI_CLICK_MS === 'number' ? MULTI_CLICK_MS : 170);
         });
