@@ -6270,25 +6270,25 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
         const folderName = libraryFolderMap[videoId] || '';
         const base = hiddenInfo ? hiddenInfo.base : (folderName ? `${DATA_DIR}${encodeURIComponent(folderName)}/` : DATA_DIR);
         const possiblePaths = hiddenInfo ? [`${base}${encodeURIComponent(hiddenInfo.file)}`] : folderName ? [
-          `${base}${videoId}.txt`,
-          `${base}${videoId}.json`,
           `${base}${videoId}.json3`,
+          `${base}${videoId}.json`,
           `${base}${videoId}.srt`,
-          `${base}${videoId}.vtt`
+          `${base}${videoId}.vtt`,
+          `${base}${videoId}.txt`
         ] : [
+          `${base}${videoId}.fr.json3`,
+          `${base}${videoId}.json3`,
+          `${base}${videoId}.fr.json`,
+          `${base}${videoId}.json`,
           `${base}${videoId}.fr.srt`,
           `${base}${videoId}.fr.vtt`,
-          `${base}${videoId}.fr.json3`,
-          `${base}${videoId}.fr.json`,
           `${base}${videoId}.fr.txt`,
           `${base}${videoId}.srt`,
           `${base}${videoId}.vtt`,
-          `${base}${videoId}.json3`,
-          `${base}${videoId}.json`,
           `${base}${videoId}.txt`,
+          `${base}${videoId}.en.json3`,
           `${base}${videoId}.en.srt`,
-          `${base}${videoId}.en.vtt`,
-          `${base}${videoId}.en.json3`
+          `${base}${videoId}.en.vtt`
         ];
 
         const cacheBust = `?t=${Date.now()}`;
@@ -6579,17 +6579,76 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
             .trim();
 
           if (rawDialogue && endTime > startTime) {
-            const words = rawDialogue.split(' ').filter(Boolean);
-            const blockDur = endTime - startTime;
-            const timePerWord = blockDur / words.length;
+            const rawJoined = textLines.join(' ');
+            // 1. Kiểm tra WebVTT có timestamp nội tuyến từng từ: <00:00:01.200> hoặc <00:01.200>
+            const inlineTagRegex = /<((?:\d{1,2}:)?\d{1,2}:\d{2}(?:[.,]\d{2,3})?)>/g;
+            const hasInlineTags = inlineTagRegex.test(rawJoined);
 
-            words.forEach((w, wIdx) => {
-              tokens.push({
-                time: Number((startTime + (wIdx * timePerWord)).toFixed(3)),
-                endTime: Number(((wIdx === words.length - 1) ? endTime : (startTime + (wIdx + 1) * timePerWord)).toFixed(3)),
-                word: w
-              });
-            });
+            if (hasInlineTags) {
+              // Parse WebVTT inline timestamps
+              const parts = rawJoined.split(/(<(?:\d{1,2}:)?\d{1,2}:\d{2}(?:[.,]\d{2,3})?>)/g).filter(Boolean);
+              let curTime = startTime;
+              for (let pi = 0; pi < parts.length; pi++) {
+                const p = parts[pi].trim();
+                if (!p) continue;
+                const tagMatch = p.match(/^<((?:\d{1,2}:)?\d{1,2}:\d{2}(?:[.,]\d{2,3})?)>$/);
+                if (tagMatch) {
+                  curTime = parseTimestamp(tagMatch[1]);
+                } else {
+                  const cleanedText = p.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
+                  const pWords = cleanedText.split(' ').filter(Boolean);
+                  if (pWords.length > 0) {
+                    pWords.forEach((pw) => {
+                      tokens.push({
+                        time: Number(curTime.toFixed(3)),
+                        endTime: Number(Math.min(endTime, curTime + 0.35).toFixed(3)),
+                        word: pw
+                      });
+                    });
+                  }
+                }
+              }
+            } else {
+              // 2. SRT / VTT thông thường: Ước lượng thông minh theo trọng số độ dài từ và ngắt nghỉ dấu câu
+              const words = rawDialogue.split(' ').filter(Boolean);
+              const blockDur = endTime - startTime;
+              
+              if (words.length === 1) {
+                tokens.push({
+                  time: Number(startTime.toFixed(3)),
+                  endTime: Number(endTime.toFixed(3)),
+                  word: words[0]
+                });
+              } else {
+                // Tính trọng số cho từng từ:
+                // - Từ ngắn (1-2 chữ cái như à, de, et, en, y) phát âm nhanh (~150-200ms)
+                // - Từ dài (nhiều âm tiết như particulièrement, communication) phát âm lâu hơn
+                // - Dấu phẩy / chấm có khoảng dừng tự nhiên
+                const weights = words.map((w) => {
+                  const cleanW = w.replace(/[^\p{L}\p{N}']/gu, '');
+                  let wt = Math.max(1.8, Math.min(9.0, cleanW.length * 0.95 + 0.8));
+                  if (/[,;:]$/.test(w)) wt += 1.6;
+                  else if (/[.!?]$/.test(w)) wt += 2.2;
+                  else if (/\.\.\.$/.test(w)) wt += 1.8;
+                  return wt;
+                });
+
+                const totalWeight = weights.reduce((acc, val) => acc + val, 0);
+                let accWeight = 0;
+
+                words.forEach((w, wIdx) => {
+                  const wStart = startTime + (accWeight / totalWeight) * blockDur;
+                  accWeight += weights[wIdx];
+                  const wEnd = (wIdx === words.length - 1) ? endTime : (startTime + (accWeight / totalWeight) * blockDur);
+
+                  tokens.push({
+                    time: Number(wStart.toFixed(3)),
+                    endTime: Number(wEnd.toFixed(3)),
+                    word: w
+                  });
+                });
+              }
+            }
           }
         }
 
@@ -20383,7 +20442,7 @@ ${list}`;
       } catch (err) {}
     }
     // 2) Thử nạp từ thư mục subs/
-    var tryFiles = ['subs/' + vid + '.fr.srt', 'subs/' + vid + '.srt', 'subs/' + vid + '.fr.json3', 'subs/' + vid + '.json3'];
+    var tryFiles = ['subs/' + vid + '.fr.json3', 'subs/' + vid + '.json3', 'subs/' + vid + '.fr.json', 'subs/' + vid + '.json', 'subs/' + vid + '.fr.srt', 'subs/' + vid + '.srt'];
     for (var i = 0; i < tryFiles.length; i++) {
       try {
         var r = await fetch(tryFiles[i]);
