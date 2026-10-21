@@ -3668,7 +3668,7 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
 
           <!-- ===== Luyện video YouTube tiếng Pháp: extension hoặc phụ đề tải lên ===== -->
           <div id="own-yt-wrap" class="oy-wrap">
-            <button type="button" id="own-yt-toggle" class="ext-guide-btn oy-toggle" aria-expanded="false" aria-controls="own-yt-panel">
+            <button type="button" id="own-yt-toggle" class="ext-guide-btn oy-toggle" aria-expanded="true" aria-controls="own-yt-panel">
               <span class="ext-guide-ico">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="4"/><path d="m10 9.5 5 2.5-5 2.5z" fill="currentColor"/></svg>
               </span>
@@ -7103,7 +7103,7 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
       return result;
     }
 
-    function aicRun(sents, tokens, unitVi, mode, unitGrp) {
+    function aicRun(sents, tokens, unitVi, mode, unitGrp, sourceWordsByUnit) {
       const flat = aicFlatten(sents);
       const n = flat.length;
       if (!n) return { ok: false, error: 'Chưa có phụ đề để xử lý.' };
@@ -7126,7 +7126,8 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
           error: `Nội dung vừa dán không khớp với phụ đề gốc (chỉ khớp được ${al.exact}/${n} từ) nên chưa áp dụng. Có thể AI đã diễn đạt lại nội dung, hoặc bạn dán nhầm câu trả lời.`
         };
       }
-      const sentences = aicRebuild(flat, tokens, al, unitVi, mode === 'punct' ? { splitLong: 50 } : (mode === 'trans' ? { dropFillers: true } : null), unitGrp);
+      const dropFillers = mode === 'trans' ? { dropFillers: true, sourceWordsByUnit } : null;
+      const sentences = aicRebuild(flat, tokens, al, unitVi, mode === 'punct' ? { splitLong: 50 } : dropFillers, unitGrp);
       const tailWords = n - 1 - lastMapped;
       return {
         ok: true,
@@ -7497,33 +7498,33 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
           if (cost < bestCost - 1e-9) { bestCost = cost; best = k; }
         }
         prevPureEn = (best === n);
-        if (best > 0) pushSegs(toks.slice(0, best), 'en');
+        if (best > 0) pushSegs(toks.slice(0, best), 'source');
         if (best < n) pushSegs(toks.slice(best), 'vi');
       });
       const blocks = [];
       let cur = null;
       segs.forEach((sg) => {
-        if (sg.lang === 'en') {
-          if (!cur || cur.vi.length > 0) { cur = { en: [], vi: [] }; blocks.push(cur); }
-          cur.en.push(sg.text);
+        if (sg.lang === 'source') {
+          if (!cur || cur.vi.length > 0) { cur = { source: [], vi: [] }; blocks.push(cur); }
+          cur.source.push(sg.text);
         } else if (cur) cur.vi.push(sg.text);
       });
       const units = [];
       blocks.forEach((b, bi) => {
         let vi = b.vi;
-        if (bi === blocks.length - 1 && vi.length > b.en.length) vi = vi.slice(0, Math.max(1, b.en.length));
-        b.en.forEach((enText, k) => {
+        if (bi === blocks.length - 1 && vi.length > b.source.length) vi = vi.slice(0, Math.max(1, b.source.length));
+        b.source.forEach((sourceText, k) => {
           let v = '';
-          if (vi.length === b.en.length) v = vi[k];
-          else if (vi.length > 0 && k === b.en.length - 1) v = vi.join(' ');
-          units.push({ en: enText, vi: v.trim() });
+          if (vi.length === b.source.length) v = vi[k];
+          else if (vi.length > 0 && k === b.source.length - 1) v = vi.join(' ');
+          units.push({ source: sourceText, vi: v.trim() });
         });
       });
       // Nhóm "câu theo dấu chấm": các đoạn liên tiếp cho tới khi gặp đoạn kết thúc bằng . ? !
       let gc = 0;
       units.forEach((u) => {
         u.g = gc;
-        const tk = u.en.trim().split(/\s+/);
+        const tk = u.source.trim().split(/\s+/);
         if (aicEndsSentence(tk[tk.length - 1], '')) gc++;
       });
       return units;
@@ -7541,9 +7542,9 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
         toks.forEach((t) => { if (vocab.has(t)) inVocab++; });
         const ratio = toks.length ? inVocab / toks.length : 0;
         let lang;
-        if (ratio >= 0.6) lang = 'en';
+        if (ratio >= 0.45) lang = 'source';
         else if (AIC_VI_UNIQUE.test(text) || ratio < 0.4) lang = 'vi';
-        else lang = 'en';
+        else lang = 'source';
         return { lang, text };
       };
       const segs = [];
@@ -7560,9 +7561,9 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
       const blocks = [];
       let cur = null;
       segs.forEach((sg) => {
-        if (sg.lang === 'en') {
-          if (!cur || cur.vi.length > 0) { cur = { en: [], vi: [] }; blocks.push(cur); }
-          cur.en.push(sg.text);
+        if (sg.lang === 'source') {
+          if (!cur || cur.vi.length > 0) { cur = { source: [], vi: [] }; blocks.push(cur); }
+          cur.source.push(sg.text);
         } else if (cur) {
           cur.vi.push(sg.text);
         }
@@ -7571,12 +7572,12 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
       const units = [];
       blocks.forEach((b, bi) => {
         let vi = b.vi;
-        if (bi === blocks.length - 1 && vi.length > b.en.length) vi = vi.slice(0, Math.max(1, b.en.length));
-        b.en.forEach((enText, k) => {
+        if (bi === blocks.length - 1 && vi.length > b.source.length) vi = vi.slice(0, Math.max(1, b.source.length));
+        b.source.forEach((sourceText, k) => {
           let v = '';
-          if (vi.length === b.en.length) v = vi[k];
-          else if (vi.length > 0 && k === b.en.length - 1) v = vi.join(' ');
-          units.push({ en: enText, vi: v.trim() });
+          if (vi.length === b.source.length) v = vi[k];
+          else if (vi.length > 0 && k === b.source.length - 1) v = vi.join(' ');
+          units.push({ source: sourceText, vi: v.trim() });
         });
       });
       return units;
@@ -7587,16 +7588,17 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
       const flat = aicFlatten(sents);
       const vocab = new Set(flat.map((f) => f.norm).filter(Boolean));
       const units = aicParseBilingual(aiText, vocab, lineChunks);
-      if (!units.length) return { ok: false, error: 'Không nhận ra được các cặp câu Anh – Việt trong câu trả lời. Hãy kiểm tra lại nội dung đã dán.' };
+      if (!units.length) return { ok: false, error: 'Không nhận ra được các cặp câu tiếng Pháp – tiếng Việt trong câu trả lời. Hãy kiểm tra lại nội dung đã dán.' };
       let tokens = [];
-      const unitVi = [], unitGrp = [];
+      const unitVi = [], unitGrp = [], unitFrenchWords = [];
       units.forEach((u, idx) => {
-        tokens = tokens.concat(aicTokenize(u.en, idx));
+        tokens = tokens.concat(aicTokenize(u.source, idx));
+        unitFrenchWords.push(new Set(u.source.split(/\s+/).map(aicNorm).filter(Boolean)));
         unitVi.push(u.vi);
         unitGrp.push(u.g);
       });
       if (!unitVi.some(Boolean)) return { ok: false, error: 'Không tìm thấy phần tiếng Việt trong câu trả lời. Hãy dán cả câu tiếng Pháp lẫn bản dịch tiếng Việt của AI.' };
-      return aicRun(sents, tokens, unitVi, 'trans', (lineChunks && units[0].g !== undefined) ? unitGrp : undefined);
+      return aicRun(sents, tokens, unitVi, 'trans', (lineChunks && units[0].g !== undefined) ? unitGrp : undefined, unitFrenchWords);
     }
 
     // Tỉ lệ từ có dấu câu THẬT (không tính dấu chấm do app tự chèn theo khoảng lặng) -> phát hiện phụ đề "không dấu câu".
@@ -20324,10 +20326,7 @@ ${list}`;
   if (!wrap) return;
 
   // Luôn hiển thị trên mọi thiết bị (máy tính, điện thoại, máy tính bảng)
-  function syncVisibility() {
-    wrap.hidden = false;
-    document.documentElement.classList.toggle('own-yt-device', true);
-  }
+   function syncVisibility() { wrap.hidden = false; }
   syncVisibility();
 
   var $ = function (id) { return document.getElementById(id); };
