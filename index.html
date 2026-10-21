@@ -3374,8 +3374,7 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
 .sh-w[data-ipa].vs-w.cur::before { background: #2f5f9e; }
 </style>
 <style id="own-yt-style">
-  /* Chỉ điện thoại / iPad (JS thêm class own-yt-device lên <html>): ẩn dải hướng dẫn cài extension, hiện khối "Học bằng video Youtube của riêng bạn" */
-  html.own-yt-device #ext-install-strip { display: none !important; }
+  /* Luồng nhập video tiếng Pháp luôn hiện trên desktop và thiết bị cảm ứng; extension vẫn là đường nhập captions tự động. */
   .oy-wrap { margin: 0 auto 22px; width: 100%; max-width: 560px; }
   .oy-wrap[hidden], .oy-panel[hidden], .oy-ok[hidden], .oy-err[hidden] { display: none !important; }
   .oy-toggle { display: flex; width: 100%; justify-content: center; padding: 12px 16px 12px 11px; font-size: 15px; line-height: 1.3; text-align: left; min-height: 52px; -webkit-tap-highlight-color: transparent; }
@@ -3625,10 +3624,10 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
       <div class="text-center space-y-4 hero-title-block">
         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-950/80 border border-blue-800 text-blue-300 text-xs font-semibold tracking-wide shadow-xs">
           <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-          <span>All-in-one English Learning App</span>
+          <span>Ứng dụng luyện nghe tiếng Pháp qua YouTube</span>
         </div>
         <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white mb-2">
-          YouTube <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-rose-400 to-blue-500">Shadowing Studio</span>
+          French <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-rose-400 to-blue-500">Shadowing Studio</span>
         </h1>
       </div>
 
@@ -3667,17 +3666,17 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
             </button>
           </div>
 
-          <!-- ===== Học bằng video YouTube của riêng bạn (chỉ hiện trên điện thoại / iPad, nơi không cài được extension) ===== -->
-          <div id="own-yt-wrap" class="oy-wrap" hidden>
+          <!-- ===== Luyện video YouTube tiếng Pháp: extension hoặc phụ đề tải lên ===== -->
+          <div id="own-yt-wrap" class="oy-wrap">
             <button type="button" id="own-yt-toggle" class="ext-guide-btn oy-toggle" aria-expanded="false" aria-controls="own-yt-panel">
               <span class="ext-guide-ico">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="4"/><path d="m10 9.5 5 2.5-5 2.5z" fill="currentColor"/></svg>
               </span>
-              <span class="ext-guide-label"><span class="oy-l">Học bằng video Youtube</span> <span class="oy-l">của riêng bạn</span></span>
+                  <span class="ext-guide-label"><span class="oy-l">Luyện tiếng Pháp với video YouTube</span> <span class="oy-l">của bạn</span></span>
               <svg class="ext-guide-arrow oy-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
             </button>
 
-            <div id="own-yt-panel" class="oy-panel" hidden>
+            <div id="own-yt-panel" class="oy-panel">
               <div class="oy-step">
                 <div class="oy-step-head"><span class="oy-n">1</span><span class="oy-step-title">Link hoặc ID video YouTube</span></div>
                 <div class="oy-row">
@@ -3688,19 +3687,30 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
               </div>
 
               <div class="oy-step">
-                <div class="oy-step-head"><span class="oy-n">2</span><span class="oy-step-title">Phụ đề tiếng Pháp của video</span></div>
-                <input id="own-yt-file" type="file" class="oy-file-hidden" tabindex="-1" />
+                <div class="oy-step-head"><span class="oy-n">2</span><span class="oy-step-title">Nạp phụ đề tiếng Pháp</span></div>
+                <input id="own-yt-file" type="file" accept=".srt,.vtt,.txt,.json,.json3,.xml,.ttml,.srv1,.srv2,.srv3,.sbv,.lrc,.ass,.ssa,text/plain,text/vtt,application/json,application/x-subrip,application/xml" class="oy-file-hidden" tabindex="-1" />
                 <button type="button" id="own-yt-pick" class="oy-pick">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m17 8-5-5-5 5"/><path d="M12 3v12"/></svg>
                   <span id="own-yt-pick-label">Chọn file phụ đề từ máy</span>
                 </button>
                 <div id="own-yt-file-ok" class="oy-ok" hidden></div>
                 <div id="own-yt-file-err" class="oy-err" hidden></div>
+                <div class="oy-paste-sub-wrap" style="margin-top: 10px; margin-bottom: 10px; padding: 10px 12px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px;">
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:13px; color:#cbd5e1; font-weight:600;">Dán trực tiếp bản chép lời (Transcript) / SRT:</span>
+                    <button type="button" id="oy-toggle-paste-sub" style="font-size:12px; color:#60a5fa; font-weight:600; cursor:pointer; background:rgba(37,99,235,0.15); border:1px solid rgba(37,99,235,0.4); border-radius:6px; padding:3px 8px;">Mở ô dán</button>
+                  </div>
+                  <div id="oy-paste-sub-box" style="display:none; margin-top:8px;">
+                    <textarea id="oy-sub-textarea" rows="4" style="width:100%; border-radius:8px; background:#070d1e; border:1px solid #1e3a8a; color:#f1f5f9; padding:8px 10px; font-size:12px; font-family:monospace; resize:vertical; box-sizing:border-box;" placeholder="Dán phụ đề .srt hoặc copy bản chép lời YouTube vào đây..."></textarea>
+                    <button type="button" id="oy-apply-sub-btn" style="margin-top:6px; padding:6px 14px; background:#2563eb; color:white; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; border:none;">Áp dụng phụ đề</button>
+                  </div>
+                </div>
+
                 <a class="oy-dl" href="https://downsub.com/" target="_blank" rel="noopener noreferrer">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>
-                  <span>Chưa có phụ đề? Tải phụ đề tại <b>downsub.com</b></span>
+                  <span>Chưa có phụ đề? Tải phụ đề tiếng Pháp tại <b>downsub.com</b></span>
                 </a>
-                <div class="oy-hint">Trên downsub.com: dán link video, tải file phụ đề (SRT hoặc TXT) về máy, rồi quay lại đây bấm "Chọn file phụ đề từ máy".</div>
+                <div class="oy-hint">Có extension: mở video YouTube tiếng Pháp rồi dùng nút Shadowing Studio để gửi captions tự động, thường có timestamp từng từ chính xác hơn. Nếu không dùng extension, tải file SRT/VTT/TXT từ video rồi chọn ở đây. SRT/VTT thường chỉ có mốc thời gian theo câu nên thời gian từng từ sẽ được ước lượng.</div>
               </div>
 
               <button type="button" id="own-yt-start" class="oy-start" disabled>
@@ -9911,21 +9921,21 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
 
     // Prompt nút "Song ngữ" (xem video): vừa tách câu ngắn vừa dịch xen kẽ Anh - Việt
     const AI_PROMPT_BILINGUAL = [
-      'Thêm dấu câu và dịch đoạn phụ đề sau, theo thứ tự: một câu tiếng Pháp gốc, ngay dưới là một câu tiếng Việt, xen kẽ nhau.',
+      'Thêm dấu câu và dịch đoạn phụ đề tiếng Pháp sau, theo thứ tự: một câu tiếng Pháp gốc, ngay dưới là một câu tiếng Việt, xen kẽ nhau.',
       'QUY TẮC TÁCH CÂU:',
       '',
-      '1. Bỏ "um", "uh", "[music]", còn lại thì đừng bỏ từ gì ở phụ đề gốc (nếu có "you know" hoặc "I mean" thì vẫn giữ chứ đừng bỏ).',
+      '1. Chỉ bỏ các từ đệm "euh", "bah", "um", "uh" và chú thích âm thanh "[music]" hoặc "[musique]". Còn lại tuyệt đối không bỏ từ nào trong phụ đề tiếng Pháp; giữ cả những cụm như "tu sais" hoặc "je veux dire".',
       '',
-      '2. Nếu thấy câu dài hơn 25 từ, hãy chia nhỏ nó ra thành hai (hay nhiều) mệnh đề và dịch riêng từng mệnh đề (mỗi mệnh đề một hàng và bên dưới nó là bản dịch tiếng việt của riêng nó) (yêu cầu này quan trọng, không được quên).',
-      '3. Dấu câu bản dịch tiếng Việt phải bám theo phụ đề tiếng Pháp, nếu phụ đề tiếng Pháp dùng dấu chấm thì bản dịch tiếng Việt cũng dùng dấu chấm, tương tự với dấu câu khác.',
+      '2. Nếu câu dài hơn 25 từ, hãy chia thành hai hoặc nhiều mệnh đề trọn nghĩa và dịch riêng từng mệnh đề. Mỗi mệnh đề tiếng Pháp một hàng, ngay bên dưới là bản dịch tiếng Việt tương ứng. Không được bỏ qua quy tắc này.',
+      '3. Dấu câu bản dịch tiếng Việt phải bám theo câu tiếng Pháp tương ứng: câu gốc dùng dấu chấm thì bản dịch cũng dùng dấu chấm; áp dụng tương tự với dấu hỏi, dấu chấm than và các dấu câu khác.',
       '',
       'QUY TẮC DỊCH:',
-      'Dịch tự nhiên, đúng ngữ cảnh, mỗi câu tiếng Việt tương ứng đúng một câu tiếng Pháp vừa tách.',
+      'Dịch tự nhiên, đúng ngữ cảnh. Mỗi câu tiếng Việt phải tương ứng đúng với một câu hoặc mệnh đề tiếng Pháp vừa tách.',
       'Không thêm lời giải thích hay ghi chú.',
       '',
       'ĐỊNH DẠNG ĐẦU RA (lặp lại cho mọi câu):',
-      '[câu tiếng Pháp]',
-      '[câu tiếng Việt]',
+      '[câu hoặc mệnh đề tiếng Pháp]',
+      '[bản dịch tiếng Việt tương ứng]',
       '',
       'Phụ đề cần xử lý:'
     ].join('\n');
@@ -20313,21 +20323,12 @@ ${list}`;
   var wrap = document.getElementById('own-yt-wrap');
   if (!wrap) return;
 
-  // Chỉ hiện trên điện thoại / máy tính bảng (không cài được extension). iPadOS 13+ tự xưng là "MacIntel" nhưng có cảm ứng đa điểm.
-  function isPhoneOrTablet() {
-    var ua = navigator.userAgent || '';
-    if (/Android|iPhone|iPad|iPod|Mobile|Tablet/i.test(ua)) return true;
-    if (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) return true;
-    try { return matchMedia('(pointer:coarse)').matches && !matchMedia('(hover:hover)').matches; } catch (e) { return false; }
-  }
-  function extPresent() { return document.documentElement.dataset.shadowingExtension === '1'; }
+  // Luôn hiển thị trên mọi thiết bị (máy tính, điện thoại, máy tính bảng)
   function syncVisibility() {
-    var show = isPhoneOrTablet() && !extPresent();
-    wrap.hidden = !show;
-    document.documentElement.classList.toggle('own-yt-device', show);
+    wrap.hidden = false;
+    document.documentElement.classList.toggle('own-yt-device', true);
   }
   syncVisibility();
-  try { new MutationObserver(syncVisibility).observe(document.documentElement, { attributes: true, attributeFilter: ['data-shadowing-extension'] }); } catch (e) {}
 
   var $ = function (id) { return document.getElementById(id); };
   var toggle = $('own-yt-toggle'), panel = $('own-yt-panel');
@@ -20366,11 +20367,87 @@ ${list}`;
     startBtn.disabled = !!hStart.disabled;
   }
 
+  var lastCheckedVid = '';
+  async function autoDetectSubtitles(vid) {
+    if (!vid || vid === lastCheckedVid) return;
+    lastCheckedVid = vid;
+    // 1) Thử dò trong catalog/thư viện sẵn có
+    if (typeof selectCategoryVideo === 'function' && typeof isLibraryVideo === 'function' && isLibraryVideo(vid)) {
+      urlFb.innerHTML = '<span class="ok">Video ID: <b style="font-family:monospace">' + vid + '</b> · Đang nạp từ thư viện...</span>';
+      try {
+        var ok = await selectCategoryVideo(vid, null, null);
+        if (ok) {
+          urlFb.innerHTML = '<span class="ok">Video ID: <b style="font-family:monospace">' + vid + '</b> · ✓ Đã tự động nạp ' + sentences.length + ' câu từ thư viện!</span>';
+          refresh();
+          return;
+        }
+      } catch (err) {}
+    }
+    // 2) Thử nạp từ thư mục subs/
+    var tryFiles = ['subs/' + vid + '.fr.srt', 'subs/' + vid + '.srt', 'subs/' + vid + '.fr.json3', 'subs/' + vid + '.json3'];
+    for (var i = 0; i < tryFiles.length; i++) {
+      try {
+        var r = await fetch(tryFiles[i]);
+        if (r.ok) {
+          var txt = await r.text();
+          if (txt && !txt.trim().toLowerCase().startsWith('<!doctype')) {
+            var parsed = parseAnySubtitle(tryFiles[i], txt);
+            if (parsed && parsed.sentences && parsed.sentences.length) {
+              sentences = parsed.sentences;
+              subtitleFormat = parsed.format;
+              currentVideoId = vid;
+              hBadgeTxt.textContent = 'Tự động nạp: ' + parsed.sentences.length + ' câu';
+              hBadge.classList.remove('hidden');
+              urlFb.innerHTML = '<span class="ok">Video ID: <b style="font-family:monospace">' + vid + '</b> · ✓ Đã tìm thấy phụ đề có sẵn (' + parsed.sentences.length + ' câu)!</span>';
+              if (typeof checkStartReady === 'function') checkStartReady();
+              refresh();
+              return;
+            }
+          }
+        }
+      } catch (e) {}
+    }
+  }
+
   urlIn.addEventListener('input', function () {
     hUrl.value = urlIn.value;
-    hUrl.dispatchEvent(new Event('input'));   // app tự kiểm tra ID + bật/tắt nút bắt đầu
+    hUrl.dispatchEvent(new Event('input'));
+    var vid = idOf(urlIn.value.trim());
+    if (vid) autoDetectSubtitles(vid);
     refresh();
   });
+
+  // Xử lý dán transcript trực tiếp
+  var togglePasteBtn = $('oy-toggle-paste-sub'), pasteBox = $('oy-paste-sub-box');
+  var subTextarea = $('oy-sub-textarea'), applySubBtn = $('oy-apply-sub-btn');
+  if (togglePasteBtn && pasteBox) {
+    togglePasteBtn.addEventListener('click', function () {
+      var isHidden = pasteBox.style.display === 'none';
+      pasteBox.style.display = isHidden ? 'block' : 'none';
+      togglePasteBtn.textContent = isHidden ? 'Thu gọn' : 'Mở ô dán';
+      if (isHidden && subTextarea) subTextarea.focus();
+    });
+  }
+  if (applySubBtn && subTextarea) {
+    applySubBtn.addEventListener('click', function () {
+      var raw = subTextarea.value.trim();
+      if (!raw) { alert('Vui lòng dán nội dung phụ đề hoặc bản chép lời vào ô trước.'); return; }
+      var parsed = typeof parseAnySubtitle === 'function' ? parseAnySubtitle('pasted.txt', raw) : null;
+      if (parsed && parsed.sentences && parsed.sentences.length > 0) {
+        sentences = parsed.sentences;
+        subtitleFormat = parsed.format;
+        currentVideoId = idOf(urlIn.value.trim()) || currentVideoId || 'custom';
+        hBadgeTxt.textContent = 'Từ văn bản dán: ' + parsed.sentences.length + ' câu (' + parsed.format.toUpperCase() + ')';
+        hBadge.classList.remove('hidden');
+        if (hErr) hErr.classList.add('hidden');
+        if (typeof checkStartReady === 'function') checkStartReady();
+        refresh();
+        alert('Đã nhận diện thành công ' + parsed.sentences.length + ' câu phụ đề! Bấm "Bắt đầu luyện tập" để học.');
+      } else {
+        alert('Không nhận dạng được định dạng phụ đề vừa dán. Hãy kiểm tra lại bản chép lời hoặc file SRT.');
+      }
+    });
+  }
   // Nếu app tự điền link từ tên file phụ đề (có ID 11 ký tự), kéo ngược về ô của mình
   hUrl.addEventListener('input', function () { if (urlIn.value !== hUrl.value) { urlIn.value = hUrl.value; } refresh(); });
 
