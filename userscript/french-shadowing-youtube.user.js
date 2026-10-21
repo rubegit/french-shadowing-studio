@@ -1,21 +1,21 @@
 // ==UserScript==
 // @name         French Shadowing Studio - Trợ thủ YouTube (Word Timestamps & 1-Click Import)
 // @namespace    https://french-shadowing-studio.vercel.app/
-// @version      1.0.0
+// @version      1.1.0
 // @description  Tự động trích xuất phụ đề tiếng Pháp dạng JSON3 (chuẩn word-level timestamp) trên YouTube: Tải file .json3 về máy hoặc 1-click chuyển video sang French Shadowing Studio để luyện tập.
 // @author       French Shadowing Studio
-// @match        https://www.youtube.com/*
-// @match        https://french-shadowing-studio.vercel.app/*
+// @match        *://*.youtube.com/*
+// @match        *://french-shadowing-studio.vercel.app/*
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_deleteValue
-// @grant        GM_setClipboard
 // @run-at       document-idle
 // ==/UserScript==
 
 (function () {
   'use strict';
 
+  console.log('[French Shadowing Studio] Userscript đang chạy trên:', location.href);
   var STUDIO_URL = 'https://french-shadowing-studio.vercel.app/';
 
   // =========================================================================
@@ -26,8 +26,9 @@
       try {
         var pending = GM_getValue('PENDING_SHADOWING_IMPORT', null);
         if (pending && pending.videoId) {
+          console.log('[French Shadowing Studio] Phát hiện gói import từ YouTube:', pending.videoId);
           GM_deleteValue('PENDING_SHADOWING_IMPORT');
-          var maxWait = 50; // đợi tối đa 5s để app sẵn sàng
+          var maxWait = 50;
           var timer = setInterval(function () {
             maxWait--;
             if (document.getElementById('input-youtube-url') || maxWait <= 0) {
@@ -37,7 +38,7 @@
           }, 100);
         }
       } catch (e) {
-        console.error('[French Shadowing Userscript] Lỗi nhận import:', e);
+        console.error('[French Shadowing Studio] Lỗi nhận import:', e);
       }
     }
     checkPendingImport();
@@ -46,9 +47,10 @@
   }
 
   // =========================================================================
-  // 2. NẾU ĐANG Ở TRANG YOUTUBE: THÊM NÚT VÀO GIAO DIỆN VIDEO
+  // 2. NẾU ĐANG Ở TRANG YOUTUBE: THÊM NÚT VÀO GIAO DIỆN
   // =========================================================================
-  var BTN_CONTAINER_ID = 'fss-yt-helper-toolbar';
+  var INLINE_BAR_ID = 'fss-yt-inline-toolbar';
+  var FLOAT_BAR_ID = 'fss-yt-float-pill';
 
   function getVideoId() {
     var urlParams = new URLSearchParams(window.location.search);
@@ -65,9 +67,7 @@
     if (player && typeof player.getPlayerResponse === 'function') {
       try { pr = player.getPlayerResponse(); } catch (e) {}
     }
-    if (!pr && window.ytInitialPlayerResponse) {
-      pr = window.ytInitialPlayerResponse;
-    }
+    if (!pr && window.ytInitialPlayerResponse) pr = window.ytInitialPlayerResponse;
     if (!pr || (pr.videoDetails && pr.videoDetails.videoId !== videoId)) {
       try {
         var resp = await fetch('https://www.youtube.com/watch?v=' + videoId);
@@ -85,36 +85,30 @@
   function selectFrenchTrack(tracks) {
     if (!tracks || !tracks.length) return null;
 
-    // Ưu tiên 1: Phụ đề thủ công tiếng Pháp (chính xác nhất)
     var manual = tracks.find(function (t) {
       return (t.languageCode === 'fr' || (t.languageCode && t.languageCode.startsWith('fr-'))) && t.kind !== 'asr';
     });
     if (manual) return { track: manual, type: 'manual' };
 
-    // Ưu tiên 2: Phụ đề ASR tự động tiếng Pháp (có timestamp từng từ chuẩn)
     var asr = tracks.find(function (t) {
       return (t.languageCode === 'fr' || (t.languageCode && t.languageCode.startsWith('fr-'))) && t.kind === 'asr';
     });
     if (asr) return { track: asr, type: 'asr' };
 
-    // Ưu tiên 3: Bất kỳ phụ đề tiếng Pháp nào
     var anyFr = tracks.find(function (t) {
       return (t.languageCode || '').toLowerCase().startsWith('fr');
     });
     if (anyFr) return { track: anyFr, type: 'fr' };
 
-    // Ưu tiên 4: Dịch tự động track có sẵn sang tiếng Pháp (&tlang=fr)
     if (tracks[0] && tracks[0].baseUrl) {
       var transTrack = Object.assign({}, tracks[0]);
       transTrack.baseUrl = tracks[0].baseUrl + '&tlang=fr';
       transTrack.name = { simpleText: 'Français (Dịch tự động)' };
       return { track: transTrack, type: 'auto-translate' };
     }
-
     return null;
   }
 
-  // Tải JSON3 từ baseUrl
   async function fetchJson3(baseUrl) {
     var url = baseUrl;
     if (!url.includes('fmt=json3')) {
@@ -125,26 +119,6 @@
     return await res.json();
   }
 
-  // Hiển thị thông báo nhỏ (Toast) trên YouTube
-  function showToast(msg, isError) {
-    var toast = document.getElementById('fss-toast');
-    if (!toast) {
-      toast = document.createElement('div');
-      toast.id = 'fss-toast';
-      toast.style.cssText = 'position:fixed;bottom:24px;left:24px;z-index:9999999;padding:12px 18px;border-radius:10px;font-size:14px;font-weight:600;font-family:sans-serif;box-shadow:0 10px 30px rgba(0,0,0,0.5);transition:all 0.3s;pointer-events:none;color:#fff;';
-      document.body.appendChild(toast);
-    }
-    toast.textContent = msg;
-    toast.style.background = isError ? 'rgba(239, 68, 68, 0.95)' : 'rgba(37, 99, 235, 0.95)';
-    toast.style.opacity = '1';
-    toast.style.transform = 'translateY(0)';
-    setTimeout(function () {
-      toast.style.opacity = '0';
-      toast.style.transform = 'translateY(10px)';
-    }, 3500);
-  }
-
-  // Kích hoạt tải file về máy
   function triggerDownload(filename, text) {
     var blob = new Blob([text], { type: 'application/json;charset=utf-8' });
     var url = URL.createObjectURL(blob);
@@ -157,143 +131,185 @@
     URL.revokeObjectURL(url);
   }
 
-  // Vẽ nút lên trang YouTube
-  function injectToolbar() {
-    var vid = getVideoId();
-    if (!vid) return;
-
-    if (document.getElementById(BTN_CONTAINER_ID)) {
-      var oldVid = document.getElementById(BTN_CONTAINER_ID).getAttribute('data-vid');
-      if (oldVid === vid) return;
-      document.getElementById(BTN_CONTAINER_ID).remove();
+  function showToast(msg, isError) {
+    var toast = document.getElementById('fss-toast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'fss-toast';
+      toast.style.cssText = 'position:fixed;bottom:80px;right:24px;z-index:99999999;padding:12px 18px;border-radius:10px;font-size:14px;font-weight:600;font-family:sans-serif;box-shadow:0 10px 30px rgba(0,0,0,0.5);transition:all 0.3s;pointer-events:none;color:#fff;';
+      document.body.appendChild(toast);
     }
+    toast.textContent = msg;
+    toast.style.background = isError ? 'rgba(239, 68, 68, 0.95)' : 'rgba(37, 99, 235, 0.95)';
+    toast.style.opacity = '1';
+    toast.style.transform = 'translateY(0)';
+    setTimeout(function () {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateY(10px)';
+    }, 3500);
+  }
 
-    // Tìm vị trí thích hợp trên giao diện YouTube (dưới tiêu đề, cạnh nút Like/Share hoặc ở phần owner)
-    var target = document.querySelector('#actions #top-level-buttons-computed') ||
-                 document.querySelector('#actions-inner') ||
-                 document.querySelector('#above-the-fold #owner') ||
-                 document.querySelector('#meta-contents') ||
-                 document.querySelector('ytd-watch-metadata');
+  // Hành động Luyện tập
+  async function handlePractice(vid, btnEl) {
+    var origHtml = btnEl.innerHTML;
+    btnEl.innerHTML = '⏳ Đang nạp...';
+    showToast('Đang trích xuất phụ đề tiếng Pháp dạng JSON3...');
 
-    if (!target) return;
+    try {
+      var info = await getCaptionTracks(vid);
+      var chosen = selectFrenchTrack(info.tracks);
+      if (!chosen) throw new Error('Video không có phụ đề tiếng Pháp (kể cả tự động dịch).');
 
-    var wrap = document.createElement('div');
-    wrap.id = BTN_CONTAINER_ID;
-    wrap.setAttribute('data-vid', vid);
-    wrap.style.cssText = 'display:inline-flex;align-items:center;gap:8px;margin:8px 0;padding:4px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:12px;backdrop-filter:blur(8px);';
+      var json3 = await fetchJson3(chosen.track.baseUrl);
+      var pr = info.playerResponse;
+      var payload = {
+        videoId: vid,
+        title: (pr && pr.videoDetails && pr.videoDetails.title) || document.title.replace(' - YouTube', ''),
+        raw: json3,
+        channelTitle: (pr && pr.videoDetails && pr.videoDetails.author) || '',
+        duration: (pr && pr.videoDetails && parseInt(pr.videoDetails.lengthSeconds, 10)) || 0
+      };
 
-    // 1. Nút "Luyện trên Studio"
-    var btnOpen = document.createElement('button');
-    btnOpen.type = 'button';
-    btnOpen.innerHTML = '<span style="font-size:15px">🇫🇷</span> <span style="font-weight:700">Luyện Shadowing</span>';
-    btnOpen.title = 'Mở video này trên French Shadowing Studio với phụ đề word-level timestamp chuẩn xác';
-    btnOpen.style.cssText = 'display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;border:none;background:linear-gradient(135deg, #e11d48, #2563eb);color:#fff;font-size:13px;cursor:pointer;transition:transform 0.15s, opacity 0.15s;';
-    btnOpen.onmouseover = function () { btnOpen.style.opacity = '0.9'; };
-    btnOpen.onmouseout = function () { btnOpen.style.opacity = '1'; };
+      GM_setValue('PENDING_SHADOWING_IMPORT', payload);
+      var studioTab = window.open(STUDIO_URL, '_blank');
 
-    // 2. Nút "Tải .json3"
-    var btnDl = document.createElement('button');
-    btnDl.type = 'button';
-    btnDl.innerHTML = '<span style="font-size:13px">⬇️</span> <span style="font-weight:600">Tải .json3</span>';
-    btnDl.title = 'Tải file phụ đề JSON3 (chứa timestamp chính xác từng từ) về máy';
-    btnDl.style.cssText = 'display:inline-flex;align-items:center;gap:5px;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:#e2e8f0;font-size:13px;cursor:pointer;transition:background 0.15s;';
-    btnDl.onmouseover = function () { btnDl.style.background = 'rgba(255,255,255,0.15)'; };
-    btnDl.onmouseout = function () { btnDl.style.background = 'rgba(255,255,255,0.08)'; };
-
-    // Xử lý sự kiện click
-    btnOpen.addEventListener('click', async function () {
-      btnOpen.disabled = true;
-      btnOpen.innerHTML = '⏳ <span>Đang lấy phụ đề...</span>';
-      showToast('Đang tải phụ đề tiếng Pháp dạng JSON3...');
-
-      try {
-        var info = await getCaptionTracks(vid);
-        var chosen = selectFrenchTrack(info.tracks);
-        if (!chosen) {
-          throw new Error('Video này không có phụ đề tiếng Pháp nào (kể cả phụ đề tự động dịch).');
+      var tries = 0;
+      var timer = setInterval(function () {
+        tries++;
+        if (studioTab && !studioTab.closed) {
+          try { studioTab.postMessage({ type: 'SHADOWING_IMPORT', payload: payload }, '*'); } catch (e) {}
         }
+        if (tries >= 20) clearInterval(timer);
+      }, 300);
 
-        var json3 = await fetchJson3(chosen.track.baseUrl);
-        var pr = info.playerResponse;
-        var payload = {
-          videoId: vid,
-          title: (pr && pr.videoDetails && pr.videoDetails.title) || document.title.replace(' - YouTube', ''),
-          raw: json3,
-          channelTitle: (pr && pr.videoDetails && pr.videoDetails.author) || '',
-          duration: (pr && pr.videoDetails && parseInt(pr.videoDetails.lengthSeconds, 10)) || 0
-        };
-
-        // Lưu vào bộ nhớ Userscript để tab mới tự đọc
-        GM_setValue('PENDING_SHADOWING_IMPORT', payload);
-
-        // Mở French Shadowing Studio trong tab mới
-        var studioTab = window.open(STUDIO_URL, '_blank');
-
-        // Gửi qua postMessage dự phòng trong 5s đầu
-        var tries = 0;
-        var timer = setInterval(function () {
-          tries++;
-          if (studioTab && !studioTab.closed) {
-            try {
-              studioTab.postMessage({ type: 'SHADOWING_IMPORT', payload: payload }, '*');
-            } catch (e) {}
-          }
-          if (tries >= 20) clearInterval(timer);
-        }, 300);
-
-        showToast('✓ Đã nạp thành công! Đang chuyển sang Studio...');
-      } catch (err) {
-        showToast('❌ ' + err.message, true);
-        console.error(err);
-      } finally {
-        btnOpen.disabled = false;
-        btnOpen.innerHTML = '<span style="font-size:15px">🇫🇷</span> <span style="font-weight:700">Luyện Shadowing</span>';
-      }
-    });
-
-    btnDl.addEventListener('click', async function () {
-      btnDl.disabled = true;
-      btnDl.innerHTML = '⏳ <span>Đang tải...</span>';
-      showToast('Đang tải file .json3 từ YouTube...');
-
-      try {
-        var info = await getCaptionTracks(vid);
-        var chosen = selectFrenchTrack(info.tracks);
-        if (!chosen) {
-          throw new Error('Video này không có phụ đề tiếng Pháp nào.');
-        }
-
-        var json3 = await fetchJson3(chosen.track.baseUrl);
-        triggerDownload(vid + '.fr.json3', JSON.stringify(json3, null, 2));
-        showToast('✓ Đã tải file ' + vid + '.fr.json3 thành công!');
-      } catch (err) {
-        showToast('❌ ' + err.message, true);
-        console.error(err);
-      } finally {
-        btnDl.disabled = false;
-        btnDl.innerHTML = '<span style="font-size:13px">⬇️</span> <span style="font-weight:600">Tải .json3</span>';
-      }
-    });
-
-    wrap.appendChild(btnOpen);
-    wrap.appendChild(btnDl);
-
-    // Chèn vào vị trí thích hợp
-    if (target.firstChild) {
-      target.insertBefore(wrap, target.firstChild);
-    } else {
-      target.appendChild(wrap);
+      showToast('✓ Đã nạp thành công! Đang chuyển sang Studio...');
+    } catch (err) {
+      showToast('❌ ' + err.message, true);
+      console.error(err);
+    } finally {
+      btnEl.innerHTML = origHtml;
     }
   }
 
-  // Lắng nghe thay đổi trang của YouTube (SPA navigation)
-  window.addEventListener('yt-navigate-finish', injectToolbar);
-  window.addEventListener('load', injectToolbar);
-  setInterval(function () {
-    var vid = getVideoId();
-    if (vid && !document.getElementById(BTN_CONTAINER_ID)) {
-      injectToolbar();
+  // Hành động Tải file .json3
+  async function handleDownload(vid, btnEl) {
+    var origHtml = btnEl.innerHTML;
+    btnEl.innerHTML = '⏳ Đang tải...';
+    showToast('Đang tải file .json3 từ YouTube...');
+
+    try {
+      var info = await getCaptionTracks(vid);
+      var chosen = selectFrenchTrack(info.tracks);
+      if (!chosen) throw new Error('Video không có phụ đề tiếng Pháp.');
+
+      var json3 = await fetchJson3(chosen.track.baseUrl);
+      triggerDownload(vid + '.fr.json3', JSON.stringify(json3, null, 2));
+      showToast('✓ Đã tải file ' + vid + '.fr.json3 thành công!');
+    } catch (err) {
+      showToast('❌ ' + err.message, true);
+      console.error(err);
+    } finally {
+      btnEl.innerHTML = origHtml;
     }
-  }, 1200);
+  }
+
+  // 1. Tạo thanh công cụ nổi (Floating Pill) ở góc dưới phải màn hình (KHÔNG BAO GIỜ BỊ ẨN)
+  function injectFloatingPill(vid) {
+    if (document.getElementById(FLOAT_BAR_ID)) {
+      var old = document.getElementById(FLOAT_BAR_ID).getAttribute('data-vid');
+      if (old === vid) return;
+      document.getElementById(FLOAT_BAR_ID).remove();
+    }
+
+    var pill = document.createElement('div');
+    pill.id = FLOAT_BAR_ID;
+    pill.setAttribute('data-vid', vid);
+    pill.style.cssText = 'position:fixed;bottom:26px;right:26px;z-index:9999999;display:flex;align-items:center;gap:8px;padding:6px 10px;background:rgba(15,23,42,0.92);border:1.5px solid rgba(59,130,246,0.65);border-radius:999px;box-shadow:0 8px 30px rgba(0,0,0,0.65);backdrop-filter:blur(10px);font-family:system-ui,-apple-system,sans-serif;animation:fssFadeIn 0.3s ease;';
+
+    pill.innerHTML = `
+      <style>
+        @keyframes fssFadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+        .fss-btn-glow:hover { transform: scale(1.03); filter: brightness(1.1); }
+        .fss-btn-glow:active { transform: scale(0.97); }
+      </style>
+      <button type="button" id="fss-float-practice" class="fss-btn-glow" style="display:flex;align-items:center;gap:6px;padding:8px 15px;border-radius:999px;border:none;background:linear-gradient(135deg, #e11d48, #2563eb);color:#fff;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.15s;">
+        <span>🇫🇷</span><span>Luyện Shadowing</span>
+      </button>
+      <button type="button" id="fss-float-dl" class="fss-btn-glow" style="display:flex;align-items:center;gap:5px;padding:8px 12px;border-radius:999px;border:1px solid rgba(255,255,255,0.22);background:rgba(255,255,255,0.1);color:#e2e8f0;font-size:12.5px;font-weight:600;cursor:pointer;transition:all 0.15s;">
+        <span>⬇️</span><span>.json3</span>
+      </button>
+    `;
+
+    document.body.appendChild(pill);
+
+    pill.querySelector('#fss-float-practice').addEventListener('click', function () {
+      handlePractice(vid, this);
+    });
+    pill.querySelector('#fss-float-dl').addEventListener('click', function () {
+      handleDownload(vid, this);
+    });
+  }
+
+  // 2. Chèn thanh công cụ inline ngay cạnh tiêu đề/nút kênh dưới video
+  function injectInlineToolbar(vid) {
+    if (document.getElementById(INLINE_BAR_ID)) {
+      var old = document.getElementById(INLINE_BAR_ID).getAttribute('data-vid');
+      if (old === vid) return;
+      document.getElementById(INLINE_BAR_ID).remove();
+    }
+
+    var target = document.querySelector('#owner') ||
+                 document.querySelector('#top-row') ||
+                 document.querySelector('#above-the-fold') ||
+                 document.querySelector('#title');
+
+    if (!target) return;
+
+    var bar = document.createElement('div');
+    bar.id = INLINE_BAR_ID;
+    bar.setAttribute('data-vid', vid);
+    bar.style.cssText = 'display:inline-flex;align-items:center;gap:8px;margin:8px 0;padding:5px 8px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);border-radius:12px;backdrop-filter:blur(8px);font-family:system-ui,-apple-system,sans-serif;';
+
+    bar.innerHTML = `
+      <button type="button" id="fss-inline-practice" style="display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;border:none;background:linear-gradient(135deg, #e11d48, #2563eb);color:#fff;font-size:13px;font-weight:700;cursor:pointer;">
+        <span>🇫🇷</span><span>Luyện Shadowing</span>
+      </button>
+      <button type="button" id="fss-inline-dl" style="display:flex;align-items:center;gap:5px;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.1);color:#e2e8f0;font-size:13px;font-weight:600;cursor:pointer;">
+        <span>⬇️</span><span>Tải .json3</span>
+      </button>
+    `;
+
+    if (target.nextSibling) {
+      target.parentNode.insertBefore(bar, target.nextSibling);
+    } else {
+      target.appendChild(bar);
+    }
+
+    bar.querySelector('#fss-inline-practice').addEventListener('click', function () {
+      handlePractice(vid, this);
+    });
+    bar.querySelector('#fss-inline-dl').addEventListener('click', function () {
+      handleDownload(vid, this);
+    });
+  }
+
+  function renderAll() {
+    var vid = getVideoId();
+    if (!vid) {
+      var fl = document.getElementById(FLOAT_BAR_ID);
+      if (fl) fl.remove();
+      var inl = document.getElementById(INLINE_BAR_ID);
+      if (inl) inl.remove();
+      return;
+    }
+    injectFloatingPill(vid);
+    injectInlineToolbar(vid);
+  }
+
+  // Lắng nghe thay đổi trang của YouTube
+  window.addEventListener('yt-navigate-finish', renderAll);
+  window.addEventListener('load', renderAll);
+  document.addEventListener('DOMContentLoaded', renderAll);
+  setInterval(renderAll, 1200);
 
 })();
