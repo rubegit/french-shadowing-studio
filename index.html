@@ -2356,7 +2356,7 @@ body:not(.bk-hl-saved) .bk-w.bk-saved { text-decoration:none; background:none; }
       #screen-practice header > div { flex-wrap: nowrap; row-gap: 0; }
       #screen-practice header > div:last-child { justify-content: flex-start; }
       #panel-left > div:nth-of-type(2), #panel-left > div:nth-of-type(3) { zoom: 1; }
-      #subtitles-scroll-container { padding: 12px; }
+      #subtitles-scroll-container { padding: 10px 12px calc(70px + env(safe-area-inset-bottom, 16px)) !important; }
     }
 
     /* ---- Điện thoại / iPad dọc: video ghim trên cùng, nút điều khiển ngay dưới, phụ đề chiếm phần còn lại ---- */
@@ -2377,6 +2377,9 @@ body:not(.bk-hl-saved) .bk-w.bk-saved { text-decoration:none; background:none; }
       body:not(.text-mode) #video-frame-wrapper { overflow: visible; }
       #video-frame-wrapper iframe { border-radius: 14px; background: #000; }
 
+      body:not(.text-mode) #cs-card {
+        order: 0; margin: 0 0 8px 0; flex-shrink: 0;
+      }
       body:not(.text-mode) #video-frame-wrapper {
         order: 1; position: sticky; top: 0; z-index: 15;
         width: calc(var(--vid-h) * 1.7778); max-width: 100%; margin: 0 auto; height: var(--vid-h);
@@ -2390,7 +2393,7 @@ body:not(.bk-hl-saved) .bk-w.bk-saved { text-decoration:none; background:none; }
 
       body:not(.text-mode) #panel-right {
         /* Phần phụ đề vừa khít phần màn hình còn lại (--sub-avail do JS đo ở cuối file); ô tìm kiếm cộng thêm bên dưới nên nằm ngoài màn hình, cuộn xuống mới thấy */
-        order: 3; flex: 0 0 auto; width: 100% !important; height: calc(var(--sub-avail, max(300px, calc(100dvh - var(--vid-h) - 150px))) + var(--sub-search-h, 76px) + 3px);
+        order: 3; flex: 0 0 auto; width: 100% !important; height: calc(var(--sub-avail, max(180px, calc(100dvh - var(--vid-h) - 150px))) + var(--sub-search-h, 76px) + 3px);
         min-height: 0;
       }
       /* Tự dừng cuối câu + Tốc độ phát, Ghi âm, ... nằm dưới phụ đề (vuốt xuống để dùng) */
@@ -3309,15 +3312,15 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
   body:not(.text-mode) #cs-card { display: block; }
   #cs-card.empty { display: none !important; }
   @media (max-width: 768px) {
-    .cs-card { padding: 12px 14px 10px; border-radius: 12px; margin-top: 10px; }
-    .cs-text { font-size: 16px; line-height: 1.45; }
-    .cs-nav { gap: 6px; margin-top: 8px; padding-top: 8px; }
-    .cs-nav .dc-btn { padding: 6px 10px; font-size: 12px; }
-    .cs-auto { font-size: 12px; gap: 6px; }
+    .cs-card { padding: 8px 12px 6px; border-radius: 12px; margin-top: 4px; }
+    .cs-text { font-size: 15px; line-height: 1.35; }
+    .cs-nav { gap: 6px; margin-top: 6px; padding-top: 6px; }
+    .cs-nav .dc-btn { padding: 5px 9px; font-size: 12px; }
+    .cs-auto { font-size: 12px; gap: 5px; }
     .cs-auto .sw { width: 30px; height: 18px; }
     .cs-auto .sw::after { width: 12px; height: 12px; }
     .cs-auto[aria-checked="true"] .sw::after { transform: translateX(12px); }
-    .cs-ts { margin-top: 6px; padding-top: 6px; }
+    .cs-ts { margin-top: 5px; padding-top: 5px; }
   }
   .cs-card { position: relative; flex: none; min-width: 0; padding: 18px 22px 14px; border-radius: 16px; background: #091024; border: 1px solid #1e293b; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, .3); }
   .cs-text { min-width: 0; text-align: center; font-size: calc(var(--sub-font-size, 19px) * 1.15); line-height: 1.5; font-weight: 600; color: #f1f5f9; user-select: text; -webkit-user-select: text; overflow-wrap: anywhere; }
@@ -9216,7 +9219,7 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
           const scrollTarget = activeIndex;
           if (lastReportedScrollTarget !== scrollTarget) {
             lastReportedScrollTarget = scrollTarget;
-            if (settings.autoScroll && !shouldPreventAutoScroll() && !settings.karaokeMode) {
+            if (settings.autoScroll && !shouldPreventAutoScroll()) {
               triggerSmoothCenterScroll(scrollTarget);
             }
           }
@@ -9252,13 +9255,19 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
         if (activeWord) {
           activeWord.classList.add('karaoke-word-active');
           
-          // CUỘN TỨC THÌ THEO TỪNG HÀNG XUỐNG DÒNG (ITEM 1)
+          // CUỘN TỨC THÌ THEO TỪNG HÀNG XUỐNG DÒNG HOẶC KHI TỪ BỊ SÁT MÉP DƯỚI (ITEM 1)
           if (settings.autoScroll && !shouldPreventAutoScroll()) {
             const currentLineTop = activeWord.offsetTop;
 
-            // Nếu phát hiện từ này đã rớt sang một dòng mới (chênh lệch trục dọc offsetTop > 8px)
-            if (lastTrackedLineTop !== -1 && Math.abs(currentLineTop - lastTrackedLineTop) > 8) {
-              // Căn chỉnh dòng mới đó trượt nhẹ về mốc 33% tầm mắt
+            const containerRect = container.getBoundingClientRect();
+            const wordRect = activeWord.getBoundingClientRect();
+            const viewportBottom = window.innerHeight || document.documentElement.clientHeight;
+            const effectiveBottom = Math.min(containerRect.bottom, viewportBottom - 15);
+            const isDangerouslyLow = wordRect.bottom > effectiveBottom - 35;
+            const isAboveView = wordRect.top < containerRect.top + 10;
+
+            // Nếu phát hiện từ này sang dòng mới, chưa có mốc dòng (-1), hoặc từ bị che/sát mép màn hình: cuộn ngay lập tức
+            if (lastTrackedLineTop === -1 || Math.abs(currentLineTop - lastTrackedLineTop) > 8 || isDangerouslyLow || isAboveView) {
               scrollElementToElevatedPosition(activeWord, container);
             }
             lastTrackedLineTop = currentLineTop;
@@ -11856,10 +11865,17 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
       if (!el || !container) return;
       const containerRect = container.getBoundingClientRect();
       const elRect = el.getBoundingClientRect();
-      const desiredTopPosition = containerRect.height * 0.33;
+      const isMobile = window.innerWidth <= 1023;
+      const desiredRatio = isMobile ? 0.25 : 0.33;
+      const desiredTopPosition = Math.max(16, containerRect.height * desiredRatio);
       const diff = elRect.top - containerRect.top - desiredTopPosition;
       
-      if (Math.abs(diff) > 15) {
+      const viewportBottom = window.innerHeight || document.documentElement.clientHeight;
+      const effectiveBottom = Math.min(containerRect.bottom, viewportBottom - 15);
+      const isNearBottom = elRect.bottom > effectiveBottom - 35;
+      const isNearTop = elRect.top < containerRect.top + 10;
+
+      if (Math.abs(diff) > 10 || isNearBottom || isNearTop) {
         const targetScrollTop = Math.max(0, container.scrollTop + diff);
         smoothScrollToPosition(container, targetScrollTop);
       }
@@ -19596,7 +19612,7 @@ ${list}`;
 
     /* Giao diện Mặc định: bỏ thẻ riêng bọc phụ đề để chữ rộng ra */
     body:not(.text-mode) .sub-textmode-container { padding: 0 !important; border: 0 !important; background: transparent !important; border-radius: 0 !important; }
-    body:not(.text-mode) #subtitles-scroll-container { padding: 8px 10px !important; }
+    body:not(.text-mode) #subtitles-scroll-container { padding: 8px 10px calc(70px + env(safe-area-inset-bottom, 16px)) !important; }
   }
 </style>
 <style id="pv-ctl-layout">
@@ -20456,8 +20472,22 @@ ${list}`;
     const a = document.activeElement;
     if (a && a.id === 'sub-search-input') return;   // đang gõ tìm kiếm (bàn phím ảo làm đổi chiều cao màn hình): giữ nguyên bố cục
     const ctl = document.querySelector('#panel-left > div:nth-of-type(2) > div:first-child');
-    const avail = sc.clientHeight - vid.offsetHeight - (ctl ? ctl.offsetHeight : 56);
-    sc.style.setProperty('--sub-avail', Math.max(220, Math.round(avail)) + 'px');
+    let ctlH = 56;
+    if (ctl && ctl.offsetHeight) {
+      const ctlStyle = window.getComputedStyle(ctl);
+      ctlH = ctl.offsetHeight + (parseFloat(ctlStyle.marginTop) || 0) + (parseFloat(ctlStyle.marginBottom) || 0);
+    }
+    const cs = document.getElementById('cs-card');
+    let csH = 0;
+    if (cs && !cs.classList.contains('empty') && cs.offsetHeight && window.getComputedStyle(cs).display !== 'none') {
+      const csStyle = window.getComputedStyle(cs);
+      csH = cs.offsetHeight + (parseFloat(csStyle.marginTop) || 0) + (parseFloat(csStyle.marginBottom) || 0);
+    }
+    const pb = parseFloat(window.getComputedStyle(sc).paddingBottom) || 0;
+    const pt = parseFloat(window.getComputedStyle(sc).paddingTop) || 0;
+    const usableH = sc.clientHeight - pb - pt;
+    const avail = usableH - (vid.offsetHeight || 0) - ctlH - csH;
+    sc.style.setProperty('--sub-avail', Math.max(120, Math.round(avail)) + 'px');
     if (bar && bar.offsetHeight) sc.style.setProperty('--sub-search-h', bar.offsetHeight + 'px');
   }
   function schedule() { if (!raf) raf = requestAnimationFrame(measure); }
@@ -20465,7 +20495,16 @@ ${list}`;
   window.addEventListener('orientationchange', schedule);
   document.addEventListener('focusout', schedule);
   if (mq.addEventListener) mq.addEventListener('change', schedule);
-  if (window.ResizeObserver) { const ro = new ResizeObserver(schedule); ro.observe(sc); ro.observe(vid); if (bar) ro.observe(bar); }
+  if (window.ResizeObserver) {
+    const ro = new ResizeObserver(schedule);
+    ro.observe(sc);
+    ro.observe(vid);
+    if (bar) ro.observe(bar);
+    const cs = document.getElementById('cs-card');
+    if (cs) ro.observe(cs);
+    const ctl = document.querySelector('#panel-left > div:nth-of-type(2) > div:first-child');
+    if (ctl) ro.observe(ctl);
+  }
   new MutationObserver(schedule).observe(document.body, { attributes: true, attributeFilter: ['class'] });
   schedule();
 
