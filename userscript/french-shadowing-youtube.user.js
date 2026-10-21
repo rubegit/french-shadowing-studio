@@ -1,11 +1,20 @@
 // ==UserScript==
 // @name         French Shadowing Studio - Trợ thủ YouTube (Word Timestamps & 1-Click Import)
 // @namespace    https://french-shadowing-studio.vercel.app/
-// @version      1.1.0
+// @version      1.2.0
 // @description  Tự động trích xuất phụ đề tiếng Pháp dạng JSON3 (chuẩn word-level timestamp) trên YouTube: Tải file .json3 về máy hoặc 1-click chuyển video sang French Shadowing Studio để luyện tập.
 // @author       French Shadowing Studio
 // @match        *://*.youtube.com/*
+// @match        *://youtube.com/*
+// @match        *://*.youtube.ca/*
+// @match        *://youtube.ca/*
+// @match        *://*.youtube.*/*
 // @match        *://french-shadowing-studio.vercel.app/*
+// @include      *://*.youtube.com/*
+// @include      *://youtube.com/*
+// @include      *://*.youtube.*/*
+// @include      *://youtube.*/*
+// @include      *://french-shadowing-studio.vercel.app/*
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_deleteValue

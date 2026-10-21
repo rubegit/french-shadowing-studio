@@ -6,6 +6,10 @@
       "label": "Tiếng Pháp chậm/rõ cho Beginners (A1, A2)",
       "videos": [
         {
+          "id": "dwt1yeNtKeQ",
+          "title": "How to Talk about Yourself in French | French Podcast for Easy Conversation"
+        },
+        {
           "id": "kQUkpe9fNG0",
           "title": "Parler du futur en français (How to Talk about the Future in French)"
         },
@@ -19,6 +23,10 @@
       "id": "tieng_phap_giao_tiep",
       "label": "Tiếng Pháp Giao Tiếp Hàng Ngày",
       "videos": [
+        {
+          "id": "dwt1yeNtKeQ",
+          "title": "How to Talk about Yourself in French | French Podcast for Easy Conversation"
+        },
         {
           "id": "kQUkpe9fNG0",
           "title": "Parler du futur en français (How to Talk about the Future in French)"
@@ -44,6 +52,13 @@
       "channelAvatar": "https://i.ytimg.com/vi/kQUkpe9fNG0/hqdefault.jpg",
       "duration": "18:42",
       "viewCount": 24500
+    },
+    "dwt1yeNtKeQ": {
+      "title": "How to Talk about Yourself in French | French Podcast for Easy Conversation",
+      "channelTitle": "Basic French Podcast",
+      "channelAvatar": "https://i.ytimg.com/vi/dwt1yeNtKeQ/hqdefault.jpg",
+      "duration": "24:00",
+      "viewCount": 181000
     }
   }
 }
