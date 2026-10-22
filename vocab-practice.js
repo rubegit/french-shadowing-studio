@@ -281,12 +281,43 @@
     }
   }
 
+  function deduplicateVocabItems(items) {
+    if (!Array.isArray(items)) return [];
+    const map = new Map();
+    items.forEach(it => {
+      if (!it || !it.text) return;
+      const key = String(it.text).trim().toLowerCase();
+      if (!map.has(key)) {
+        map.set(key, Object.assign({}, it));
+      } else {
+        const target = map.get(key);
+        if (!target.wordVi && it.wordVi) target.wordVi = it.wordVi;
+        if ((!target.examples || !target.examples.length) && it.examples?.length) target.examples = it.examples;
+        if (it.contexts?.length) {
+          if (!Array.isArray(target.contexts)) target.contexts = [];
+          it.contexts.forEach(c => {
+            if (!target.contexts.some(tc => tc.videoId === c.videoId && Math.abs((tc.t || 0) - (c.t || 0)) < 2)) {
+              target.contexts.push(c);
+            }
+          });
+        }
+      }
+    });
+    return Array.from(map.values());
+  }
+
   function getScopedVocabList(scope, onlyDue = false) {
     const all = getRawVocabList();
     let list = all;
     if (scope && scope !== 'all') {
-      if (typeof window.vocabSourceInfo === 'function') {
-        list = all.filter(x => window.vocabSourceInfo(x).key === scope);
+      if (typeof window.vocabInScope === 'function') {
+        list = window.vocabInScope(scope);
+      } else if (typeof window.vocabSourceInfo === 'function') {
+        list = all.filter(x => {
+          if (window.vocabSourceInfo(x).key === scope) return true;
+          if (Array.isArray(x.contexts) && x.contexts.some(c => window.vocabSourceInfo(c).key === scope)) return true;
+          return false;
+        });
       } else {
         list = all.filter(x => (x.videoId === scope || (x.bookId && x.bookId === scope)));
       }
@@ -294,7 +325,7 @@
     if (onlyDue) {
       list = list.filter(item => srsIsDue(item));
     }
-    return list;
+    return deduplicateVocabItems(list);
   }
 
   // Save updated vocab list back to localStorage and trigger cloud sync
@@ -394,14 +425,29 @@
 
     return targetSubset.map((item, qIndex) => {
       const frenchWord = item.text.trim();
-      const sentence = (item.en || '').trim();
+      let en = (item.en || '').trim();
+      let hs = item.hs || 0;
+      let he = item.he || 0;
+      let videoId = item.videoId || '';
+      let t = item.t || 0;
+      if (Array.isArray(item.contexts) && item.contexts.length > 0 && Math.random() < 0.5) {
+        const randCtx = item.contexts[Math.floor(Math.random() * item.contexts.length)];
+        if (randCtx && randCtx.en) {
+          en = String(randCtx.en).trim();
+          hs = randCtx.hs || 0;
+          he = randCtx.he || 0;
+          videoId = randCtx.videoId || videoId;
+          t = randCtx.t || t;
+        }
+      }
+      const sentence = en;
       const meaning = item.wordVi || item.vi || 'Từ cần điền';
 
       let maskedSentence = '';
-      if (item.he > item.hs && item.he <= sentence.length) {
-        maskedSentence = escHtml(sentence.slice(0, item.hs)) + 
+      if (he > hs && he <= sentence.length) {
+        maskedSentence = escHtml(sentence.slice(0, hs)) + 
           `<span class="vph-cloze-blank-pill" id="vph-blank-pill">_______</span>` + 
-          escHtml(sentence.slice(item.he));
+          escHtml(sentence.slice(he));
       } else {
         const escaped = frenchWord.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         const re = new RegExp(`(${escaped})`, 'i');
@@ -419,8 +465,8 @@
         sentence,
         maskedSentence,
         meaning,
-        videoId: item.videoId || '',
-        t: item.t || 0
+        videoId,
+        t
       };
     });
   }

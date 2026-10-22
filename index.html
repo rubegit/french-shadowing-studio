@@ -12100,14 +12100,61 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
     let vocabMeaningBatchIds = [];         // thứ tự id ứng với số thứ tự trong prompt đã copy gần nhất
 
     const escHtml = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    
+    function mergeDuplicateVocab(list) {
+      if (!Array.isArray(list) || list.length <= 1) return Array.isArray(list) ? list : [];
+      const map = new Map();
+      list.forEach((item) => {
+        if (!item || !item.text) return;
+        const key = String(item.text).trim().toLowerCase();
+        if (!map.has(key)) {
+          const clone = Object.assign({}, item);
+          if (!Array.isArray(clone.contexts)) clone.contexts = [];
+          map.set(key, clone);
+        } else {
+          const target = map.get(key);
+          if (!target.wordVi && item.wordVi) target.wordVi = item.wordVi;
+          if ((!target.examples || !target.examples.length) && (item.examples && item.examples.length)) target.examples = item.examples;
+          if (!target.tag && item.tag) target.tag = item.tag;
+          if (item.srs && (!target.srs || (item.srs.reps || 0) > (target.srs.reps || 0))) {
+            target.srs = item.srs;
+          }
+          const isSamePrimary = (target.videoId === item.videoId && Math.abs((target.t || 0) - (item.t || 0)) < 2);
+          const isAlreadyInContexts = target.contexts.some(c => c.videoId === item.videoId && Math.abs((c.t || 0) - (item.t || 0)) < 2);
+          if (!isSamePrimary && !isAlreadyInContexts) {
+            target.contexts.push({
+              videoId: item.videoId || '',
+              videoTitle: item.videoTitle || '',
+              bookId: item.bookId || '',
+              en: item.en || '',
+              vi: item.vi || '',
+              hs: item.hs || 0,
+              he: item.he || 0,
+              t: item.t || 0,
+              createdAt: item.createdAt || Date.now()
+            });
+          }
+          if (Array.isArray(item.contexts)) {
+            item.contexts.forEach(c => {
+              if (!target.contexts.some(tc => tc.videoId === c.videoId && Math.abs((tc.t || 0) - (c.t || 0)) < 2)) {
+                target.contexts.push(c);
+              }
+            });
+          }
+        }
+      });
+      return Array.from(map.values());
+    }
+
     function getVocab() {
       try { const d = JSON.parse(localStorage.getItem(VOCAB_KEY) || '[]'); return Array.isArray(d) ? d : []; } catch (e) { return []; }
     }
     function setVocab(list) {
       try {
-        localStorage.setItem(VOCAB_KEY, JSON.stringify(list));
+        const merged = mergeDuplicateVocab(list);
+        localStorage.setItem(VOCAB_KEY, JSON.stringify(merged));
         if (window.FSS_SUPABASE && typeof window.FSS_SUPABASE.syncVocabDebounced === 'function') {
-          window.FSS_SUPABASE.syncVocabDebounced(list);
+          window.FSS_SUPABASE.syncVocabDebounced(merged);
         }
         return true;
       } catch (e) { return false; }
@@ -12128,7 +12175,12 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
     // scopeKey: 'all' (hoặc bỏ trống) = mọi từ; còn lại = khoá nguồn (video/bài viết/sách) lấy từ vocabSourceInfo()
     function vocabInScope(scopeKey) {
       const all = getVocab();
-      return (!scopeKey || scopeKey === 'all') ? all : all.filter((x) => vocabSourceInfo(x).key === scopeKey);
+      if (!scopeKey || scopeKey === 'all') return all;
+      return all.filter((x) => {
+        if (vocabSourceInfo(x).key === scopeKey) return true;
+        if (Array.isArray(x.contexts) && x.contexts.some(c => vocabSourceInfo(c).key === scopeKey)) return true;
+        return false;
+      });
     }
     function srsDueList(scopeKey) {
       const now = Date.now();
@@ -12507,9 +12559,44 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
       if (!item) return;
       const short = item.text.length > 40 ? item.text.slice(0, 40) + '…' : item.text;
       const list = getVocab();
-      const key = (x) => `${x.videoId}|${x.text.toLowerCase()}|${Math.round(x.t)}`;
-      const dup = list.find((x) => key(x) === key(item));
-      if (dup) { showVocabToast(`“${short}” đã được lưu trước đó`, true, dup.id); return; }
+      const normText = String(item.text || '').trim().toLowerCase();
+
+      // (1) Trùng chính xác ở cùng đoạn trong video này:
+      const exactDup = list.find((x) => x.videoId === item.videoId && String(x.text || '').trim().toLowerCase() === normText && Math.abs((x.t || 0) - (item.t || 0)) < 2);
+      if (exactDup) { showVocabToast(`“${short}” đã được lưu ở đoạn này rồi`, true, exactDup.id); return; }
+
+      // (2) Trùng từ đã lưu từ video/bài học khác -> Hợp nhất ngữ cảnh:
+      const crossDup = list.find((x) => String(x.text || '').trim().toLowerCase() === normText);
+      if (crossDup) {
+        if (!Array.isArray(crossDup.contexts)) crossDup.contexts = [];
+        const isAlreadyInContexts = crossDup.contexts.some(c => c.videoId === item.videoId && Math.abs((c.t || 0) - (item.t || 0)) < 2);
+        if (!isAlreadyInContexts && (crossDup.videoId !== item.videoId || Math.abs((crossDup.t || 0) - (item.t || 0)) >= 2)) {
+          crossDup.contexts.push({
+            videoId: item.videoId || '',
+            videoTitle: item.videoTitle || '',
+            bookId: item.bookId || '',
+            en: item.en || '',
+            vi: item.vi || '',
+            hs: item.hs || 0,
+            he: item.he || 0,
+            t: item.t || 0,
+            createdAt: Date.now()
+          });
+        }
+        if (!crossDup.wordVi && item.wordVi) crossDup.wordVi = item.wordVi;
+        if ((!crossDup.examples || !crossDup.examples.length) && (item.examples && item.examples.length)) crossDup.examples = item.examples;
+        setVocab(list);
+        updateVocabBadges();
+        if (bkActive()) bkMarkSaved();
+        if (fromVocabArea) {
+          const vscr = document.getElementById('screen-vocab');
+          if (vscr && !vscr.classList.contains('hidden')) { renderVocabPageKeepScroll(); hideLookupTooltip(); }
+        }
+        const srcTitle = crossDup.videoTitle ? ` (bài: ${crossDup.videoTitle})` : '';
+        showVocabToast(`“${short}” đã có trong sổ từ vựng${srcTitle}. Đã bổ sung ngữ cảnh bài này!`, true, crossDup.id, true);
+        return;
+      }
+
       list.unshift(item);
       if (!setVocab(list)) { showVocabToast('Không lưu được: bộ nhớ trình duyệt đã đầy', false); return; }
       updateVocabBadges();
@@ -12849,6 +12936,36 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
         </div>`;
       }
 
+      const extraContexts = Array.isArray(x.contexts) && x.contexts.length > 0 ? x.contexts : [];
+      let extraContextsHtml = '';
+      if (extraContexts.length > 0) {
+        extraContextsHtml = `
+          <div class="vocab-multi-ctx-card">
+            <details class="vocab-multi-ctx-details">
+              <summary class="vocab-multi-ctx-summary">
+                <span class="vocab-multi-ctx-badge">🔗 Xuất hiện ở ${extraContexts.length + 1} bài học</span>
+                <span class="vocab-multi-ctx-hint">Xem ngữ cảnh khác ▾</span>
+              </summary>
+              <div class="vocab-multi-ctx-body">
+                ${extraContexts.map((c) => {
+                  const cYt = c.videoId ? `https://www.youtube.com/watch?v=${encodeURIComponent(c.videoId)}&t=${Math.max(0, Math.floor((c.t || 0) - 2))}s` : '';
+                  const cSrc = c.bookId ? `📖 ${escHtml(c.videoTitle || 'Sách')}`
+                    : c.videoId ? `<a href="${cYt}" target="_blank" rel="noopener">▶ ${escHtml(c.videoTitle || c.videoId)} · ${formatTime(c.t || 0)}</a>`
+                    : '';
+                  return `
+                    <div class="vocab-ctx-item">
+                      <p class="vocab-ctx-en">“${escHtml(c.en)}”</p>
+                      ${c.vi ? `<p class="vocab-ctx-vi">${escHtml(c.vi)}</p>` : ''}
+                      ${cSrc ? `<div class="vocab-ctx-src">${cSrc}</div>` : ''}
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </details>
+          </div>
+        `;
+      }
+
       return `<article class="vocab-card" data-vid="${escHtml(x.id)}">
         <div class="vocab-card-head">
           <div><span class="vocab-kind vocab-kind-${x.kind}">${escHtml(x.tag || KIND[x.kind] || '')}</span><h3 class="vocab-word">${escHtml(x.text)}</h3></div>
@@ -12858,6 +12975,7 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
           </div>
         </div>
         <p class="vocab-ctx">${ctx}</p>
+        ${extraContextsHtml}
         ${wordViBlock}
         ${x.vi ? `<p class="vocab-vi">Cả câu: ${escHtml(x.vi)}</p>` : ''}
         ${vocabExamplesHtml(x)}
@@ -13266,8 +13384,13 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
       return null;
     }
     function kvIsSaved(it) {
-      const k = String(it.term).toLowerCase();
-      return getVocab().some((x) => x.videoId === currentVideoId && String(x.text).toLowerCase() === k);
+      const k = String(it.term || '').trim().toLowerCase();
+      return getVocab().some((x) => {
+        if (String(x.text || '').trim().toLowerCase() !== k) return false;
+        if (x.videoId === currentVideoId) return true;
+        if (Array.isArray(x.contexts) && x.contexts.some((c) => c.videoId === currentVideoId)) return true;
+        return false;
+      });
     }
 
     function kvRenderList() {
@@ -13290,7 +13413,7 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
             <div class="vocab-card-tools"><button type="button" class="vocab-mini del" title="Xóa từ này khỏi danh sách" onclick="kvRemove(${i})">Xóa</button><button type="button" class="kv-save-btn${saved ? ' saved' : ''}" ${saved ? 'disabled' : ''} onclick="kvSave(${i})">${saved ? '✓ Đã lưu' : 'Lưu từ vựng'}</button></div>
           </div>
           ${ctxHtml}
-          <p class="vocab-wordvi" style="margin-top:8px">${escHtml(it.meaning)}</p>
+          <p class="vocab-wordvi" style="margin-top:8px">${formatGrammarBadgeHtml(escHtml(it.meaning))}</p>
           ${exHtml ? `<div class="vocab-examples" style="margin-left:0">${exHtml}</div>` : ''}
         </article>`;
       }).join('');
@@ -13325,11 +13448,25 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
         if (si > 0) prev = String(sentences[si - 1].text || '').trim();
       }
       else { en = text; hs = 0; he = text.length; }
-      const dup = list.find((x) => x.videoId === currentVideoId && String(x.text).toLowerCase() === text.toLowerCase());
-      if (dup) {                       // đã có (lưu bằng cách bôi đen trước đó) -> chỉ bổ sung nghĩa/ví dụ còn thiếu
+      
+      const normText = text.toLowerCase();
+      const dup = list.find((x) => String(x.text || '').trim().toLowerCase() === normText);
+      if (dup) {
         if (!dup.wordVi) dup.wordVi = it.meaning;
         if (!(dup.examples && dup.examples.length)) dup.examples = it.examples;
         if (!dup.tag) dup.tag = KV_LABEL[it.kind];
+        // Nếu khác video/ngữ cảnh -> lưu vào contexts
+        if (dup.videoId !== currentVideoId) {
+          if (!Array.isArray(dup.contexts)) dup.contexts = [];
+          const hasCtx = dup.contexts.some((c) => c.videoId === currentVideoId);
+          if (!hasCtx) {
+            dup.contexts.push({
+              videoId: currentVideoId,
+              videoTitle: currentVideoTitle || '',
+              en: en, hs: hs, he: he, vi: vi, prev: prev, t: t, createdAt: Date.now()
+            });
+          }
+        }
         return false;
       }
       list.unshift({
