@@ -10074,7 +10074,7 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
 
     let blReplaceMode = false;   // cửa sổ song ngữ đang ở chế độ "thay bản dịch"
 
-    // Prompt nút "Song ngữ" (xem video): vừa tách câu ngắn vừa dịch xen kẽ Anh - Việt
+    // Prompt nút "Song ngữ" (xem video): vừa tách câu ngắn vừa dịch xen kẽ Pháp - Việt
     const AI_PROMPT_BILINGUAL = [
       'Thêm dấu câu và dịch đoạn phụ đề tiếng Pháp sau, theo thứ tự: một câu tiếng Pháp gốc, ngay dưới là một câu tiếng Việt, xen kẽ nhau.',
       'QUY TẮC TÁCH CÂU:',
@@ -10089,8 +10089,9 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
       'Không thêm lời giải thích hay ghi chú.',
       '',
       'ĐỊNH DẠNG ĐẦU RA (lặp lại cho mọi câu):',
-      '[câu hoặc mệnh đề tiếng Pháp]',
-      '[bản dịch tiếng Việt tương ứng]',
+      '- Đặt toàn bộ kết quả trong MỘT khối code (codebox ```) để người dùng mobile dễ bấm nút copy.',
+      '- Bên trong codebox, mỗi cặp câu gồm 2 dòng liên tiếp: câu tiếng Pháp ở trên, ngay dưới là câu tiếng Việt tương ứng.',
+      '- Không thêm lời dẫn, tiêu đề, đánh số hay giải thích nào ngoài khối code.',
       '',
       'Phụ đề cần xử lý:'
     ].join('\n');
@@ -10103,13 +10104,14 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
       '1. Giữ nguyên từng chữ của bản gốc. Chỉ được thêm dấu câu và viết hoa, không được thêm, bớt hay đổi từ.',
       '2. Mỗi câu dài 8-20 từ là lý tưởng, tối đa 25 từ. Không bao giờ được vượt quá 25 từ.',
       '3. Mỗi câu sau khi tách phải trọn nghĩa, đọc lên tự nhiên.',
-      '4. Không tách thành mảnh vụn dưới 5 từ, trừ các câu cảm thán hoặc chú thích tự nhiên như "Thank you." Nếu có mảnh quá ngắn, hãy gộp vào câu liền kề.',
-      '5. Các chú thích trong ngoặc như (Laughter), (Applause) giữ nguyên chữ, đặt thành một dòng riêng và thêm dấu chấm ở cuối, ví dụ "(Laughter)."',
+      '4. Không tách thành mảnh vụn dưới 5 từ, trừ các câu cảm thán hoặc chú thích tự nhiên như "Merci." Nếu có mảnh quá ngắn, hãy gộp vào câu liền kề.',
+      '5. Các chú thích trong ngoặc như (Rires), (Applaudissements) giữ nguyên chữ, đặt thành một dòng riêng và thêm dấu chấm ở cuối, ví dụ "(Rires)."',
       '6. Mỗi câu kết thúc bằng dấu chấm, dấu hỏi hoặc dấu chấm than. Dùng dấu phẩy hợp lý trong câu.',
       '',
       'ĐỊNH DẠNG ĐẦU RA:',
-      '- Mỗi câu một dòng, chỉ gồm văn bản tiếng Pháp đã thêm dấu câu.',
-      '- Không dịch, không đánh số, không thêm lời giải thích hay ghi chú.',
+      '- Đặt toàn bộ kết quả trong MỘT khối code (codebox ```) để người dùng mobile dễ bấm nút copy.',
+      '- Mỗi câu một dòng bên trong codebox, chỉ gồm văn bản tiếng Pháp đã thêm dấu câu.',
+      '- Không dịch, không đánh số, không thêm lời giải thích hay ghi chú ngoài khối code.',
       '',
       'Phụ đề cần xử lý:'
     ].join('\n');
@@ -10119,13 +10121,13 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
         return AI_PROMPT_PUNCT + '\n\n' + aicPlainTranscript(sentences);
       }
       if (kind === 'punct') {
-        return 'Thêm dấu câu vào đoạn văn bản này giúp tôi: \n\n' + aicPlainTranscript(sentences);
+        return 'Thêm dấu câu vào đoạn văn bản này giúp tôi. Đặt toàn bộ kết quả trong MỘT khối code (codebox ```) để người dùng mobile dễ bấm nút copy:\n\n' + aicPlainTranscript(sentences);
       }
       const body = aicPlainTranscript(sentences.slice(blReplaceMode ? 0 : aiTranslateStartIndex()));
       if (kind === 'trans-player') {
         return AI_PROMPT_BILINGUAL + '\n\n' + body;
       }
-      return 'Dịch đoạn văn bản sau, theo kiểu 1 câu gốc tiếng Pháp, sau đó là tiếng Việt: \n\n' + body;
+      return 'Dịch đoạn văn bản sau, theo kiểu 1 câu gốc tiếng Pháp, ngay sau đó là 1 câu tiếng Việt xen kẽ nhau. Đặt toàn bộ kết quả trong MỘT khối code (codebox ```) để người dùng mobile dễ bấm nút copy:\n\n' + body;
     }
 
     // Hiện "Đã copy!" tạm thời trên nút rồi trả về đúng nhãn gốc. Nhãn gốc được ghi nhớ 1 lần (data-default-label),
@@ -12857,6 +12859,7 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
       // (2) nếu AI/trình duyệt làm mất xuống dòng (cả mục dính thành 1 đoạn) thì tách lại trước "VD1:", "Trong bài:" và "N. từ || loại ||".
       const KINDS = 'từ|phrasal verb|idiom|slang|cụm từ';
       const norm = String(raw || '')
+        .replace(/```[a-z]*\n?/gi, '')
         .replace(/\\([\\.\)\(\-*_`#>\[\]!:|])/g, '$1')
         .replace(/[ \t\u00a0]+(?=(?:VD|V\.D|Ví dụ|Vi du|Example|Ex)\s*\d+\s*[:：.)\-–])/gi, '\n')
         .replace(/[ \t\u00a0]+(?=(?:Trong bài|Trong văn bản|In the text)\s*[:：])/gi, '\n')
@@ -12923,9 +12926,9 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
       });
       return 'Tôi đang học tiếng Pháp. Với TỪNG mục trong danh sách bên dưới (kèm ngữ cảnh gồm câu đứng trước và câu chứa nó, nơi tôi gặp nó), hãy cho tôi:\n'
         + '(1) nghĩa tiếng Việt ngắn gọn, đúng với nghĩa trong ngữ cảnh đó (không dịch cả câu);\n'
-        + '(2) đúng 3 câu ví dụ tiếng Pháp thực tế, phổ biến mà người Mỹ hay dùng, đơn giản, không học thuật, không dùng từ quá cao siêu. Mỗi ví dụ dùng đúng nghĩa ở mục (1) và có bản dịch tiếng Việt.\n'
+        + '(2) đúng 3 câu ví dụ tiếng Pháp thực tế, phổ biến mà người bản xứ hay dùng, đơn giản, không học thuật, không dùng từ quá cao siêu. Mỗi ví dụ dùng đúng nghĩa ở mục (1) và có bản dịch tiếng Việt.\n'
         + 'Riêng mục nào ghi (CẢ CÂU) thì chỉ dịch cả câu sang tiếng Việt, không cần ví dụ.\n\n'
-        + 'QUAN TRỌNG: trả lời bằng văn bản thuần (không markdown, không in đậm, không bảng, không code block, không lời dẫn hay lời kết). '
+        + 'QUAN TRỌNG: đặt toàn bộ kết quả trong MỘT khối code (codebox ```) để người dùng mobile dễ bấm nút copy (không in đậm, không bảng, không lời dẫn hay giải thích ngoài codebox). '
         + 'Mỗi mục theo đúng mẫu sau, bắt đầu bằng đúng số thứ tự của mục, các mục cách nhau 1 dòng trống. Dùng đúng dấu || giữa câu tiếng Pháp và bản dịch:\n\n'
         + '1. Nghĩa: nghĩa tiếng Việt\n'
         + 'VD1: câu ví dụ tiếng Pháp || bản dịch tiếng Việt\n'
@@ -13042,22 +13045,22 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
     }
 
     function buildKeyVocabPrompt() {
-      return 'Tôi đang học tiếng Pháp. Hãy đọc văn bản bên dưới rồi liệt kê TẤT CẢ những từ vựng / cụm từ / phrasal verb / idiom / slang KHÓ hoặc ít gặp mà người học tiếng Pháp trình độ trung cấp có thể chưa biết (bỏ qua từ quá dễ và tên riêng). '
-        + 'Với từng mục, cho tôi nghĩa tiếng Việt (đúng với nghĩa được dùng trong văn bản) và đúng 3 câu ví dụ thực tế, phổ biến mà người Mỹ hay dùng, đơn giản, không học thuật, không dùng từ quá cao siêu; mỗi ví dụ kèm bản dịch tiếng Việt.\n\n'
-        + 'QUAN TRỌNG: trả lời bằng văn bản thuần (không markdown, không in đậm, không bảng, không code block, không lời dẫn hay lời kết). '
+      return 'Tôi đang học tiếng Pháp. Hãy đọc văn bản bên dưới rồi liệt kê TẤT CẢ những từ vựng / cụm từ / thành ngữ (idiom) / tiếng lóng (slang) KHÓ hoặc ít gặp mà người học tiếng Pháp trình độ trung cấp có thể chưa biết (bỏ qua từ quá dễ và tên riêng). '
+        + 'Với từng mục, cho tôi nghĩa tiếng Việt (đúng với nghĩa được dùng trong văn bản) và đúng 3 câu ví dụ thực tế, phổ biến mà người bản xứ hay dùng, đơn giản, không học thuật, không dùng từ quá cao siêu; mỗi ví dụ kèm bản dịch tiếng Việt.\n\n'
+        + 'QUAN TRỌNG: đặt toàn bộ kết quả trong MỘT khối code (codebox ```) để người dùng mobile dễ bấm nút copy (không in đậm, không bảng, không lời dẫn hay giải thích ngoài codebox). '
         + 'Mỗi mục theo đúng mẫu 5 dòng sau, các mục cách nhau 1 dòng trống, đánh số từ 1. Dùng đúng dấu || để ngăn cách, và không dùng || ở chỗ nào khác:\n\n'
         + '1. TỪ hoặc CỤM TỪ (dạng gốc/nguyên mẫu) || LOẠI || nghĩa tiếng Việt\n'
         + 'Trong bài: đúng cụm chữ như nó xuất hiện trong văn bản\n'
         + 'VD1: câu ví dụ tiếng Pháp || bản dịch tiếng Việt\n'
         + 'VD2: câu ví dụ tiếng Pháp || bản dịch tiếng Việt\n'
         + 'VD3: câu ví dụ tiếng Pháp || bản dịch tiếng Việt\n\n'
-        + 'LOẠI chỉ được là một trong: từ, phrasal verb, idiom, slang, cụm từ.\n\n'
+        + 'LOẠI chỉ được là một trong: từ, idiom, slang, cụm từ.\n\n'
         + 'Ví dụ mẫu (chỉ để minh hoạ định dạng, KHÔNG đưa vào kết quả):\n'
-        + '1. give up || phrasal verb || từ bỏ, bỏ cuộc\n'
-        + 'Trong bài: gave up\n'
-        + 'VD1: Don\'t give up, you\'re almost there! || Đừng bỏ cuộc, bạn gần tới rồi!\n'
-        + 'VD2: I gave up smoking last year. || Năm ngoái tôi đã bỏ thuốc lá.\n'
-        + 'VD3: She never gives up on her dreams. || Cô ấy không bao giờ từ bỏ ước mơ.\n\n'
+        + '1. abandonner || từ || từ bỏ, bỏ cuộc\n'
+        + 'Trong bài: a abandonné\n'
+        + 'VD1: N\'abandonne pas, tu y es presque ! || Đừng bỏ cuộc, bạn gần tới rồi!\n'
+        + 'VD2: J\'ai abandonné le tabac l\'année dernière. || Năm ngoái tôi đã bỏ thuốc lá.\n'
+        + 'VD3: Elle n\'abandonne jamais ses rêves. || Cô ấy không bao giờ từ bỏ ước mơ.\n\n'
         + 'Văn bản:\n<<<\n' + aicPlainTranscript(sentences) + '\n>>>';
     }
     function copyKeyVocabPrompt(btn) {
@@ -15523,7 +15526,7 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
       const gl = (bkBook.glossary || '').trim();
       const chTitle = bkChs[b.startCh].title + (b.endCh !== b.startCh ? ` … ${bkChs[b.endCh].title}` : '');
       return `Dịch đoạn trích sau từ cuốn sách "${bkBook.title}"${bkBook.author ? ` của ${bkBook.author}` : ''} (phần: "${chTitle}") sang tiếng Việt, theo kiểu xen kẽ: 1 câu gốc tiếng Pháp, ngay dưới là 1 câu dịch tiếng Việt, rồi tới câu tiếng Pháp kế tiếp.\n` +
-        `Yêu cầu: giữ nguyên từng câu tiếng Pháp gốc (không bỏ sót, không gộp, không viết lại); chỉ trả về các cặp câu, không thêm lời dẫn, tiêu đề, đánh số hay ghi chú; dịch tự nhiên, chính xác, đúng văn phong của sách.` +
+        `Yêu cầu: giữ nguyên từng câu tiếng Pháp gốc (không bỏ sót, không gộp, không viết lại); đặt toàn bộ kết quả trong MỘT khối code (codebox \`\`\`) để người dùng mobile dễ bấm nút copy; chỉ trả về các cặp câu, không thêm lời dẫn, tiêu đề, đánh số hay ghi chú ngoài khối code; dịch tự nhiên, chính xác, đúng văn phong của sách.` +
         (gl ? `\nGhi chú khi dịch (hãy tuân theo): ${gl}` : '') + `\n\nVăn bản:\n\n${b.body}`;
     }
 
@@ -19480,7 +19483,7 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
   function buildPrompt() {
     const a = startIdx(), b = Math.min(rec.sents.length, a + BATCH);
     const list = rec.sents.slice(a, b).map((s, k) => `${a + k + 1}. ${s.t}`).join('\n');
-    return `Bạn là chuyên gia dịch Việt–Anh. Dưới đây là các câu tiếng Việt đã đánh số (lấy từ phụ đề một video). Hãy dịch theo NGỮ CẢNH TOÀN BÀI, không dịch từng câu rời rạc.
+    return `Bạn là chuyên gia dịch Việt–Pháp. Dưới đây là các câu tiếng Việt đã đánh số (lấy từ phụ đề một video). Hãy dịch theo NGỮ CẢNH TOÀN BÀI, không dịch từng câu rời rạc.
     
     CÁCH LÀM:
 Bước 1 (làm thầm, KHÔNG viết ra): đọc hết toàn văn để nắm chủ đề, mạch ý, ai đang nói với ai và quan hệ giữa họ, giọng điệu (thân mật / trang trọng / hài hước...), thuật ngữ và tên riêng.
@@ -19488,7 +19491,7 @@ Bước 2: với MỖI câu đánh số, viết 2 bản dịch tiếng Pháp:
 S: bản dịch SÁT NGHĨA, bám sát từ ngữ và cấu trúc của câu tiếng Việt gốc nhưng vẫn đúng ngữ pháp tiếng Pháp.
 T: bản dịch THOÁNG, truyền tải đúng thông điệp gốc nhưng nghe tự nhiên như người bản xứ nói; có thể đổi cấu trúc câu, không dịch word-for-word.
 
-Yêu cầu: giữ nguyên số thứ tự; không gộp, tách hay bỏ câu nào (nếu câu thiếu dấu câu thì hiểu theo ngữ cảnh); không giải thích gì thêm; đặt toàn bộ kết quả trong MỘT khối code để dễ copy; mỗi câu đúng 3 dòng, cách nhau một dòng trống, theo mẫu:
+Yêu cầu: giữ nguyên số thứ tự; không gộp, tách hay bỏ câu nào (nếu câu thiếu dấu câu thì hiểu theo ngữ cảnh); không giải thích gì thêm; đặt toàn bộ kết quả trong MỘT khối code (codebox \`\`\`) để người dùng mobile dễ bấm nút copy; mỗi câu đúng 3 dòng, cách nhau một dòng trống, theo mẫu:
 
 ${a + 1}
 S: ...
