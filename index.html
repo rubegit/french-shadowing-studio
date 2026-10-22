@@ -10118,18 +10118,54 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
     }
 
     function copyTextToClipboard(text) {
-      if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text);
       return new Promise((resolve, reject) => {
-        try {
-          const ta = document.createElement('textarea');
-          ta.value = text;
-          ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;';
-          document.body.appendChild(ta);
-          ta.select();
-          const ok = document.execCommand('copy');
-          document.body.removeChild(ta);
-          ok ? resolve() : reject(new Error('execCommand thất bại'));
-        } catch (e) { reject(e); }
+        if (!text && text !== '') {
+          reject(new Error('Nội dung sao chép trống'));
+          return;
+        }
+
+        const tryExecCommand = () => {
+          try {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.setAttribute('readonly', '');
+            ta.style.fontSize = '16px';
+            ta.style.position = 'fixed';
+            ta.style.top = '0';
+            ta.style.left = '-9999px';
+            ta.style.width = '2em';
+            ta.style.height = '2em';
+            ta.style.padding = '0';
+            ta.style.border = 'none';
+            ta.style.outline = 'none';
+            ta.style.boxShadow = 'none';
+            ta.style.background = 'transparent';
+            document.body.appendChild(ta);
+            ta.focus();
+            ta.select();
+            ta.setSelectionRange(0, text.length);
+            const ok = document.execCommand('copy');
+            document.body.removeChild(ta);
+            if (ok) {
+              resolve(true);
+            } else {
+              reject(new Error('execCommand thất bại'));
+            }
+          } catch (e) {
+            reject(e);
+          }
+        };
+
+        if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+          navigator.clipboard.writeText(text).then(() => {
+            resolve(true);
+          }).catch((err) => {
+            console.warn('[Clipboard] navigator.clipboard.writeText bị từ chối/thất bại, chuyển sang fallback execCommand:', err);
+            tryExecCommand();
+          });
+        } else {
+          tryExecCommand();
+        }
       });
     }
 
@@ -12931,7 +12967,7 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
         </div>${vocabAiHintId === x.id ? vocabAiHintHtml() : ''}`;
       } else {
         wordViBlock = `<div class="vocab-wordvi-row">
-          ${x.wordVi ? `<p class="vocab-wordvi">${formatGrammarBadgeHtml(escHtml(x.wordVi))}</p>` : '<p class="vocab-wordvi-empty">Chưa có nghĩa riêng của từ này<button type="button" class="vocab-ai-link" onclick="openVocabMeaningModal()" title="Nhờ AI điền nghĩa + 3 ví dụ cho tất cả các từ chưa có">✨ Điền bằng AI</button></p>'}
+          ${x.wordVi ? `<p class="vocab-wordvi">${formatGrammarBadgeHtml(escHtml(x.wordVi))}</p>` : `<p class="vocab-wordvi-empty">Chưa có nghĩa riêng của từ này<button type="button" class="vocab-ai-link" onclick="openVocabMeaningModal('${x.id}')" title="Nhờ AI điền nghĩa + 3 ví dụ cho từ này">✨ Điền bằng AI</button></p>`}
           <button type="button" class="vocab-mini" onclick="startEditWordMeaning('${x.id}')">${x.wordVi ? 'Sửa nghĩa' : '+ Thêm nghĩa'}</button>
         </div>`;
       }
@@ -13180,25 +13216,46 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
       badge.style.display = n ? '' : 'none';
     }
 
-    function openVocabMeaningModal() {
+    function openVocabMeaningModal(specificId) {
       resetCopyButtons();
       const modal = document.getElementById('vocab-meaning-modal');
       if (!modal) return;
       vocabAiHintDone();
+      const all = getVocab();
       const missing = vocabItemsMissingMeaning();
-      vocabMeaningBatchIds = missing.slice(0, VOCAB_AI_BATCH).map((x) => x.id);
+      
+      if (specificId) {
+        const target = all.find(x => x.id === specificId);
+        const others = missing.filter(x => x.id !== specificId);
+        vocabMeaningBatchIds = target ? [target.id, ...others.slice(0, VOCAB_AI_BATCH - 1).map(x => x.id)] : missing.slice(0, VOCAB_AI_BATCH).map(x => x.id);
+      } else if (missing.length) {
+        vocabMeaningBatchIds = missing.slice(0, VOCAB_AI_BATCH).map((x) => x.id);
+      } else {
+        vocabMeaningBatchIds = all.slice(0, VOCAB_AI_BATCH).map((x) => x.id);
+      }
+
       const desc = document.getElementById('vm-desc');
       const copyBtn = document.getElementById('vm-copy-btn');
-      if (missing.length) {
+      if (all.length === 0) {
+        desc.textContent = 'Sổ từ vựng đang trống. Hãy lưu từ vựng từ video hoặc sách trước khi sử dụng tính năng điền nghĩa bằng AI.';
+        if (copyBtn) {
+          copyBtn.disabled = true;
+          copyBtn.style.opacity = '0.5';
+        }
+      } else if (missing.length > 0) {
         desc.textContent = `Có ${missing.length} mục chưa có nghĩa riêng hoặc chưa có 3 ví dụ`
           + (missing.length > VOCAB_AI_BATCH ? ` (lượt này gồm ${VOCAB_AI_BATCH} mục đầu, làm xong thì mở lại để làm tiếp)` : '')
           + '. Bấm "Copy prompt", dán cho AI (ChatGPT/Claude...), rồi dán nguyên câu trả lời của AI vào ô bên dưới và bấm "Áp dụng".';
-        copyBtn.disabled = false;
-        copyBtn.style.opacity = '';
+        if (copyBtn) {
+          copyBtn.disabled = false;
+          copyBtn.style.opacity = '';
+        }
       } else {
-        desc.textContent = 'Tất cả từ vựng đã có nghĩa riêng và ví dụ rồi, không còn mục nào cần điền.';
-        copyBtn.disabled = true;
-        copyBtn.style.opacity = '0.5';
+        desc.textContent = `Tất cả ${all.length} từ vựng đã có nghĩa riêng. Bạn vẫn có thể bấm "Copy prompt" bên dưới để tạo lại prompt cho ${vocabMeaningBatchIds.length} từ (để AI cập nhật thêm ký hiệu ngữ pháp [v. ...] hoặc tạo ví dụ mới).`;
+        if (copyBtn) {
+          copyBtn.disabled = false;
+          copyBtn.style.opacity = '';
+        }
       }
       document.getElementById('vm-textarea').value = '';
       aiSetStatus(document.getElementById('vm-status'), '', '');
@@ -13210,12 +13267,57 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
       if (modal) modal.classList.remove('open');
     }
 
+    function openManualPromptModal(text) {
+      let modal = document.getElementById('manual-prompt-modal');
+      if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'manual-prompt-modal';
+        modal.className = 'ai-modal-backdrop';
+        modal.innerHTML = `
+          <div class="ai-modal" style="max-width:580px;position:relative;z-index:9999" role="dialog" aria-modal="true">
+            <div class="ai-modal-head">
+              <div class="ai-modal-title">📋 Sao chép Prompt dành cho AI</div>
+              <button type="button" class="ai-modal-close" onclick="document.getElementById('manual-prompt-modal').classList.remove('open')">✕</button>
+            </div>
+            <p class="ai-step-text" style="color:#fde68a;margin-top:4px">Trình duyệt hạn chế tự động copy vào bộ nhớ. Bạn hãy bấm nút bên dưới hoặc nhấn Ctrl+C (⌘+C trên Mac) để copy prompt:</p>
+            <textarea id="manual-prompt-text" class="ai-textarea" style="height:220px;font-size:13px;line-height:1.5" readonly></textarea>
+            <div class="ai-actions" style="margin-top:12px;display:flex;gap:10px">
+              <button type="button" class="ai-btn ai-btn-primary" onclick="const ta=document.getElementById('manual-prompt-text');ta.focus();ta.select();try{document.execCommand('copy');showVocabToast('Đã copy prompt thành công!', true);}catch(e){}">
+                <i data-lucide="copy"></i><span>Chọn tất cả &amp; Sao chép</span>
+              </button>
+              <button type="button" class="ai-btn ai-btn-ghost" onclick="document.getElementById('manual-prompt-modal').classList.remove('open')">Đóng</button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(modal);
+      }
+      const ta = document.getElementById('manual-prompt-text');
+      if (ta) {
+        ta.value = text;
+        setTimeout(() => { ta.focus(); ta.select(); }, 150);
+      }
+      modal.classList.add('open');
+      if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+    }
+
     function copyVocabMeaningPrompt(btn) {
-      if (!vocabMeaningBatchIds.length) return;
+      if (!vocabMeaningBatchIds.length) {
+        const all = getVocab();
+        if (all.length > 0) {
+          vocabMeaningBatchIds = all.slice(0, VOCAB_AI_BATCH).map((x) => x.id);
+        } else {
+          showVocabToast('Chưa có từ vựng nào để tạo prompt.', false);
+          return;
+        }
+      }
       const text = buildVocabMeaningPrompt(vocabMeaningBatchIds);
       copyTextToClipboard(text).then(() => {
         flashCopied(btn, 1800);
-      }).catch((err) => { alert('Không thể sao chép: ' + err); });
+        showVocabToast('✓ Đã copy prompt điền nghĩa AI vào bộ nhớ tạm!', true);
+      }).catch((err) => {
+        console.warn('Lỗi copy prompt:', err);
+        openManualPromptModal(text);
+      });
     }
 
     function applyVocabMeaningAnswer() {
@@ -13302,8 +13404,18 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
         + 'Văn bản:\n<<<\n' + aicPlainTranscript(sentences) + '\n>>>';
     }
     function copyKeyVocabPrompt(btn) {
-      if (!sentences.length) { alert('Chưa có nội dung để tạo prompt.'); return; }
-      copyTextToClipboard(buildKeyVocabPrompt()).then(() => flashCopied(btn, 1800)).catch((err) => { alert('Không thể sao chép: ' + err); });
+      if (!sentences.length) {
+        showVocabToast('Chưa có nội dung để tạo prompt.', false);
+        return;
+      }
+      const text = buildKeyVocabPrompt();
+      copyTextToClipboard(text).then(() => {
+        flashCopied(btn, 1800);
+        showVocabToast('✓ Đã copy prompt từ vựng khó vào bộ nhớ tạm!', true);
+      }).catch((err) => {
+        console.warn('Lỗi copy prompt:', err);
+        openManualPromptModal(text);
+      });
     }
 
     function kvShowView(view) {
