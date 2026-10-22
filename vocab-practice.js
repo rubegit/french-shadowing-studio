@@ -523,7 +523,8 @@
         <div class="vph-header">
           <div class="vph-brand">
             <span class="vph-brand-icon">🎮</span>
-            <span>Trung tâm Luyện tập Từ vựng</span>
+            <span class="vph-brand-title-full">Trung tâm Luyện tập Từ vựng</span>
+            <span class="vph-brand-title-short">Luyện từ vựng</span>
           </div>
           <button type="button" class="vph-close-btn" id="vph-close-btn" title="Đóng (Esc)">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
@@ -534,13 +535,16 @@
         <div class="vph-tabs-bar">
           <div class="vph-mode-tabs">
             <button type="button" class="vph-tab-btn active" data-mode="quiz">
-              <span>🎯 Trắc nghiệm 4 đáp án</span>
+              <span class="vph-tab-label-full">🎯 Trắc nghiệm 4 đáp án</span>
+              <span class="vph-tab-label-short">🎯 Trắc nghiệm</span>
             </button>
             <button type="button" class="vph-tab-btn" data-mode="cloze">
-              <span>🎧 Nghe & Điền từ</span>
+              <span class="vph-tab-label-full">🎧 Nghe &amp; Điền từ</span>
+              <span class="vph-tab-label-short">🎧 Điền từ</span>
             </button>
             <button type="button" class="vph-tab-btn" data-mode="match">
-              <span>🃏 Ghép thẻ & Flashcard</span>
+              <span class="vph-tab-label-full">🃏 Ghép thẻ &amp; Flashcard</span>
+              <span class="vph-tab-label-short">🎴 Flashcard</span>
             </button>
           </div>
 

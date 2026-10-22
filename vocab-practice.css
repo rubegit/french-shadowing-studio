@@ -67,6 +67,9 @@
   letter-spacing: -0.01em;
 }
 
+.vph-brand-title-short, .vph-tab-label-short { display: none; }
+.vph-brand-title-full, .vph-tab-label-full { display: inline; }
+
 .vph-brand-icon {
   width: 32px;
   height: 32px;
@@ -1175,63 +1178,341 @@
   margin-bottom: 4px;
 }
 
-/* ---------- Responsive / Mobile Tweaks ---------- */
+/* ---------- Responsive / Mobile Tweaks (iPhone & Small Viewports) ---------- */
 @media (max-width: 640px) {
-  .vph-modal {
-    max-height: 96vh;
-    border-radius: 18px;
+  .vph-backdrop {
+    padding: 0;
+    align-items: stretch;
   }
-  .vph-tabs-bar {
+  .vph-modal {
+    width: 100vw;
+    height: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+    border: none;
+    margin: 0;
+    padding-bottom: env(safe-area-inset-bottom, 10px);
+  }
+  .vph-header {
     padding: 8px 12px;
+    min-height: 42px;
+  }
+  .vph-brand-title-full { display: none !important; }
+  .vph-brand-title-short { display: inline !important; font-size: 14px; font-weight: 700; }
+  .vph-brand-icon {
+    width: 24px;
+    height: 24px;
+    font-size: 13px;
+    border-radius: 7px;
+  }
+  .vph-close-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+  }
+
+  /* Mode tabs & Scope on mobile */
+  .vph-tabs-bar {
+    padding: 5px 8px;
+    gap: 5px;
+    flex-wrap: wrap;
+  }
+  .vph-mode-tabs {
+    width: 100%;
+    display: flex;
+    gap: 3px;
+    padding: 2px;
+    border-radius: 10px;
   }
   .vph-tab-btn {
-    padding: 6px 8px;
+    flex: 1;
+    justify-content: center;
+    padding: 5px 4px;
+    font-size: 11px;
+    border-radius: 8px;
+  }
+  .vph-tab-label-full { display: none !important; }
+  .vph-tab-label-short { display: inline !important; font-size: 11px; white-space: nowrap; }
+
+  .vph-controls-right {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    margin-top: 1px;
+  }
+  .vph-srs-filter-btn {
+    padding: 4px 8px;
+    font-size: 11px;
+    border-radius: 8px;
+  }
+  .vph-scope-select {
+    flex: 1;
+    max-width: 200px;
+    padding: 4px 8px;
+    font-size: 11px;
+    border-radius: 8px;
+  }
+
+  /* ẨN TOÀN BỘ MASTERY STRIP TRÊN MOBILE ĐỂ DÀNH KHÔNG GIAN CHO BÀI TẬP */
+  .vph-mastery-strip {
+    display: none !important;
+  }
+
+  /* Compact Stats & Progress Strip */
+  .vph-stats-strip {
+    padding: 4px 10px;
+    font-size: 11px;
+    min-height: 28px;
+  }
+  .vph-streak-pill {
+    padding: 2px 7px;
+    font-size: 10.5px;
+  }
+  .vph-progress-track {
+    margin: 0 8px;
+    height: 4px;
+    max-width: 120px;
+  }
+  .vph-score-box {
     font-size: 11px;
   }
+
+  /* Main Body */
   .vph-body {
-    padding: 16px;
+    padding: 8px 10px;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    display: flex;
+    flex-direction: column;
   }
-  .vph-options-grid {
-    grid-template-columns: 1fr;
-    gap: 10px;
+
+  /* Quiz Mode (Trắc nghiệm - 2x2 Grid trên mobile để không bao giờ bị tràn màn hình) */
+  .vph-quiz-container {
+    gap: 6px;
+    flex: 1;
+    justify-content: space-between;
+  }
+  .vph-quiz-meta {
+    font-size: 11px;
+    margin-bottom: 1px;
+  }
+  .vph-direction-badge {
+    padding: 2px 7px;
+    font-size: 10.5px;
+    border-radius: 6px;
+  }
+  .vph-timer-bar {
+    height: 3px;
+  }
+  .vph-question-card {
+    padding: 8px 10px;
+    gap: 3px;
+    border-radius: 12px;
   }
   .vph-question-target {
-    font-size: 22px;
+    font-size: 18px;
+    line-height: 1.25;
+  }
+  .vph-question-audio-btn {
+    padding: 2px 8px;
+    font-size: 10.5px;
+    margin-top: 1px;
+  }
+  .vph-question-ctx {
+    font-size: 11px;
+    line-height: 1.35;
+    margin-top: 1px;
+    max-height: 30px;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  .vph-options-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 5px;
+    margin-top: 3px;
+  }
+  .vph-option-btn {
+    padding: 7px 8px;
+    min-height: 44px;
+    border-radius: 10px;
+    gap: 6px;
+    font-size: 12.5px;
+    align-items: center;
+  }
+  .vph-opt-key {
+    width: 18px;
+    height: 18px;
+    font-size: 10px;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+  .vph-opt-text {
+    font-size: 12px;
+    line-height: 1.25;
+    word-break: break-word;
+  }
+
+  /* Flashcard 3D Mode */
+  .vph-subnav-bar {
+    padding: 2px;
+    gap: 4px;
+    margin-bottom: 4px;
+  }
+  .vph-subnav-btn {
+    padding: 4px 8px;
+    font-size: 11px;
+    border-radius: 8px;
+  }
+  .vph-flashcard-container {
+    gap: 6px;
+    flex: 1;
+    justify-content: space-between;
+  }
+  .vph-flashcard-container > div:first-child {
+    font-size: 10px !important;
+    margin-bottom: 1px;
+  }
+  .vph-fc-wrapper {
+    height: clamp(160px, 28vh, 195px);
+    max-width: 100%;
+  }
+  .vph-fc-front,
+  .vph-fc-back {
+    padding: 10px 12px;
+    border-radius: 14px;
+  }
+  .vph-fc-top-tag {
+    font-size: 9px;
+    padding: 2px 7px;
+  }
+  .vph-fc-word {
+    font-size: 20px;
+    line-height: 1.2;
+  }
+  .vph-fc-front-tag {
+    margin-top: 2px;
+    margin-bottom: 4px;
+  }
+  .vph-fc-front-tag .vph-grammar-badge {
+    font-size: 10.5px;
+    padding: 2px 8px;
+  }
+  .vph-fc-ctx {
+    font-size: 11.5px;
+    line-height: 1.3;
+    max-height: 32px;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  .vph-fc-hint-flip {
+    font-size: 10px;
+  }
+  .vph-fc-meaning {
+    font-size: 17px;
+  }
+  .vph-fc-sentvi {
+    font-size: 11.5px;
+    max-height: 30px;
+    overflow: hidden;
+  }
+  /* 4 SRS Action Buttons: GIỮ NGUYÊN 1 HÀNG NGANG TRÊN MOBILE */
+  .vph-fc-srs-actions {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 4px;
+    width: 100%;
+    margin-top: 4px;
+  }
+  .vph-srs-btn {
+    padding: 5px 2px;
+    min-height: 38px;
+    border-radius: 8px;
+  }
+  .vph-srs-btn .vph-srs-label {
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .vph-srs-btn .vph-srs-delta {
+    font-size: 9px;
+  }
+
+  /* Cloze Mode (Điền từ) */
+  .vph-cloze-container {
+    gap: 6px;
+  }
+  .vph-cloze-card {
+    padding: 10px 12px;
+    gap: 6px;
+    border-radius: 12px;
   }
   .vph-cloze-sentence {
-    font-size: 18px;
+    font-size: 15px;
+    line-height: 1.4;
+    margin: 2px 0;
+  }
+  .vph-cloze-blank-pill {
+    min-width: 55px;
+    padding: 1px 6px;
+    font-size: 12.5px;
+  }
+  .vph-cloze-meaning {
+    font-size: 11.5px;
+    padding: 3px 10px;
+  }
+  .vph-audio-play-btn,
+  .vph-video-play-btn {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+  .vph-cloze-form {
+    gap: 6px;
   }
   .vph-input-wrap {
-    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .vph-cloze-input {
+    padding: 8px 12px;
+    font-size: 14px;
+    border-radius: 10px;
+  }
+  .vph-hint-btn {
+    padding: 0 10px;
+    font-size: 11px;
+    border-radius: 10px;
   }
   .vph-submit-btn {
     width: 100%;
-    padding: 12px;
+    padding: 9px 12px;
+    font-size: 12.5px;
+    border-radius: 10px;
     justify-content: center;
+  }
+
+  /* Match Mode (Ghép thẻ) */
+  .vph-match-container {
+    gap: 6px;
   }
   .vph-match-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
+    gap: 5px;
   }
   .vph-match-card {
-    min-height: 68px;
-    font-size: 13px;
-    padding: 10px;
-  }
-  .vph-fc-wrapper {
-    height: 280px;
-  }
-  .vph-fc-word {
-    font-size: 24px;
-  }
-  .vph-fc-meaning {
-    font-size: 20px;
-  }
-  .vph-fc-srs-actions {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 6px;
+    min-height: 48px;
+    font-size: 11.5px;
+    padding: 6px;
+    border-radius: 8px;
   }
 }
+
 
 /* ==================== FRENCH GRAMMAR BADGES (MODULE M5) ==================== */
 .vph-grammar-badge {
