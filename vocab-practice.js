@@ -4,6 +4,7 @@
  * Module M1: Speed Quiz (Trắc nghiệm 4 đáp án)
  * Module M2: Audio & Video Cloze Test (Luyện Nghe & Điền từ khuyết)
  * Module M3: 3D Flashcards & Fast Match Game (Thẻ ghi nhớ & Ghép thẻ)
+ * Module M4: Deep Spaced Repetition (SRS SuperMemo SM-2) Engine across all modes
  * ============================================================================
  */
 
@@ -29,12 +30,75 @@
     { text: 'peut-être', wordVi: 'có lẽ / có thể', en: 'Peut-être qu’il viendra ce soir avec nous.' }
   ];
 
+  // ==================== SPACED REPETITION (SM-2) CORE ====================
+  function srsDefault() {
+    return { ease: 2.5, interval: 0, reps: 0, due: 0, lastReview: null };
+  }
+
+  function getSrs(item) {
+    return Object.assign(srsDefault(), item && item.srs ? item.srs : {});
+  }
+
+  function srsIsDue(item, now = Date.now()) {
+    return getSrs(item).due <= now;
+  }
+
+  function srsCompute(s, rating) {
+    let { ease, interval, reps } = s;
+    const now = Date.now();
+
+    if (rating === 'again') {
+      reps = 0;
+      ease = Math.max(1.3, ease - 0.2);
+      return { ease, interval: 0, reps, due: now + 10 * 60 * 1000, lastReview: now };
+    }
+
+    if (rating === 'hard') {
+      interval = interval > 0 ? Math.max(1, Math.round(interval * 1.2)) : 1;
+      ease = Math.max(1.3, ease - 0.15);
+    } else if (rating === 'good') {
+      if (reps === 0) interval = 1;
+      else if (reps === 1) interval = 3;
+      else interval = Math.max(1, Math.round(interval * ease));
+    } else if (rating === 'easy') {
+      interval = reps === 0 ? 4 : Math.max(1, Math.round(interval * ease * 1.3));
+      ease = Math.min(2.8, ease + 0.15);
+    }
+
+    reps += 1;
+    return { ease, interval, reps, due: now + interval * 24 * 60 * 60 * 1000, lastReview: now };
+  }
+
+  function srsFormatDelta(ms) {
+    const mins = Math.round(ms / 60000);
+    if (mins < 60) return `${Math.max(1, mins)}p`;
+    const days = Math.round(ms / 86400000);
+    return days <= 1 ? '1 ngày' : `${days} ngày`;
+  }
+
+  // Update item's SRS state in memory + persist to localStorage + Supabase sync
+  function updateItemSrs(itemId, rating) {
+    if (!itemId) return null;
+    const all = getRawVocabList();
+    const item = all.find(v => v.id === itemId);
+    if (!item) return null;
+
+    const currentSrs = getSrs(item);
+    const newSrs = srsCompute(currentSrs, rating);
+    item.srs = newSrs;
+
+    persistVocabList(all);
+    updateMasteryStats();
+    return newSrs;
+  }
+
   // Global Hub State
   const state = {
     isOpen: false,
     currentMode: 'quiz', // 'quiz' | 'cloze' | 'match'
     m3SubMode: 'match',  // 'match' | 'flashcard'
     scope: 'all',
+    onlyDue: false,      // SRS filter: only due items
     items: [],
     questions: [],
     currentIndex: 0,
@@ -184,13 +248,20 @@
     }
   }
 
-  function getScopedVocabList(scope) {
+  function getScopedVocabList(scope, onlyDue = false) {
     const all = getRawVocabList();
-    if (!scope || scope === 'all') return all;
-    if (typeof window.vocabSourceInfo === 'function') {
-      return all.filter(x => window.vocabSourceInfo(x).key === scope);
+    let list = all;
+    if (scope && scope !== 'all') {
+      if (typeof window.vocabSourceInfo === 'function') {
+        list = all.filter(x => window.vocabSourceInfo(x).key === scope);
+      } else {
+        list = all.filter(x => (x.videoId === scope || (x.bookId && x.bookId === scope)));
+      }
     }
-    return all.filter(x => (x.videoId === scope || (x.bookId && x.bookId === scope)));
+    if (onlyDue) {
+      list = list.filter(item => srsIsDue(item));
+    }
+    return list;
   }
 
   // Save updated vocab list back to localStorage and trigger cloud sync
@@ -209,7 +280,7 @@
     }
   }
 
-  // ==================== QUIZ SESSION GENERATOR (M1) ====================
+  // ==================== QUIZ SESSION GENERATOR (M1 + M4) ====================
   function buildQuizSession(scopedItems) {
     const sourceList = scopedItems.length > 0 ? scopedItems : CURATED_FALLBACK_VOCAB;
     const pool = sourceList.filter(x => x && x.text && (x.wordVi || x.vi));
@@ -269,7 +340,7 @@
     });
   }
 
-  // ==================== CLOZE SESSION GENERATOR (M2) ====================
+  // ==================== CLOZE SESSION GENERATOR (M2 + M4) ====================
   function buildClozeSession(scopedItems) {
     const sourceList = scopedItems.length > 0 ? scopedItems : CURATED_FALLBACK_VOCAB;
     const pool = sourceList.filter(x => x && x.text && x.en);
@@ -312,7 +383,7 @@
     });
   }
 
-  // ==================== MATCH GAME SESSION GENERATOR (M3) ====================
+  // ==================== MATCH GAME SESSION GENERATOR (M3 + M4) ====================
   function buildMatchSession(scopedItems) {
     const sourceList = scopedItems.length > 0 ? scopedItems : CURATED_FALLBACK_VOCAB;
     const pool = sourceList.filter(x => x && x.text && (x.wordVi || x.vi));
@@ -341,7 +412,6 @@
       });
     });
 
-    // Shuffle the cards grid
     return {
       cards: cards.sort(() => Math.random() - 0.5),
       totalPairs: pairCount
@@ -386,11 +456,28 @@
             </button>
           </div>
 
-          <div class="vph-scope-box">
+          <div class="vph-controls-right">
+            <!-- SRS Due Filter Toggle -->
+            <button type="button" class="vph-srs-filter-btn" id="vph-srs-filter-btn" title="Chỉ luyện những từ đã đến hạn lặp lại theo Spaced Repetition">
+              <span>🧠 Đến hạn:</span>
+              <b id="vph-due-badge">0</b>
+            </button>
+
+            <!-- Video Scope Selector -->
             <select class="vph-scope-select" id="vph-scope-select" aria-label="Phạm vi từ vựng">
               <option value="all">Toàn bộ kho từ đã lưu</option>
             </select>
           </div>
+        </div>
+
+        <!-- SRS Mastery Level Strip -->
+        <div class="vph-mastery-strip" id="vph-mastery-strip">
+          <div class="vph-mastery-tags">
+            <span class="vph-mastery-tag"><span class="vph-dot new"></span> Mới lưu: <b id="vph-stat-new">0</b></span>
+            <span class="vph-mastery-tag"><span class="vph-dot learning"></span> Đang củng cố: <b id="vph-stat-learning">0</b></span>
+            <span class="vph-mastery-tag"><span class="vph-dot mastered"></span> Thuộc lòng: <b id="vph-stat-mastered">0</b></span>
+          </div>
+          <div style="font-weight:600; color:#cbd5e1" id="vph-scope-label">Đang xem: Toàn bộ bài học</div>
         </div>
 
         <!-- Score & Streak Strip -->
@@ -432,6 +519,15 @@
         const mode = btn.getAttribute('data-mode');
         switchMode(mode);
       });
+    });
+
+    // SRS Due Filter Toggle
+    const srsBtn = document.getElementById('vph-srs-filter-btn');
+    srsBtn.addEventListener('click', () => {
+      state.onlyDue = !state.onlyDue;
+      srsBtn.classList.toggle('active', state.onlyDue);
+      playSound('click');
+      startSession();
     });
 
     // Scope select change
@@ -476,10 +572,14 @@
       if (e.key === ' ' && document.activeElement?.tagName !== 'INPUT') {
         e.preventDefault();
         toggleFlashcardFlip();
-      } else if (e.key === '1' || e.key === 'ArrowLeft') {
+      } else if (e.key === '1') {
         rateFlashcard('again');
-      } else if (e.key === '2' || e.key === 'ArrowRight') {
+      } else if (e.key === '2') {
+        rateFlashcard('hard');
+      } else if (e.key === '3') {
         rateFlashcard('good');
+      } else if (e.key === '4') {
+        rateFlashcard('easy');
       }
     }
   }
@@ -495,7 +595,30 @@
     startSession();
   }
 
-  // Populate scope options
+  // Update Mastery Stats Bar & Scope Options
+  function updateMasteryStats() {
+    const allInScope = getScopedVocabList(state.scope, false);
+    let newCount = 0, learningCount = 0, masteredCount = 0, dueCount = 0;
+
+    allInScope.forEach(item => {
+      const s = getSrs(item);
+      if (srsIsDue(item)) dueCount++;
+      if (s.reps === 0) newCount++;
+      else if (s.interval >= 14 && s.reps >= 2) masteredCount++;
+      else learningCount++;
+    });
+
+    const dueBadge = document.getElementById('vph-due-badge');
+    const newEl = document.getElementById('vph-stat-new');
+    const learningEl = document.getElementById('vph-stat-learning');
+    const masteredEl = document.getElementById('vph-stat-mastered');
+
+    if (dueBadge) dueBadge.textContent = dueCount;
+    if (newEl) newEl.textContent = newCount;
+    if (learningEl) learningEl.textContent = learningCount;
+    if (masteredEl) masteredEl.textContent = masteredCount;
+  }
+
   function updateScopeOptions() {
     const sel = document.getElementById('vph-scope-select');
     if (!sel) return;
@@ -521,13 +644,25 @@
 
     sel.innerHTML = opts;
     sel.value = state.scope;
+
+    const scopeLabel = document.getElementById('vph-scope-label');
+    if (scopeLabel) {
+      if (state.scope === 'all') {
+        scopeLabel.textContent = 'Đang xem: Toàn bộ bài học';
+      } else {
+        const title = sourceMap.get(state.scope) || state.scope;
+        scopeLabel.textContent = `Bài: ${title.length > 28 ? title.slice(0, 28) + '…' : title}`;
+      }
+    }
   }
 
-  // Start new session depending on active mode
+  // Start new session depending on active mode & SRS filter
   function startSession() {
     stopTimer();
     stopMatchTimer();
-    const items = getScopedVocabList(state.scope);
+    updateMasteryStats();
+
+    const items = getScopedVocabList(state.scope, state.onlyDue);
     state.items = items;
     state.currentIndex = 0;
     state.score = 0;
@@ -535,6 +670,12 @@
     state.maxStreak = 0;
     state.wrongList = [];
     state.answered = false;
+
+    // Check if onlyDue is active but 0 due items
+    if (state.onlyDue && items.length === 0) {
+      renderNoDueItemsScreen();
+      return;
+    }
 
     if (state.currentMode === 'quiz') {
       state.questions = buildQuizSession(items);
@@ -553,6 +694,37 @@
     }
   }
 
+  function renderNoDueItemsScreen() {
+    const body = document.getElementById('vph-body');
+    if (!body) return;
+
+    const allInScope = getScopedVocabList(state.scope, false);
+    const soonestItem = allInScope.map(x => getSrs(x).due).filter(d => d > Date.now()).sort((a, b) => a - b)[0];
+    const deltaStr = soonestItem ? srsFormatDelta(soonestItem - Date.now()) : '';
+
+    body.innerHTML = `
+      <div class="vph-empty">
+        <div class="vph-empty-icon">🎉</div>
+        <h3 style="color:#ffffff; font-size:20px; font-weight:800">Không có từ nào đến hạn ôn!</h3>
+        <p style="font-size:14px; line-height:1.6; color:#94a3b8">
+          Bạn đã hoàn thành xuất sắc toàn bộ các từ cần ôn theo chu kỳ lặp lại ngắt quãng (SRS).
+          ${deltaStr ? `<br>Từ tiếp theo sẽ đến hạn sau khoảng <b>${deltaStr}</b> nữa.` : ''}
+        </p>
+        <div style="display:flex; gap:10px; margin-top:8px">
+          <button type="button" class="vph-primary-btn" id="vph-turn-off-due-btn">
+            <span>Luyện tập tất cả (${allInScope.length} từ)</span>
+          </button>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('vph-turn-off-due-btn')?.addEventListener('click', () => {
+      state.onlyDue = false;
+      document.getElementById('vph-srs-filter-btn')?.classList.remove('active');
+      startSession();
+    });
+  }
+
   function updateStatsBar() {
     const streakEl = document.getElementById('vph-streak-count');
     const scoreEl = document.getElementById('vph-score-count');
@@ -567,7 +739,7 @@
     }
   }
 
-  // ==================== QUIZ MODE ENGINE (M1) ====================
+  // ==================== QUIZ MODE ENGINE (M1 + M4) ====================
   function renderQuizQuestion() {
     stopTimer();
     state.answered = false;
@@ -592,13 +764,17 @@
     }
 
     const directionLabel = q.isFrToVi ? '🇫🇷 Tiếng Pháp → 🇻🇳 Tiếng Việt' : '🇻🇳 Tiếng Việt → 🇫🇷 Tiếng Pháp';
+    const srsDueTag = srsIsDue(q.item) ? `<span style="font-size:11px;padding:2px 8px;border-radius:6px;background:rgba(239,68,68,0.2);color:#fca5a5;font-weight:700">Đến hạn ôn</span>` : '';
     const qNum = `Câu ${state.currentIndex + 1} / ${state.questions.length}`;
 
     body.innerHTML = `
       <div class="vph-quiz-container">
         <!-- Meta & Direction -->
         <div class="vph-quiz-meta">
-          <span class="vph-direction-badge">${directionLabel}</span>
+          <div style="display:flex; align-items:center; gap:8px">
+            <span class="vph-direction-badge">${directionLabel}</span>
+            ${srsDueTag}
+          </div>
           <span style="font-weight:700; color:#cbd5e1">${qNum}</span>
         </div>
 
@@ -662,6 +838,7 @@
 
     state.timerInterval = setInterval(() => {
       currentStep--;
+      state.timerRemaining = (currentStep * stepMs) / 1000;
       const pct = Math.max(0, (currentStep / totalSteps) * 100);
       if (timerFill) timerFill.style.width = `${pct}%`;
 
@@ -702,11 +879,19 @@
       state.streak += 1;
       if (state.streak > state.maxStreak) state.maxStreak = state.streak;
       if (clickedBtn) clickedBtn.classList.add('correct');
+
+      // SM-2 SRS auto-update: fast answer (< 5s) = good/easy, slower = hard
+      const elapsedSec = state.timerSeconds - state.timerRemaining;
+      const rating = elapsedSec <= 4 && state.streak >= 2 ? 'easy' : (elapsedSec <= 7 ? 'good' : 'hard');
+      updateItemSrs(q.item?.id, rating);
     } else {
       playSound('wrong');
       state.streak = 0;
       if (clickedBtn) clickedBtn.classList.add('wrong');
       state.wrongList.push({ frenchWord: q.frenchWord, vietnameseMeaning: q.vietnameseMeaning });
+
+      // SM-2 SRS auto-update: wrong = again
+      updateItemSrs(q.item?.id, 'again');
     }
 
     updateStatsBar();
@@ -717,7 +902,7 @@
     }, 1150);
   }
 
-  // ==================== CLOZE MODE ENGINE (M2) ====================
+  // ==================== CLOZE MODE ENGINE (M2 + M4) ====================
   function renderClozeQuestion() {
     state.answered = false;
     state.clozeHintsUsed = 0;
@@ -739,13 +924,14 @@
 
     body.innerHTML = `
       <div class="vph-cloze-container">
-        <!-- Meta -->
         <div class="vph-quiz-meta">
-          <span class="vph-direction-badge">🎧 Nghe & Điền từ khuyết</span>
+          <div style="display:flex; align-items:center; gap:8px">
+            <span class="vph-direction-badge">🎧 Nghe & Điền từ khuyết</span>
+            ${srsIsDue(q.item) ? `<span style="font-size:11px;padding:2px 8px;border-radius:6px;background:rgba(239,68,68,0.2);color:#fca5a5;font-weight:700">Đến hạn ôn</span>` : ''}
+          </div>
           <span style="font-weight:700; color:#cbd5e1">${qNum}</span>
         </div>
 
-        <!-- Question Card -->
         <div class="vph-cloze-card">
           <div class="vph-cloze-audio-row">
             <button type="button" class="vph-audio-play-btn" id="vph-cloze-audio-btn">
@@ -772,7 +958,6 @@
           </div>
         </div>
 
-        <!-- Input Form -->
         <form class="vph-cloze-form" id="vph-cloze-form" onsubmit="return false;">
           <div class="vph-input-wrap">
             <input 
@@ -879,6 +1064,10 @@
       if (state.streak > state.maxStreak) state.maxStreak = state.streak;
       updateStatsBar();
 
+      // SM-2 SRS auto-update
+      const srsRating = (exactMatch && state.clozeHintsUsed === 0) ? 'easy' : (state.clozeHintsUsed <= 1 ? 'good' : 'hard');
+      updateItemSrs(q.item?.id, srsRating);
+
       if (exactMatch) {
         if (feedbackArea) {
           feedbackArea.innerHTML = `<div class="vph-feedback-box success">🎉 Tuyệt vời! Chính xác 100%: <b>${escHtml(target)}</b></div>`;
@@ -916,6 +1105,9 @@
     state.wrongList.push({ frenchWord: q.frenchWord, vietnameseMeaning: q.meaning });
     updateStatsBar();
 
+    // SM-2 SRS auto-update: skipped = again
+    updateItemSrs(q.item?.id, 'again');
+
     const input = state.clozeInputEl;
     if (input) {
       input.value = q.frenchWord;
@@ -942,7 +1134,7 @@
     }, 1600);
   }
 
-  // ==================== MATCH GAME & FLASHCARD ENGINE (M3) ====================
+  // ==================== MATCH GAME & FLASHCARD ENGINE (M3 + M4) ====================
   function startMatchGame(scopedItems) {
     stopMatchTimer();
     state.m3SubMode = 'match';
@@ -966,7 +1158,7 @@
     body.innerHTML = `
       <div class="vph-subnav-bar">
         <button type="button" class="vph-subnav-btn active" id="vph-sub-match">🧩 Ghép thẻ nhanh</button>
-        <button type="button" class="vph-subnav-btn" id="vph-sub-fc">🎴 Flashcard 3D</button>
+        <button type="button" class="vph-subnav-btn" id="vph-sub-fc">🎴 Flashcard 3D (SRS)</button>
       </div>
 
       <div class="vph-match-container">
@@ -987,15 +1179,14 @@
 
     document.getElementById('vph-sub-match')?.addEventListener('click', () => {
       state.m3SubMode = 'match';
-      startMatchGame(getScopedVocabList(state.scope));
+      startMatchGame(getScopedVocabList(state.scope, state.onlyDue));
     });
 
     document.getElementById('vph-sub-fc')?.addEventListener('click', () => {
       state.m3SubMode = 'flashcard';
-      startFlashcards(getScopedVocabList(state.scope));
+      startFlashcards(getScopedVocabList(state.scope, state.onlyDue));
     });
 
-    // Bind card clicks
     document.querySelectorAll('.vph-match-card').forEach(cardEl => {
       cardEl.addEventListener('click', () => handleMatchCardClick(cardEl));
     });
@@ -1027,12 +1218,11 @@
 
   function handleMatchCardClick(cardEl) {
     if (cardEl.classList.contains('matched') || cardEl.classList.contains('selected')) return;
-    if (state.selectedCard1 && state.selectedCard2) return; // Busy checking
+    if (state.selectedCard1 && state.selectedCard2) return;
 
     playSound('click');
     cardEl.classList.add('selected');
 
-    // Speak French if it's a French card
     if (cardEl.getAttribute('data-type') === 'fr') {
       const text = cardEl.textContent.trim();
       speakFrench(text);
@@ -1065,6 +1255,12 @@
       state.matchedPairsCount += 1;
       updateStatsBar();
 
+      // Find item and update SRS as good
+      const cardObj = state.matchCards.find(c => c.id === c1.getAttribute('data-card-id'));
+      if (cardObj?.item?.id) {
+        updateItemSrs(cardObj.item.id, 'good');
+      }
+
       c1.classList.remove('selected');
       c2.classList.remove('selected');
       c1.classList.add('matched');
@@ -1073,7 +1269,6 @@
       state.selectedCard1 = null;
       state.selectedCard2 = null;
 
-      // Check all pairs cleared
       if (state.matchedPairsCount >= state.totalPairs) {
         stopMatchTimer();
         setTimeout(renderMatchWinScreen, 450);
@@ -1121,21 +1316,21 @@
     `;
 
     document.getElementById('vph-match-again-btn')?.addEventListener('click', () => {
-      startMatchGame(getScopedVocabList(state.scope));
+      startMatchGame(getScopedVocabList(state.scope, state.onlyDue));
     });
 
     document.getElementById('vph-match-fc-btn')?.addEventListener('click', () => {
       state.m3SubMode = 'flashcard';
-      startFlashcards(getScopedVocabList(state.scope));
+      startFlashcards(getScopedVocabList(state.scope, state.onlyDue));
     });
   }
 
-  // ==================== 3D FLASHCARD ENGINE (M3) ====================
+  // ==================== 3D FLASHCARD ENGINE (M3 + M4) ====================
   function startFlashcards(scopedItems) {
     stopMatchTimer();
     state.m3SubMode = 'flashcard';
     const sourceList = scopedItems.length > 0 ? scopedItems : CURATED_FALLBACK_VOCAB;
-    state.questions = [...sourceList].sort(() => Math.random() - 0.5);
+    state.questions = [...sourceList].sort((a, b) => (getSrs(a).due - getSrs(b).due) || (Math.random() - 0.5));
     state.currentIndex = 0;
     state.isCardFlipped = false;
 
@@ -1156,7 +1351,13 @@
     const total = state.questions.length;
     const qNum = `Thẻ ${state.currentIndex + 1} / ${total}`;
 
-    // Highlight word in sentence if indices available
+    // Compute intervals preview for the 4 SuperMemo SM-2 buttons
+    const curSrs = getSrs(item);
+    const prevAgain = srsFormatDelta(srsCompute(curSrs, 'again').due - Date.now());
+    const prevHard = srsFormatDelta(srsCompute(curSrs, 'hard').due - Date.now());
+    const prevGood = srsFormatDelta(srsCompute(curSrs, 'good').due - Date.now());
+    const prevEasy = srsFormatDelta(srsCompute(curSrs, 'easy').due - Date.now());
+
     let ctxHtml = item.en || '';
     if (item.he > item.hs && item.he <= ctxHtml.length) {
       ctxHtml = escHtml(ctxHtml.slice(0, item.hs)) + `<b style="color:#fbbf24;text-decoration:underline">${escHtml(ctxHtml.slice(item.hs, item.he))}</b>` + escHtml(ctxHtml.slice(item.he));
@@ -1167,7 +1368,7 @@
     body.innerHTML = `
       <div class="vph-subnav-bar">
         <button type="button" class="vph-subnav-btn" id="vph-sub-match">🧩 Ghép thẻ nhanh</button>
-        <button type="button" class="vph-subnav-btn active" id="vph-sub-fc">🎴 Flashcard 3D</button>
+        <button type="button" class="vph-subnav-btn active" id="vph-sub-fc">🎴 Flashcard 3D (SRS)</button>
       </div>
 
       <div class="vph-flashcard-container">
@@ -1206,13 +1407,23 @@
           </div>
         </div>
 
-        <!-- SRS Buttons below Card -->
+        <!-- 4 SuperMemo SM-2 SRS Action Buttons -->
         <div class="vph-fc-srs-actions">
-          <button type="button" class="vph-srs-btn again" id="vph-srs-again" title="Phím tắt: 1 hoặc ←">
-            <span>Chưa nhớ lắm (Ôn lại)</span>
+          <button type="button" class="vph-srs-btn again" id="vph-srs-again" title="Phím tắt: 1">
+            <span class="vph-srs-label">Lặp lại</span>
+            <span class="vph-srs-delta">${prevAgain}</span>
           </button>
-          <button type="button" class="vph-srs-btn good" id="vph-srs-good" title="Phím tắt: 2 hoặc →">
-            <span>Đã nhớ thuộc lòng ✓</span>
+          <button type="button" class="vph-srs-btn hard" id="vph-srs-hard" title="Phím tắt: 2">
+            <span class="vph-srs-label">Khó</span>
+            <span class="vph-srs-delta">${prevHard}</span>
+          </button>
+          <button type="button" class="vph-srs-btn good" id="vph-srs-good" title="Phím tắt: 3">
+            <span class="vph-srs-label">Tốt</span>
+            <span class="vph-srs-delta">${prevGood}</span>
+          </button>
+          <button type="button" class="vph-srs-btn easy" id="vph-srs-easy" title="Phím tắt: 4">
+            <span class="vph-srs-label">Dễ</span>
+            <span class="vph-srs-delta">${prevEasy}</span>
           </button>
         </div>
       </div>
@@ -1220,16 +1431,15 @@
 
     document.getElementById('vph-sub-match')?.addEventListener('click', () => {
       state.m3SubMode = 'match';
-      startMatchGame(getScopedVocabList(state.scope));
+      startMatchGame(getScopedVocabList(state.scope, state.onlyDue));
     });
 
     document.getElementById('vph-sub-fc')?.addEventListener('click', () => {
       state.m3SubMode = 'flashcard';
-      startFlashcards(getScopedVocabList(state.scope));
+      startFlashcards(getScopedVocabList(state.scope, state.onlyDue));
     });
 
     document.getElementById('vph-fc-wrapper')?.addEventListener('click', (e) => {
-      // Don't flip if clicked on audio button
       if (e.target.closest('#vph-fc-audio-btn')) return;
       toggleFlashcardFlip();
     });
@@ -1240,9 +1450,10 @@
     });
 
     document.getElementById('vph-srs-again')?.addEventListener('click', () => rateFlashcard('again'));
+    document.getElementById('vph-srs-hard')?.addEventListener('click', () => rateFlashcard('hard'));
     document.getElementById('vph-srs-good')?.addEventListener('click', () => rateFlashcard('good'));
+    document.getElementById('vph-srs-easy')?.addEventListener('click', () => rateFlashcard('easy'));
 
-    // Auto-pronounce French target
     setTimeout(() => speakFrench(item.text), 180);
   }
 
@@ -1258,38 +1469,22 @@
     const item = state.questions[state.currentIndex];
     if (!item) return;
 
-    if (rating === 'good') {
+    if (rating === 'good' || rating === 'easy') {
       playSound('correct');
-      state.score += 10;
+      state.score += rating === 'easy' ? 20 : 15;
       state.streak += 1;
     } else {
-      playSound('wrong');
-      state.streak = 0;
-      state.wrongList.push({ frenchWord: item.text, vietnameseMeaning: item.wordVi || item.vi || '' });
+      playSound(rating === 'hard' ? 'click' : 'wrong');
+      if (rating === 'again') {
+        state.streak = 0;
+        state.wrongList.push({ frenchWord: item.text, vietnameseMeaning: item.wordVi || item.vi || '' });
+      }
     }
     updateStatsBar();
 
-    // Update SRS state and persist
-    try {
-      const all = getRawVocabList();
-      const target = all.find(v => v.id === item.id);
-      if (target) {
-        target.srs = target.srs || { ease: 2.5, interval: 0, reps: 0, due: 0, lastReview: null };
-        if (rating === 'again') {
-          target.srs.reps = 0;
-          target.srs.ease = Math.max(1.3, target.srs.ease - 0.2);
-          target.srs.due = Date.now() + 10 * 60 * 1000;
-        } else {
-          target.srs.reps += 1;
-          target.srs.interval = target.srs.reps === 1 ? 1 : Math.round(target.srs.interval * target.srs.ease);
-          target.srs.due = Date.now() + target.srs.interval * 24 * 60 * 60 * 1000;
-        }
-        target.srs.lastReview = Date.now();
-        persistVocabList(all);
-      }
-    } catch (e) {}
+    // SM-2 SRS update
+    updateItemSrs(item.id, rating);
 
-    // Advance to next card
     state.currentIndex++;
     renderFlashcardScreen();
   }
@@ -1328,7 +1523,7 @@
 
     let modeName = 'Trắc nghiệm phản xạ';
     if (state.currentMode === 'cloze') modeName = 'Luyện Nghe & Điền từ';
-    else if (state.currentMode === 'match') modeName = 'Flashcard 3D';
+    else if (state.currentMode === 'match') modeName = state.m3SubMode === 'match' ? 'Ghép thẻ nhanh' : 'Flashcard 3D (SRS)';
 
     body.innerHTML = `
       <div class="vph-done-card">
