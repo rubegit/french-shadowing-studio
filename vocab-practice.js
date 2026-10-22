@@ -11,24 +11,57 @@
 (function () {
   'use strict';
 
-  // Curated fallback French words if user has fewer than 4 saved words
+  // Curated fallback French words if user has fewer than 4 saved words (tagged with standard Larousse abbreviations)
   const CURATED_FALLBACK_VOCAB = [
-    { text: 'bonjour', wordVi: 'xin chào (buổi sáng/ngày)', en: 'Bonjour, comment allez-vous aujourd’hui ?' },
-    { text: 'merci', wordVi: 'cảm ơn', en: 'Merci beaucoup pour votre aide précieuse.' },
-    { text: "s'il vous plaît", wordVi: 'làm ơn / xin vui lòng', en: 'Un café noir, s’il vous plaît.' },
-    { text: 'beaucoup', wordVi: 'rất nhiều', en: 'J’aime beaucoup voyager en France.' },
-    { text: 'toujours', wordVi: 'luôn luôn / vẫn', en: 'Il est toujours à l’heure aux rendez-vous.' },
-    { text: 'maintenant', wordVi: 'bây giờ / hiện tại', en: 'Nous pouvons commencer la leçon maintenant.' },
-    { text: 'magnifique', wordVi: 'tuyệt vời / lộng lẫy', en: 'Cette vue sur Paris est vraiment magnifique.' },
-    { text: 'comprendre', wordVi: 'hiểu', en: 'Je commence à bien comprendre le français.' },
-    { text: "aujourd'hui", wordVi: 'hôm nay', en: 'Quel temps fait-il aujourd’hui à Lyon ?' },
-    { text: 'ensemble', wordVi: 'cùng nhau', en: 'Nous allons pratiquer le français ensemble.' },
-    { text: "d'accord", wordVi: 'đồng ý / được thôi', en: 'D’accord, on se retrouve demain matin.' },
-    { text: 'enchanté', wordVi: 'rất hân hạnh được gặp', en: 'Enchanté de faire votre connaissance.' },
-    { text: 'pourquoi', wordVi: 'tại sao', en: 'Pourquoi avez-vous choisi d’apprendre cette langue ?' },
-    { text: 'parce que', wordVi: 'bởi vì', en: 'Parce que c’est une langue très romantique.' },
-    { text: 'peut-être', wordVi: 'có lẽ / có thể', en: 'Peut-être qu’il viendra ce soir avec nous.' }
+    { text: 'bonjour', wordVi: '[loc.] xin chào (buổi sáng/ngày)', en: 'Bonjour, comment allez-vous aujourd’hui ?' },
+    { text: 'merci', wordVi: '[loc.] cảm ơn', en: 'Merci nhiều pour votre aide précieuse.' },
+    { text: "s'il vous plaît", wordVi: '[loc.] làm ơn / xin vui lòng', en: 'Un café noir, s’il vous plaît.' },
+    { text: 'beaucoup', wordVi: '[adv.] rất nhiều', en: 'J’aime beaucoup voyager en France.' },
+    { text: 'toujours', wordVi: '[adv.] luôn luôn / vẫn', en: 'Il est toujours à l’heure aux rendez-vous.' },
+    { text: 'maintenant', wordVi: '[adv.] bây giờ / hiện tại', en: 'Nous pouvons commencer la leçon maintenant.' },
+    { text: 'magnifique', wordVi: '[adj.] tuyệt vời / lộng lẫy', en: 'Cette vue sur Paris est vraiment magnifique.' },
+    { text: 'comprendre', wordVi: '[v. inf.] hiểu', en: 'Je commence à bien comprendre le français.' },
+    { text: "aujourd'hui", wordVi: '[adv.] hôm nay', en: 'Quel temps fait-il aujourd’hui à Lyon ?' },
+    { text: 'ensemble', wordVi: '[adv.] cùng nhau', en: 'Nous allons pratiquer le français ensemble.' },
+    { text: "d'accord", wordVi: '[loc.] đồng ý / được thôi', en: 'D’accord, on se retrouve demain matin.' },
+    { text: 'irons', wordVi: '[v. aller · fut. 1p] chúng tôi sẽ đi', en: 'Demain, nous irons visiter le musée du Louvre.' },
+    { text: 'savait', wordVi: '[v. savoir · imp. 3s] anh ấy/cô ấy đã biết', en: 'Il savait déjà toute la vérité.' },
+    { text: 'voyage', wordVi: '[n.m.] chuyến đi, hành trình', en: 'Bon voyage et à très bientôt !' },
+    { text: 'maison', wordVi: '[n.f.] ngôi nhà', en: 'Bienvenue dans notre nouvelle maison.' }
   ];
+
+  // ==================== FRENCH GRAMMAR TAGGING & ANTI-SPOIL HELPERS (M5) ====================
+  function maskGrammarTag(text) {
+    if (!text) return '';
+    // Transforms [v. aller · fut. 1p] -> [v. fut. 1p] (anti-spoil: conceals root verb while keeping tense & person)
+    return String(text).replace(/\[v\.\s*([^·\]]+)\s*·\s*([^\]]+)\]/gi, (match, root, rest) => {
+      return `[v. ${rest.trim()}]`;
+    });
+  }
+
+  function extractGrammarTag(text) {
+    if (!text) return '';
+    const m = String(text).match(/\[(v\.[^\]]*|n\.m\.|n\.f\.|n\.pl\.|n\.m\.\/f\.|adj\.|adv\.|loc\.[^\]]*|prep\.|conj\.)\]/i);
+    return m ? m[0] : '';
+  }
+
+  function formatGrammarBadgeHtml(text, options = {}) {
+    if (!text) return '';
+    let str = String(text);
+    if (options.mask) {
+      str = maskGrammarTag(str);
+    }
+    return str.replace(/\[(v\.[^\]]*|n\.m\.|n\.f\.|n\.pl\.|n\.m\.\/f\.|adj\.|adv\.|loc\.[^\]]*|prep\.|conj\.)\]/gi, (match, tag) => {
+      let colorClass = 'vph-badge-default';
+      const t = tag.toLowerCase().trim();
+      if (t.startsWith('v.')) colorClass = 'vph-badge-verb';
+      else if (t === 'n.m.') colorClass = 'vph-badge-nm';
+      else if (t === 'n.f.') colorClass = 'vph-badge-nf';
+      else if (t.startsWith('adj') || t.startsWith('adv')) colorClass = 'vph-badge-adj';
+      else if (t.startsWith('loc')) colorClass = 'vph-badge-loc';
+      return `<span class="vph-grammar-badge ${colorClass}" title="${escHtml(match)}">${escHtml(match)}</span>`;
+    });
+  }
 
   // ==================== SPACED REPETITION (SM-2) CORE ====================
   function srsDefault() {
@@ -298,26 +331,35 @@
 
     return targetSubset.map((item, qIndex) => {
       const isFrToVi = Math.random() >= 0.4 || !item.wordVi;
-      const targetPrompt = isFrToVi ? item.text : (item.wordVi || item.vi || item.text);
-      const correctAnswer = isFrToVi ? (item.wordVi || item.vi || 'Nghĩa từ vựng') : item.text;
+      const rawPrompt = isFrToVi ? item.text : (item.wordVi || item.vi || item.text);
+      const targetPrompt = isFrToVi ? rawPrompt : maskGrammarTag(rawPrompt);
+      
+      const rawAnswer = isFrToVi ? (item.wordVi || item.vi || 'Nghĩa từ vựng') : item.text;
+      const correctAnswer = isFrToVi ? maskGrammarTag(rawAnswer) : rawAnswer;
 
       const distractors = [];
       const distractorPool = combinedPool.filter(c => c.text.toLowerCase() !== item.text.toLowerCase()).sort(() => Math.random() - 0.5);
 
       for (let cand of distractorPool) {
-        const val = isFrToVi ? (cand.wordVi || cand.vi) : cand.text;
-        if (val && val !== correctAnswer && !distractors.includes(val)) {
-          distractors.push(val);
-          if (distractors.length === 3) break;
+        let val = isFrToVi ? (cand.wordVi || cand.vi) : cand.text;
+        if (val) {
+          if (isFrToVi) val = maskGrammarTag(val);
+          if (val !== correctAnswer && !distractors.includes(val)) {
+            distractors.push(val);
+            if (distractors.length === 3) break;
+          }
         }
       }
 
       if (distractors.length < 3) {
         for (let fb of CURATED_FALLBACK_VOCAB) {
-          const val = isFrToVi ? fb.wordVi : fb.text;
-          if (val && val !== correctAnswer && !distractors.includes(val)) {
-            distractors.push(val);
-            if (distractors.length === 3) break;
+          let val = isFrToVi ? fb.wordVi : fb.text;
+          if (val) {
+            if (isFrToVi) val = maskGrammarTag(val);
+            if (val !== correctAnswer && !distractors.includes(val)) {
+              distractors.push(val);
+              if (distractors.length === 3) break;
+            }
           }
         }
       }
@@ -785,7 +827,7 @@
 
         <!-- Question Prompt -->
         <div class="vph-question-card">
-          <div class="vph-question-target">${escHtml(q.prompt)}</div>
+          <div class="vph-question-target">${formatGrammarBadgeHtml(escHtml(q.prompt), { mask: true })}</div>
           
           <button type="button" class="vph-question-audio-btn" id="vph-audio-btn" title="Nghe phát âm tiếng Pháp (Phím Space)">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
@@ -800,7 +842,7 @@
           ${q.options.map((opt, i) => `
             <button type="button" class="vph-option-btn" data-index="${i}">
               <span class="vph-opt-key">${i + 1}</span>
-              <span class="vph-opt-text">${escHtml(opt)}</span>
+              <span class="vph-opt-text">${formatGrammarBadgeHtml(escHtml(opt), { mask: true })}</span>
             </button>
           `).join('')}
         </div>
@@ -865,13 +907,27 @@
     const isCorrect = selectedAnswer === q.correctAnswer;
     const allBtns = document.querySelectorAll('.vph-option-btn');
 
-    allBtns.forEach(b => {
+    allBtns.forEach((b, idx) => {
       b.disabled = true;
-      const text = b.querySelector('.vph-opt-text')?.textContent;
-      if (text === q.correctAnswer) {
+      if (q.options[idx] === q.correctAnswer) {
         b.classList.add('correct');
+        // Unmask root verb on the correct answer button if it has a grammar tag
+        if (q.isFrToVi && q.vietnameseMeaning) {
+          const optTextEl = b.querySelector('.vph-opt-text');
+          if (optTextEl) {
+            optTextEl.innerHTML = formatGrammarBadgeHtml(escHtml(q.vietnameseMeaning), { mask: false });
+          }
+        }
       }
     });
+
+    // If prompt was Vietnamese meaning, unmask the full root verb in the question card
+    if (!q.isFrToVi && q.vietnameseMeaning) {
+      const targetCard = document.querySelector('.vph-question-target');
+      if (targetCard) {
+        targetCard.innerHTML = formatGrammarBadgeHtml(escHtml(q.vietnameseMeaning), { mask: false });
+      }
+    }
 
     if (isCorrect) {
       playSound('correct');
@@ -954,7 +1010,7 @@
           <div class="vph-cloze-sentence">${q.maskedSentence}</div>
 
           <div class="vph-cloze-meaning">
-            Gợi ý nghĩa: <b style="color:#6ee7b7">${escHtml(q.meaning)}</b>
+            Gợi ý nghĩa: <span style="color:#6ee7b7">${formatGrammarBadgeHtml(escHtml(q.meaning), { mask: true })}</span>
           </div>
         </div>
 
@@ -1058,6 +1114,11 @@
         blankPill.style.borderColor = '#10b981';
       }
 
+      const meaningEl = document.querySelector('.vph-cloze-meaning');
+      if (meaningEl) {
+        meaningEl.innerHTML = `Nghĩa đầy đủ: <span style="color:#6ee7b7">${formatGrammarBadgeHtml(escHtml(q.meaning), { mask: false })}</span>`;
+      }
+
       const bonus = state.clozeHintsUsed === 0 ? 15 : 10;
       state.score += bonus + Math.min(20, state.streak * 2);
       state.streak += 1;
@@ -1070,11 +1131,11 @@
 
       if (exactMatch) {
         if (feedbackArea) {
-          feedbackArea.innerHTML = `<div class="vph-feedback-box success">🎉 Tuyệt vời! Chính xác 100%: <b>${escHtml(target)}</b></div>`;
+          feedbackArea.innerHTML = `<div class="vph-feedback-box success">🎉 Tuyệt vời! Chính xác 100%: <b>${escHtml(target)}</b> — ${formatGrammarBadgeHtml(escHtml(q.meaning), { mask: false })}</div>`;
         }
       } else {
         if (feedbackArea) {
-          feedbackArea.innerHTML = `<div class="vph-feedback-box warning">👍 Rất tốt! Hãy lưu ý dấu chính tả tiếng Pháp: <b>${escHtml(target)}</b></div>`;
+          feedbackArea.innerHTML = `<div class="vph-feedback-box warning">👍 Rất tốt! Hãy lưu ý dấu chính tả: <b>${escHtml(target)}</b> — ${formatGrammarBadgeHtml(escHtml(q.meaning), { mask: false })}</div>`;
         }
       }
 
@@ -1083,7 +1144,7 @@
       setTimeout(() => {
         state.currentIndex++;
         renderClozeQuestion();
-      }, 1300);
+      }, 1450);
     } else {
       playSound('wrong');
       input.classList.add('invalid');
@@ -1121,9 +1182,14 @@
       blankPill.style.color = '#fca5a5';
     }
 
+    const meaningEl = document.querySelector('.vph-cloze-meaning');
+    if (meaningEl) {
+      meaningEl.innerHTML = `Nghĩa đầy đủ: <span style="color:#6ee7b7">${formatGrammarBadgeHtml(escHtml(q.meaning), { mask: false })}</span>`;
+    }
+
     const feedbackArea = document.getElementById('vph-feedback-area');
     if (feedbackArea) {
-      feedbackArea.innerHTML = `<div class="vph-feedback-box error">Đáp án đúng là: <b>${escHtml(q.frenchWord)}</b></div>`;
+      feedbackArea.innerHTML = `<div class="vph-feedback-box error">Đáp án đúng là: <b>${escHtml(q.frenchWord)}</b> — ${formatGrammarBadgeHtml(escHtml(q.meaning), { mask: false })}</div>`;
     }
 
     speakFrench(q.frenchWord);
@@ -1131,7 +1197,7 @@
     setTimeout(() => {
       state.currentIndex++;
       renderClozeQuestion();
-    }, 1600);
+    }, 1750);
   }
 
   // ==================== MATCH GAME & FLASHCARD ENGINE (M3 + M4) ====================
@@ -1170,7 +1236,7 @@
         <div class="vph-match-grid" id="vph-match-grid">
           ${state.matchCards.map(c => `
             <div class="vph-match-card" data-card-id="${c.id}" data-pair-id="${c.pairId}" data-type="${c.type}">
-              <span>${escHtml(c.text)}</span>
+              <span>${formatGrammarBadgeHtml(escHtml(c.text), { mask: true })}</span>
             </div>
           `).join('')}
         </div>
@@ -1224,7 +1290,8 @@
     cardEl.classList.add('selected');
 
     if (cardEl.getAttribute('data-type') === 'fr') {
-      const text = cardEl.textContent.trim();
+      const cardObj = state.matchCards.find(c => c.id === cardEl.getAttribute('data-card-id'));
+      const text = cardObj ? cardObj.text : cardEl.textContent.trim();
       speakFrench(text);
     }
 
@@ -1384,6 +1451,12 @@
               
               <div class="vph-fc-word">${escHtml(item.text)}</div>
 
+              ${extractGrammarTag(item.wordVi) ? `
+                <div class="vph-fc-front-tag">
+                  ${formatGrammarBadgeHtml(extractGrammarTag(item.wordVi), { mask: true })}
+                </div>
+              ` : ''}
+
               <div class="vph-fc-ctx">${ctxHtml}</div>
 
               <div class="vph-fc-hint-flip">
@@ -1395,7 +1468,7 @@
             <div class="vph-fc-back">
               <span class="vph-fc-top-tag" style="color:#d946ef;background:rgba(217,70,239,0.15)">Nghĩa & Bản dịch</span>
               
-              <div class="vph-fc-meaning">${escHtml(item.wordVi || item.vi || item.text)}</div>
+              <div class="vph-fc-meaning">${formatGrammarBadgeHtml(escHtml(item.wordVi || item.vi || item.text), { mask: false })}</div>
 
               ${item.vi ? `<div class="vph-fc-sentvi">“${escHtml(item.vi)}”</div>` : ''}
 
@@ -1513,7 +1586,7 @@
             ${state.wrongList.map(w => `
               <div style="display:flex; justify-content:space-between; align-items:center; font-size:13px; padding:6px 10px; background:rgba(255,255,255,0.03); border-radius:8px;">
                 <b style="color:#6ee7b7">${escHtml(w.frenchWord)}</b>
-                <span style="color:#cbd5e1">${escHtml(w.vietnameseMeaning)}</span>
+                <span style="color:#cbd5e1">${formatGrammarBadgeHtml(escHtml(w.vietnameseMeaning), { mask: false })}</span>
               </div>
             `).join('')}
           </div>
@@ -1585,7 +1658,10 @@
   window.VocabPracticeHub = {
     open: openVocabPracticeHub,
     close: closeVocabPracticeHub,
-    switchMode: switchMode
+    switchMode: switchMode,
+    maskGrammarTag: maskGrammarTag,
+    formatGrammarBadgeHtml: formatGrammarBadgeHtml,
+    extractGrammarTag: extractGrammarTag
   };
 
   // Helper alias

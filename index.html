@@ -12797,6 +12797,33 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
       btn.textContent = open ? 'Ẩn ví dụ' : `Xem thêm ví dụ (${n})`;
     }
 
+    function maskGrammarTag(text) {
+      if (!text) return '';
+      return String(text).replace(/\[v\.\s*([^·\]]+)\s*·\s*([^\]]+)\]/gi, (match, root, rest) => {
+        return `[v. ${rest.trim()}]`;
+      });
+    }
+
+    function formatGrammarBadgeHtml(text, options = {}) {
+      if (!text) return '';
+      let str = String(text);
+      if (options.mask) {
+        str = maskGrammarTag(str);
+      }
+      return str.replace(/\[(v\.[^\]]*|n\.m\.|n\.f\.|n\.pl\.|n\.m\.\/f\.|adj\.|adv\.|loc\.[^\]]*|prep\.|conj\.)\]/gi, (match, tag) => {
+        let colorClass = 'vph-badge-default';
+        const t = tag.toLowerCase().trim();
+        if (t.startsWith('v.')) colorClass = 'vph-badge-verb';
+        else if (t === 'n.m.') colorClass = 'vph-badge-nm';
+        else if (t === 'n.f.') colorClass = 'vph-badge-nf';
+        else if (t.startsWith('adj') || t.startsWith('adv')) colorClass = 'vph-badge-adj';
+        else if (t.startsWith('loc')) colorClass = 'vph-badge-loc';
+        return `<span class="vph-grammar-badge ${colorClass}" title="${escHtml(match)}">${escHtml(match)}</span>`;
+      });
+    }
+    window.formatGrammarBadgeHtml = formatGrammarBadgeHtml;
+    window.maskGrammarTag = maskGrammarTag;
+
     function vocabCardHtml(x) {
       const KIND = { word: 'Từ', phrase: 'Cụm từ', sentence: 'Câu' };
       const ctx = x.he > x.hs
@@ -12817,7 +12844,7 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
         </div>${vocabAiHintId === x.id ? vocabAiHintHtml() : ''}`;
       } else {
         wordViBlock = `<div class="vocab-wordvi-row">
-          ${x.wordVi ? `<p class="vocab-wordvi">${escHtml(x.wordVi)}</p>` : '<p class="vocab-wordvi-empty">Chưa có nghĩa riêng của từ này<button type="button" class="vocab-ai-link" onclick="openVocabMeaningModal()" title="Nhờ AI điền nghĩa + 3 ví dụ cho tất cả các từ chưa có">✨ Điền bằng AI</button></p>'}
+          ${x.wordVi ? `<p class="vocab-wordvi">${formatGrammarBadgeHtml(escHtml(x.wordVi))}</p>` : '<p class="vocab-wordvi-empty">Chưa có nghĩa riêng của từ này<button type="button" class="vocab-ai-link" onclick="openVocabMeaningModal()" title="Nhờ AI điền nghĩa + 3 ví dụ cho tất cả các từ chưa có">✨ Điền bằng AI</button></p>'}
           <button type="button" class="vocab-mini" onclick="startEditWordMeaning('${x.id}')">${x.wordVi ? 'Sửa nghĩa' : '+ Thêm nghĩa'}</button>
         </div>`;
       }
@@ -13010,12 +13037,17 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
         return `${i + 1}. "${x.text}" (${KIND_VI[x.kind] || 'từ'}) — ngữ cảnh: "${prev ? prev + ' ' : ''}${x.en}"`;
       });
       return 'Tôi đang học tiếng Pháp. Với TỪNG mục trong danh sách bên dưới (kèm ngữ cảnh gồm câu đứng trước và câu chứa nó, nơi tôi gặp nó), hãy cho tôi:\n'
-        + '(1) nghĩa tiếng Việt ngắn gọn, đúng với nghĩa trong ngữ cảnh đó (không dịch cả câu);\n'
-        + '(2) đúng 3 câu ví dụ tiếng Pháp thực tế, phổ biến mà người bản xứ hay dùng, đơn giản, không học thuật, không dùng từ quá cao siêu. Mỗi ví dụ dùng đúng nghĩa ở mục (1) và có bản dịch tiếng Việt.\n'
-        + 'Riêng mục nào ghi (CẢ CÂU) thì chỉ dịch cả câu sang tiếng Việt, không cần ví dụ.\n\n'
+        + '(1) Ghi chú loại từ / thì được chia viết tắt trong ngoặc vuông [] kèm nghĩa tiếng Việt ngắn gọn, đúng ngữ cảnh (không dịch cả câu).\n'
+        + '    Quy ước viết tắt chuẩn (Larousse/Bescherelle):\n'
+        + '    - Động từ nguyên mẫu: [v. inf.] nghĩa\n'
+        + '    - Động từ đã chia: [v. <từ_gốc> · <thì> <ngôi>] nghĩa (viết tắt thì: prés., imp., fut., p.c., cond., subj., p.p., p.pr.; ngôi: 1s, 2s, 3s, 1p, 2p, 3p. Ví dụ: [v. aller · fut. 1p] chúng tôi sẽ đi)\n'
+        + '    - Danh từ: [n.m.] (giống đực), [n.f.] (giống cái), [n.pl.] nghĩa\n'
+        + '    - Tính từ: [adj.] nghĩa | Trạng từ: [adv.] nghĩa | Thành ngữ, cụm: [loc.] nghĩa\n'
+        + '(2) Đúng 3 câu ví dụ tiếng Pháp thực tế, phổ biến mà người bản xứ hay dùng, đơn giản, không học thuật, không dùng từ quá cao siêu. Mỗi ví dụ dùng đúng nghĩa ở mục (1) và có bản dịch tiếng Việt.\n'
+        + 'Riêng mục nào ghi (CẢ CÂU) thì chỉ dịch cả câu sang tiếng Việt, không cần ví dụ và không cần tag.\n\n'
         + 'QUAN TRỌNG: đặt toàn bộ kết quả trong MỘT khối code (codebox ```) để người dùng mobile dễ bấm nút copy (không in đậm, không bảng, không lời dẫn hay giải thích ngoài codebox). '
         + 'Mỗi mục theo đúng mẫu sau, bắt đầu bằng đúng số thứ tự của mục, các mục cách nhau 1 dòng trống. Dùng đúng dấu || giữa câu tiếng Pháp và bản dịch:\n\n'
-        + '1. Nghĩa: nghĩa tiếng Việt\n'
+        + '1. Nghĩa: [tag viết tắt] nghĩa tiếng Việt\n'
         + 'VD1: câu ví dụ tiếng Pháp || bản dịch tiếng Việt\n'
         + 'VD2: câu ví dụ tiếng Pháp || bản dịch tiếng Việt\n'
         + 'VD3: câu ví dụ tiếng Pháp || bản dịch tiếng Việt\n\n'
@@ -13131,17 +13163,20 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
 
     function buildKeyVocabPrompt() {
       return 'Tôi đang học tiếng Pháp. Hãy đọc văn bản bên dưới rồi liệt kê TẤT CẢ những từ vựng / cụm từ / thành ngữ (idiom) / tiếng lóng (slang) KHÓ hoặc ít gặp mà người học tiếng Pháp trình độ trung cấp có thể chưa biết (bỏ qua từ quá dễ và tên riêng). '
-        + 'Với từng mục, cho tôi nghĩa tiếng Việt (đúng với nghĩa được dùng trong văn bản) và đúng 3 câu ví dụ thực tế, phổ biến mà người bản xứ hay dùng, đơn giản, không học thuật, không dùng từ quá cao siêu; mỗi ví dụ kèm bản dịch tiếng Việt.\n\n'
+        + 'Với từng mục, cho tôi ghi chú ngữ pháp viết tắt trong ngoặc vuông [] kèm nghĩa tiếng Việt (đúng với nghĩa được dùng trong văn bản) và đúng 3 câu ví dụ thực tế, phổ biến mà người bản xứ hay dùng, đơn giản, không học thuật, không dùng từ quá cao siêu; mỗi ví dụ kèm bản dịch tiếng Việt.\n\n'
+        + 'Quy ước viết tắt ngữ pháp chuẩn (Larousse/Bescherelle):\n'
+        + '- Động từ nguyên mẫu: [v. inf.] | Động từ chia: [v. <từ_gốc> · <thì> <ngôi>] (thì: prés., imp., fut., p.c., cond., subj., p.p.; ngôi: 1s, 2s, 3s, 1p, 2p, 3p. VD: [v. savoir · subj. 2s])\n'
+        + '- Danh từ: [n.m.] hoặc [n.f.] | Tính từ: [adj.] | Trạng từ: [adv.] | Thành ngữ/cụm: [loc.]\n\n'
         + 'QUAN TRỌNG: đặt toàn bộ kết quả trong MỘT khối code (codebox ```) để người dùng mobile dễ bấm nút copy (không in đậm, không bảng, không lời dẫn hay giải thích ngoài codebox). '
         + 'Mỗi mục theo đúng mẫu 5 dòng sau, các mục cách nhau 1 dòng trống, đánh số từ 1. Dùng đúng dấu || để ngăn cách, và không dùng || ở chỗ nào khác:\n\n'
-        + '1. TỪ hoặc CỤM TỪ (dạng gốc/nguyên mẫu) || LOẠI || nghĩa tiếng Việt\n'
+        + '1. TỪ hoặc CỤM TỪ (dạng xuất hiện trong bài hoặc nguyên mẫu) || LOẠI || [tag viết tắt] nghĩa tiếng Việt\n'
         + 'Trong bài: đúng cụm chữ như nó xuất hiện trong văn bản\n'
         + 'VD1: câu ví dụ tiếng Pháp || bản dịch tiếng Việt\n'
         + 'VD2: câu ví dụ tiếng Pháp || bản dịch tiếng Việt\n'
         + 'VD3: câu ví dụ tiếng Pháp || bản dịch tiếng Việt\n\n'
         + 'LOẠI chỉ được là một trong: từ, idiom, slang, cụm từ.\n\n'
         + 'Ví dụ mẫu (chỉ để minh hoạ định dạng, KHÔNG đưa vào kết quả):\n'
-        + '1. abandonner || từ || từ bỏ, bỏ cuộc\n'
+        + '1. a abandonné || từ || [v. abandonner · p.c. 3s] đã từ bỏ, đã bỏ cuộc\n'
         + 'Trong bài: a abandonné\n'
         + 'VD1: N\'abandonne pas, tu y es presque ! || Đừng bỏ cuộc, bạn gần tới rồi!\n'
         + 'VD2: J\'ai abandonné le tabac l\'année dernière. || Năm ngoái tôi đã bỏ thuốc lá.\n'
