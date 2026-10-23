@@ -12,10 +12,6 @@
         {
           "id": "kQUkpe9fNG0",
           "title": "Parler du futur en français (How to Talk about the Future in French)"
-        },
-        {
-          "id": "sample_fr",
-          "title": "Bonjour à tous - Luyện Shadowing Tiếng Pháp Cơ Bản"
         }
       ]
     },
@@ -30,22 +26,11 @@
         {
           "id": "kQUkpe9fNG0",
           "title": "Parler du futur en français (How to Talk about the Future in French)"
-        },
-        {
-          "id": "sample_fr",
-          "title": "Bonjour à tous - Luyện Shadowing Tiếng Pháp Cơ Bản"
         }
       ]
     }
   ],
   "videos": {
-    "sample_fr": {
-      "title": "Bonjour à tous - Luyện Shadowing Tiếng Pháp Cơ Bản",
-      "channelTitle": "French Shadowing Studio",
-      "channelAvatar": "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=120&q=80",
-      "duration": "00:29",
-      "viewCount": 1280
-    },
     "kQUkpe9fNG0": {
       "title": "Parler du futur en français (How to Talk about the Future in French)",
       "channelTitle": "Basic French Podcast",
