@@ -252,6 +252,38 @@
     } catch (e) {}
   }
 
+  // Play native audio segment directly from the YouTube video (hidden player, no video frame shown)
+  function playQuestionVideoAudio(q) {
+    if (!q) return;
+    const vid = q.videoId || q.item?.videoId;
+    if (!vid) {
+      speakFrench(q.frenchWord || q.text);
+      return;
+    }
+    const btns = document.querySelectorAll('.vph-video-audio-btn');
+    const isCurrentlyPlaying = Array.from(btns).some(b => b.classList.contains('playing'));
+    if (isCurrentlyPlaying) {
+      if (typeof window.stopVideoAudioSegment === 'function') window.stopVideoAudioSegment();
+      btns.forEach(b => b.classList.remove('playing'));
+      return;
+    }
+
+    btns.forEach(b => b.classList.add('playing'));
+    if (typeof window.playVideoAudioSegment === 'function') {
+      const dur = q.duration || (q.sentence || q.ctx ? Math.max(2.5, Math.min(8.0, (q.sentence || q.ctx).split(/\s+/).length * 0.45 + 1.0)) : 4);
+      window.playVideoAudioSegment(vid, q.t || 0, dur, {
+        onStart: () => { btns.forEach(b => b.classList.add('playing')); },
+        onEnd: () => { btns.forEach(b => b.classList.remove('playing')); },
+        onError: () => {
+          btns.forEach(b => b.classList.remove('playing'));
+          speakFrench(q.frenchWord || q.text);
+        }
+      });
+    } else {
+      speakFrench(q.frenchWord || q.text);
+    }
+  }
+
   // Utility: HTML Escaping
   function escHtml(s) {
     return String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -468,7 +500,10 @@
         maskedCtx: ctxResult.masked,
         targetWordInCtx: ctxResult.targetWordInCtx,
         frenchWord: item.text,
-        vietnameseMeaning: item.wordVi || item.vi || ''
+        vietnameseMeaning: item.wordVi || item.vi || '',
+        videoId: item.videoId || '',
+        t: item.t || 0,
+        duration: item.duration || (item.en ? Math.max(2.5, Math.min(8.0, item.en.split(/\s+/).length * 0.45 + 1.0)) : 4)
       };
     });
   }
@@ -515,7 +550,8 @@
         targetWordInCtx: maskedRes.targetWordInCtx,
         meaning,
         videoId,
-        t
+        t,
+        duration: item.duration || (sentence ? Math.max(2.5, Math.min(8.0, sentence.split(/\s+/).length * 0.45 + 1.0)) : 4)
       };
     });
   }
@@ -731,6 +767,12 @@
             audioBtn.classList.add('playing');
             setTimeout(() => audioBtn.classList.remove('playing'), 600);
           }
+        }
+      } else if ((e.key === 'v' || e.key === 'V') && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+        const currentQ = state.questions[state.currentIndex];
+        if (currentQ && (currentQ.videoId || currentQ.item?.videoId) && (currentQ.isFrToVi || state.answered)) {
+          playQuestionVideoAudio(currentQ);
         }
       }
     } else if (state.currentMode === 'cloze') {
@@ -1012,6 +1054,7 @@
     const srsDueTag = srsIsDue(q.item) ? `<span style="font-size:11px;padding:2px 8px;border-radius:6px;background:rgba(239,68,68,0.2);color:#fca5a5;font-weight:700">Đến hạn ôn</span>` : '';
     const qNum = `Câu ${state.currentIndex + 1} / ${state.questions.length}`;
 
+    if (typeof window.stopVideoAudioSegment === 'function') window.stopVideoAudioSegment();
     body.innerHTML = `
       <div class="vph-quiz-container">
         <!-- Meta & Direction -->
@@ -1032,10 +1075,19 @@
         <div class="vph-question-card">
           <div class="vph-question-target">${formatGrammarBadgeHtml(escHtml(q.prompt), { mask: true })}</div>
           
-          <button type="button" class="vph-question-audio-btn" id="vph-audio-btn" style="${q.isFrToVi ? '' : 'display:none'}" title="Nghe phát âm tiếng Pháp (Phím Space)">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
-            <span>Phát âm (Space)</span>
-          </button>
+          <div class="vph-audio-actions-row">
+            <button type="button" class="vph-question-audio-btn" id="vph-audio-btn" style="${q.isFrToVi ? '' : 'display:none'}" title="Nghe phát âm từ vựng (Phím Space)">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+              <span>Phát âm (Space)</span>
+            </button>
+
+            ${(q.videoId && !q.item?.bookId) ? `
+              <button type="button" class="vph-video-audio-btn" id="vph-video-audio-btn" style="${q.isFrToVi ? '' : 'display:none'}" title="Nghe đoạn âm thanh từ video gốc (người bản xứ nói, phím V)">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
+                <span>Audio video gốc (V)</span>
+              </button>
+            ` : ''}
+          </div>
 
           ${ctxHtml ? `<div class="vph-question-ctx">"${ctxHtml}"</div>` : ''}
         </div>
@@ -1066,6 +1118,14 @@
         audioBtn.classList.add('playing');
         setTimeout(() => audioBtn.classList.remove('playing'), 600);
         speakFrench(q.frenchWord);
+      });
+    }
+
+    const videoAudioBtn = document.getElementById('vph-video-audio-btn');
+    if (videoAudioBtn) {
+      videoAudioBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        playQuestionVideoAudio(q);
       });
     }
 
@@ -1149,6 +1209,10 @@
     if (audioBtn) {
       audioBtn.style.display = 'inline-flex';
     }
+    const videoAudioBtn = document.getElementById('vph-video-audio-btn');
+    if (videoAudioBtn) {
+      videoAudioBtn.style.display = 'inline-flex';
+    }
 
     if (isCorrect) {
       playSound('correct');
@@ -1199,12 +1263,13 @@
       ? `https://www.youtube.com/watch?v=${encodeURIComponent(q.videoId)}&t=${Math.max(0, Math.floor((q.t || 0) - 2))}s`
       : '';
 
+    if (typeof window.stopVideoAudioSegment === 'function') window.stopVideoAudioSegment();
     body.innerHTML = `
       <div class="vph-cloze-container">
         <div class="vph-quiz-meta">
           <div style="display:flex; align-items:center; gap:8px">
             <span class="vph-direction-badge">🎧 Nghe & Điền từ khuyết</span>
-            ${srsIsDue(q.item) ? `<span style="font-size:11px;padding:2px 8px;border-radius:6px;background:rgba(239,68,68,0.2);color:#fca5a5;font-weight:700">Đến hạn ôn</span>` : ''}
+            ${srsDueTag}
           </div>
           <span style="font-weight:700; color:#cbd5e1">${qNum}</span>
         </div>
@@ -1221,9 +1286,16 @@
               <span>Nghe từ cần điền</span>
             </button>
 
+            ${(q.videoId && !q.item?.bookId) ? `
+              <button type="button" class="vph-video-audio-btn" id="vph-cloze-video-audio-btn" style="margin-top:0" title="Nghe âm thanh từ video gốc (không chiếu video)">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
+                <span>🎧 Audio video gốc</span>
+              </button>
+            ` : ''}
+
             ${ytUrl ? `
               <a href="${ytUrl}" target="_blank" rel="noopener" class="vph-video-play-btn">
-                <span>▶ Xem video gốc</span>
+                <span>▶ Mở YouTube</span>
               </a>
             ` : ''}
           </div>
@@ -1271,6 +1343,10 @@
 
     document.getElementById('vph-cloze-audio-btn')?.addEventListener('click', () => speakFrench(q.sentence));
     document.getElementById('vph-cloze-word-btn')?.addEventListener('click', () => speakFrench(q.frenchWord));
+    document.getElementById('vph-cloze-video-audio-btn')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      playQuestionVideoAudio(q);
+    });
 
     setTimeout(() => speakFrench(q.sentence), 220);
 
@@ -1693,10 +1769,18 @@
 
               ${item.vi ? `<div class="vph-fc-sentvi">“${escHtml(item.vi)}”</div>` : ''}
 
-              <button type="button" class="vph-audio-play-btn" id="vph-fc-audio-btn" style="padding:6px 14px;font-size:12px">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
-                <span>Nghe phát âm</span>
-              </button>
+              <div style="display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap">
+                <button type="button" class="vph-audio-play-btn" id="vph-fc-audio-btn" style="padding:6px 14px;font-size:12px">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                  <span>🗣️ Phát âm từ</span>
+                </button>
+                ${(item.videoId && !item.bookId) ? `
+                  <button type="button" class="vph-video-audio-btn" id="vph-fc-video-audio-btn" style="padding:6px 14px;font-size:12px;margin-top:0" title="Nghe đoạn âm thanh từ video gốc (không chiếu video)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
+                    <span>🎧 Audio video</span>
+                  </button>
+                ` : ''}
+              </div>
             </div>
           </div>
         </div>
@@ -1734,13 +1818,18 @@
     });
 
     document.getElementById('vph-fc-wrapper')?.addEventListener('click', (e) => {
-      if (e.target.closest('#vph-fc-audio-btn')) return;
+      if (e.target.closest('#vph-fc-audio-btn, #vph-fc-video-audio-btn')) return;
       toggleFlashcardFlip();
     });
 
     document.getElementById('vph-fc-audio-btn')?.addEventListener('click', (e) => {
       e.stopPropagation();
       speakFrench(item.text);
+    });
+
+    document.getElementById('vph-fc-video-audio-btn')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      playQuestionVideoAudio(item);
     });
 
     document.getElementById('vph-srs-again')?.addEventListener('click', () => rateFlashcard('again'));

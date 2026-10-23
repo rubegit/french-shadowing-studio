@@ -1559,6 +1559,9 @@
     .vocab-mini { padding: 5px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; color: #94a3b8; background: #0f172a; border: 1px solid #1e293b; cursor: pointer; }
     .vocab-mini:hover { color: #fff; background: #1e293b; }
     .vocab-mini.del:hover { background: #7f1d1d; border-color: #b91c1c; }
+    .vocab-video-mini { color: #fca5a5; background: rgba(239, 68, 68, 0.12); border-color: rgba(239, 68, 68, 0.35); }
+    .vocab-video-mini:hover { color: #fff; background: rgba(239, 68, 68, 0.28); border-color: rgba(239, 68, 68, 0.7); }
+    .vocab-mini.playing { background: rgba(239, 68, 68, 0.45) !important; color: #fff !important; border-color: #ef4444 !important; box-shadow: 0 0 10px rgba(239, 68, 68, 0.6) !important; }
     .vocab-ctx { margin-top: 12px; padding: 12px 14px; background: #060b18; border-left: 3px solid #3b82f6; border-radius: 0 10px 10px 0; color: #cbd5e1; font-size: 16px; line-height: 1.6; }
     .vocab-hl { background: rgba(59, 130, 246, .38); color: #fff; font-weight: 700; padding: 1px 4px; border-radius: 5px; box-shadow: inset 0 -2px 0 #60a5fa; }
     .vocab-vi { margin-top: 8px; padding-left: 14px; color: #94a3b8; font-weight: 400; font-size: 13px; line-height: 1.55; }
@@ -5270,6 +5273,227 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
           playFallbackAudio().then(resolve);
         }
       });
+    };
+
+    // ==================== BACKGROUND VIDEO AUDIO ENGINE ====================
+    // Phát âm thanh trích đoạn từ video gốc YouTube (chạy nền, không chiếu video)
+    window._bgYtPlayer = null;
+    window._bgYtReady = false;
+    window._bgYtCurrentVid = '';
+    window._bgYtTimer = null;
+    window._bgYtActiveOnEnd = null;
+
+    window.stopVideoAudioSegment = function() {
+      if (window._bgYtTimer) {
+        clearInterval(window._bgYtTimer);
+        window._bgYtTimer = null;
+      }
+      if (window._bgYtActiveOnEnd) {
+        try { window._bgYtActiveOnEnd(); } catch (e) {}
+        window._bgYtActiveOnEnd = null;
+      }
+      if (window._bgYtPlayer && window._bgYtReady) {
+        try { window._bgYtPlayer.pauseVideo(); } catch (e) {}
+      }
+    };
+
+    window.playVideoAudioSegment = function(videoId, startTime = 0, duration = 4, options = {}) {
+      const onStart = options.onStart || null;
+      const onEnd = options.onEnd || null;
+      const onError = options.onError || null;
+      const rate = options.rate || 1.0;
+
+      if (!videoId) {
+        if (typeof onError === 'function') onError('No videoId');
+        return Promise.resolve(false);
+      }
+
+      // Dừng bất kỳ âm thanh TTS nào trước đó
+      if (window._activeAudioPlayer) {
+        try { window._activeAudioPlayer.pause(); } catch(e) {}
+        window._activeAudioPlayer = null;
+      }
+      if (window.speechSynthesis && window.speechSynthesis.speaking) {
+        try { window.speechSynthesis.cancel(); } catch(e) {}
+      }
+      window.stopVideoAudioSegment();
+
+      // Đảm bảo DOM container cho player YouTube ẩn
+      let container = document.getElementById('bg-audio-yt-wrap');
+      if (!container) {
+        container = document.createElement('div');
+        container.id = 'bg-audio-yt-wrap';
+        container.setAttribute('aria-hidden', 'true');
+        container.style.cssText = 'position:fixed;left:-4000px;top:0;width:480px;height:270px;overflow:hidden;pointer-events:none;z-index:-1;';
+        const inner = document.createElement('div');
+        inner.id = 'bg-audio-yt';
+        container.appendChild(inner);
+        document.body.appendChild(container);
+      }
+
+      const startSec = Math.max(0, Number(startTime) || 0);
+      const durSec = Math.max(1.5, Math.min(15, Number(duration) || 4));
+      const endSec = startSec + durSec;
+
+      return new Promise((resolve) => {
+        let hasTriggeredStart = false;
+        let isDone = false;
+
+        const cleanupAndFinish = (success) => {
+          if (isDone) return;
+          isDone = true;
+          if (window._bgYtTimer) {
+            clearInterval(window._bgYtTimer);
+            window._bgYtTimer = null;
+          }
+          window._bgYtActiveOnEnd = null;
+          if (window._bgYtPlayer && window._bgYtReady) {
+            try { window._bgYtPlayer.pauseVideo(); } catch (e) {}
+          }
+          if (success) {
+            if (typeof onEnd === 'function') onEnd();
+          } else {
+            if (typeof onError === 'function') onError('playback_failed');
+          }
+          resolve(success);
+        };
+
+        window._bgYtActiveOnEnd = () => {
+          if (!isDone) {
+            isDone = true;
+            if (typeof onEnd === 'function') onEnd();
+            resolve(true);
+          }
+        };
+
+        const executePlay = () => {
+          try {
+            const now = Date.now();
+            try { if (window._bgYtPlayer.unMute) window._bgYtPlayer.unMute(); } catch (e) {}
+            try { if (window._bgYtPlayer.setPlaybackRate) window._bgYtPlayer.setPlaybackRate(rate); } catch (e) {}
+
+            if (window._bgYtCurrentVid !== videoId) {
+              window._bgYtCurrentVid = videoId;
+              window._bgYtPlayer.loadVideoById({
+                videoId: videoId,
+                startSeconds: startSec
+              });
+            } else {
+              window._bgYtPlayer.seekTo(startSec, true);
+              window._bgYtPlayer.playVideo();
+            }
+
+            window._bgYtTimer = setInterval(() => {
+              if (!window._bgYtPlayer || !window._bgYtPlayer.getCurrentTime) return;
+              let curr = 0;
+              let state = -1;
+              try {
+                curr = window._bgYtPlayer.getCurrentTime() || 0;
+                state = window._bgYtPlayer.getPlayerState();
+              } catch (e) { return; }
+
+              if (!hasTriggeredStart) {
+                if (state === 1) {
+                  hasTriggeredStart = true;
+                  if (typeof onStart === 'function') onStart();
+                } else if (Date.now() - now > 5000) {
+                  cleanupAndFinish(false);
+                  return;
+                }
+              } else {
+                if (curr >= endSec || (curr < startSec - 1.2 && state === 1)) {
+                  cleanupAndFinish(true);
+                }
+              }
+            }, 60);
+
+          } catch (err) {
+            cleanupAndFinish(false);
+          }
+        };
+
+        if (window._bgYtPlayer && window._bgYtReady) {
+          executePlay();
+        } else {
+          let attempts = 0;
+          const checkYTApi = () => {
+            if (window.YT && window.YT.Player) {
+              try {
+                window._bgYtPlayer = new window.YT.Player('bg-audio-yt', {
+                  width: 480,
+                  height: 270,
+                  playerVars: {
+                    autoplay: 0,
+                    controls: 0,
+                    rel: 0,
+                    playsinline: 1,
+                    modestbranding: 1,
+                    disablekb: 1,
+                    fs: 0,
+                    cc_load_policy: 0,
+                    iv_load_policy: 3
+                  },
+                  events: {
+                    onReady: () => {
+                      window._bgYtReady = true;
+                      executePlay();
+                    },
+                    onError: () => {
+                      cleanupAndFinish(false);
+                    }
+                  }
+                });
+              } catch (e) {
+                cleanupAndFinish(false);
+              }
+            } else if (++attempts < 50) {
+              setTimeout(checkYTApi, 100);
+            } else {
+              cleanupAndFinish(false);
+            }
+          };
+          checkYTApi();
+        }
+      });
+    };
+
+    window.playVocabVideoAudio = function(id, e) {
+      if (e) { e.stopPropagation(); e.preventDefault(); }
+      const item = getVocab().find((v) => v.id === id);
+      if (!item || !item.videoId) return;
+
+      const btn = e && e.currentTarget;
+      if (btn && btn.classList.contains('playing')) {
+        window.stopVideoAudioSegment();
+        btn.classList.remove('playing');
+        return;
+      }
+
+      document.querySelectorAll('.vocab-video-mini.playing, .vocab-audio-tag-btn.playing').forEach((b) => b.classList.remove('playing'));
+      if (btn) btn.classList.add('playing');
+
+      const dur = item.duration || (item.en ? Math.max(2.5, Math.min(8.0, item.en.split(/\s+/).length * 0.45 + 1.0)) : 4);
+      window.playVideoAudioSegment(item.videoId, item.t || 0, dur, {
+        onStart: () => { if (btn) btn.classList.add('playing'); },
+        onEnd: () => { if (btn) btn.classList.remove('playing'); },
+        onError: () => {
+          if (btn) btn.classList.remove('playing');
+          window.playFrenchAudio(item.text);
+        }
+      });
+    };
+
+    window.playVocabWordAudio = function(id, e) {
+      if (e) { e.stopPropagation(); e.preventDefault(); }
+      const item = getVocab().find((v) => v.id === id);
+      if (!item || !item.text) return;
+      window.stopVideoAudioSegment();
+      const btn = e && e.currentTarget;
+      if (btn) btn.classList.add('playing');
+      window.playFrenchAudio(item.text, {
+        onEnd: () => { if (btn) btn.classList.remove('playing'); }
+      });
+      setTimeout(() => { if (btn) btn.classList.remove('playing'); }, 800);
     };
 
     // Điện thoại (cạnh ngắn của màn hình <= 600px): cỡ chữ phụ đề mặc định nhỏ hơn 3px (16 thay vì 19). Muốn đổi: sửa 2 con số này.
@@ -12135,6 +12359,14 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
           return;
         }
 
+        if (e.altKey && !isTextMode && currentVideoId && ytPlayer && isPlayerReady) {
+          // Alt / Option + click: Phát đoạn âm thanh từ video gốc
+          const timeRange = getTimeRangeFromSelection(selectedRangeForLoop);
+          const st = timeRange ? timeRange.start : (sentences[currentSentenceIndex]?.startTime || 0);
+          seekToTime(st, undefined, true);
+          return;
+        }
+
         // Phát âm tiếng Pháp trực tiếp
         btnPronounceAction.classList.add('playing');
         window.playFrenchAudio(word, {
@@ -13266,6 +13498,8 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
             <h3 class="vocab-word">${escHtml(x.text)}</h3>
           </div>
           <div class="vocab-card-tools">
+            <button type="button" class="vocab-mini" onclick="playVocabWordAudio('${x.id}', event)" title="Nghe phát âm từ vựng">🗣️ Phát âm</button>
+            ${(x.videoId && !x.bookId) ? `<button type="button" class="vocab-mini vocab-video-mini" onclick="playVocabVideoAudio('${x.id}', event)" title="Nghe âm thanh từ video gốc (không chiếu video)">🎧 Audio video</button>` : ''}
             <button type="button" class="vocab-mini" onclick="lookupVocab('${x.id}')">Tra nghĩa</button>
             <button type="button" class="vocab-mini del" title="Xoá" onclick="deleteVocab('${x.id}')">✕</button>
           </div>

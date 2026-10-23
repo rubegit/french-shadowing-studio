@@ -394,6 +394,50 @@
   animation: vph-audio-pulse 0.45s infinite alternate ease-in-out;
 }
 
+.vph-audio-actions-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.vph-video-audio-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  margin-top: 4px;
+}
+
+.vph-video-audio-btn:hover {
+  background: rgba(239, 68, 68, 0.28);
+  border-color: rgba(239, 68, 68, 0.7);
+  color: #ffffff;
+  transform: scale(1.04);
+}
+
+.vph-video-audio-btn.playing {
+  background: rgba(239, 68, 68, 0.45) !important;
+  border-color: #ef4444 !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 16px rgba(239, 68, 68, 0.6) !important;
+  transform: scale(1.06);
+}
+
+.vph-video-audio-btn.playing svg {
+  animation: vph-audio-pulse 0.45s infinite alternate ease-in-out;
+}
+
 @keyframes vph-audio-pulse {
   from { transform: scale(1); }
   to { transform: scale(1.3); }
