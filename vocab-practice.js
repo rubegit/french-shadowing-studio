@@ -131,6 +131,7 @@
     currentMode: 'quiz', // 'quiz' | 'cloze' | 'match'
     m3SubMode: 'match',  // 'match' | 'flashcard'
     scope: 'all',
+    level: 'all',        // CEFR level filter: 'all' | 'A1' | 'A2' | 'A2+' | 'B1' | 'B2' | 'C1' | 'C2'
     onlyDue: false,      // SRS filter: only due items
     items: [],
     questions: [],
@@ -306,7 +307,7 @@
     return Array.from(map.values());
   }
 
-  function getScopedVocabList(scope, onlyDue = false) {
+  function getScopedVocabList(scope, onlyDue = false, level = state.level || 'all') {
     const all = getRawVocabList();
     let list = all;
     if (scope && scope !== 'all') {
@@ -321,6 +322,13 @@
       } else {
         list = all.filter(x => (x.videoId === scope || (x.bookId && x.bookId === scope)));
       }
+    }
+    if (level && level !== 'all') {
+      const targetLvl = String(level).trim().toUpperCase();
+      list = list.filter(item => {
+        const itemLvl = String(item.level || '').trim().toUpperCase();
+        return itemLvl === targetLvl;
+      });
     }
     if (onlyDue) {
       list = list.filter(item => srsIsDue(item));
@@ -555,6 +563,18 @@
               <b id="vph-due-badge">0</b>
             </button>
 
+            <!-- CEFR Level Selector -->
+            <select class="vph-level-select" id="vph-level-select" aria-label="Lọc theo cấp độ CEFR">
+              <option value="all">Tất cả cấp độ</option>
+              <option value="A1">Cấp A1</option>
+              <option value="A2">Cấp A2</option>
+              <option value="A2+">Cấp A2+</option>
+              <option value="B1">Cấp B1</option>
+              <option value="B2">Cấp B2</option>
+              <option value="C1">Cấp C1</option>
+              <option value="C2">Cấp C2</option>
+            </select>
+
             <!-- Video Scope Selector -->
             <select class="vph-scope-select" id="vph-scope-select" aria-label="Phạm vi từ vựng">
               <option value="all">Toàn bộ kho từ đã lưu</option>
@@ -626,8 +646,18 @@
     const scopeSel = document.getElementById('vph-scope-select');
     scopeSel.addEventListener('change', () => {
       state.scope = scopeSel.value;
+      updateScopeOptions();
       startSession();
     });
+
+    // Level select change
+    const levelSel = document.getElementById('vph-level-select');
+    if (levelSel) {
+      levelSel.addEventListener('change', () => {
+        state.level = levelSel.value;
+        startSession();
+      });
+    }
 
     // Global Keydown
     window.addEventListener('keydown', handleGlobalKeydown);
@@ -713,6 +743,7 @@
 
   function updateScopeOptions() {
     const sel = document.getElementById('vph-scope-select');
+    const lvlSel = document.getElementById('vph-level-select');
     if (!sel) return;
 
     const all = getRawVocabList();
@@ -737,15 +768,67 @@
     sel.innerHTML = opts;
     sel.value = state.scope;
 
+    // Cập nhật các lựa chọn cấp độ trong phạm vi đang chọn
+    if (lvlSel) {
+      const scopeItems = getScopedVocabList(state.scope, false, 'all');
+      const CEFR_LEVELS = ['A1', 'A2', 'A2+', 'B1', 'B2', 'C1', 'C2'];
+      const counts = {};
+      CEFR_LEVELS.forEach(l => { counts[l] = 0; });
+      let unassigned = 0;
+
+      scopeItems.forEach(item => {
+        const l = String(item.level || '').trim().toUpperCase();
+        if (counts[l] !== undefined) counts[l]++;
+        else unassigned++;
+      });
+
+      let lvlOpts = `<option value="all">Tất cả cấp độ (${scopeItems.length})</option>`;
+      CEFR_LEVELS.forEach(l => {
+        const c = counts[l] || 0;
+        lvlOpts += `<option value="${l}">${l} (${c})</option>`;
+      });
+
+      lvlSel.innerHTML = lvlOpts;
+      lvlSel.value = state.level;
+    }
+
     const scopeLabel = document.getElementById('vph-scope-label');
     if (scopeLabel) {
+      const lvlLabel = state.level && state.level !== 'all' ? ` · Cấp ${state.level}` : '';
       if (state.scope === 'all') {
-        scopeLabel.textContent = 'Đang xem: Toàn bộ bài học';
+        scopeLabel.textContent = `Đang xem: Toàn bộ bài học${lvlLabel}`;
       } else {
         const title = sourceMap.get(state.scope) || state.scope;
-        scopeLabel.textContent = `Bài: ${title.length > 28 ? title.slice(0, 28) + '…' : title}`;
+        scopeLabel.textContent = `Bài: ${title.length > 24 ? title.slice(0, 24) + '…' : title}${lvlLabel}`;
       }
     }
+  }
+
+  function renderNoLevelItemsScreen() {
+    const body = document.getElementById('vph-body');
+    if (!body) return;
+    const lvlText = state.level && state.level !== 'all' ? `Cấp độ ${state.level}` : 'cấp độ này';
+    body.innerHTML = `
+      <div class="vph-empty">
+        <div class="vph-empty-icon">📚</div>
+        <h3 style="color:#ffffff; font-size:18px; font-weight:800">Chưa có từ nào thuộc ${lvlText}!</h3>
+        <p style="font-size:13.5px; line-height:1.6; color:#94a3b8">
+          Trong phạm vi bài học đang chọn chưa có từ vựng nào gắn nhãn <b>${lvlText}</b>.<br>
+          Bạn có thể chuyển sang cấp độ khác hoặc luyện tập toàn bộ từ vựng.
+        </p>
+        <div style="display:flex; gap:10px; margin-top:12px">
+          <button type="button" class="vph-primary-btn" id="vph-reset-level-btn">
+            <span>Luyện tập tất cả cấp độ</span>
+          </button>
+        </div>
+      </div>
+    `;
+    document.getElementById('vph-reset-level-btn')?.addEventListener('click', () => {
+      state.level = 'all';
+      const lvlSel = document.getElementById('vph-level-select');
+      if (lvlSel) lvlSel.value = 'all';
+      startSession();
+    });
   }
 
   // Start new session depending on active mode & SRS filter
@@ -754,7 +837,7 @@
     stopMatchTimer();
     updateMasteryStats();
 
-    const items = getScopedVocabList(state.scope, state.onlyDue);
+    const items = getScopedVocabList(state.scope, state.onlyDue, state.level);
     state.items = items;
     state.currentIndex = 0;
     state.score = 0;
@@ -766,6 +849,12 @@
     // Check if onlyDue is active but 0 due items
     if (state.onlyDue && items.length === 0) {
       renderNoDueItemsScreen();
+      return;
+    }
+
+    // Check if level filter is active but 0 items
+    if (state.level !== 'all' && items.length === 0) {
+      renderNoLevelItemsScreen();
       return;
     }
 
@@ -1687,10 +1776,11 @@
   }
 
   // Public API
-  function openVocabPracticeHub(scope) {
+  function openVocabPracticeHub(scope, level) {
     const backdrop = ensureModalElement();
     state.isOpen = true;
     state.scope = scope || 'all';
+    if (level) state.level = level;
     updateScopeOptions();
     backdrop.classList.add('open');
     startSession();

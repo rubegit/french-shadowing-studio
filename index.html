@@ -1528,6 +1528,13 @@
     .vocab-kind-word { background: rgba(59, 130, 246, .18); color: #93c5fd; }
     .vocab-kind-phrase { background: rgba(16, 185, 129, .16); color: #6ee7b7; }
     .vocab-kind-sentence { background: rgba(245, 158, 11, .16); color: #fcd34d; }
+    .vocab-level-badge { display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800; letter-spacing: .05em; padding: 2px 7px; border-radius: 6px; margin-left: 6px; vertical-align: middle; border: 1px solid rgba(148, 163, 184, 0.25); background: rgba(30, 41, 59, 0.6); color: #94a3b8; }
+    .vocab-level-badge.level-a1 { background: rgba(16, 185, 129, 0.16); border-color: rgba(16, 185, 129, 0.45); color: #6ee7b7; }
+    .vocab-level-badge.level-a2, .vocab-level-badge.level-a2plus { background: rgba(14, 165, 233, 0.16); border-color: rgba(14, 165, 233, 0.45); color: #7dd3fc; }
+    .vocab-level-badge.level-b1 { background: rgba(99, 102, 241, 0.16); border-color: rgba(99, 102, 241, 0.45); color: #a5b4fc; }
+    .vocab-level-badge.level-b2 { background: rgba(168, 85, 247, 0.16); border-color: rgba(168, 85, 247, 0.45); color: #d8b4fe; }
+    .vocab-level-badge.level-c1 { background: rgba(245, 158, 11, 0.16); border-color: rgba(245, 158, 11, 0.45); color: #fcd34d; }
+    .vocab-level-badge.level-c2 { background: rgba(239, 68, 68, 0.16); border-color: rgba(239, 68, 68, 0.45); color: #fca5a5; }
     .vocab-card-tools { display: flex; gap: 6px; flex-shrink: 0; }
     .vocab-mini { padding: 5px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; color: #94a3b8; background: #0f172a; border: 1px solid #1e293b; cursor: pointer; }
     .vocab-mini:hover { color: #fff; background: #1e293b; }
@@ -4106,7 +4113,7 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
         <button type="button" id="vocab-review-btn" class="vocab-btn primary" onclick="openReviewScreen(vocabSource)" title="Ôn tập từ vựng theo nguyên lý lặp lại ngắt quãng (spaced repetition)" style="background:linear-gradient(135deg,#16a34a,#0d9488)">
           <i data-lucide="brain" class="w-3.5 h-3.5"></i><span>Ôn tập</span><span id="vocab-due-badge-1" class="vocab-due-badge" style="display:none">0</span>
         </button>
-        <button type="button" id="vocab-practice-btn" class="vocab-btn primary" onclick="if(window.openVocabPracticeHub) window.openVocabPracticeHub(vocabSource)" title="Trung tâm luyện tập: Trắc nghiệm 4 đáp án, Nghe điền từ, Ghép thẻ" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 0 14px rgba(99,102,241,0.35)">
+        <button type="button" id="vocab-practice-btn" class="vocab-btn primary" onclick="if(window.openVocabPracticeHub) window.openVocabPracticeHub(vocabSource, vocabLevelFilter)" title="Trung tâm luyện tập: Trắc nghiệm 4 đáp án, Nghe điền từ, Ghép thẻ" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 0 14px rgba(99,102,241,0.35)">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><line x1="6" x2="10" y1="12" y2="12"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="15" x2="15.01" y1="13" y2="13"/><line x1="18" x2="18.01" y1="11" y2="11"/><rect width="20" height="12" x="2" y="6" rx="6"/></svg><span>Luyện tập</span>
         </button>
         <button type="button" class="vocab-btn primary" onclick="openVocabMeaningModal()" title="Nhờ AI điền nghĩa riêng và 3 ví dụ cho các từ chưa có"><i data-lucide="languages" class="w-3.5 h-3.5"></i><span>Điền nghĩa (AI)</span><span id="vocab-missing-badge" class="vocab-missing-badge" style="display:none">0</span></button>
@@ -4117,6 +4124,16 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
         <input id="vocab-search" class="vocab-search" type="text" placeholder="Tìm theo từ, ngữ cảnh, bản dịch, tên video..." oninput="vocabQuery = this.value; renderVocabPage()" />
         <select id="vocab-source" class="vocab-select vocab-source" aria-label="Lọc từ vựng theo video, bài viết hoặc sách" title="Lọc theo video / bài viết / sách" onchange="vocabSource = this.value; renderVocabPage()">
           <option value="all">Tất cả bài học</option>
+        </select>
+        <select id="vocab-level" class="vocab-select" aria-label="Lọc từ vựng theo cấp độ CEFR" title="Lọc theo cấp độ CEFR" onchange="vocabLevelFilter = this.value; renderVocabPage()">
+          <option value="all">Tất cả cấp độ</option>
+          <option value="A1">Cấp A1</option>
+          <option value="A2">Cấp A2</option>
+          <option value="A2+">Cấp A2+</option>
+          <option value="B1">Cấp B1</option>
+          <option value="B2">Cấp B2</option>
+          <option value="C1">Cấp C1</option>
+          <option value="C2">Cấp C2</option>
         </select>
         <select class="vocab-select" onchange="vocabSort = this.value; renderVocabPage()">
           <option value="new">Mới nhất</option><option value="old">Cũ nhất</option><option value="az">A → Z</option>
@@ -12152,7 +12169,7 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
     // Mỗi mục: { id, text, kind, en (ngữ cảnh), hs/he (vị trí từ được tô sáng trong en), vi (bản dịch, có thể rỗng),
     //           videoId, videoTitle, t (giây), createdAt }. Lưu trong localStorage, không cần backend.
     const VOCAB_KEY = 'shadowing_saved_vocab_v1';
-    let vocabSource = 'all', vocabSort = 'new', vocabQuery = '', vocabReturnTo = 'input', vocabHomeScrollY = 0, vocabScrollY = 0;
+    let vocabSource = 'all', vocabLevelFilter = 'all', vocabSort = 'new', vocabQuery = '', vocabReturnTo = 'input', vocabHomeScrollY = 0, vocabScrollY = 0;
     let vocabToastTimer = null;
     let pendingSeekTime = null;
     let vocabEditIds = new Set();          // các mục đang bật ô sửa "nghĩa riêng của từ"
@@ -13027,7 +13044,11 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
 
       return `<article class="vocab-card" data-vid="${escHtml(x.id)}">
         <div class="vocab-card-head">
-          <div><span class="vocab-kind vocab-kind-${x.kind}">${escHtml(x.tag || KIND[x.kind] || '')}</span><h3 class="vocab-word">${escHtml(x.text)}</h3></div>
+          <div>
+            <span class="vocab-kind vocab-kind-${x.kind}">${escHtml(x.tag || KIND[x.kind] || '')}</span>
+            ${x.level ? `<span class="vocab-level-badge level-${escHtml(x.level.toLowerCase().replace('+', 'plus'))}">${escHtml(x.level)}</span>` : ''}
+            <h3 class="vocab-word">${escHtml(x.text)}</h3>
+          </div>
           <div class="vocab-card-tools">
             <button type="button" class="vocab-mini" onclick="lookupVocab('${x.id}')">Tra nghĩa</button>
             <button type="button" class="vocab-mini del" title="Xoá" onclick="deleteVocab('${x.id}')">✕</button>
@@ -13137,6 +13158,12 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
     }
     const VOCAB_AI_BATCH = 30;   // mỗi lượt tối đa 30 mục để AI không bị cắt giữa chừng
 
+    function parseCefrLevel(str) {
+      if (!str) return '';
+      const m = String(str).trim().match(/^(A1|A2\+?|B1|B2|C1|C2)$/i);
+      return m ? m[1].toUpperCase() : '';
+    }
+
     // ---- Đọc câu trả lời của AI (dùng chung cho "Điền nghĩa" và "Từ vựng khó") ----
     // Rất dễ tính: bỏ markdown (**, `, >, gạch đầu dòng), chấp nhận "VD1:", "Ví dụ 1:", "Example 1:",
     // ngăn cách câu Anh / Việt bằng "||" (hoặc " | ", "→"). Dòng nào không hiểu thì bỏ qua chứ không báo lỗi cả bài.
@@ -13177,10 +13204,44 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
         if (h) {
           const rest = h[2].trim().replace(/^(?:Nghĩa|Nghia|Meaning)\s*[:：]\s*/i, '');
           const parts = rest.split(/\s*\|\|\s*/);
-          cur = { n: +h[1], term: '', kind: '', meaning: '', inText: '', examples: [] };
-          if (parts.length >= 3) { cur.term = unq(parts[0]); cur.kind = parts[1].trim(); cur.meaning = parts.slice(2).join(' ').trim(); }
-          else if (parts.length === 2) { cur.term = unq(parts[0]); cur.meaning = parts[1].trim(); }
-          else cur.meaning = rest;
+          cur = { n: +h[1], term: '', kind: '', level: '', meaning: '', inText: '', examples: [] };
+          if (parts.length >= 4) {
+            cur.term = unq(parts[0]);
+            cur.kind = parts[1].trim();
+            cur.level = parseCefrLevel(parts[2]);
+            if (!cur.level && parseCefrLevel(parts[1])) {
+              cur.level = parseCefrLevel(parts[1]);
+              cur.kind = parts[2].trim();
+            }
+            cur.meaning = parts.slice(3).join(' ').trim();
+          } else if (parts.length === 3) {
+            cur.term = unq(parts[0]);
+            const lvl1 = parseCefrLevel(parts[1]);
+            const lvl2 = parseCefrLevel(parts[2]);
+            if (lvl1) {
+              cur.level = lvl1;
+              cur.meaning = parts.slice(2).join(' ').trim();
+            } else if (lvl2) {
+              cur.kind = parts[1].trim();
+              cur.level = lvl2;
+              cur.meaning = parts.slice(2).join(' ').trim();
+            } else {
+              cur.kind = parts[1].trim();
+              cur.meaning = parts.slice(2).join(' ').trim();
+            }
+          } else if (parts.length === 2) {
+            cur.term = unq(parts[0]);
+            cur.meaning = parts[1].trim();
+          } else {
+            cur.meaning = rest;
+          }
+          if (!cur.level && cur.meaning) {
+            const ml = /\[(A1|A2\+?|B1|B2|C1|C2)\]/i.exec(cur.meaning);
+            if (ml) {
+              cur.level = ml[1].toUpperCase();
+              cur.meaning = cur.meaning.replace(ml[0], '').trim();
+            }
+          }
           out.push(cur);
           return;
         }
@@ -13465,14 +13526,15 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
         + '- Danh từ: [n.m.] hoặc [n.f.] | Tính từ: [adj.] | Trạng từ: [adv.] | Thành ngữ/cụm: [loc.]\n\n'
         + 'QUAN TRỌNG: đặt toàn bộ kết quả trong MỘT khối code (codebox ```) để người dùng mobile dễ bấm nút copy (không in đậm, không bảng, không lời dẫn hay giải thích ngoài codebox). '
         + 'Mỗi mục theo đúng mẫu 5 dòng sau, các mục cách nhau 1 dòng trống, đánh số từ 1. Dùng đúng dấu || để ngăn cách, và không dùng || ở chỗ nào khác:\n\n'
-        + '1. TỪ hoặc CỤM TỪ tiếng Pháp (dạng xuất hiện trong bài hoặc nguyên mẫu) || LOẠI || [tag viết tắt] nghĩa tiếng Việt\n'
+        + '1. TỪ hoặc CỤM TỪ tiếng Pháp (dạng xuất hiện trong bài hoặc nguyên mẫu) || LOẠI || CẤP_ĐỘ || [tag viết tắt] nghĩa tiếng Việt\n'
         + 'Trong bài: đúng cụm chữ tiếng Pháp như nó xuất hiện trong văn bản\n'
         + 'VD1: câu ví dụ bằng TIẾNG PHÁP || bản dịch tiếng Việt\n'
         + 'VD2: câu ví dụ bằng TIẾNG PHÁP || bản dịch tiếng Việt\n'
         + 'VD3: câu ví dụ bằng TIẾNG PHÁP || bản dịch tiếng Việt\n\n'
-        + 'LOẠI chỉ được là một trong: từ, idiom, slang, cụm từ.\n\n'
+        + 'LOẠI chỉ được là một trong: từ, idiom, slang, cụm từ.\n'
+        + 'CẤP_ĐỘ chỉ được là một trong các cấp độ CEFR: A1, A2, A2+, B1, B2, C1, C2.\n\n'
         + 'Ví dụ mẫu (chỉ để minh hoạ định dạng chuẩn bằng tiếng Pháp, KHÔNG đưa vào kết quả):\n'
-        + '1. a abandonné || từ || [v. abandonner · p.c. 3s] đã từ bỏ, đã bỏ cuộc\n'
+        + '1. a abandonné || từ || B1 || [v. abandonner · p.c. 3s] đã từ bỏ, đã bỏ cuộc\n'
         + 'Trong bài: a abandonné\n'
         + 'VD1: N\'abandonne pas, tu y es presque ! || Đừng bỏ cuộc, bạn gần tới rồi!\n'
         + 'VD2: J\'ai abandonné le tabac l\'année dernière. || Năm ngoái tôi đã bỏ thuốc lá.\n'
@@ -13532,7 +13594,7 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
         const k = term.toLowerCase();
         if (seen.has(k)) return;
         seen.add(k);
-        items.push({ term: term, kind: kvNormKind(e.kind, term), meaning: e.meaning, inText: e.inText || '', examples: e.examples.slice(0, 3) });
+        items.push({ term: term, kind: kvNormKind(e.kind, term), level: e.level || '', meaning: e.meaning, inText: e.inText || '', examples: e.examples.slice(0, 3) });
       });
       if (!items.length) {
         aiSetStatus(statusEl, 'err', 'Không nhận ra được mục nào. Mỗi mục cần có dòng "1. từ || loại || nghĩa" (có dấu ||) và các dòng "VD1: câu tiếng Pháp || bản dịch". Kiểm tra lại câu trả lời của AI rồi dán lại.');
@@ -13596,9 +13658,10 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
         }
         const exHtml = it.examples.map((e) => `<div><p class="vocab-ex-en">${hlExample(String(e.en), it.term)}</p>${e.vi ? `<p class="vocab-ex-vi">${escHtml(e.vi)}</p>` : ''}</div>`).join('');
         const saved = kvIsSaved(it);
+        const lvlBadge = it.level ? `<span class="vocab-level-badge level-${escHtml(it.level.toLowerCase().replace('+', 'plus'))}">${escHtml(it.level)}</span>` : '';
         return `<article class="vocab-card" data-kv-i="${i}">
           <div class="vocab-card-head">
-            <div><span class="vocab-kind vocab-kind-${it.kind === 'từ' ? 'word' : 'phrase'}">${escHtml(KV_LABEL[it.kind] || '')}</span><h3 class="vocab-word">${escHtml(it.term)}</h3></div>
+            <div><span class="vocab-kind vocab-kind-${it.kind === 'từ' ? 'word' : 'phrase'}">${escHtml(KV_LABEL[it.kind] || '')}</span>${lvlBadge}<h3 class="vocab-word">${escHtml(it.term)}</h3></div>
             <div class="vocab-card-tools"><button type="button" class="vocab-mini del" title="Xóa từ này khỏi danh sách" onclick="kvRemove(${i})">Xóa</button><button type="button" class="kv-save-btn${saved ? ' saved' : ''}" ${saved ? 'disabled' : ''} onclick="kvSave(${i})">${saved ? '✓ Đã lưu' : 'Lưu từ vựng'}</button></div>
           </div>
           ${ctxHtml}
@@ -13642,6 +13705,7 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
       const dup = list.find((x) => String(x.text || '').trim().toLowerCase() === normText);
       if (dup) {
         if (!dup.wordVi) dup.wordVi = it.meaning;
+        if (!dup.level && it.level) dup.level = it.level;
         if (!(dup.examples && dup.examples.length)) dup.examples = it.examples;
         if (!dup.tag) dup.tag = KV_LABEL[it.kind];
         // Nếu khác video/ngữ cảnh -> lưu vào contexts
@@ -13661,9 +13725,12 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
       list.unshift({
         id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
         text: text, kind: n === 1 ? 'word' : (n <= 6 ? 'phrase' : 'sentence'), tag: KV_LABEL[it.kind],
+        level: it.level || '',
         en: en, hs: hs, he: he, vi: vi, prev: prev, wordVi: it.meaning, examples: it.examples,
         videoId: currentVideoId, videoTitle: currentVideoTitle || '', t: t, createdAt: Date.now()
       });
+      return true;
+    }
       return true;
     }
 
@@ -13728,6 +13795,24 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
       sel.value = vocabSource;
     }
 
+    function renderVocabLevelOptions(all) {
+      const sel = document.getElementById('vocab-level');
+      if (!sel) return;
+      const CEFR = ['A1', 'A2', 'A2+', 'B1', 'B2', 'C1', 'C2'];
+      const counts = {};
+      CEFR.forEach((l) => { counts[l] = 0; });
+      all.forEach((x) => {
+        const l = String(x.level || '').trim().toUpperCase();
+        if (counts[l] !== undefined) counts[l]++;
+      });
+      let html = `<option value="all">Tất cả cấp độ (${all.length})</option>`;
+      CEFR.forEach((l) => {
+        html += `<option value="${l}">Cấp ${l} (${counts[l] || 0})</option>`;
+      });
+      sel.innerHTML = html;
+      sel.value = vocabLevelFilter;
+    }
+
     // Vẽ lại danh sách nhưng giữ cho màn hình "đứng im": lấy thẻ đang nhìn thấy đầu tiên làm mốc, sau khi vẽ lại thì
     // cuộn bù đúng phần chênh lệch (mục mới được thêm lên đầu danh sách sẽ không đẩy nội dung đang đọc trôi xuống).
     function renderVocabPageKeepScroll() {
@@ -13747,8 +13832,10 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
       const all = getVocab();
       document.getElementById('vocab-count').textContent = all.length;
       renderVocabSourceOptions(all);
+      renderVocabLevelOptions(all);
       const q = vocabQuery.toLowerCase().trim();
       const list = all.filter((x) => (vocabSource === 'all' || vocabSourceInfo(x).key === vocabSource)
+        && (vocabLevelFilter === 'all' || String(x.level || '').trim().toUpperCase() === vocabLevelFilter.toUpperCase())
         && (!q || `${x.text} ${x.en} ${x.vi || ''} ${x.wordVi || ''} ${x.videoTitle || ''}`.toLowerCase().includes(q)));
       list.sort(vocabSort === 'az' ? (a, b) => a.text.localeCompare(b.text, 'en', { sensitivity: 'base' })
         : vocabSort === 'old' ? (a, b) => a.createdAt - b.createdAt : (a, b) => b.createdAt - a.createdAt);
