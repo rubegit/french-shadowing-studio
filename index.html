@@ -3600,7 +3600,7 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
         <button type="button" class="ai-modal-close" onclick="closeKeyVocabModal()" title="Đóng (Esc)"><i data-lucide="x"></i></button>
       </div>
       <div id="kv-input-view">
-        <p class="ai-step-text">Bấm "Copy prompt", dán cho AI (ChatGPT/Claude...). AI sẽ liệt kê từ vựng, phrasal verb, idiom, slang khó trong bài này, mỗi mục kèm nghĩa và 3 ví dụ. Sau đó dán nguyên câu trả lời của AI vào ô bên dưới rồi bấm "Áp dụng".</p>
+        <p class="ai-step-text">Bấm "Copy prompt", dán cho AI (ChatGPT/Claude...). AI sẽ liệt kê từ vựng, cụm từ, thành ngữ, tiếng lóng (argot) tiếng Pháp trong bài này, mỗi mục kèm nghĩa và 3 câu ví dụ tiếng Pháp thực tế. Sau đó dán nguyên câu trả lời của AI vào ô bên dưới rồi bấm "Áp dụng".</p>
         
         <!-- Cài đặt Trình độ trích xuất CEFR -->
         <div class="kv-level-box" id="kv-level-box">
@@ -4664,7 +4664,7 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
         <button
           id="btn-keyvocab"
           onclick="openKeyVocabModal()"
-          title="Nhờ AI liệt kê từ vựng / phrasal verb / idiom / slang khó trong bài này, kèm nghĩa và 3 ví dụ"
+          title="Nhờ AI liệt kê từ vựng, cụm từ, thành ngữ, tiếng lóng tiếng Pháp trong bài này, kèm nghĩa và 3 ví dụ tiếng Pháp"
           class="btn-interactive flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer transition-all bg-slate-800 hover:bg-slate-700 text-slate-400 border-slate-700 shrink-0 whitespace-nowrap"
         >
           <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
@@ -13240,15 +13240,16 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
         + '    - Động từ đã chia: [v. <từ_gốc> · <thì> <ngôi>] nghĩa (viết tắt thì: prés., imp., fut., p.c., cond., subj., p.p., p.pr.; ngôi: 1s, 2s, 3s, 1p, 2p, 3p. Ví dụ: [v. aller · fut. 1p] chúng tôi sẽ đi)\n'
         + '    - Danh từ: [n.m.] (giống đực), [n.f.] (giống cái), [n.pl.] nghĩa\n'
         + '    - Tính từ: [adj.] nghĩa | Trạng từ: [adv.] nghĩa | Thành ngữ, cụm: [loc.] nghĩa\n'
-        + '(2) Đúng 3 câu ví dụ tiếng Pháp thực tế, phổ biến mà người bản xứ hay dùng, đơn giản, không học thuật, không dùng từ quá cao siêu. Mỗi ví dụ dùng đúng nghĩa ở mục (1) và có bản dịch tiếng Việt.\n'
+        + '(2) Đúng 3 câu ví dụ thực tế BẰNG TIẾNG PHÁP (French) mà người bản xứ hay dùng, đơn giản, không học thuật, không dùng từ quá cao siêu. Mỗi ví dụ dùng đúng nghĩa ở mục (1) và có bản dịch tiếng Việt.\n'
+        + '    QUAN TRỌNG: Các câu ví dụ BẮT BUỘC PHẢI VIẾT BẰNG TIẾNG PHÁP. Tuyệt đối KHÔNG viết câu ví dụ bằng tiếng Anh!\n'
         + 'Riêng mục nào ghi (CẢ CÂU) thì chỉ dịch cả câu sang tiếng Việt, không cần ví dụ và không cần tag.\n\n'
         + 'QUAN TRỌNG: đặt toàn bộ kết quả trong MỘT khối code (codebox ```) để người dùng mobile dễ bấm nút copy (không in đậm, không bảng, không lời dẫn hay giải thích ngoài codebox). '
         + 'Mỗi mục theo đúng mẫu sau, bắt đầu bằng đúng số thứ tự của mục, các mục cách nhau 1 dòng trống. Dùng đúng dấu || giữa câu tiếng Pháp và bản dịch:\n\n'
         + '1. Nghĩa: [tag viết tắt] nghĩa tiếng Việt\n'
-        + 'VD1: câu ví dụ tiếng Pháp || bản dịch tiếng Việt\n'
-        + 'VD2: câu ví dụ tiếng Pháp || bản dịch tiếng Việt\n'
-        + 'VD3: câu ví dụ tiếng Pháp || bản dịch tiếng Việt\n\n'
-        + 'Danh sách:\n' + lines.join('\n');
+        + 'VD1: câu ví dụ bằng TIẾNG PHÁP || bản dịch tiếng Việt\n'
+        + 'VD2: câu ví dụ bằng TIẾNG PHÁP || bản dịch tiếng Việt\n'
+        + 'VD3: câu ví dụ bằng TIẾNG PHÁP || bản dịch tiếng Việt\n\n'
+        + 'Danh sách từ/cụm từ tiếng Pháp:\n' + lines.join('\n');
     }
 
     function updateVocabMissingBadge() {
@@ -13460,7 +13461,7 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
 
       if (!extraLevels || extraLevels.length === 0) {
         // Mặc định hoàn toàn như cũ: Trung cấp (B1, B2, C1)
-        levelIntro = 'Hãy đọc văn bản bên dưới rồi liệt kê TẤT CẢ những từ vựng / cụm từ / thành ngữ (idiom) / tiếng lóng (slang) KHÓ hoặc ít gặp mà người học tiếng Pháp trình độ trung cấp có thể chưa biết (bỏ qua từ quá dễ và tên riêng). ';
+        levelIntro = 'Hãy đọc văn bản tiếng Pháp bên dưới rồi liệt kê TẤT CẢ những từ vựng, cụm từ, thành ngữ (idiom / locution), tiếng lóng (argot / slang) KHÓ hoặc thực sự hữu ích cho giao tiếp thực tế ở trình độ Trung cấp (B1, B2, C1) mà người học có thể chưa biết (bỏ qua từ quá dễ và tên riêng). ';
       } else {
         const hasA1 = extraLevels.includes('A1');
         const hasA2 = extraLevels.includes('A2');
@@ -13472,7 +13473,7 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
         if (hasA2Plus) allSelected.push('A2+ (Tiền trung cấp)');
         allSelected.push('B1, B2, C1 (Trung & Cao cấp)');
 
-        levelIntro = `Hãy đọc văn bản bên dưới rồi trích xuất từ vựng, cụm từ, thành ngữ (idiom), tiếng lóng (slang) ở các trình độ [${allSelected.join(', ')}] xuất hiện trong bài. `;
+        levelIntro = `Hãy đọc văn bản tiếng Pháp bên dưới rồi trích xuất từ vựng, cụm từ, thành ngữ (idiom / locution), tiếng lóng (argot / slang) ở các trình độ [${allSelected.join(', ')}] xuất hiện trong bài thực sự hữu ích cho giao tiếp thực tế. `;
 
         levelGuide = '\nLƯU Ý QUAN TRỌNG VỀ TRÌNH ĐỘ NGƯỜI HỌC:\n'
           + 'Người học đã chọn mở rộng thêm các trình độ: ' + extraLevels.join(', ') + '.\n'
@@ -13483,26 +13484,29 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
       }
 
       return 'Tôi đang học tiếng Pháp. ' + levelIntro
-        + 'Với từng mục, cho tôi ghi chú ngữ pháp viết tắt trong ngoặc vuông [] kèm nghĩa tiếng Việt (đúng với nghĩa được dùng trong văn bản) và đúng 3 câu ví dụ thực tế, phổ biến mà người bản xứ hay dùng, đơn giản, không học thuật, không dùng từ quá cao siêu; mỗi ví dụ kèm bản dịch tiếng Việt.\n\n'
+        + 'Với từng mục, cho tôi ghi chú ngữ pháp viết tắt trong ngoặc vuông [] kèm nghĩa tiếng Việt (đúng với nghĩa được dùng trong văn bản) và đúng 3 câu ví dụ thực tế BẰNG TIẾNG PHÁP mà người bản xứ hay dùng, đơn giản, không học thuật, không dùng từ quá cao siêu; mỗi ví dụ kèm bản dịch tiếng Việt.\n\n'
         + (levelGuide || '')
+        + 'QUAN TRỌNG VỀ NGÔN NGỮ CÂU VÍ DỤ (BẮT BUỘC TUÂN THỦ):\n'
+        + '- Toàn bộ các câu ví dụ (VD1, VD2, VD3) BẮT BUỘC PHẢI ĐƯỢC VIẾT BẰNG TIẾNG PHÁP (French). Tuyệt đối KHÔNG ĐƯỢC viết câu ví dụ bằng tiếng Anh!\n'
+        + '- Sau dấu "||" là bản dịch của câu ví dụ đó sang TIẾNG VIỆT.\n\n'
         + 'Quy ước viết tắt ngữ pháp chuẩn (Larousse/Bescherelle):\n'
         + '- Động từ nguyên mẫu: [v. inf.] | Động từ chia: [v. <từ_gốc> · <thì> <ngôi>] (thì: prés., imp., fut., p.c., cond., subj., p.p.; ngôi: 1s, 2s, 3s, 1p, 2p, 3p. VD: [v. savoir · subj. 2s])\n'
         + '- Danh từ: [n.m.] hoặc [n.f.] | Tính từ: [adj.] | Trạng từ: [adv.] | Thành ngữ/cụm: [loc.]\n\n'
         + 'QUAN TRỌNG: đặt toàn bộ kết quả trong MỘT khối code (codebox ```) để người dùng mobile dễ bấm nút copy (không in đậm, không bảng, không lời dẫn hay giải thích ngoài codebox). '
         + 'Mỗi mục theo đúng mẫu 5 dòng sau, các mục cách nhau 1 dòng trống, đánh số từ 1. Dùng đúng dấu || để ngăn cách, và không dùng || ở chỗ nào khác:\n\n'
-        + '1. TỪ hoặc CỤM TỪ (dạng xuất hiện trong bài hoặc nguyên mẫu) || LOẠI || [tag viết tắt] nghĩa tiếng Việt\n'
-        + 'Trong bài: đúng cụm chữ như nó xuất hiện trong văn bản\n'
-        + 'VD1: câu ví dụ tiếng Pháp || bản dịch tiếng Việt\n'
-        + 'VD2: câu ví dụ tiếng Pháp || bản dịch tiếng Việt\n'
-        + 'VD3: câu ví dụ tiếng Pháp || bản dịch tiếng Việt\n\n'
+        + '1. TỪ hoặc CỤM TỪ tiếng Pháp (dạng xuất hiện trong bài hoặc nguyên mẫu) || LOẠI || [tag viết tắt] nghĩa tiếng Việt\n'
+        + 'Trong bài: đúng cụm chữ tiếng Pháp như nó xuất hiện trong văn bản\n'
+        + 'VD1: câu ví dụ bằng TIẾNG PHÁP || bản dịch tiếng Việt\n'
+        + 'VD2: câu ví dụ bằng TIẾNG PHÁP || bản dịch tiếng Việt\n'
+        + 'VD3: câu ví dụ bằng TIẾNG PHÁP || bản dịch tiếng Việt\n\n'
         + 'LOẠI chỉ được là một trong: từ, idiom, slang, cụm từ.\n\n'
-        + 'Ví dụ mẫu (chỉ để minh hoạ định dạng, KHÔNG đưa vào kết quả):\n'
+        + 'Ví dụ mẫu (chỉ để minh hoạ định dạng chuẩn bằng tiếng Pháp, KHÔNG đưa vào kết quả):\n'
         + '1. a abandonné || từ || [v. abandonner · p.c. 3s] đã từ bỏ, đã bỏ cuộc\n'
         + 'Trong bài: a abandonné\n'
         + 'VD1: N\'abandonne pas, tu y es presque ! || Đừng bỏ cuộc, bạn gần tới rồi!\n'
         + 'VD2: J\'ai abandonné le tabac l\'année dernière. || Năm ngoái tôi đã bỏ thuốc lá.\n'
         + 'VD3: Elle n\'abandonne jamais ses rêves. || Cô ấy không bao giờ từ bỏ ước mơ.\n\n'
-        + 'Văn bản:\n<<<\n' + aicPlainTranscript(sentences) + '\n>>>';
+        + 'Văn bản tiếng Pháp:\n<<<\n' + aicPlainTranscript(sentences) + '\n>>>';
     }
     function copyKeyVocabPrompt(btn) {
       if (!sentences.length) {
