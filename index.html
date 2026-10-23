@@ -9617,8 +9617,14 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
             } else if (ev.data === 2) {
               isPlaying = false;
               updatePlayIcon(false);
+              stopTrackingLoop();
+            } else if (ev.data === 0) {
+              isPlaying = false;
+              updatePlayIcon(false);
+              stopTrackingLoop();
             } else if (ev.data === 3) {
               isUserSeeking = true;
+              startTrackingLoop();
               // YouTube cũng phát ra trạng thái "buffering" này khi chỉ đơn giản là bấm Play lại sau khi Pause
               // (không hề tua), nên không thể coi buffering = đang tua trên timeline. Chỉ ép cuộn khi mốc thời
               // gian thực sự NHẢY đáng kể (>1.8s) so với lần cập nhật gần nhất — đúng bằng cách mà vòng lặp theo
@@ -9715,105 +9721,143 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
     }
 
     // ==================== LOOP TRACKING (LINE-LEVEL MICRO SCROLL) ====================
+    function stopTrackingLoop() {
+      if (rafAnimId) {
+        cancelAnimationFrame(rafAnimId);
+        rafAnimId = null;
+      }
+    }
+    window.stopTrackingLoop = stopTrackingLoop;
+
+    function checkTimeTick() {
+      if (!ytPlayer || !isPlayerReady || !ytPlayer.getCurrentTime) return;
+      if (window.pvGetView && window.pvGetView() !== 'default') return;
+      try {
+        const t = ytPlayer.getCurrentTime();
+        const now = Date.now();
+
+        if (!isInternalSeekAction && lastPlayerCurrentTime > 0 && Math.abs(t - lastPlayerCurrentTime) > 1.8 && now > seekGraceUntil) {
+          pausedByAutoPauseId = null;
+          pausedAtSentenceIndex = null;
+          const scrubIdx = getSentenceIndexForTime(t);
+          currentSentenceIndex = scrubIdx;
+          updateActiveSentenceDisplay();
+          triggerSmoothCenterScroll(scrubIdx, true);
+        }
+        lastPlayerCurrentTime = t;
+
+        const isSeekingGrace = now < seekGraceUntil;
+        const hasCaughtUp = Math.abs(t - seekTargetTime) < 0.25;
+        if (isSeekingGrace && !hasCaughtUp) return;
+        if (isSeekingGrace && hasCaughtUp) seekGraceUntil = 0;
+
+        // Nếu đang tạm dừng do tự dừng hết câu: giữ nguyên câu vừa hoàn thành, không cho các frame trễ nhảy câu
+        if (pausedByAutoPauseId !== null) {
+          if (pausedAtSentenceIndex !== null && currentSentenceIndex !== pausedAtSentenceIndex) {
+            currentSentenceIndex = pausedAtSentenceIndex;
+          }
+          return;
+        }
+
+        const currentSent = sentences[currentSentenceIndex];
+        if (currentSent) {
+          const effectiveEndTime = sentPlayEnd(currentSentenceIndex);
+          const hasStarted = t >= (sentIdxStart(currentSentenceIndex) - 0.08);
+          const reachedEnd = hasStarted && (t >= effectiveEndTime - 0.04);
+
+          if (reachedEnd && handledSentenceEndId !== currentSent.id) {
+            if (stopAtSentenceEndId === currentSent.id) {
+              ytPlayer.pauseVideo();
+              stopAtSentenceEndId = null;
+              handledSentenceEndId = currentSent.id;
+              pausedByAutoPauseId = currentSent.id;
+              pausedAtSentenceIndex = currentSentenceIndex;
+              stopTrackingLoop();
+              return;
+            }
+
+            // Thời gian chờ 800ms sau mỗi lần tua chỉ để tránh dừng ngay khi vừa tua tới mốc ĐÃ nằm ở/sau cuối câu.
+            // Bấm vào từ gần cuối câu (of, books...) thì còn <0.8s là hết câu: vẫn phải dừng ở cuối câu, không được bỏ qua.
+            const seekedBeforeEnd = seekTargetTime < effectiveEndTime - 0.1;
+            if ((settings.autoPause || settings.sentenceAutoStop) && (now > autoPauseCooldownUntil || seekedBeforeEnd) && !subtitleLoopActive) {
+              ytPlayer.pauseVideo();
+              handledSentenceEndId = currentSent.id;
+              pausedByAutoPauseId = currentSent.id;
+              pausedAtSentenceIndex = currentSentenceIndex;
+              stopTrackingLoop();
+              return;
+            }
+          }
+        }
+
+        let activeIndex = getSentenceIndexForTime(t);
+        // Mốc kết thúc đã được kéo dài sang đoạn của câu sau: khi đang bật tự dừng thì giữ nguyên câu hiện tại tới hết mốc đó để dừng đúng chỗ
+        if (activeIndex === currentSentenceIndex + 1 && currentSent && (settings.autoPause || settings.sentenceAutoStop) && !subtitleLoopActive
+            && handledSentenceEndId !== currentSent.id && t < sentPlayEnd(currentSentenceIndex) - 0.04) {
+          activeIndex = currentSentenceIndex;
+        }
+        // Đang đứng ở câu sau (vd bấm "Câu sau") nhưng mốc kết thúc kéo dài của câu trước còn phủ tới đây: giữ nguyên câu sau, không quay lại câu trước
+        if (activeIndex === currentSentenceIndex - 1 && t >= sentIdxStart(currentSentenceIndex)) activeIndex = currentSentenceIndex;
+        if (activeIndex !== currentSentenceIndex) {
+          if (!(isSeekingGrace && activeIndex < currentSentenceIndex)) {
+            currentSentenceIndex = activeIndex;
+            handledSentenceEndId = null;
+            updateActiveSentenceDisplay();
+          }
+        }
+
+        if (settings.karaokeMode) {
+          updateKaraokeWord(t);
+        } else if (currentHighlightedWordEl) {
+          currentHighlightedWordEl.classList.remove('karaoke-word-active');
+          currentHighlightedWordEl = null;
+        }
+
+        const scrollTarget = activeIndex;
+        if (lastReportedScrollTarget !== scrollTarget) {
+          lastReportedScrollTarget = scrollTarget;
+          if (settings.autoScroll && !shouldPreventAutoScroll()) {
+            triggerSmoothCenterScroll(scrollTarget);
+          }
+        }
+
+      } catch (e) {}
+    }
+    window.checkTimeTick = checkTimeTick;
+
     function startTrackingLoop() {
       if (rafAnimId) cancelAnimationFrame(rafAnimId);
+      rafAnimId = null;
+      if (document.hidden) return;
+      if (window.pvGetView && window.pvGetView() !== 'default') return;
+
       const checkTime = () => {
+        if (document.hidden || (window.pvGetView && window.pvGetView() !== 'default')) {
+          stopTrackingLoop();
+          return;
+        }
+        checkTimeTick();
+        if (!isPlaying && !isUserSeeking && Date.now() > seekGraceUntil) {
+          stopTrackingLoop();
+          return;
+        }
         rafAnimId = requestAnimationFrame(checkTime);
-        if (!ytPlayer || !isPlayerReady || !ytPlayer.getCurrentTime) return;
-        // Đang ở Shadowing / Chép chính tả: giao diện Mặc định bị đẩy ra ngoài màn hình, không cần tô karaoke / cuộn phụ đề / tự dừng cuối câu
-        // cho nó nữa (trước đây vẫn chạy 60 lần/giây ngầm bên dưới, làm điện thoại bị nặng và giật).
-        if (window.pvGetView && window.pvGetView() !== 'default') return;
-        try {
-          const t = ytPlayer.getCurrentTime();
-          const now = Date.now();
-
-          if (!isInternalSeekAction && lastPlayerCurrentTime > 0 && Math.abs(t - lastPlayerCurrentTime) > 1.8 && now > seekGraceUntil) {
-            pausedByAutoPauseId = null;
-            pausedAtSentenceIndex = null;
-            const scrubIdx = getSentenceIndexForTime(t);
-            currentSentenceIndex = scrubIdx;
-            updateActiveSentenceDisplay();
-            triggerSmoothCenterScroll(scrubIdx, true);
-          }
-          lastPlayerCurrentTime = t;
-
-          const isSeekingGrace = now < seekGraceUntil;
-          const hasCaughtUp = Math.abs(t - seekTargetTime) < 0.25;
-          if (isSeekingGrace && !hasCaughtUp) return;
-          if (isSeekingGrace && hasCaughtUp) seekGraceUntil = 0;
-
-          // Nếu đang tạm dừng do tự dừng hết câu: giữ nguyên câu vừa hoàn thành, không cho các frame trễ nhảy câu
-          if (pausedByAutoPauseId !== null) {
-            if (pausedAtSentenceIndex !== null && currentSentenceIndex !== pausedAtSentenceIndex) {
-              currentSentenceIndex = pausedAtSentenceIndex;
-            }
-            return;
-          }
-
-          const currentSent = sentences[currentSentenceIndex];
-          if (currentSent) {
-            const effectiveEndTime = sentPlayEnd(currentSentenceIndex);
-            const hasStarted = t >= (sentIdxStart(currentSentenceIndex) - 0.08);
-            const reachedEnd = hasStarted && (t >= effectiveEndTime - 0.04);
-
-            if (reachedEnd && handledSentenceEndId !== currentSent.id) {
-              if (stopAtSentenceEndId === currentSent.id) {
-                ytPlayer.pauseVideo();
-                stopAtSentenceEndId = null;
-                handledSentenceEndId = currentSent.id;
-                pausedByAutoPauseId = currentSent.id;
-                pausedAtSentenceIndex = currentSentenceIndex;
-                return;
-              }
-
-              // Thời gian chờ 800ms sau mỗi lần tua chỉ để tránh dừng ngay khi vừa tua tới mốc ĐÃ nằm ở/sau cuối câu.
-              // Bấm vào từ gần cuối câu (of, books...) thì còn <0.8s là hết câu: vẫn phải dừng ở cuối câu, không được bỏ qua.
-              const seekedBeforeEnd = seekTargetTime < effectiveEndTime - 0.1;
-              if ((settings.autoPause || settings.sentenceAutoStop) && (now > autoPauseCooldownUntil || seekedBeforeEnd) && !subtitleLoopActive) {
-                ytPlayer.pauseVideo();
-                handledSentenceEndId = currentSent.id;
-                pausedByAutoPauseId = currentSent.id;
-                pausedAtSentenceIndex = currentSentenceIndex;
-                return;
-              }
-            }
-          }
-
-          let activeIndex = getSentenceIndexForTime(t);
-          // Mốc kết thúc đã được kéo dài sang đoạn của câu sau: khi đang bật tự dừng thì giữ nguyên câu hiện tại tới hết mốc đó để dừng đúng chỗ
-          if (activeIndex === currentSentenceIndex + 1 && currentSent && (settings.autoPause || settings.sentenceAutoStop) && !subtitleLoopActive
-              && handledSentenceEndId !== currentSent.id && t < sentPlayEnd(currentSentenceIndex) - 0.04) {
-            activeIndex = currentSentenceIndex;
-          }
-          // Đang đứng ở câu sau (vd bấm "Câu sau") nhưng mốc kết thúc kéo dài của câu trước còn phủ tới đây: giữ nguyên câu sau, không quay lại câu trước
-          if (activeIndex === currentSentenceIndex - 1 && t >= sentIdxStart(currentSentenceIndex)) activeIndex = currentSentenceIndex;
-          if (activeIndex !== currentSentenceIndex) {
-            if (!(isSeekingGrace && activeIndex < currentSentenceIndex)) {
-              currentSentenceIndex = activeIndex;
-              handledSentenceEndId = null;
-              updateActiveSentenceDisplay();
-            }
-          }
-
-          if (settings.karaokeMode) {
-            updateKaraokeWord(t);
-          } else if (currentHighlightedWordEl) {
-            currentHighlightedWordEl.classList.remove('karaoke-word-active');
-            currentHighlightedWordEl = null;
-          }
-
-          const scrollTarget = activeIndex;
-          if (lastReportedScrollTarget !== scrollTarget) {
-            lastReportedScrollTarget = scrollTarget;
-            if (settings.autoScroll && !shouldPreventAutoScroll()) {
-              triggerSmoothCenterScroll(scrollTarget);
-            }
-          }
-
-        } catch (e) {}
       };
       rafAnimId = requestAnimationFrame(checkTime);
     }
+    window.startTrackingLoop = startTrackingLoop;
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        stopTrackingLoop();
+      } else {
+        if (isPlaying && (!window.pvGetView || window.pvGetView() === 'default')) {
+          startTrackingLoop();
+        } else {
+          checkTimeTick();
+        }
+      }
+    });
 
     // ==================== FIX CUỘN THEO TỪNG DÒNG RƠI (LINE-LEVEL MICRO SCROLL - ITEM 1) ====================
     function updateKaraokeWord(currentTime) {
@@ -10036,6 +10080,8 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
         ytPlayer.seekTo(seconds, true);
         if (autoPlay && ytPlayer.playVideo) {
           ytPlayer.playVideo();
+        } else {
+          setTimeout(checkTimeTick, 50);
         }
       }
     }
@@ -21880,8 +21926,8 @@ ${list}`;
 })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase-sync.js?v=20261023c"></script>
-<script src="vocab-practice.js?v=20261023c"></script>
-<script src="tcf-exam.js?v=20261023c"></script>
+<script src="supabase-sync.js?v=20261023d"></script>
+<script src="vocab-practice.js?v=20261023d"></script>
+<script src="tcf-exam.js?v=20261023d"></script>
 </body>
 </html>
