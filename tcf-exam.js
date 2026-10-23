@@ -113,11 +113,24 @@
     const endTime = (lastSent && typeof lastSent.endTime === 'number') ? lastSent.endTime : (startTime + sents.length * 4);
     const duration = Math.max(10, Math.round(endTime - startTime));
 
-    let recommendedCount = 5;
-    if (wordCount < 250 || duration < 120) recommendedCount = 3;
-    else if (wordCount < 600 || duration < 300) recommendedCount = 5;
-    else if (wordCount < 1200 || duration < 600) recommendedCount = 7;
-    else recommendedCount = 10;
+    let suggestedRangeText = 'khoảng 3 - 5 câu';
+    let suggestedMax = 5;
+    if (duration >= 1800 || wordCount >= 3000) {
+      suggestedRangeText = 'khoảng 20 - 39 câu';
+      suggestedMax = 39;
+    } else if (duration >= 900 || wordCount >= 1500) {
+      suggestedRangeText = 'khoảng 12 - 25 câu';
+      suggestedMax = 25;
+    } else if (duration >= 400 || wordCount >= 700) {
+      suggestedRangeText = 'khoảng 8 - 15 câu';
+      suggestedMax = 15;
+    } else if (duration >= 180 || wordCount >= 300) {
+      suggestedRangeText = 'khoảng 5 - 8 câu';
+      suggestedMax = 8;
+    } else {
+      suggestedRangeText = 'khoảng 3 - 5 câu';
+      suggestedMax = 5;
+    }
 
     let estLevel = 'A2 - B1';
     if (wordCount > 400) estLevel = 'B1 - B2';
@@ -127,7 +140,10 @@
       words: wordCount,
       duration: duration,
       durationFormatted: formatTime(duration),
-      recommendedCount: recommendedCount,
+      suggestedRangeText: suggestedRangeText,
+      suggestedMax: suggestedMax,
+      maxAllowed: 39,
+      recommendedCount: suggestedMax,
       estLevel: estLevel
     };
   }
@@ -164,9 +180,10 @@
 
     let countInstruction = '';
     if (tcfState.selectedCount === 'auto') {
-      countInstruction = `Dựa vào độ dài và khối lượng thông tin của bản ghi âm lời thoại (${stats.words} từ, thời lượng ${stats.durationFormatted}), hãy TỰ ĐỘNG BIÊN SOẠN CHÍNH XÁC ${stats.recommendedCount} CÂU HỎI TRỌNG TÂM rải đều từ đầu đến cuối bài nghe, không hỏi vụn vặt và không hỏi lặp ý.`;
+      countInstruction = `Căn cứ theo chuẩn đề thi Nghe hiểu TCF Canada (Compréhension Orale gồm 39 câu), dựa vào khối lượng thông tin và thời lượng thực tế của bản ghi âm lời thoại (${stats.words} từ, thời lượng ${stats.durationFormatted}), hãy TỰ ĐỘNG THẨM ĐỊNH VÀ QUYẾT ĐỊNH SỐ LƯỢNG CÂU HỎI PHÙ HỢP NHẤT, MIỄN LÀ TUYỆT ĐỐI KHÔNG VƯỢT QUÁ 39 CÂU (TỐI ĐA 39 CÂU).
+   - Hãy rải đều các câu hỏi theo trục thời gian từ đầu đến cuối bài nghe (${stats.suggestedRangeText}), không hỏi dồn cục vào một đoạn ngắn, không hỏi vụn vặt và không hỏi lặp ý.`;
     } else {
-      countInstruction = `Hãy biên soạn chính xác đúng ${count} câu hỏi trắc nghiệm QCM rải đều nội dung bài nghe.`;
+      countInstruction = `Hãy biên soạn chính xác đúng ${count} câu hỏi trắc nghiệm QCM (chuẩn TCF Canada) rải đều nội dung bài nghe từ đầu đến cuối (tối đa không quá ${count} câu).`;
     }
 
     const transcript = buildTimestampedTranscript();
@@ -432,11 +449,11 @@ ${transcript}
           <div class="tcf-options-group">
             <label class="tcf-options-label">Số lượng câu hỏi:</label>
             <div class="tcf-chips-row" id="tcf-count-chips">
-              <button type="button" class="tcf-chip active" data-count="auto" onclick="TcfExam.selectCount('auto')">✨ Tự động theo bài (Đề xuất)</button>
-              <button type="button" class="tcf-chip" data-count="3" onclick="TcfExam.selectCount(3)">3 câu</button>
-              <button type="button" class="tcf-chip" data-count="5" onclick="TcfExam.selectCount(5)">5 câu</button>
-              <button type="button" class="tcf-chip" data-count="8" onclick="TcfExam.selectCount(8)">8 câu</button>
-              <button type="button" class="tcf-chip" data-count="10" onclick="TcfExam.selectCount(10)">10 câu</button>
+              <button type="button" class="tcf-chip active" data-count="auto" onclick="TcfExam.selectCount('auto')">✨ Tự động theo bài (Tối đa 39 câu)</button>
+              <button type="button" class="tcf-chip" data-count="5" onclick="TcfExam.selectCount(5)">5 câu (Nhanh)</button>
+              <button type="button" class="tcf-chip" data-count="10" onclick="TcfExam.selectCount(10)">10 câu (Tiêu chuẩn)</button>
+              <button type="button" class="tcf-chip" data-count="20" onclick="TcfExam.selectCount(20)">20 câu (Luyện sâu)</button>
+              <button type="button" class="tcf-chip" data-count="39" onclick="TcfExam.selectCount(39)">39 câu (Trọn vẹn 1 đề TCF)</button>
             </div>
           </div>
 
@@ -577,7 +594,7 @@ ${transcript}
           <span class="tcf-stat-item">⏱ Thời lượng: <b>${stats.durationFormatted}</b></span>
           <span class="tcf-stat-item">📝 Tổng số từ: <b>${stats.words.toLocaleString()} từ</b> (${sents.length} câu)</span>
           <span class="tcf-stat-item">🎯 Độ khó ước tính: <b>${stats.estLevel}</b></span>
-          <span class="tcf-stat-item" style="color:#60a5fa">⚡ AI Đề xuất: <b>${stats.recommendedCount} câu hỏi</b></span>
+          <span class="tcf-stat-item" style="color:#60a5fa">🇨🇦 Chuẩn TCF Canada: <b>Tối đa 39 câu</b> (AI tự định lượng, gợi ý: ${stats.suggestedRangeText})</span>
         `;
       }
     }
@@ -585,7 +602,7 @@ ${transcript}
     // Update count chip label
     const autoChip = document.querySelector('#tcf-count-chips .tcf-chip[data-count="auto"]');
     if (autoChip) {
-      autoChip.textContent = `✨ Tự động theo bài (Đề xuất: ${stats.recommendedCount} câu)`;
+      autoChip.textContent = `✨ Tự động theo bài (Tối đa 39 câu - Gợi ý: ${stats.suggestedRangeText})`;
     }
 
     // Check saved test
