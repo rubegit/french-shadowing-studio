@@ -1552,19 +1552,12 @@
     .kv-save-btn.saved { background: rgba(16,185,129,.12); color: #6ee7b7; border-color: rgba(16,185,129,.35); cursor: default; }
     #keyvocab-modal .ai-modal { max-width: 720px; }
     #keyvocab-modal .vocab-card { margin-bottom: 10px; }
-    /* Cài đặt cấp độ trích xuất CEFR cho Key Vocab */
-    .kv-level-box { margin: 10px 0 12px; background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(99, 102, 241, 0.28); border-radius: 12px; padding: 10px 12px; }
-    .kv-level-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
-    .kv-level-title { font-size: 12px; font-weight: 700; color: #e2e8f0; }
-    .kv-level-hint { font-size: 11px; color: #94a3b8; }
+    /* Cài đặt cấp độ trích xuất CEFR cho Key Vocab (tối giản, mobile-first) */
+    .kv-level-box { margin: 10px 0 12px; }
     .kv-level-chips { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-    .kv-level-chip { display: inline-flex; align-items: center; gap: 5px; padding: 5px 11px; border-radius: 999px; font-size: 11.5px; font-weight: 600; border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(255, 255, 255, 0.04); color: #94a3b8; transition: all 0.18s ease; user-select: none; }
-    .kv-level-chip.default-locked { background: rgba(99, 102, 241, 0.16); border-color: rgba(99, 102, 241, 0.45); color: #c7d2fe; cursor: default; }
-    .kv-level-chip.clickable { cursor: pointer; }
-    .kv-level-chip.clickable:hover { background: rgba(255, 255, 255, 0.08); color: #f1f5f9; border-color: rgba(255, 255, 255, 0.25); transform: translateY(-1px); }
-    .kv-level-chip.clickable.active { background: linear-gradient(135deg, rgba(99, 102, 241, 0.28), rgba(168, 85, 247, 0.28)); border-color: #818cf8; color: #ffffff; box-shadow: 0 0 12px rgba(99, 102, 241, 0.35); }
-    .kv-level-chip .kv-chip-check { font-weight: 800; font-size: 11px; }
-    .kv-level-chip.active .kv-chip-check { color: #34d399; }
+    .kv-level-chip { display: inline-flex; align-items: center; justify-content: center; min-height: 34px; padding: 6px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; border: 1px solid rgba(148, 163, 184, 0.22); background: rgba(15, 23, 42, 0.6); color: #94a3b8; transition: all 0.15s ease; user-select: none; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    .kv-level-chip:hover { border-color: rgba(148, 163, 184, 0.45); color: #cbd5e1; }
+    .kv-level-chip.active { background: rgba(37, 99, 235, 0.22); border-color: #3b82f6; color: #93c5fd; font-weight: 700; box-shadow: 0 0 8px rgba(59, 130, 246, 0.25); }
     .vocab-vi-empty { margin-top: 8px; padding-left: 14px; color: #64748b; font-style: italic; font-size: 12px; }
     .vocab-wordvi-row { margin-top: 10px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .vocab-wordvi { color: #6ee7b7; font-weight: 700; font-size: 17px; line-height: 1.5; margin: 0; }
@@ -3602,29 +3595,16 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
       <div id="kv-input-view">
         <p class="ai-step-text">Bấm "Copy prompt", dán cho AI (ChatGPT/Claude...). AI sẽ liệt kê từ vựng, cụm từ, thành ngữ, tiếng lóng (argot) tiếng Pháp trong bài này, mỗi mục kèm nghĩa và 3 câu ví dụ tiếng Pháp thực tế. Sau đó dán nguyên câu trả lời của AI vào ô bên dưới rồi bấm "Áp dụng".</p>
         
-        <!-- Cài đặt Trình độ trích xuất CEFR -->
+        <!-- Cài đặt Trình độ trích xuất CEFR (tối giản A1-C2, tối ưu mobile) -->
         <div class="kv-level-box" id="kv-level-box">
-          <div class="kv-level-header">
-            <span class="kv-level-title">🎯 Trình độ muốn trích xuất:</span>
-            <span class="kv-level-hint">(Mặc định B1-C1 · Bấm chọn thêm A1/A2/A2+ nếu muốn học từ căn bản)</span>
-          </div>
           <div class="kv-level-chips">
-            <span class="kv-level-chip default-locked" title="Trình độ mặc định luôn được lọc">
-              <span class="kv-chip-check">✓</span>
-              <span>B1, B2, C1 (Trung cấp)</span>
-            </span>
-            <button type="button" class="kv-level-chip clickable" data-level="A1" onclick="kvToggleLevel('A1')" title="Trích xuất thêm từ vựng cơ bản / vỡ lòng">
-              <span class="kv-chip-check">+</span>
-              <span>A1 (Cơ bản)</span>
-            </button>
-            <button type="button" class="kv-level-chip clickable" data-level="A2" onclick="kvToggleLevel('A2')" title="Trích xuất thêm từ vựng sơ cấp thường nhật">
-              <span class="kv-chip-check">+</span>
-              <span>A2 (Sơ cấp)</span>
-            </button>
-            <button type="button" class="kv-level-chip clickable" data-level="A2+" onclick="kvToggleLevel('A2+')" title="Trích xuất thêm từ vựng tiền trung cấp &amp; liên từ">
-              <span class="kv-chip-check">+</span>
-              <span>A2+ (Tiền trung cấp)</span>
-            </button>
+            <button type="button" class="kv-level-chip" data-level="A1" onclick="kvToggleLevel('A1')" title="Trình độ A1 (Cơ bản / Vỡ lòng)">A1</button>
+            <button type="button" class="kv-level-chip" data-level="A2" onclick="kvToggleLevel('A2')" title="Trình độ A2 (Sơ cấp)">A2</button>
+            <button type="button" class="kv-level-chip" data-level="A2+" onclick="kvToggleLevel('A2+')" title="Trình độ A2+ (Tiền trung cấp)">A2+</button>
+            <button type="button" class="kv-level-chip" data-level="B1" onclick="kvToggleLevel('B1')" title="Trình độ B1 (Trung cấp 1)">B1</button>
+            <button type="button" class="kv-level-chip" data-level="B2" onclick="kvToggleLevel('B2')" title="Trình độ B2 (Trung cấp 2)">B2</button>
+            <button type="button" class="kv-level-chip" data-level="C1" onclick="kvToggleLevel('C1')" title="Trình độ C1 (Cao cấp)">C1</button>
+            <button type="button" class="kv-level-chip" data-level="C2" onclick="kvToggleLevel('C2')" title="Trình độ C2 (Thành thạo / Bản xứ)">C2</button>
           </div>
         </div>
 
@@ -13426,66 +13406,57 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
     }
 
     const KV_LEVELS_KEY = 'shadowing_keyvocab_levels_v1';
+    const KV_ALL_LEVELS = ['A1', 'A2', 'A2+', 'B1', 'B2', 'C1', 'C2'];
+    const KV_DEFAULT_LEVELS = ['B1', 'B2', 'C1'];
+
     function kvGetLevels() {
       try {
-        const d = JSON.parse(localStorage.getItem(KV_LEVELS_KEY) || '[]');
-        return Array.isArray(d) ? d : [];
-      } catch (e) { return []; }
+        const raw = localStorage.getItem(KV_LEVELS_KEY);
+        if (raw === null) return [...KV_DEFAULT_LEVELS];
+        const d = JSON.parse(raw);
+        return Array.isArray(d) ? d : [...KV_DEFAULT_LEVELS];
+      } catch (e) { return [...KV_DEFAULT_LEVELS]; }
     }
     function kvSetLevels(levels) {
       try { localStorage.setItem(KV_LEVELS_KEY, JSON.stringify(levels)); } catch (e) {}
     }
     function kvToggleLevel(lvl) {
-      const cur = kvGetLevels();
+      let cur = kvGetLevels();
       const idx = cur.indexOf(lvl);
       if (idx >= 0) cur.splice(idx, 1);
       else cur.push(lvl);
+      cur = KV_ALL_LEVELS.filter((l) => cur.includes(l));
       kvSetLevels(cur);
       kvRenderLevels();
     }
     function kvRenderLevels() {
       const cur = kvGetLevels();
-      document.querySelectorAll('#kv-level-box .kv-level-chip.clickable').forEach((btn) => {
+      document.querySelectorAll('#kv-level-box .kv-level-chip').forEach((btn) => {
         const lvl = btn.getAttribute('data-level');
-        const active = cur.includes(lvl);
-        btn.classList.toggle('active', active);
-        const icon = btn.querySelector('.kv-chip-check');
-        if (icon) icon.textContent = active ? '✓' : '+';
+        btn.classList.toggle('active', cur.includes(lvl));
       });
     }
 
     function buildKeyVocabPrompt() {
-      const extraLevels = kvGetLevels();
-      let levelIntro = '';
-      let levelGuide = '';
+      const activeLevels = kvGetLevels();
+      const levels = activeLevels.length ? activeLevels : KV_DEFAULT_LEVELS;
 
-      if (!extraLevels || extraLevels.length === 0) {
-        // Mặc định hoàn toàn như cũ: Trung cấp (B1, B2, C1)
-        levelIntro = 'Hãy đọc văn bản tiếng Pháp bên dưới rồi liệt kê TẤT CẢ những từ vựng, cụm từ, thành ngữ (idiom / locution), tiếng lóng (argot / slang) KHÓ hoặc thực sự hữu ích cho giao tiếp thực tế ở trình độ Trung cấp (B1, B2, C1) mà người học có thể chưa biết (bỏ qua từ quá dễ và tên riêng). ';
-      } else {
-        const hasA1 = extraLevels.includes('A1');
-        const hasA2 = extraLevels.includes('A2');
-        const hasA2Plus = extraLevels.includes('A2+');
+      const guideMap = {
+        'A1': '- [A1]: Trích xuất CẢ các từ vựng căn bản, đồ vật và động từ quen thuộc trong bài mà người mới bắt đầu cần cho giao tiếp (bỏ qua đại từ nhân xưng quá vỡ lòng je/tu/il).\n',
+        'A2': '- [A2]: Trích xuất CẢ các từ vựng sơ cấp, cụm từ miêu tả sinh hoạt, thói quen, cảm xúc thường nhật trong giao tiếp.\n',
+        'A2+': '- [A2+]: Trích xuất CẢ các từ nối câu (connecteurs), liên từ và cách diễn đạt thông dụng tiền trung cấp.\n',
+        'B1': '- [B1]: Trích xuất các từ vựng, cụm từ giúp thảo luận, diễn đạt ý kiến và giao tiếp tự tin ở mức trung cấp.\n',
+        'B2': '- [B2]: Trích xuất các từ vựng diễn đạt sắc thái ngữ nghĩa tinh tế, thành ngữ trung cao cấp nâng cao khả năng giao tiếp tự nhiên.\n',
+        'C1': '- [C1]: Trích xuất các từ vựng phong phú, cấu trúc diễn đạt cao cấp, sắc bén của người giao tiếp lưu loát.\n',
+        'C2': '- [C2]: Trích xuất các từ vựng điêu luyện, tinh tế tương đương người bản xứ, từ vựng và sắc thái biểu cảm sâu sắc.\n'
+      };
 
-        const allSelected = [];
-        if (hasA1) allSelected.push('A1 (Cơ bản / Vỡ lòng)');
-        if (hasA2) allSelected.push('A2 (Sơ cấp)');
-        if (hasA2Plus) allSelected.push('A2+ (Tiền trung cấp)');
-        allSelected.push('B1, B2, C1 (Trung & Cao cấp)');
+      const levelDetail = levels.map((lvl) => guideMap[lvl] || '').join('');
 
-        levelIntro = `Hãy đọc văn bản tiếng Pháp bên dưới rồi trích xuất từ vựng, cụm từ, thành ngữ (idiom / locution), tiếng lóng (argot / slang) ở các trình độ [${allSelected.join(', ')}] xuất hiện trong bài thực sự hữu ích cho giao tiếp thực tế. `;
-
-        levelGuide = '\nLƯU Ý QUAN TRỌNG VỀ TRÌNH ĐỘ NGƯỜI HỌC:\n'
-          + 'Người học đã chọn mở rộng thêm các trình độ: ' + extraLevels.join(', ') + '.\n'
-          + (hasA1 ? '- Với [A1]: Hãy trích xuất CẢ các từ vựng căn bản, động từ quen thuộc, danh từ đồ vật thường ngày xuất hiện trong bài mà người mới bắt đầu học cần nhớ (chỉ bỏ qua đại từ nhân xưng quá vỡ lòng je/tu/il và tên riêng).\n' : '')
-          + (hasA2 ? '- Với [A2]: Hãy trích xuất CẢ các từ vựng sơ cấp, cụm từ miêu tả sinh hoạt, thói quen, cảm xúc thường nhật ở trình độ A2.\n' : '')
-          + (hasA2Plus ? '- Với [A2+]: Hãy trích xuất CẢ các từ nối câu, liên từ và thành ngữ tiền trung cấp thông dụng ở trình độ A2+.\n' : '')
-          + '- Vẫn đồng thời giữ các từ vựng, cụm từ, idiom, slang hay ở trình độ B1/B2/C1 như mặc định.\n\n';
-      }
-
-      return 'Tôi đang học tiếng Pháp. ' + levelIntro
+      return 'Tôi đang học tiếng Pháp. Mục tiêu xuyên suốt là trích xuất các từ vựng, cụm từ / locutions, thành ngữ (idioms), tiếng lóng (argot / slang) THỰC SỰ HỮU ÍCH CHO GIAO TIẾP THỰC TẾ xuất hiện trong văn bản tiếng Pháp bên dưới (bỏ qua từ vô nghĩa, từ quá tầm thường không mang giá trị giao tiếp và tên riêng).\n\n'
+        + `Định hướng theo các trình độ người học đã kích hoạt: [${levels.join(', ')}].\n`
+        + (levelDetail ? `Cụ thể yêu cầu với từng trình độ:\n${levelDetail}\n` : '')
         + 'Với từng mục, cho tôi ghi chú ngữ pháp viết tắt trong ngoặc vuông [] kèm nghĩa tiếng Việt (đúng với nghĩa được dùng trong văn bản) và đúng 3 câu ví dụ thực tế BẰNG TIẾNG PHÁP mà người bản xứ hay dùng, đơn giản, không học thuật, không dùng từ quá cao siêu; mỗi ví dụ kèm bản dịch tiếng Việt.\n\n'
-        + (levelGuide || '')
         + 'QUAN TRỌNG VỀ NGÔN NGỮ CÂU VÍ DỤ (BẮT BUỘC TUÂN THỦ):\n'
         + '- Toàn bộ các câu ví dụ (VD1, VD2, VD3) BẮT BUỘC PHẢI ĐƯỢC VIẾT BẰNG TIẾNG PHÁP (French). Tuyệt đối KHÔNG ĐƯỢC viết câu ví dụ bằng tiếng Anh!\n'
         + '- Sau dấu "||" là bản dịch của câu ví dụ đó sang TIẾNG VIỆT.\n\n'
