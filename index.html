@@ -1052,6 +1052,19 @@
     #btn-pronounce-action:hover {
       box-shadow: 0 10px 28px rgba(0, 0, 0, 0.6), 0 0 20px rgba(251, 146, 60, 0.7) !important;
     }
+    #btn-pronounce-action.playing {
+      background: linear-gradient(135deg, #15803d, #22c55e) !important;
+      border-color: rgba(134, 239, 172, 0.8) !important;
+      box-shadow: 0 0 20px rgba(34, 197, 94, 0.75) !important;
+      transform: scale(1.05);
+    }
+    #btn-pronounce-action.playing svg {
+      animation: pronounce-pulse 0.45s infinite alternate ease-in-out;
+    }
+    @keyframes pronounce-pulse {
+      from { transform: scale(1); }
+      to { transform: scale(1.28); }
+    }
 
     /* ============ THANH ĐIỀU KHIỂN LOOP ĐANG BẬT (NỔI Ở DƯỚI VIDEO) ============ */
     #loop-active-bar {
@@ -3699,7 +3712,7 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
         </svg>
         <span>Tra nghĩa</span>
       </button>
-      <button type="button" id="btn-pronounce-action" style="display:none" title="Mở trang từ này trên Từ điển Larousse (Shift + click: mở tab nền)">
+      <button type="button" id="btn-pronounce-action" style="display:none" title="Phát âm từ này (Shift + click: Mở Từ điển Larousse)">
         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
           <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
@@ -5091,6 +5104,173 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
     window.getCurrentVideoId = () => currentVideoId;
     window.getCurrentVideoTitle = () => currentVideoTitle;
     window.getYtPlayer = () => ytPlayer;
+
+    // ==================== UNIVERSAL FRENCH AUDIO ENGINE ====================
+    // Dual-strategy: Web Speech API (with anti-GC reference & Chromium un-pause) + Google TTS HTML5 Audio failsafe
+    window._activeAudioPlayer = null;
+    window._activeSpeechUtterance = null;
+    window._cachedFrenchVoices = [];
+
+    function initFrenchVoices() {
+      if (!('speechSynthesis' in window)) return;
+      const update = () => {
+        try {
+          const all = window.speechSynthesis.getVoices() || [];
+          window._cachedFrenchVoices = all.filter((v) => /^fr([-_]|$)/i.test(v.lang));
+        } catch (e) {}
+      };
+      update();
+      if (window.speechSynthesis.onvoiceschanged !== undefined) {
+        window.speechSynthesis.onvoiceschanged = update;
+      }
+    }
+    initFrenchVoices();
+
+    function getBestFrenchVoice() {
+      let vs = window._cachedFrenchVoices;
+      if (!vs || !vs.length) {
+        try {
+          vs = ('speechSynthesis' in window) ? (window.speechSynthesis.getVoices() || []).filter((v) => /^fr([-_]|$)/i.test(v.lang)) : [];
+        } catch (e) { vs = []; }
+      }
+      if (!vs.length) return null;
+      // Ưu tiên giọng chuẩn Pháp chất lượng cao
+      const preferred = vs.find((v) => /fr[-_]FR/i.test(v.lang) && /Google|Thomas|Amélie|Amelie|Audrey|Natural|Denise|Julie|Paul|Hortense/i.test(v.name));
+      if (preferred) return preferred;
+      const frFR = vs.find((v) => /fr[-_]FR/i.test(v.lang));
+      if (frFR) return frFR;
+      return vs[0];
+    }
+
+    window.playFrenchAudio = function(text, options = {}) {
+      const rate = typeof options === 'number' ? options : (options.rate || 0.95);
+      const onStart = typeof options === 'object' ? options.onStart : null;
+      const onEnd = typeof options === 'object' ? options.onEnd : null;
+
+      if (!text) return Promise.resolve(false);
+      const cleanText = String(text).trim().replace(/^['"«“]+|['"»”]+$/g, '');
+      if (!cleanText) return Promise.resolve(false);
+
+      // Dừng audio HTML5 trước đó nếu có
+      if (window._activeAudioPlayer) {
+        try {
+          window._activeAudioPlayer.pause();
+          window._activeAudioPlayer.currentTime = 0;
+        } catch (e) {}
+        window._activeAudioPlayer = null;
+      }
+
+      // Kênh dự phòng Failsafe: HTML5 Audio qua Google TTS (chuẩn âm thanh Pháp bản xứ 100%)
+      const playFallbackAudio = () => {
+        return new Promise((resolve) => {
+          try {
+            const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=fr&client=tw-ob&q=${encodeURIComponent(cleanText)}`;
+            const audio = new Audio(ttsUrl);
+            audio.playbackRate = Math.max(0.5, Math.min(2.0, rate));
+            window._activeAudioPlayer = audio;
+
+            audio.onplay = () => {
+              if (typeof onStart === 'function') onStart();
+            };
+            audio.onended = () => {
+              if (window._activeAudioPlayer === audio) window._activeAudioPlayer = null;
+              if (typeof onEnd === 'function') onEnd();
+              resolve(true);
+            };
+            audio.onerror = () => {
+              if (window._activeAudioPlayer === audio) window._activeAudioPlayer = null;
+              if (typeof onEnd === 'function') onEnd();
+              resolve(false);
+            };
+
+            const p = audio.play();
+            if (p && p.catch) {
+              p.catch(() => {
+                if (window._activeAudioPlayer === audio) window._activeAudioPlayer = null;
+                if (typeof onEnd === 'function') onEnd();
+                resolve(false);
+              });
+            }
+          } catch (err) {
+            if (typeof onEnd === 'function') onEnd();
+            resolve(false);
+          }
+        });
+      };
+
+      if (!('speechSynthesis' in window)) {
+        return playFallbackAudio();
+      }
+
+      return new Promise((resolve) => {
+        try {
+          if (window.speechSynthesis.paused) {
+            window.speechSynthesis.resume();
+          }
+          if (window.speechSynthesis.speaking) {
+            window.speechSynthesis.cancel();
+          }
+
+          const utt = new SpeechSynthesisUtterance(cleanText);
+          utt.lang = 'fr-FR';
+          utt.rate = Math.max(0.5, Math.min(1.5, rate));
+
+          const voice = getBestFrenchVoice();
+          if (voice) utt.voice = voice;
+
+          // Giữ reference trên window chống V8 Garbage Collection bug
+          window._activeSpeechUtterance = utt;
+
+          let started = false;
+          let finished = false;
+
+          const finish = (ok) => {
+            if (finished) return;
+            finished = true;
+            clearTimeout(fallbackTimer);
+            window._activeSpeechUtterance = null;
+            if (typeof onEnd === 'function') onEnd();
+            resolve(ok);
+          };
+
+          utt.onstart = () => {
+            started = true;
+            clearTimeout(fallbackTimer);
+            if (typeof onStart === 'function') onStart();
+          };
+
+          utt.onend = () => finish(true);
+          utt.onerror = (e) => {
+            if (e.error === 'interrupted' || e.error === 'canceled') {
+              finish(false);
+            } else {
+              playFallbackAudio().then(resolve);
+            }
+          };
+
+          // Timer kích hoạt Fallback nếu SpeechSynthesis bị treo hoặc không phản hồi sau 500ms
+          const fallbackTimer = setTimeout(() => {
+            if (!started && !finished) {
+              try { window.speechSynthesis.cancel(); } catch (e) {}
+              playFallbackAudio().then(resolve);
+            }
+          }, 500);
+
+          // Delay nhỏ 35ms tránh race condition với cancel() bất đồng bộ của Chrome
+          setTimeout(() => {
+            try {
+              if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+              window.speechSynthesis.speak(utt);
+            } catch (err) {
+              clearTimeout(fallbackTimer);
+              playFallbackAudio().then(resolve);
+            }
+          }, 35);
+        } catch (e) {
+          playFallbackAudio().then(resolve);
+        }
+      });
+    };
 
     // Điện thoại (cạnh ngắn của màn hình <= 600px): cỡ chữ phụ đề mặc định nhỏ hơn 3px (16 thay vì 19). Muốn đổi: sửa 2 con số này.
     const IS_PHONE = Math.min(window.screen.width || 0, window.screen.height || 0) <= 600 && Math.min(window.screen.width || 0, window.screen.height || 0) > 0;
@@ -9456,6 +9636,28 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
 
     function togglePlay() {
       tpRetrigger(document.getElementById('btn-toggle-play'), 'tp-press', 200);
+      if (isTextMode) {
+        if (window._activeAudioPlayer || (window.speechSynthesis && window.speechSynthesis.speaking)) {
+          if (window._activeAudioPlayer) {
+            try { window._activeAudioPlayer.pause(); } catch(e) {}
+            window._activeAudioPlayer = null;
+          }
+          if (window.speechSynthesis) {
+            try { window.speechSynthesis.cancel(); } catch(e) {}
+          }
+          updatePlayIcon(false);
+        } else {
+          const s = sentences[currentSentenceIndex];
+          if (s && s.text) {
+            updatePlayIcon(true);
+            window.playFrenchAudio(s.text, {
+              rate: (settings && settings.playbackRate) || 1.0,
+              onEnd: () => updatePlayIcon(false)
+            });
+          }
+        }
+        return;
+      }
       // Đổi biểu tượng Play/Pause NGAY khi bấm, không chờ YouTube báo trạng thái (tránh trễ do buffering)
       if (ytPlayer && isPlayerReady) updatePlayIcon(!isPlaying);
       if (isPlaying) {
@@ -9528,7 +9730,16 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
         }
       }
 
-      if (ytPlayer && ytPlayer.seekTo) {
+      if (isTextMode) {
+        if (autoPlay) {
+          if (specificElement && specificElement.textContent) {
+            window.playFrenchAudio(specificElement.textContent.trim(), (settings && settings.playbackRate) || 1.0);
+          } else {
+            const s = sentences[idx];
+            if (s && s.text) window.playFrenchAudio(s.text, (settings && settings.playbackRate) || 1.0);
+          }
+        }
+      } else if (ytPlayer && ytPlayer.seekTo) {
         ytPlayer.seekTo(seconds, true);
         if (autoPlay && ytPlayer.playVideo) {
           ytPlayer.playVideo();
@@ -9541,7 +9752,12 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
 
     function replaySentence() {
       const s = sentences[currentSentenceIndex];
-      if (s) seekToTime(sentPlayStart(currentSentenceIndex), currentSentenceIndex, true, null, false);
+      if (!s) return;
+      if (isTextMode) {
+        if (s.text) window.playFrenchAudio(s.text, (settings && settings.playbackRate) || 1.0);
+        return;
+      }
+      seekToTime(sentPlayStart(currentSentenceIndex), currentSentenceIndex, true, null, false);
     }
 
     // Hiển thị tốc độ hiện tại: ô nhập + làm sáng nút preset trùng khớp (0.5 / 0.75 / 0.9 / 1.0)
@@ -10868,14 +11084,13 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
       if (btnLookupAction) {
         btnLookupAction.style.display = blurActive ? 'none' : '';
       }
-      // "Phát âm" chỉ hiện khi bôi đen đúng 1 từ (không tra phát âm cho cụm/câu)
+      // "Phát âm" hiển thị khi bôi đen từ hoặc cụm ngắn
       const btnPron = document.getElementById('btn-pronounce-action');
       if (btnPron) {
-        const pw = getSingleWordForLookup(text);
-        btnPron.style.display = (!blurActive && pw) ? '' : 'none';   // trong "Từ vựng đã lưu" / "Từ khó" cũng hiện khi bôi đen đúng 1 từ
+        const pw = getSingleWordForLookup(text) || (text && text.trim().length <= 150 ? text.trim() : '');
+        btnPron.style.display = (!blurActive && pw) ? '' : 'none';   // trong "Từ vựng đã lưu" / "Từ khó" cũng hiện khi bôi đen
         if (pw) {
-          const base = lemmatizeEnglish(pw);
-          btnPron.title = 'Mở trang "' + base + '" trên Từ điển Larousse' + (base !== pw.toLowerCase() ? ' (dạng gốc của "' + pw + '")' : '') + ' · Shift + click: mở tab nền';
+          btnPron.title = 'Phát âm "' + pw + '" · Shift + click: Mở Từ điển Larousse';
         }
       }
 
@@ -11910,17 +12125,24 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
       btnPronounceAction.addEventListener('click', (e) => {
         e.stopPropagation();
         e.preventDefault();
-        const word = getSingleWordForLookup(selectedTextForLookup);
+        const word = getSingleWordForLookup(selectedTextForLookup) || (selectedTextForLookup || '').trim();
         if (!word) return;
-        const url = cambridgeUrlForWord(word);
+
         if (e.shiftKey) {
-          // Shift + click: mở tab nền, vẫn ở lại trang hiện tại và GIỮ NGUYÊN pop-up + vùng bôi đen.
+          // Shift + click: mở tab nền trên Từ điển Larousse
+          const url = cambridgeUrlForWord(word);
           openUrlInBackgroundTab(url);
           return;
         }
-        window.open(url, '_blank');
-        hideLookupTooltip();
-        window.getSelection()?.removeAllRanges();
+
+        // Phát âm tiếng Pháp trực tiếp
+        btnPronounceAction.classList.add('playing');
+        window.playFrenchAudio(word, {
+          rate: 0.95,
+          onStart: () => btnPronounceAction.classList.add('playing'),
+          onEnd: () => btnPronounceAction.classList.remove('playing')
+        });
+        setTimeout(() => btnPronounceAction.classList.remove('playing'), 900);
       });
     }
 
@@ -18877,9 +19099,9 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
         const sv = $('btn-save-action'); if (sv) sv.style.display = '';
         const pr = $('btn-pronounce-action');
         if (pr) {
-            const pw = getSingleWordForLookup(text);   // chỉ hiện "Phát âm" khi bôi đen đúng 1 từ
+            const pw = getSingleWordForLookup(text) || (text && text.trim().length <= 150 ? text.trim() : '');
             pr.style.display = pw ? '' : 'none';
-            if (pw) { const base = lemmatizeEnglish(pw); pr.title = 'Mở trang "' + base + '" trên Từ điển Larousse' + (base !== pw.toLowerCase() ? ' (dạng gốc của "' + pw + '")' : '') + ' · Shift + click: mở tab nền'; }
+            if (pw) { pr.title = 'Phát âm "' + pw + '" · Shift + click: Mở Từ điển Larousse'; }
         }
         const lp = $('btn-loop-action'); if (lp) lp.style.display = '';
         const tip = $('lookup-tooltip');
@@ -18914,9 +19136,9 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
         const lp = $('btn-loop-action'); if (lp) lp.style.display = 'none';   // Loop điều khiển video riêng, không dùng ở đây
         const pr = $('btn-pronounce-action');
         if (pr) {
-            const pw = getSingleWordForLookup(text);
+            const pw = getSingleWordForLookup(text) || (text && text.trim().length <= 150 ? text.trim() : '');
             pr.style.display = pw ? '' : 'none';
-            if (pw) { const base = lemmatizeEnglish(pw); pr.title = 'Mở trang "' + base + '" trên Từ điển Larousse' + (base !== pw.toLowerCase() ? ' (dạng gốc của "' + pw + '")' : '') + ' · Shift + click: mở tab nền'; }
+            if (pw) { pr.title = 'Phát âm "' + pw + '" · Shift + click: Mở Từ điển Larousse'; }
         }
         const tip = $('lookup-tooltip');
         tip.style.left = (rect.left + rect.width / 2) + 'px';
@@ -20122,9 +20344,9 @@ ${list}`;
     const lp = $('btn-loop-action'); if (lp) lp.style.display = 'none';
     const pr = $('btn-pronounce-action');
     if (pr) {
-      const pw = getSingleWordForLookup(text);
+      const pw = getSingleWordForLookup(text) || (text && text.trim().length <= 150 ? text.trim() : '');
       pr.style.display = pw ? '' : 'none';
-      if (pw) { const base = lemmatizeEnglish(pw); pr.title = 'Mở trang "' + base + '" trên Từ điển Larousse' + (base !== pw.toLowerCase() ? ' (dạng gốc của "' + pw + '")' : '') + ' · Shift + click: mở tab nền'; }
+      if (pw) { pr.title = 'Phát âm "' + pw + '" · Shift + click: Mở Từ điển Larousse'; }
     }
     const tip = $('lookup-tooltip');
     tip.style.left = (rect.left + rect.width / 2) + 'px'; tip.style.top = rect.top + 'px'; tip.style.display = 'block';

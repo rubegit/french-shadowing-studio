@@ -235,20 +235,20 @@
     } catch (e) {}
   }
 
-  // Web Speech API for French Pronunciation
+  // Universal French Pronunciation Engine
   function speakFrench(text, rate = 0.92) {
-    if (!('speechSynthesis' in window) || !text) return;
+    if (!text) return;
+    if (typeof window.playFrenchAudio === 'function') {
+      window.playFrenchAudio(text, { rate });
+      return;
+    }
     try {
-      window.speechSynthesis.cancel();
-      const utt = new SpeechSynthesisUtterance(text);
-      utt.lang = 'fr-FR';
-      utt.rate = rate;
-
-      const voices = window.speechSynthesis.getVoices();
-      const frVoice = voices.find(v => v.lang.startsWith('fr') && (v.name.includes('Thomas') || v.name.includes('Audrey') || v.name.includes('Amelie') || v.name.includes('Google') || v.name.includes('Natural')));
-      if (frVoice) utt.voice = frVoice;
-
-      window.speechSynthesis.speak(utt);
+      const cleanText = String(text).trim();
+      if (!cleanText) return;
+      const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=fr&client=tw-ob&q=${encodeURIComponent(cleanText)}`;
+      const audio = new Audio(ttsUrl);
+      audio.playbackRate = rate;
+      audio.play().catch(() => {});
     } catch (e) {}
   }
 
@@ -714,16 +714,24 @@
       return;
     }
 
-    if (state.currentMode === 'quiz' && !state.answered && state.questions.length > 0) {
+    if (state.currentMode === 'quiz' && state.questions.length > 0) {
       const keyMap = { '1': 0, '2': 1, '3': 2, '4': 3 };
-      if (e.key in keyMap) {
+      if (!state.answered && e.key in keyMap) {
         e.preventDefault();
         const btns = document.querySelectorAll('.vph-option-btn');
         const idx = keyMap[e.key];
         if (btns[idx]) btns[idx].click();
-      } else if (e.key === ' ' && document.activeElement?.tagName !== 'INPUT') {
+      } else if (e.key === ' ' && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
+        e.preventDefault();
         const currentQ = state.questions[state.currentIndex];
-        if (currentQ && (currentQ.isFrToVi || state.answered)) speakFrench(currentQ.frenchWord);
+        if (currentQ && (currentQ.isFrToVi || state.answered)) {
+          speakFrench(currentQ.frenchWord);
+          const audioBtn = document.getElementById('vph-audio-btn');
+          if (audioBtn) {
+            audioBtn.classList.add('playing');
+            setTimeout(() => audioBtn.classList.remove('playing'), 600);
+          }
+        }
       }
     } else if (state.currentMode === 'cloze') {
       if (e.key === ' ' && (e.ctrlKey || e.metaKey)) {
@@ -1053,11 +1061,18 @@
 
     const audioBtn = document.getElementById('vph-audio-btn');
     if (audioBtn) {
-      audioBtn.addEventListener('click', () => speakFrench(q.frenchWord));
+      audioBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        audioBtn.classList.add('playing');
+        setTimeout(() => audioBtn.classList.remove('playing'), 600);
+        speakFrench(q.frenchWord);
+      });
     }
 
     if (q.isFrToVi) {
-      setTimeout(() => speakFrench(q.frenchWord), 180);
+      setTimeout(() => {
+        if (!state.answered) speakFrench(q.frenchWord);
+      }, 250);
     }
 
     startTimer();
