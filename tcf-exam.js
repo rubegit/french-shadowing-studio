@@ -37,9 +37,67 @@
     return isNaN(num) ? 0 : num;
   }
 
+  // Helper: Retrieve active sentences from app state or DOM fallback
+  function getSentences() {
+    if (typeof window.getCurrentSentences === 'function') {
+      try {
+        const s = window.getCurrentSentences();
+        if (Array.isArray(s) && s.length) return s;
+      } catch (e) {}
+    }
+    if (typeof window.sentences !== 'undefined' && Array.isArray(window.sentences) && window.sentences.length) {
+      return window.sentences;
+    }
+    // Fallback: Read subtitles directly from DOM containers
+    const domLines = document.querySelectorAll('#subtitles-scroll-container .sub-line, #text-shadow-subtitles-container .sub-line, #subtitles-container .sub-line');
+    if (domLines && domLines.length) {
+      const collected = [];
+      domLines.forEach((el, idx) => {
+        const txtEl = el.querySelector('.sub-text, .subtitle-text, .karaoke-word-container') || el;
+        const clone = txtEl.cloneNode(true);
+        clone.querySelectorAll('.sub-vi, .sub-trans, .karaoke-time, .vocab-popover').forEach(rm => rm.remove());
+        const text = (clone.textContent || '').replace(/\s+/g, ' ').trim();
+        const st = parseFloat(el.getAttribute('data-start') || el.getAttribute('data-time') || String(idx * 3));
+        const et = parseFloat(el.getAttribute('data-end') || String(st + 3));
+        if (text) collected.push({ id: idx + 1, text, startTime: st, endTime: et });
+      });
+      if (collected.length) return collected;
+    }
+    // Fallback: Check local history
+    try {
+      const hist = JSON.parse(localStorage.getItem('shadowing_history') || '[]');
+      const vid = (typeof window.getCurrentVideoId === 'function' ? window.getCurrentVideoId() : window.currentVideoId) || '';
+      if (vid && Array.isArray(hist)) {
+        const match = hist.find(h => h.videoId === vid && Array.isArray(h.sentences) && h.sentences.length);
+        if (match) return match.sentences;
+      }
+    } catch (e) {}
+    return [];
+  }
+
+  // Helper: Get active video metadata
+  function getVideoInfo() {
+    let id = '';
+    let title = '';
+    if (typeof window.getCurrentVideoId === 'function') id = window.getCurrentVideoId();
+    else if (window.currentVideoId) id = window.currentVideoId;
+
+    if (typeof window.getCurrentVideoTitle === 'function') title = window.getCurrentVideoTitle();
+    else if (window.currentVideoTitle) title = window.currentVideoTitle;
+
+    if (!title) {
+      const el = document.getElementById('video-title-display') || document.querySelector('.yt-card.active .yt-title');
+      if (el) title = el.textContent.trim();
+    }
+    return {
+      id: id || 'current',
+      title: title || 'Bài luyện tiếng Pháp'
+    };
+  }
+
   // Get transcript stats
   function getTranscriptStats() {
-    const sents = (window.sentences && Array.isArray(window.sentences)) ? window.sentences : [];
+    const sents = getSentences();
     if (!sents.length) {
       return { words: 0, duration: 0, durationFormatted: '00:00', recommendedCount: 5, estLevel: 'B1-B2' };
     }
@@ -50,8 +108,9 @@
       if (text) wordCount += text.split(/\s+/).length;
     });
 
-    const startTime = sents[0].startTime || 0;
-    const endTime = sents[sents.length - 1].endTime || (startTime + sents.length * 4);
+    const startTime = (sents[0] && typeof sents[0].startTime === 'number') ? sents[0].startTime : 0;
+    const lastSent = sents[sents.length - 1];
+    const endTime = (lastSent && typeof lastSent.endTime === 'number') ? lastSent.endTime : (startTime + sents.length * 4);
     const duration = Math.max(10, Math.round(endTime - startTime));
 
     let recommendedCount = 5;
@@ -75,12 +134,13 @@
 
   // Build Timestamped Transcript for AI
   function buildTimestampedTranscript() {
-    const sents = (window.sentences && Array.isArray(window.sentences)) ? window.sentences : [];
+    const sents = getSentences();
     let out = '';
     sents.forEach((s) => {
       const st = formatTime(s.startTime || 0);
       const et = formatTime(s.endTime || (s.startTime + 3));
-      out += `[${st} - ${et}] ${String(s.text || '').trim()}\n`;
+      const t = String(s.text || '').trim();
+      if (t) out += `[${st} - ${et}] ${t}\n`;
     });
     return out.trim();
   }
@@ -93,44 +153,54 @@
 
     let levelInstruction = '';
     if (level === 'A2-B1') {
-      levelInstruction = '- Trọng tâm cấp độ: A2 đến B1 (Hội thoại đời sống thường nhật, thông báo, mục đích giao tiếp, chi tiết sự kiện cơ bản).\n';
+      levelInstruction = '- Trọng tâm độ khó: A2 đến B1 (Hội thoại đời sống thường nhật, thông báo, mục đích giao tiếp, thông tin sự kiện cơ bản).\n';
     } else if (level === 'B1-B2') {
-      levelInstruction = '- Trọng tâm cấp độ: B1 đến B2 (Thảo luận quan điểm, nguyên nhân, sự việc công việc, phóng sự, tin tức xã hội).\n';
+      levelInstruction = '- Trọng tâm độ khó: B1 đến B2 (Thảo luận quan điểm, nguyên nhân, công việc, phóng sự, tin tức xã hội).\n';
     } else if (level === 'B2-C1') {
-      levelInstruction = '- Trọng tâm cấp độ: B2 đến C1 (Chương trình phân tích chuyên sâu, hàm ý - implicite, thái độ của người nói, tông giọng và kết luận).\n';
+      levelInstruction = '- Trọng tâm độ khó: B2 đến C1 (Chương trình phân tích chuyên sâu, hàm ý - implicite, thái độ của người nói, tông giọng và kết luận).\n';
     } else {
-      levelInstruction = '- Trọng tâm cấp độ: Đa cấp độ phân hóa theo chuẩn TCF (từ các câu đầu A2/B1 hỏi ý chính, đến các câu B2/C1 hỏi nguyên nhân sâu xa, thái độ, bẫy nghe).\n';
+      levelInstruction = '- Trọng tâm độ khó: Đa cấp độ phân hóa theo chuẩn đề TCF (từ các câu đầu A2/B1 hỏi ý chính, đến các câu B2/C1 hỏi nguyên nhân sâu xa, thái độ, bẫy nghe).\n';
     }
 
     let countInstruction = '';
     if (tcfState.selectedCount === 'auto') {
-      countInstruction = `Dựa vào lượng thông tin của bài nghe (${stats.words} từ, ${stats.durationFormatted}), hãy TỰ ĐỘNG CHỌN SỐ LƯỢNG CÂU HỎI TỐI ƯU NHẤT (khoảng ${stats.recommendedCount} câu, từ 3 đến 10 câu) sao cho mỗi câu hỏi gắn liền với một mốc nội dung quan trọng, không hỏi vụn vặt và không hỏi lặp ý.`;
+      countInstruction = `Dựa vào độ dài và khối lượng thông tin của bản ghi âm lời thoại (${stats.words} từ, thời lượng ${stats.durationFormatted}), hãy TỰ ĐỘNG BIÊN SOẠN CHÍNH XÁC ${stats.recommendedCount} CÂU HỎI TRỌNG TÂM rải đều từ đầu đến cuối bài nghe, không hỏi vụn vặt và không hỏi lặp ý.`;
     } else {
-      countInstruction = `Tạo chính xác đúng ${count} câu hỏi trắc nghiệm TCF.`;
+      countInstruction = `Hãy biên soạn chính xác đúng ${count} câu hỏi trắc nghiệm QCM rải đều nội dung bài nghe.`;
     }
+
+    const transcript = buildTimestampedTranscript();
 
     return `Bạn là một Chuyên gia Khảo thí Ngôn ngữ Pháp hàng đầu thuộc France Éducation international (Bộ Giáo dục Pháp), phụ trách biên soạn đề thi trắc nghiệm phần Nghe hiểu (Compréhension Orale) cho kỳ thi TCF Canada (Test de connaissance du français pour le Canada).
 
-Nhiệm vụ của bạn: Đọc kỹ bản ghi âm lời thoại (transcript có mốc thời gian) bên dưới và tạo ra một bộ câu hỏi trắc nghiệm mô phỏng đề thi nghe TCF Canada thực tế.
+NHIỆM VỤ CỦA BẠN:
+Đọc kỹ bản ghi âm lời thoại tiếng Pháp có mốc thời gian [mm:ss - mm:ss] được cung cấp bên dưới, và biên soạn một bộ đề thi trắc nghiệm mô phỏng đề thi nghe TCF Canada thực tế.
 
-CÁC TIÊU CHUẨN THI TCF BẮT BUỘC TUÂN THỦ:
-1. ${countInstruction}
+CÁC TIÊU CHUẨN KHẢO THÍ TCF BẮT BUỘC TUÂN THỦ:
+1. SỐ LƯỢNG CÂU HỎI:
+   - ${countInstruction}
+   - BẮT BUỘC PHẢI TẠO ĐỦ CÁC CÂU HỎI. TUYỆT ĐỐI KHÔNG TRẢ VỀ MẢNG RỖNG [] HAY TỪ CHỐI TẠO ĐỀ.
+
+2. CẤP ĐỘ CEFR:
 ${levelInstruction}
-2. Dạng câu hỏi trắc nghiệm (QCM) 4 lựa chọn (A, B, C, D) hoàn toàn bằng TIẾNG PHÁP:
-   - Các trục câu hỏi khai thác:
-     + Ý chính / Bối cảnh: "Quel est le sujet principal... ?", "Pourquoi la personne appelle-t-elle... ?"
-     + Chi tiết / Nguyên nhân: "Pourquoi... ?", "Quelle condition... ?", "Qu'est-ce qui a changé... ?"
-     + Thái độ / Hàm ý: "Quelle est l'attitude du locuteur... ?", "Que sous-entend... ?"
-3. BẪY NGHE VÀ NGUYÊN TẮC PARAPHRASE CHUẨN TCF:
-   - Đáp án ĐÚNG phải được DIỄN GIẢI LẠI (paraphrase) bằng từ đồng nghĩa hoặc cấu trúc câu tương đương, TUYỆT ĐỐI KHÔNG lặp lại y nguyên từng từ trong lời thoại.
-   - 3 đáp án SAI (distracteurs) phải là các bẫy nghe logic (sử dụng từ vựng có xuất hiện trong bài nhưng bị bóp méo ý nghĩa, hoặc ý kiến trái ngược).
-4. Mốc thời gian (timestamp): Mỗi câu hỏi phải chỉ rõ mốc thời gian [mm:ss - mm:ss] trong bài thoại chứa dữ liệu trả lời để người học nghe lại.
-5. Giải thích chi tiết bằng TIẾNG VIỆT:
+3. DẠNG CÂU HỎI TRẮC NGHIỆM (QCM) 4 LỰA CHỌN (A, B, C, D) HOÀN TOÀN BẰNG TIẾNG PHÁP:
+   - Các trục câu hỏi khai thác chuẩn TCF:
+     + Ý chính / Bối cảnh: "Quel est le sujet principal... ?", "Pourquoi la personne appelle-t-elle... ?", "Où se déroule cette scène ?"
+     + Chi tiết / Nguyên nhân: "Pourquoi... ?", "Quelle condition est nécessaire... ?", "Qu'est-ce qui est reproché... ?"
+     + Thái độ / Hàm ý: "Quelle est l'attitude du locuteur vis-à-vis de... ?", "Que sous-entend la personne en disant que... ?"
+4. BẪY NGHE VÀ NGUYÊN TẮC PARAPHRASE CHUẨN TCF:
+   - Đáp án ĐÚNG phải được DIỄN GIẢI LẠI (paraphrase) bằng từ đồng nghĩa hoặc cấu trúc tương đương, TUYỆT ĐỐI KHÔNG lặp lại nguyên văn từng chữ trong lời thoại.
+   - 3 đáp án SAI (distracteurs) phải là các bẫy nghe logic (sử dụng từ vựng có xuất hiện trong bài nhưng bị bóp méo ý nghĩa, thông tin sai sự thật, hoặc ý kiến trái ngược).
+5. MỐC THỜI GIAN (TIMESTAMP):
+   - Mỗi câu hỏi phải chỉ rõ mốc thời gian [mm:ss - mm:ss] trong bài thoại chứa dữ liệu trả lời để người học nghe lại (ví dụ "time": "00:45 - 01:15", "timeSeconds": 45).
+6. GIẢI THÍCH CHI TIẾT BẰNG TIẾNG VIỆT:
    - Dịch nghĩa câu hỏi và đáp án đúng.
-   - Chỉ rõ bẫy nghe (Piège TCF) khiến người nghe dễ chọn nhầm đáp án sai.
-   - Trích dẫn câu thoại tiếng Pháp làm bằng chứng (Preuve).
+   - Chỉ rõ bẫy nghe (Piège TCF) khiến người nghe dễ chọn nhầm phương án gây nhiễu.
+   - Trích dẫn câu thoại tiếng Pháp làm bằng chứng (quote).
 
-QUAN TRỌNG: Hãy trả về kết quả dưới dạng JSON hợp lệ nằm trong MỘT khối code duy nhất (\`\`\`json ... \`\`\`) để hệ thống tự động chấm điểm. Không thêm lời dẫn giải bên ngoài khối code.
+QUY TẮC ĐỊNH DẠNG ĐẦU RA:
+- Trả về kết quả thuần JSON hợp lệ nằm trong DUY NHẤT MỘT khối code (\`\`\`json ... \`\`\`).
+- TUYỆT ĐỐI KHÔNG viết bất kỳ lời dẫn giải, chào hỏi hay văn bản nào bên ngoài khối code JSON.
 
 Cấu trúc JSON bắt buộc:
 \`\`\`json
@@ -151,14 +221,14 @@ Cấu trúc JSON bắt buộc:
     "timeSeconds": 25,
     "quote": "Je consulte des annonces pour louer un appartement plus grand.",
     "explain": "Người phụ nữ đang xem các tin đăng để thuê một căn hộ lớn hơn. Các phương án khác không được thảo luận.",
-    "piege": "Có nhắc đến từ 'voyage' nhưng chỉ là kỷ niệm quá khứ, không phải chủ đề chính."
+    "piege": "Có nhắc đến từ 'voyage' nhưng chỉ là kỷ niệm quá khứ, không phải chủ đề chính của cuộc trò chuyện."
   }
 ]
 \`\`\`
 
-Bản ghi lời thoại tiếng Pháp kèm mốc thời gian:
+Bản ghi lời thoại tiếng Pháp kèm mốc thời gian của bài nghe:
 <<<
-${buildTimestampedTranscript()}
+${transcript}
 >>>`;
   }
 
@@ -175,31 +245,81 @@ ${buildTimestampedTranscript()}
       const lastBracket = rawText.lastIndexOf(']');
       if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
         cleanJson = rawText.slice(firstBracket, lastBracket + 1).trim();
+      } else {
+        const firstBrace = rawText.indexOf('{');
+        const lastBrace = rawText.lastIndexOf('}');
+        if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+          cleanJson = rawText.slice(firstBrace, lastBrace + 1).trim();
+        }
       }
+    }
+
+    // Helper: Normalize options
+    function normalizeOptions(opts) {
+      const res = { A: '', B: '', C: '', D: '' };
+      if (!opts) return res;
+      if (Array.isArray(opts)) {
+        opts.forEach((item, idx) => {
+          const k = ['A', 'B', 'C', 'D'][idx] || 'A';
+          if (typeof item === 'string') {
+            const m = item.match(/^([A-D])[\.\:\)]\s*(.*)$/i);
+            if (m) res[m[1].toUpperCase()] = m[2].trim();
+            else res[k] = item.trim();
+          } else if (item && typeof item === 'object') {
+            const key = String(item.key || item.option || item.id || k).toUpperCase();
+            res[key] = String(item.text || item.value || item.content || '').trim();
+          }
+        });
+      } else if (typeof opts === 'object') {
+        ['A', 'B', 'C', 'D'].forEach(k => {
+          res[k] = String(opts[k] || opts[k.toLowerCase()] || '').trim();
+        });
+      }
+      return res;
+    }
+
+    // Helper: Normalize answer
+    function normalizeAnswer(ans) {
+      if (!ans) return 'A';
+      const str = String(ans).replace(/^(?:option|choix|réponse|đáp án|answer)\s*[:\.]?\s*/i, '').trim();
+      const m = str.match(/^[A-D]/i);
+      return m ? m[0].toUpperCase() : 'A';
     }
 
     if (cleanJson) {
       try {
         const parsed = JSON.parse(cleanJson);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed.map((item, idx) => ({
-            id: item.id || (idx + 1),
-            level: String(item.level || 'B1').toUpperCase(),
-            type: item.type || 'Compréhension',
-            question: String(item.question || '').trim(),
-            options: {
-              A: String(item.options ? item.options.A || '' : '').trim(),
-              B: String(item.options ? item.options.B || '' : '').trim(),
-              C: String(item.options ? item.options.C || '' : '').trim(),
-              D: String(item.options ? item.options.D || '' : '').trim()
-            },
-            answer: String(item.answer || 'A').toUpperCase().trim(),
-            time: String(item.time || '').trim(),
-            timeSeconds: typeof item.timeSeconds === 'number' ? item.timeSeconds : parseTimeToSeconds(item.time),
-            quote: String(item.quote || '').trim(),
-            explain: String(item.explain || '').trim(),
-            piege: String(item.piege || '').trim()
-          })).filter(q => q.question && q.options.A && q.options.B);
+        let itemsArr = null;
+        if (Array.isArray(parsed)) {
+          itemsArr = parsed;
+        } else if (parsed && typeof parsed === 'object') {
+          if (Array.isArray(parsed.questions)) itemsArr = parsed.questions;
+          else if (Array.isArray(parsed.exam)) itemsArr = parsed.exam;
+          else if (Array.isArray(parsed.data)) itemsArr = parsed.data;
+          else if (Array.isArray(parsed.items)) itemsArr = parsed.items;
+          else {
+            const arrVal = Object.values(parsed).find(v => Array.isArray(v) && v.length && typeof v[0] === 'object');
+            if (arrVal) itemsArr = arrVal;
+          }
+        }
+
+        if (itemsArr && itemsArr.length > 0) {
+          return itemsArr.map((item, idx) => {
+            const opts = normalizeOptions(item.options);
+            return {
+              id: item.id || (idx + 1),
+              level: String(item.level || 'B1').toUpperCase().trim(),
+              type: item.type || 'Compréhension',
+              question: String(item.question || '').trim(),
+              options: opts,
+              answer: normalizeAnswer(item.answer || item.correctAnswer || item.correct_answer),
+              time: String(item.time || '').trim(),
+              timeSeconds: typeof item.timeSeconds === 'number' ? item.timeSeconds : parseTimeToSeconds(item.time),
+              quote: String(item.quote || '').trim(),
+              explain: String(item.explain || item.explanation || '').trim(),
+              piege: String(item.piege || item.trap || '').trim()
+            };
+          }).filter(q => q.question && q.options.A && q.options.B);
         }
       } catch (e) {
         console.warn('JSON parse failed, trying regex fallback:', e);
@@ -437,19 +557,29 @@ ${buildTimestampedTranscript()}
     const modal = document.getElementById('tcf-modal');
     if (!modal) return;
 
+    const sents = getSentences();
     const stats = getTranscriptStats();
+    const info = getVideoInfo();
     tcfState.selectedCount = 'auto';
     tcfState.selectedLevel = 'all';
 
     // Render stats
     const statsBox = document.getElementById('tcf-stats-box');
     if (statsBox) {
-      statsBox.innerHTML = `
-        <span class="tcf-stat-item">⏱ Thời lượng: <b>${stats.durationFormatted}</b></span>
-        <span class="tcf-stat-item">📝 Tổng số từ: <b>${stats.words.toLocaleString()} từ</b></span>
-        <span class="tcf-stat-item">🎯 Độ khó ước tính: <b>${stats.estLevel}</b></span>
-        <span class="tcf-stat-item" style="color:#60a5fa">⚡ AI Đề xuất: <b>${stats.recommendedCount} câu hỏi</b></span>
-      `;
+      if (!sents.length) {
+        statsBox.innerHTML = `
+          <div style="width:100%;color:#fca5a5;font-size:13px;display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(239,68,68,0.15);border-radius:8px;border:1px solid rgba(239,68,68,0.3)">
+            <span>⚠️ Chưa phát hiện nội dung bài nghe. Hãy chọn một video hoặc bài đọc trong phòng luyện trước khi tạo đề TCF.</span>
+          </div>
+        `;
+      } else {
+        statsBox.innerHTML = `
+          <span class="tcf-stat-item">⏱ Thời lượng: <b>${stats.durationFormatted}</b></span>
+          <span class="tcf-stat-item">📝 Tổng số từ: <b>${stats.words.toLocaleString()} từ</b> (${sents.length} câu)</span>
+          <span class="tcf-stat-item">🎯 Độ khó ước tính: <b>${stats.estLevel}</b></span>
+          <span class="tcf-stat-item" style="color:#60a5fa">⚡ AI Đề xuất: <b>${stats.recommendedCount} câu hỏi</b></span>
+        `;
+      }
     }
 
     // Update count chip label
@@ -459,7 +589,7 @@ ${buildTimestampedTranscript()}
     }
 
     // Check saved test
-    const videoId = window.currentVideoId || '';
+    const videoId = info.id;
     const saved = getSavedTest(videoId);
     const savedBox = document.getElementById('tcf-saved-box');
     const savedInfo = document.getElementById('tcf-saved-info');
@@ -505,6 +635,15 @@ ${buildTimestampedTranscript()}
 
   // Copy Prompt
   function copyPrompt(btn) {
+    const sents = getSentences();
+    if (!sents || !sents.length) {
+      if (window.showVocabToast) {
+        window.showVocabToast('⚠️ Chưa có dữ liệu bài nghe. Vui lòng mở video hoặc bài đọc!', false);
+      } else {
+        alert('⚠️ Chưa có dữ liệu bài nghe. Vui lòng mở một video hoặc bài đọc!');
+      }
+      return;
+    }
     const text = buildTcfPrompt();
     if (window.copyTextToClipboard) {
       window.copyTextToClipboard(text).then(() => {
@@ -542,8 +681,9 @@ ${buildTimestampedTranscript()}
     }
 
     // Save test for current video
-    const videoId = window.currentVideoId || 'custom';
-    const videoTitle = window.currentVideoTitle || document.title || 'Video tiếng Pháp';
+    const info = getVideoInfo();
+    const videoId = info.id;
+    const videoTitle = info.title;
     saveTestToStorage(videoId, {
       videoId,
       videoTitle,
@@ -556,11 +696,12 @@ ${buildTimestampedTranscript()}
 
   // Load Saved Exam
   function loadSavedExam() {
-    const videoId = window.currentVideoId || '';
+    const info = getVideoInfo();
+    const videoId = info.id;
     const saved = getSavedTest(videoId);
     if (saved && saved.questions && saved.questions.length) {
       closeTcfModal();
-      startExam(saved.questions, saved.videoTitle || 'Bài thi TCF');
+      startExam(saved.questions, saved.videoTitle || info.title || 'Bài thi TCF');
     }
   }
 
@@ -755,10 +896,11 @@ ${buildTimestampedTranscript()}
     const percent = Math.round((correctCount / total) * 100);
 
     // Save Score
-    const videoId = window.currentVideoId || '';
+    const info = getVideoInfo();
+    const videoId = info.id;
     saveTestToStorage(videoId, {
       videoId,
-      videoTitle: window.currentVideoTitle || '',
+      videoTitle: info.title || '',
       questions: tcfState.currentQuestions,
       lastScore: {
         correct: correctCount,
@@ -884,7 +1026,7 @@ ${buildTimestampedTranscript()}
   }
 
   function retakeExam() {
-    startExam(tcfState.currentQuestions, window.currentVideoTitle || 'Bài thi TCF');
+    startExam(tcfState.currentQuestions, getVideoInfo().title);
   }
 
   // Escape HTML helper

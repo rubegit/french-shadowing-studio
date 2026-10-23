@@ -5052,6 +5052,46 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
     let isRawSubMode = false;
     let currentVideoTitle = '';
 
+    // Expose reactive accessors on window for external modules (TCF Exam, Vocab Practice, etc.)
+    try {
+      Object.defineProperty(window, 'sentences', {
+        get: () => sentences,
+        set: (val) => { sentences = val; },
+        configurable: true
+      });
+      Object.defineProperty(window, 'currentVideoId', {
+        get: () => currentVideoId,
+        set: (val) => { currentVideoId = val; },
+        configurable: true
+      });
+      Object.defineProperty(window, 'currentVideoTitle', {
+        get: () => currentVideoTitle,
+        set: (val) => { currentVideoTitle = val; },
+        configurable: true
+      });
+      Object.defineProperty(window, 'ytPlayer', {
+        get: () => ytPlayer,
+        set: (val) => { ytPlayer = val; },
+        configurable: true
+      });
+      Object.defineProperty(window, 'isPlayerReady', {
+        get: () => isPlayerReady,
+        set: (val) => { isPlayerReady = val; },
+        configurable: true
+      });
+      Object.defineProperty(window, 'isTextMode', {
+        get: () => isTextMode,
+        set: (val) => { isTextMode = val; },
+        configurable: true
+      });
+    } catch (e) {
+      console.warn('Cannot define window property accessors:', e);
+    }
+    window.getCurrentSentences = () => sentences;
+    window.getCurrentVideoId = () => currentVideoId;
+    window.getCurrentVideoTitle = () => currentVideoTitle;
+    window.getYtPlayer = () => ytPlayer;
+
     // Điện thoại (cạnh ngắn của màn hình <= 600px): cỡ chữ phụ đề mặc định nhỏ hơn 3px (16 thay vì 19). Muốn đổi: sửa 2 con số này.
     const IS_PHONE = Math.min(window.screen.width || 0, window.screen.height || 0) <= 600 && Math.min(window.screen.width || 0, window.screen.height || 0) > 0;
     const DEFAULT_SUB_FONT_SIZE = IS_PHONE ? 16 : 19;
@@ -9495,6 +9535,9 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
         }
       }
     }
+    window.seekToTime = (seconds, targetIdx, autoPlay = true, specificElement = null, forceScroll = false) => {
+      return seekToTime(seconds, targetIdx, autoPlay, specificElement, forceScroll);
+    };
 
     function replaySentence() {
       const s = sentences[currentSentenceIndex];
