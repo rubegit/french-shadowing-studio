@@ -10018,9 +10018,7 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
         }
       }
     }
-    window.seekToTime = (seconds, targetIdx, autoPlay = true, specificElement = null, forceScroll = false) => {
-      return seekToTime(seconds, targetIdx, autoPlay, specificElement, forceScroll);
-    };
+    window.seekToTime = seekToTime;
 
     function replaySentence() {
       const s = sentences[currentSentenceIndex];
@@ -10287,7 +10285,16 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
         try { stream = await getMicStream(); }
         catch (e) { showVocabToast('Không truy cập được micro. Hãy cho phép quyền micro cho trang này.', false); return; }
         DR.stream = stream; DR.chunks = [];
-        const mr = createMicRecorder(stream); DR.mr = mr;
+        let mr;
+        try {
+          mr = createMicRecorder(stream);
+          DR.mr = mr;
+        } catch (e) {
+          try { stream.getTracks().forEach((t) => t.stop()); } catch (e2) {}
+          DR.rec = false;
+          showVocabToast('Không thể khởi tạo bộ ghi âm trên thiết bị này.', false);
+          return;
+        }
         mr.ondataavailable = (e) => { if (e.data && e.data.size) DR.chunks.push(e.data); };
         mr.onstop = () => {
           meterStop(); try { stream.getTracks().forEach((t) => t.stop()); } catch (e) {}
@@ -10298,7 +10305,14 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
           }
           DR.rec = false; drRender();
         };
-        mr.start(250);
+        try {
+          mr.start(250);
+        } catch (e) {
+          try { stream.getTracks().forEach((t) => t.stop()); } catch (e2) {}
+          DR.rec = false;
+          showVocabToast('Lỗi khi bắt đầu ghi âm.', false);
+          return;
+        }
         DR.rec = true; DR.t0 = Date.now();
         clearInterval(DR.timer);
         DR.timer = setInterval(() => {
@@ -12661,7 +12675,13 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
           document.getElementById('record-timer').textContent = `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
         }, 1000);
       } catch (err) {
-        alert('Không thể truy cập Microphone. Vui lòng cấp quyền micro.');
+        isRecording = false;
+        if (recordTimerInterval) { clearInterval(recordTimerInterval); recordTimerInterval = null; }
+        const btn = document.getElementById('btn-record');
+        if (btn) btn.className = 'btn-interactive flex items-center gap-2 px-3.5 py-2 rounded-lg bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-500 text-white font-medium text-xs shadow-md cursor-pointer';
+        const txt = document.getElementById('btn-record-text');
+        if (txt) txt.textContent = 'Nhấn để thu âm';
+        showVocabToast('Không thể truy cập Microphone. Vui lòng cấp quyền micro cho trang web.', false);
       }
     }
 
@@ -19063,7 +19083,16 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
         catch (e) { toast('Không truy cập được micro. Hãy cho phép quyền micro cho trang này.'); return; }
         if (view !== 'shadowing') { stream.getTracks().forEach((t) => t.stop()); return; }
         SH.stream = stream; SH.chunks = []; SH.recIdx = SH.idx; SH.mrDone = false; SH.finDone = false;
-        const mr = createMicRecorder(stream); SH.mr = mr;
+        let mr;
+        try {
+            mr = createMicRecorder(stream);
+            SH.mr = mr;
+        } catch (e) {
+            try { stream.getTracks().forEach((t) => t.stop()); } catch (e2) {}
+            SH.recording = false;
+            toast('Không thể khởi tạo bộ ghi âm trên thiết bị này.');
+            return;
+        }
         mr.ondataavailable = (e) => { if (e.data && e.data.size) SH.chunks.push(e.data); };
         mr.onstop = () => {
             shMeterStop(); try { stream.getTracks().forEach((t) => t.stop()); } catch (e) {}
@@ -19072,7 +19101,14 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
             SH.voice[SH.recIdx] = { url: URL.createObjectURL(blob) };
             SH.mrDone = true; shFinalize();
         };
-        mr.start(250);
+        try {
+            mr.start(250);
+        } catch (e) {
+            try { stream.getTracks().forEach((t) => t.stop()); } catch (e2) {}
+            SH.recording = false;
+            toast('Lỗi khi bắt đầu ghi âm.');
+            return;
+        }
         SH.recording = true; SH.recT0 = Date.now();
         clearInterval(SH.recTimer);
         const s = sentences[SH.idx]; const maxMs = Math.max(8000, ((s && s.endTime - s.startTime) || 4) * 2200 + 4000);
