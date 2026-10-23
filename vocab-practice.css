@@ -398,6 +398,26 @@
   font-weight: 600;
 }
 
+.vph-question-ctx mark.vph-blank-ctx {
+  background: rgba(99, 102, 241, 0.22);
+  color: #a5b4fc;
+  border-bottom: 2px dashed #818cf8;
+  padding: 1px 10px;
+  border-radius: 4px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  user-select: none;
+}
+
+.vph-question-ctx mark.vph-revealed-ctx {
+  background: rgba(16, 185, 129, 0.28);
+  color: #6ee7b7;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-weight: 700;
+  animation: vphPulseGlow 0.4s ease;
+}
+
 .vph-options-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);

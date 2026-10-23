@@ -352,6 +352,55 @@
     }
   }
 
+  // Helper: Che từ cần học trong câu ví dụ một cách an toàn, tuyệt đối không làm lộ câu gốc
+  function maskWordInSentence(sentence, targetWord, hs = 0, he = 0) {
+    const s = String(sentence || '').trim();
+    if (!s) return { masked: `<span class="vph-cloze-blank-pill" id="vph-blank-pill">_______</span>`, targetWordInCtx: targetWord };
+
+    if (he > hs && he <= s.length) {
+      const wordInCtx = s.slice(hs, he);
+      return {
+        masked: escHtml(s.slice(0, hs)) + `<span class="vph-cloze-blank-pill" id="vph-blank-pill">_______</span>` + escHtml(s.slice(he)),
+        targetWordInCtx: wordInCtx
+      };
+    }
+
+    // Khớp nguyên từ không phân biệt hoa thường
+    const escWord = targetWord.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    let re = new RegExp(`(^|[^\\p{L}])(${escWord})([^\\p{L}]|$)`, 'iu');
+    let m = re.exec(s);
+    if (m) {
+      const start = m.index + m[1].length;
+      const end = start + m[2].length;
+      return {
+        masked: escHtml(s.slice(0, start)) + `<span class="vph-cloze-blank-pill" id="vph-blank-pill">_______</span>` + escHtml(s.slice(end)),
+        targetWordInCtx: m[2]
+      };
+    }
+
+    // Khớp theo gốc từ (bỏ đuôi chia động từ / số nhiều: er, ir, re, ez, ent, ons, ant, é, és, ée, ées, e, s)
+    const base = targetWord.trim().split(/\s+/)[0].replace(/(er|ir|re|ez|ent|ons|ant|é|és|ée|ées|e|s)$/i, '');
+    if (base.length >= 3) {
+      const escBase = base.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      re = new RegExp(`(^|[^\\p{L}])(${escBase}[\\p{L}']*)([^\\p{L}]|$)`, 'iu');
+      m = re.exec(s);
+      if (m) {
+        const start = m.index + m[1].length;
+        const end = start + m[2].length;
+        return {
+          masked: escHtml(s.slice(0, start)) + `<span class="vph-cloze-blank-pill" id="vph-blank-pill">_______</span>` + escHtml(s.slice(end)),
+          targetWordInCtx: m[2]
+        };
+      }
+    }
+
+    // Tuyệt đối không in lộ câu gốc nếu không xác định được vị trí
+    return {
+      masked: `<span class="vph-cloze-blank-pill" id="vph-blank-pill">_______</span>`,
+      targetWordInCtx: targetWord
+    };
+  }
+
   // ==================== QUIZ SESSION GENERATOR (M1 + M4) ====================
   function buildQuizSession(scopedItems) {
     const sourceList = scopedItems.length > 0 ? scopedItems : CURATED_FALLBACK_VOCAB;
@@ -404,6 +453,7 @@
       }
 
       const options = [correctAnswer, ...distractors].sort(() => Math.random() - 0.5);
+      const ctxResult = maskWordInSentence(item.en || '', item.text, item.hs || 0, item.he || 0);
 
       return {
         id: item.id || `q_${qIndex}`,
@@ -415,6 +465,8 @@
         ctx: item.en || '',
         hs: item.hs || 0,
         he: item.he || 0,
+        maskedCtx: ctxResult.masked,
+        targetWordInCtx: ctxResult.targetWordInCtx,
         frenchWord: item.text,
         vietnameseMeaning: item.wordVi || item.vi || ''
       };
@@ -451,20 +503,8 @@
       const sentence = en;
       const meaning = item.wordVi || item.vi || 'Từ cần điền';
 
-      let maskedSentence = '';
-      if (he > hs && he <= sentence.length) {
-        maskedSentence = escHtml(sentence.slice(0, hs)) + 
-          `<span class="vph-cloze-blank-pill" id="vph-blank-pill">_______</span>` + 
-          escHtml(sentence.slice(he));
-      } else {
-        const escaped = frenchWord.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const re = new RegExp(`(${escaped})`, 'i');
-        if (re.test(sentence)) {
-          maskedSentence = sentence.replace(re, `<span class="vph-cloze-blank-pill" id="vph-blank-pill">_______</span>`);
-        } else {
-          maskedSentence = `<span class="vph-cloze-blank-pill" id="vph-blank-pill">_______</span> (${sentence})`;
-        }
-      }
+      const maskedRes = maskWordInSentence(sentence, frenchWord, hs, he);
+      const maskedSentence = maskedRes.masked;
 
       return {
         id: item.id || `cloze_${qIndex}`,
@@ -472,6 +512,7 @@
         frenchWord,
         sentence,
         maskedSentence,
+        targetWordInCtx: maskedRes.targetWordInCtx,
         meaning,
         videoId,
         t
@@ -682,7 +723,7 @@
         if (btns[idx]) btns[idx].click();
       } else if (e.key === ' ' && document.activeElement?.tagName !== 'INPUT') {
         const currentQ = state.questions[state.currentIndex];
-        if (currentQ) speakFrench(currentQ.frenchWord);
+        if (currentQ && (currentQ.isFrToVi || state.answered)) speakFrench(currentQ.frenchWord);
       }
     } else if (state.currentMode === 'cloze') {
       if (e.key === ' ' && (e.ctrlKey || e.metaKey)) {
@@ -937,10 +978,25 @@
 
     let ctxHtml = '';
     if (q.ctx) {
-      if (q.he > q.hs) {
-        ctxHtml = escHtml(q.ctx.slice(0, q.hs)) + '<mark>' + escHtml(q.ctx.slice(q.hs, q.he)) + '</mark>' + escHtml(q.ctx.slice(q.he));
+      if (q.isFrToVi) {
+        // Hướng Pháp -> Việt: Prompt đã là tiếng Pháp, câu ví dụ tô sáng từ tiếng Pháp để hiểu ngữ cảnh
+        const targetWord = q.targetWordInCtx || q.frenchWord;
+        if (q.he > q.hs && q.he <= q.ctx.length) {
+          ctxHtml = escHtml(q.ctx.slice(0, q.hs)) + `<mark class="vph-revealed-ctx">${escHtml(q.ctx.slice(q.hs, q.he))}</mark>` + escHtml(q.ctx.slice(q.he));
+        } else if (q.maskedCtx) {
+          ctxHtml = q.maskedCtx.replace('id="vph-blank-pill">_______</span>', `class="vph-revealed-ctx">${escHtml(targetWord)}</span>`);
+        } else {
+          ctxHtml = escHtml(q.ctx);
+        }
       } else {
-        ctxHtml = escHtml(q.ctx);
+        // Hướng Việt -> Pháp: Prompt là tiếng Việt, câu ví dụ PHẢI CHE TỪ TIẾNG PHÁP bằng [ _______ ]
+        if (q.maskedCtx) {
+          ctxHtml = q.maskedCtx.replace('id="vph-blank-pill"', 'id="vph-quiz-ctx-mark" class="vph-blank-ctx"');
+        } else if (q.he > q.hs && q.he <= q.ctx.length) {
+          ctxHtml = escHtml(q.ctx.slice(0, q.hs)) + `<mark class="vph-blank-ctx" id="vph-quiz-ctx-mark">_______</mark>` + escHtml(q.ctx.slice(q.he));
+        } else {
+          ctxHtml = `<mark class="vph-blank-ctx" id="vph-quiz-ctx-mark">_______</mark>`;
+        }
       }
     }
 
@@ -968,7 +1024,7 @@
         <div class="vph-question-card">
           <div class="vph-question-target">${formatGrammarBadgeHtml(escHtml(q.prompt), { mask: true })}</div>
           
-          <button type="button" class="vph-question-audio-btn" id="vph-audio-btn" title="Nghe phát âm tiếng Pháp (Phím Space)">
+          <button type="button" class="vph-question-audio-btn" id="vph-audio-btn" style="${q.isFrToVi ? '' : 'display:none'}" title="Nghe phát âm tiếng Pháp (Phím Space)">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
             <span>Phát âm (Space)</span>
           </button>
@@ -1066,6 +1122,17 @@
       if (targetCard) {
         targetCard.innerHTML = formatGrammarBadgeHtml(escHtml(q.vietnameseMeaning), { mask: false });
       }
+    }
+
+    // Unmask the target word in the example sentence if it was masked (direction Việt -> Pháp)
+    const ctxMark = document.getElementById('vph-quiz-ctx-mark');
+    if (ctxMark) {
+      ctxMark.className = 'vph-revealed-ctx';
+      ctxMark.textContent = q.targetWordInCtx || q.frenchWord;
+    }
+    const audioBtn = document.getElementById('vph-audio-btn');
+    if (audioBtn) {
+      audioBtn.style.display = 'inline-flex';
     }
 
     if (isCorrect) {
