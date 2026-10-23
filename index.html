@@ -1552,6 +1552,19 @@
     .kv-save-btn.saved { background: rgba(16,185,129,.12); color: #6ee7b7; border-color: rgba(16,185,129,.35); cursor: default; }
     #keyvocab-modal .ai-modal { max-width: 720px; }
     #keyvocab-modal .vocab-card { margin-bottom: 10px; }
+    /* Cài đặt cấp độ trích xuất CEFR cho Key Vocab */
+    .kv-level-box { margin: 10px 0 12px; background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(99, 102, 241, 0.28); border-radius: 12px; padding: 10px 12px; }
+    .kv-level-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+    .kv-level-title { font-size: 12px; font-weight: 700; color: #e2e8f0; }
+    .kv-level-hint { font-size: 11px; color: #94a3b8; }
+    .kv-level-chips { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .kv-level-chip { display: inline-flex; align-items: center; gap: 5px; padding: 5px 11px; border-radius: 999px; font-size: 11.5px; font-weight: 600; border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(255, 255, 255, 0.04); color: #94a3b8; transition: all 0.18s ease; user-select: none; }
+    .kv-level-chip.default-locked { background: rgba(99, 102, 241, 0.16); border-color: rgba(99, 102, 241, 0.45); color: #c7d2fe; cursor: default; }
+    .kv-level-chip.clickable { cursor: pointer; }
+    .kv-level-chip.clickable:hover { background: rgba(255, 255, 255, 0.08); color: #f1f5f9; border-color: rgba(255, 255, 255, 0.25); transform: translateY(-1px); }
+    .kv-level-chip.clickable.active { background: linear-gradient(135deg, rgba(99, 102, 241, 0.28), rgba(168, 85, 247, 0.28)); border-color: #818cf8; color: #ffffff; box-shadow: 0 0 12px rgba(99, 102, 241, 0.35); }
+    .kv-level-chip .kv-chip-check { font-weight: 800; font-size: 11px; }
+    .kv-level-chip.active .kv-chip-check { color: #34d399; }
     .vocab-vi-empty { margin-top: 8px; padding-left: 14px; color: #64748b; font-style: italic; font-size: 12px; }
     .vocab-wordvi-row { margin-top: 10px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .vocab-wordvi { color: #6ee7b7; font-weight: 700; font-size: 17px; line-height: 1.5; margin: 0; }
@@ -3588,9 +3601,39 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
       </div>
       <div id="kv-input-view">
         <p class="ai-step-text">Bấm "Copy prompt", dán cho AI (ChatGPT/Claude...). AI sẽ liệt kê từ vựng, phrasal verb, idiom, slang khó trong bài này, mỗi mục kèm nghĩa và 3 ví dụ. Sau đó dán nguyên câu trả lời của AI vào ô bên dưới rồi bấm "Áp dụng".</p>
-        <button type="button" class="ai-btn ai-btn-copy" onclick="copyKeyVocabPrompt(this)">
-          <i data-lucide="copy"></i><span>Copy prompt</span>
-        </button>
+        
+        <!-- Cài đặt Trình độ trích xuất CEFR -->
+        <div class="kv-level-box" id="kv-level-box">
+          <div class="kv-level-header">
+            <span class="kv-level-title">🎯 Trình độ muốn trích xuất:</span>
+            <span class="kv-level-hint">(Mặc định B1-C1 · Bấm chọn thêm A1/A2/A2+ nếu muốn học từ căn bản)</span>
+          </div>
+          <div class="kv-level-chips">
+            <span class="kv-level-chip default-locked" title="Trình độ mặc định luôn được lọc">
+              <span class="kv-chip-check">✓</span>
+              <span>B1, B2, C1 (Trung cấp)</span>
+            </span>
+            <button type="button" class="kv-level-chip clickable" data-level="A1" onclick="kvToggleLevel('A1')" title="Trích xuất thêm từ vựng cơ bản / vỡ lòng">
+              <span class="kv-chip-check">+</span>
+              <span>A1 (Cơ bản)</span>
+            </button>
+            <button type="button" class="kv-level-chip clickable" data-level="A2" onclick="kvToggleLevel('A2')" title="Trích xuất thêm từ vựng sơ cấp thường nhật">
+              <span class="kv-chip-check">+</span>
+              <span>A2 (Sơ cấp)</span>
+            </button>
+            <button type="button" class="kv-level-chip clickable" data-level="A2+" onclick="kvToggleLevel('A2+')" title="Trích xuất thêm từ vựng tiền trung cấp &amp; liên từ">
+              <span class="kv-chip-check">+</span>
+              <span>A2+ (Tiền trung cấp)</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="ai-copy-row">
+          <button type="button" class="ai-btn ai-btn-copy" onclick="copyKeyVocabPrompt(this)">
+            <i data-lucide="copy"></i><span>Copy prompt</span>
+          </button>
+          <span class="ai-open-links"><a class="ai-btn ai-open-link" href="https://gemini.google.com/app" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="gmg-kv" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4285f4"/><stop offset=".55" stop-color="#9b72cb"/><stop offset="1" stop-color="#d96570"/></linearGradient></defs><path fill="url(#gmg-kv)" d="M12 0C12 6.63 6.63 12 0 12c6.63 0 12 5.37 12 12 0-6.63 5.37-12 12-12-6.63 0-12-5.37-12-12z"/></svg><span>Mở Gemini</span></a><a class="ai-btn ai-open-link" href="https://claude.ai/" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><g fill="#d97757"><rect x="10.8" y="1" width="2.4" height="22" rx="1.2"/><rect x="10.8" y="1" width="2.4" height="22" rx="1.2" transform="rotate(45 12 12)"/><rect x="10.8" y="1" width="2.4" height="22" rx="1.2" transform="rotate(90 12 12)"/><rect x="10.8" y="1" width="2.4" height="22" rx="1.2" transform="rotate(135 12 12)"/></g></svg><span>Mở Claude</span></a></span>
+        </div>
         <textarea id="kv-textarea" class="ai-textarea" spellcheck="false" placeholder="Dán câu trả lời của AI vào đây..."></textarea>
         <div class="ai-actions">
           <button type="button" class="ai-btn ai-btn-primary" onclick="applyKeyVocabAnswer()"><i data-lucide="check"></i><span>Áp dụng</span></button>
@@ -13381,9 +13424,67 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
       return /\s/.test(term || '') ? 'cụm từ' : 'từ';
     }
 
+    const KV_LEVELS_KEY = 'shadowing_keyvocab_levels_v1';
+    function kvGetLevels() {
+      try {
+        const d = JSON.parse(localStorage.getItem(KV_LEVELS_KEY) || '[]');
+        return Array.isArray(d) ? d : [];
+      } catch (e) { return []; }
+    }
+    function kvSetLevels(levels) {
+      try { localStorage.setItem(KV_LEVELS_KEY, JSON.stringify(levels)); } catch (e) {}
+    }
+    function kvToggleLevel(lvl) {
+      const cur = kvGetLevels();
+      const idx = cur.indexOf(lvl);
+      if (idx >= 0) cur.splice(idx, 1);
+      else cur.push(lvl);
+      kvSetLevels(cur);
+      kvRenderLevels();
+    }
+    function kvRenderLevels() {
+      const cur = kvGetLevels();
+      document.querySelectorAll('#kv-level-box .kv-level-chip.clickable').forEach((btn) => {
+        const lvl = btn.getAttribute('data-level');
+        const active = cur.includes(lvl);
+        btn.classList.toggle('active', active);
+        const icon = btn.querySelector('.kv-chip-check');
+        if (icon) icon.textContent = active ? '✓' : '+';
+      });
+    }
+
     function buildKeyVocabPrompt() {
-      return 'Tôi đang học tiếng Pháp. Hãy đọc văn bản bên dưới rồi liệt kê TẤT CẢ những từ vựng / cụm từ / thành ngữ (idiom) / tiếng lóng (slang) KHÓ hoặc ít gặp mà người học tiếng Pháp trình độ trung cấp có thể chưa biết (bỏ qua từ quá dễ và tên riêng). '
+      const extraLevels = kvGetLevels();
+      let levelIntro = '';
+      let levelGuide = '';
+
+      if (!extraLevels || extraLevels.length === 0) {
+        // Mặc định hoàn toàn như cũ: Trung cấp (B1, B2, C1)
+        levelIntro = 'Hãy đọc văn bản bên dưới rồi liệt kê TẤT CẢ những từ vựng / cụm từ / thành ngữ (idiom) / tiếng lóng (slang) KHÓ hoặc ít gặp mà người học tiếng Pháp trình độ trung cấp có thể chưa biết (bỏ qua từ quá dễ và tên riêng). ';
+      } else {
+        const hasA1 = extraLevels.includes('A1');
+        const hasA2 = extraLevels.includes('A2');
+        const hasA2Plus = extraLevels.includes('A2+');
+
+        const allSelected = [];
+        if (hasA1) allSelected.push('A1 (Cơ bản / Vỡ lòng)');
+        if (hasA2) allSelected.push('A2 (Sơ cấp)');
+        if (hasA2Plus) allSelected.push('A2+ (Tiền trung cấp)');
+        allSelected.push('B1, B2, C1 (Trung & Cao cấp)');
+
+        levelIntro = `Hãy đọc văn bản bên dưới rồi trích xuất từ vựng, cụm từ, thành ngữ (idiom), tiếng lóng (slang) ở các trình độ [${allSelected.join(', ')}] xuất hiện trong bài. `;
+
+        levelGuide = '\nLƯU Ý QUAN TRỌNG VỀ TRÌNH ĐỘ NGƯỜI HỌC:\n'
+          + 'Người học đã chọn mở rộng thêm các trình độ: ' + extraLevels.join(', ') + '.\n'
+          + (hasA1 ? '- Với [A1]: Hãy trích xuất CẢ các từ vựng căn bản, động từ quen thuộc, danh từ đồ vật thường ngày xuất hiện trong bài mà người mới bắt đầu học cần nhớ (chỉ bỏ qua đại từ nhân xưng quá vỡ lòng je/tu/il và tên riêng).\n' : '')
+          + (hasA2 ? '- Với [A2]: Hãy trích xuất CẢ các từ vựng sơ cấp, cụm từ miêu tả sinh hoạt, thói quen, cảm xúc thường nhật ở trình độ A2.\n' : '')
+          + (hasA2Plus ? '- Với [A2+]: Hãy trích xuất CẢ các từ nối câu, liên từ và thành ngữ tiền trung cấp thông dụng ở trình độ A2+.\n' : '')
+          + '- Vẫn đồng thời giữ các từ vựng, cụm từ, idiom, slang hay ở trình độ B1/B2/C1 như mặc định.\n\n';
+      }
+
+      return 'Tôi đang học tiếng Pháp. ' + levelIntro
         + 'Với từng mục, cho tôi ghi chú ngữ pháp viết tắt trong ngoặc vuông [] kèm nghĩa tiếng Việt (đúng với nghĩa được dùng trong văn bản) và đúng 3 câu ví dụ thực tế, phổ biến mà người bản xứ hay dùng, đơn giản, không học thuật, không dùng từ quá cao siêu; mỗi ví dụ kèm bản dịch tiếng Việt.\n\n'
+        + (levelGuide || '')
         + 'Quy ước viết tắt ngữ pháp chuẩn (Larousse/Bescherelle):\n'
         + '- Động từ nguyên mẫu: [v. inf.] | Động từ chia: [v. <từ_gốc> · <thì> <ngôi>] (thì: prés., imp., fut., p.c., cond., subj., p.p.; ngôi: 1s, 2s, 3s, 1p, 2p, 3p. VD: [v. savoir · subj. 2s])\n'
         + '- Danh từ: [n.m.] hoặc [n.f.] | Tính từ: [adj.] | Trạng từ: [adv.] | Thành ngữ/cụm: [loc.]\n\n'
@@ -13435,6 +13536,7 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
       document.getElementById('kv-textarea').value = '';
       aiSetStatus(document.getElementById('kv-status'), '', '');
       document.getElementById('keyvocab-modal').classList.add('open');
+      kvRenderLevels();
       kvShowView(kvGet().length ? 'list' : 'input');
     }
     function closeKeyVocabModal() {
