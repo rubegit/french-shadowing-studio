@@ -1258,6 +1258,7 @@
     updateStatsBar();
     const q = state.questions[state.currentIndex];
     const qNum = `Câu ${state.currentIndex + 1} / ${state.questions.length}`;
+    const srsDueTag = srsIsDue(q.item) ? `<span style="font-size:11px;padding:2px 8px;border-radius:6px;background:rgba(239,68,68,0.2);color:#fca5a5;font-weight:700">Đến hạn ôn</span>` : '';
 
     const ytUrl = (q.videoId && !q.item?.bookId)
       ? `https://www.youtube.com/watch?v=${encodeURIComponent(q.videoId)}&t=${Math.max(0, Math.floor((q.t || 0) - 2))}s`
