@@ -53,7 +53,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;0,7..72,700;1,7..72,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="vocab-practice.css">
+  <link rel="stylesheet" href="vocab-practice.css?v=20261023f">
   <link rel="stylesheet" href="tcf-exam.css">
   
   <style>
@@ -1542,8 +1542,9 @@
     .vocab-source { min-width: 180px; max-width: 300px; text-overflow: ellipsis; }
     @media (max-width: 640px) { .vocab-source { flex: 1 1 100%; max-width: none; } }
     .vocab-card { background: #0a1124; border: 1px solid #172554; border-radius: 16px; padding: 16px 18px; margin-bottom: 12px; }
-    .vocab-card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
-    .vocab-word { font-size: 1.3rem; font-weight: 800; color: #fff; margin-top: 6px; line-height: 1.35; word-break: break-word; }
+    .vocab-card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+    .vocab-card-head > div:first-child { flex: 1; min-width: 0; }
+    .vocab-word { font-size: 1.3rem; font-weight: 800; color: #fff; margin-top: 6px; line-height: 1.35; word-break: normal; overflow-wrap: break-word; hyphens: none; -webkit-hyphens: none; }
     .vocab-kind { font-size: 10px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; padding: 2px 8px; border-radius: 9999px; }
     .vocab-kind-word { background: rgba(59, 130, 246, .18); color: #93c5fd; }
     .vocab-kind-phrase { background: rgba(16, 185, 129, .16); color: #6ee7b7; }
@@ -1556,6 +1557,51 @@
     .vocab-level-badge.level-c1 { background: rgba(245, 158, 11, 0.16); border-color: rgba(245, 158, 11, 0.45); color: #fcd34d; }
     .vocab-level-badge.level-c2 { background: rgba(239, 68, 68, 0.16); border-color: rgba(239, 68, 68, 0.45); color: #fca5a5; }
     .vocab-card-tools { display: flex; gap: 6px; flex-shrink: 0; }
+    @media (max-width: 680px) {
+      #screen-vocab { padding: 14px 10px 48px; }
+      .vocab-card { padding: 14px 14px; border-radius: 14px; margin-bottom: 10px; }
+      .vocab-card-head {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+      }
+      .vocab-card-head > div:first-child {
+        width: 100%;
+        min-width: 0;
+      }
+      .vocab-word {
+        font-size: 1.25rem;
+        margin-top: 4px;
+        line-height: 1.3;
+        word-break: normal;
+        overflow-wrap: break-word;
+        hyphens: none;
+        -webkit-hyphens: none;
+      }
+      .vocab-card-tools {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+        width: 100%;
+        padding-top: 8px;
+        border-top: 1px dashed rgba(255, 255, 255, 0.08);
+      }
+      .vocab-card-tools .vocab-mini {
+        flex: 1 1 auto;
+        text-align: center;
+        justify-content: center;
+        padding: 7px 10px;
+        font-size: 11.5px;
+        border-radius: 8px;
+        white-space: nowrap;
+      }
+      .vocab-card-tools .vocab-mini.del {
+        flex: 0 0 36px;
+        padding: 7px 0;
+        text-align: center;
+      }
+    }
     .vocab-mini { padding: 5px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; color: #94a3b8; background: #0f172a; border: 1px solid #1e293b; cursor: pointer; }
     .vocab-mini:hover { color: #fff; background: #1e293b; }
     .vocab-mini.del:hover { background: #7f1d1d; border-color: #b91c1c; }
@@ -21926,8 +21972,8 @@ ${list}`;
 })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase-sync.js?v=20261023e"></script>
-<script src="vocab-practice.js?v=20261023e"></script>
-<script src="tcf-exam.js?v=20261023e"></script>
+<script src="supabase-sync.js?v=20261023f"></script>
+<script src="vocab-practice.js?v=20261023f"></script>
+<script src="tcf-exam.js?v=20261023f"></script>
 </body>
 </html>

@@ -533,7 +533,10 @@
 .vph-opt-text {
   flex: 1;
   line-height: 1.35;
-  word-break: break-word;
+  word-break: normal;
+  overflow-wrap: break-word;
+  hyphens: none;
+  -webkit-hyphens: none;
 }
 
 .vph-option-btn.correct {
@@ -1439,7 +1442,10 @@
   .vph-opt-text {
     font-size: 12px;
     line-height: 1.25;
-    word-break: break-word;
+    word-break: normal;
+    overflow-wrap: break-word;
+    hyphens: none;
+    -webkit-hyphens: none;
   }
 
   /* Flashcard 3D Mode */
