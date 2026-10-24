@@ -171,7 +171,9 @@
       display: none !important;
     }
 
-    /* ===== Icon trên tab chuyển chế độ ===== */
+    /* ===== Icon và nhãn trên tab chuyển chế độ ===== */
+    .tab-txt-short { display: none; }
+    .tab-txt-full { display: inline; }
     .text-mode-toggle button { display: inline-flex; align-items: center; gap: 8px; }
     .text-mode-toggle .tab-ico { width: 20px; height: 20px; flex: none; filter: drop-shadow(0 1px 2px rgba(0,0,0,.35)); }
 
@@ -3304,13 +3306,15 @@ body.text-mode .split-panel-right,body.text-mode #panel-right{width:100%!importa
    Điện thoại + máy tính bảng (cảm ứng, không có hover) -> ẩn hoàn toàn. Cửa sổ hẹp (<768px) cũng ẩn như cũ. */
 @media (max-width:767px){#home-nav{display:none!important}}
 @media (hover:none) and (pointer:coarse){#home-nav{display:none!important}}
-/* Thanh 4 tab (Luyện với Video / Đọc báo / Đọc sách / Luyện dịch) trên điện thoại: rộng hơn màn hình nhưng bị căn giữa
-   nên mất đầu trái và không vuốt được. Cho vuốt ngang; đủ chỗ thì vẫn căn giữa. */
-@media (max-width:767px){
-  .mode-tabs-wrap{justify-content:flex-start;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;touch-action:pan-x pan-y;padding:2px 12px 6px;scroll-padding:0 12px}
+/* Thanh 5 tab chuyển chế độ trên điện thoại & máy tính bảng: nhãn ngắn gọn, vuốt mượt mà, không cắt chữ */
+@media (max-width:860px){
+  .tab-txt-full{display:none!important}
+  .tab-txt-short{display:inline!important}
+  .mode-tabs-wrap{justify-content:flex-start!important;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;touch-action:pan-x pan-y;padding:4px 12px 6px;scroll-padding:0 20px}
   .mode-tabs-wrap::-webkit-scrollbar{display:none}
-  .mode-tabs-wrap .text-mode-toggle{flex:none;margin-left:auto;margin-right:auto}
-  .text-mode-toggle button{padding:9px 14px}
+  .mode-tabs-wrap .text-mode-toggle{flex:none;margin:0 24px 0 0!important}
+  .text-mode-toggle button{padding:7px 11px!important;font-size:12px!important;gap:5px!important}
+  .text-mode-toggle .tab-ico{width:16px!important;height:16px!important}
 }
 /* iPhone/Android: ô nhập dưới 16px làm iOS tự phóng to trang khi bấm vào -> ép 16px trên màn hình cảm ứng */
 @media (hover:none) and (pointer:coarse){
@@ -3947,11 +3951,11 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
         <div class="text-mode-toggle">
           <button type="button" id="mode-tab-video" class="active" onclick="setInputMode('video')">
             <svg class="tab-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="1.5" y="4.5" width="21" height="15" rx="4.5" fill="#ef4444"/><rect x="1.5" y="4.5" width="21" height="7" rx="3.5" fill="#fff" fill-opacity=".18"/><path d="M10 8.8v6.4l5.6-3.2z" fill="#fff"/></svg>
-            <span>Luyện với Video</span>
+            <span class="tab-txt-full">Luyện với Video</span><span class="tab-txt-short">Luyện Video</span>
           </button>
           <button type="button" id="mode-tab-text" onclick="setInputMode('text')">
             <svg class="tab-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="1.8" width="16" height="20.4" rx="3.5" fill="#2dd4bf"/><path d="M14.5 1.8H16.5A3.5 3.5 0 0 1 20 5.3V7.5Z" fill="#fde047"/><path d="M8 9.5h8M8 13h8M8 16.5h5" stroke="#fff" stroke-width="1.9" stroke-linecap="round"/></svg>
-            <span>Đọc báo tiếng Pháp</span>
+            <span class="tab-txt-full">Đọc báo tiếng Pháp</span><span class="tab-txt-short">Đọc báo</span>
           </button>
           <button type="button" id="mode-tab-book" onclick="setInputMode('book')">
             <svg class="tab-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4.5C3 3.7 3.7 3 4.5 3H9a3 3 0 0 1 3 3v15a2.5 2.5 0 0 0-2.5-2.5H4.5A1.5 1.5 0 0 1 3 17z" fill="#f59e0b"/><path d="M21 4.5c0-.8-.7-1.5-1.5-1.5H15a3 3 0 0 0-3 3v15a2.5 2.5 0 0 1 2.5-2.5h5a1.5 1.5 0 0 0 1.5-1.5z" fill="#fde68a"/><path d="M6 8h3M6 11h3M15 8h3M15 11h3" stroke="#92400e" stroke-width="1.4" stroke-linecap="round"/></svg>
@@ -3959,11 +3963,11 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
           </button>
           <button type="button" id="mode-tab-vt" onclick="setInputMode('vt')">
             <svg class="tab-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="3" width="13" height="11" rx="3.2" fill="#a78bfa"/><path d="M5 14v3.5l3.5-3.5Z" fill="#a78bfa"/><rect x="9" y="9" width="13" height="11" rx="3.2" fill="#38bdf8"/><path d="M19 20v3l-3.2-3Z" fill="#38bdf8"/><path d="M5.5 7.2h6M8.5 6v1.2M7 10c.8-1.4 2-2.2 3.2-2.6M9.2 7.2c-.4 1.6-1.8 2.8-3.2 3.4" stroke="#fff" stroke-width="1.2" stroke-linecap="round" fill="none"/><path d="m13.2 17.6 2.2-5.4 2.2 5.4M14 16h2.8" stroke="#fff" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
-            <span>Luyện dịch Việt → Pháp</span>
+            <span class="tab-txt-full">Luyện dịch Việt → Pháp</span><span class="tab-txt-short">Luyện dịch</span>
           </button>
           <button type="button" id="mode-tab-custom-yt" onclick="setInputMode('custom-yt')">
             <svg class="tab-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="1.5" y="4.5" width="21" height="15" rx="4.5" fill="#f43f5e"/><rect x="1.5" y="4.5" width="21" height="7" rx="3.5" fill="#fff" fill-opacity=".18"/><path d="M10 8.8v6.4l5.6-3.2z" fill="#fff"/></svg>
-            <span>Luyện video của bạn</span>
+            <span class="tab-txt-full">Luyện video của bạn</span><span class="tab-txt-short">Video của bạn</span>
           </button>
         </div>
       </div>
