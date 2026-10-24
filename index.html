@@ -11377,6 +11377,7 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
         renderSubtitleList();
         if (box) box.scrollTop = keepTop;
         persistSentencesToHistory();
+        syncVocabSentenceTranslations(currentVideoId, sentences);
         if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
         return;
       }
@@ -11390,6 +11391,7 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
       const el = findActiveWordElement(t, container);
       if (el) scrollElementToElevatedPosition(el, container);
       persistSentencesToHistory();
+      syncVocabSentenceTranslations(currentVideoId, sentences);
       if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
     }
 
@@ -13120,6 +13122,85 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
       updateReviewBadges();
     }
 
+    // Tự động đồng bộ bản dịch câu cho các từ vựng đã lưu thuộc video vid từ danh sách sentences sents
+    function syncVocabSentenceTranslations(vid, sents) {
+      if (!vid || !Array.isArray(sents) || !sents.length) return false;
+      const all = getVocab();
+      let changed = false;
+      all.forEach((item) => {
+        if (item.videoId !== vid) return;
+        if (!item.vi || !String(item.vi).trim()) {
+          let matched = null;
+          if (typeof item.t === 'number') {
+            matched = sents.find(s => Math.abs((s.startTime || 0) - item.t) < 1.5 && s.vi && String(s.vi).trim());
+          }
+          if (!matched && item.en) {
+            const normEn = String(item.en).trim().toLowerCase();
+            matched = sents.find(s => String(s.text || '').trim().toLowerCase() === normEn && s.vi && String(s.vi).trim());
+          }
+          if (matched && matched.vi && String(matched.vi).trim()) {
+            item.vi = String(matched.vi).trim();
+            changed = true;
+          }
+        }
+        if (Array.isArray(item.contexts)) {
+          item.contexts.forEach((ctx) => {
+            if (ctx.videoId === vid && (!ctx.vi || !String(ctx.vi).trim())) {
+              let matched = null;
+              if (typeof ctx.t === 'number') {
+                matched = sents.find(s => Math.abs((s.startTime || 0) - ctx.t) < 1.5 && s.vi && String(s.vi).trim());
+              }
+              if (!matched && ctx.en) {
+                const normEn = String(ctx.en).trim().toLowerCase();
+                matched = sents.find(s => String(s.text || '').trim().toLowerCase() === normEn && s.vi && String(s.vi).trim());
+              }
+              if (matched && matched.vi && String(matched.vi).trim()) {
+                ctx.vi = String(matched.vi).trim();
+                changed = true;
+              }
+            }
+          });
+        }
+      });
+      if (changed) {
+        setVocab(all);
+        return true;
+      }
+      return false;
+    }
+
+    // Tự động kiểm tra và bù đắp bản dịch câu trích dẫn từ Lịch sử video cho toàn bộ sổ từ vựng
+    function syncAllVocabFromLocalHistory() {
+      try {
+        const all = getVocab();
+        const hist = typeof getLocalHistory === 'function' ? getLocalHistory() : [];
+        if (!all.length || !hist || !hist.length) return false;
+        let changed = false;
+        all.forEach((item) => {
+          if (!item.videoId || (item.vi && String(item.vi).trim())) return;
+          const h = hist.find((v) => v.videoId === item.videoId && Array.isArray(v.sentences) && v.sentences.length);
+          if (!h) return;
+          let matched = null;
+          if (typeof item.t === 'number') {
+            matched = h.sentences.find(s => Math.abs((s.startTime || 0) - item.t) < 1.5 && s.vi && String(s.vi).trim());
+          }
+          if (!matched && item.en) {
+            const normEn = String(item.en).trim().toLowerCase();
+            matched = h.sentences.find(s => String(s.text || '').trim().toLowerCase() === normEn && s.vi && String(s.vi).trim());
+          }
+          if (matched && matched.vi && String(matched.vi).trim()) {
+            item.vi = String(matched.vi).trim();
+            changed = true;
+          }
+        });
+        if (changed) {
+          setVocab(all);
+          return true;
+        }
+      } catch (e) {}
+      return false;
+    }
+
     // ==================== ÔN TẬP TỪ VỰNG THEO SPACED REPETITION (thuật toán kiểu SM-2) ====================
     // Mỗi mục từ vựng có thêm x.srs = { ease, interval (ngày), reps, due (mốc thời gian ms), lastReview }.
     // Mục chưa từng ôn (không có x.srs) coi như "đến hạn ngay" để được đưa vào hàng đợi ôn tập đầu tiên.
@@ -13598,6 +13679,7 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
       vocabSource = 'all';
       const lessonScope = scope === 'lesson' && fromPractice && !!currentVideoId;
       if (lessonScope) { vocabSource = vocabSourceInfo({ videoId: currentVideoId }).key; vocabScrollY = 0; }
+      syncAllVocabFromLocalHistory();
       renderVocabPage();
       // Khởi tạo sớm player ngầm để bấm "Audio video" phát ngay lập tức
       if (typeof window.ensureBgAudioPlayer === 'function') {
@@ -13941,7 +14023,7 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
         <p class="vocab-ctx">${ctx}</p>
         ${extraContextsHtml}
         ${wordViBlock}
-        ${x.vi ? `<p class="vocab-vi">Cả câu: ${escHtml(x.vi)}</p>` : ''}
+        ${x.vi ? `<p class="vocab-vi">Cả câu: ${escHtml(x.vi)}</p>` : `<p class="vocab-vi-empty">Chưa có bản dịch cả câu<button type="button" class="vocab-ai-link" onclick="openVocabMeaningModal('${x.id}')" title="Nhờ AI điền nghĩa và dịch câu này">✨ Điền bằng AI</button></p>`}
         ${vocabExamplesHtml(x)}
         <div class="vocab-src">${src}<span>${new Date(x.createdAt).toLocaleDateString('vi-VN')}</span></div>
       </article>`;
@@ -14038,6 +14120,7 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
     // Mục cần AI điền: chưa có nghĩa riêng, hoặc (từ/cụm) chưa có ví dụ
     function vocabItemsMissingMeaning() {
       return getVocab().filter((x) => !x.wordVi || !String(x.wordVi).trim()
+        || (!x.vi || !String(x.vi).trim())
         || (x.kind !== 'sentence' && !(Array.isArray(x.examples) && x.examples.length)));
     }
     const VOCAB_AI_BATCH = 30;   // mỗi lượt tối đa 30 mục để AI không bị cắt giữa chừng
@@ -14084,6 +14167,8 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
         }
         const it = /^(?:Trong bài|Trong văn bản|In the text|In text|Source)\s*[:：]\s*(.+)$/i.exec(line);
         if (it) { if (cur) cur.inText = unq(it[1]); return; }
+        const trSent = /^(?:Dịch câu|Dich cau|Dịch ngữ cảnh|Dich ngu canh|Bản dịch câu|Bản dịch|Sentence translation)\s*[:：]\s*(.+)$/i.exec(line);
+        if (trSent) { if (cur) cur.sentVi = unq(trSent[1]); return; }
         const h = /^(\d+)\s*[\.\):]\s*(.*)$/.exec(line);
         if (h) {
           const rest = h[2].trim().replace(/^(?:Nghĩa|Nghia|Meaning)\s*[:：]\s*/i, '');
@@ -14165,12 +14250,14 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
         + '    - Động từ đã chia: [v. <từ_gốc> · <thì> <ngôi>] nghĩa (viết tắt thì: prés., imp., fut., p.c., cond., subj., p.p., p.pr.; ngôi: 1s, 2s, 3s, 1p, 2p, 3p. Ví dụ: [v. aller · fut. 1p] chúng tôi sẽ đi)\n'
         + '    - Danh từ: [n.m.] (giống đực), [n.f.] (giống cái), [n.pl.] nghĩa\n'
         + '    - Tính từ: [adj.] nghĩa | Trạng từ: [adv.] nghĩa | Thành ngữ, cụm: [loc.] nghĩa\n'
-        + '(2) Đúng 3 câu ví dụ thực tế BẰNG TIẾNG PHÁP (French) mà người bản xứ hay dùng, đơn giản, không học thuật, không dùng từ quá cao siêu. Mỗi ví dụ dùng đúng nghĩa ở mục (1) và có bản dịch tiếng Việt.\n'
+        + '(2) Bản dịch tiếng Việt tự nhiên, chuẩn xác của câu chứa từ (câu trong phần ngữ cảnh).\n'
+        + '(3) Đúng 3 câu ví dụ thực tế BẰNG TIẾNG PHÁP (French) mà người bản xứ hay dùng, đơn giản, không học thuật, không dùng từ quá cao siêu. Mỗi ví dụ dùng đúng nghĩa ở mục (1) và có bản dịch tiếng Việt.\n'
         + '    QUAN TRỌNG: Các câu ví dụ BẮT BUỘC PHẢI VIẾT BẰNG TIẾNG PHÁP. Tuyệt đối KHÔNG viết câu ví dụ bằng tiếng Anh!\n'
         + 'Riêng mục nào ghi (CẢ CÂU) thì chỉ dịch cả câu sang tiếng Việt, không cần ví dụ và không cần tag.\n\n'
         + 'QUAN TRỌNG: đặt toàn bộ kết quả trong MỘT khối code (codebox ```) để người dùng mobile dễ bấm nút copy (không in đậm, không bảng, không lời dẫn hay giải thích ngoài codebox). '
         + 'Mỗi mục theo đúng mẫu sau, bắt đầu bằng đúng số thứ tự của mục, các mục cách nhau 1 dòng trống. Dùng đúng dấu || giữa câu tiếng Pháp và bản dịch:\n\n'
         + '1. Nghĩa: [tag viết tắt] nghĩa tiếng Việt\n'
+        + 'Dịch câu: bản dịch tiếng Việt của câu chứa từ\n'
         + 'VD1: câu ví dụ bằng TIẾNG PHÁP || bản dịch tiếng Việt\n'
         + 'VD2: câu ví dụ bằng TIẾNG PHÁP || bản dịch tiếng Việt\n'
         + 'VD3: câu ví dụ bằng TIẾNG PHÁP || bản dịch tiếng Việt\n\n'
@@ -14308,6 +14395,7 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
         if (!item) return;
         let changed = false;
         if (e.meaning && (!item.wordVi || !String(item.wordVi).trim())) { item.wordVi = e.meaning; changed = true; }
+        if (e.sentVi && (!item.vi || !String(item.vi).trim())) { item.vi = e.sentVi; changed = true; }
         if (e.examples.length && item.kind !== 'sentence') { item.examples = e.examples.slice(0, 3); withEx++; changed = true; }
         if (changed) applied++;
       });
