@@ -162,7 +162,10 @@
       background: transparent; border-color: transparent; box-shadow: none; padding: 0;
     }
 
-    /* Tab "Luyện video của bạn": ẩn thư viện video (chỉ hiển thị ở trang chủ "Luyện với Video") */
+    /* Thư viện video: CHỈ hiển thị ở tab "Luyện với Video", ẩn ở các tab Đọc báo, Đọc sách, Luyện dịch, Video của bạn */
+    #main-card:has(#text-input-mode:not(.hidden)) > .lib-wrap,
+    #main-card:has(#book-input-mode:not(.hidden)) > .lib-wrap,
+    #main-card:has(#vt-input-mode:not(.hidden)) > .lib-wrap,
     #main-card:has(#custom-yt-input-mode:not(.hidden)) > .lib-wrap,
     .lib-wrap.is-hidden {
       display: none !important;
@@ -9142,7 +9145,7 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
       if (isVt && window.vtModeShown) window.vtModeShown();
       if (isText && window.renderArticleLibrary) window.renderArticleLibrary();
       const libWrap = document.querySelector('.lib-wrap');
-      if (libWrap) libWrap.classList.toggle('is-hidden', isCustomYt);
+      if (libWrap) libWrap.classList.toggle('is-hidden', !isVideo);
       if (window.homeNavRefresh) window.homeNavRefresh();
       if (isVideo && window.homeFillVisible) setTimeout(window.homeFillVisible, 0);   // tab video hiện lại -> dựng các hàng đang nằm trong khung nhìn
       if (isText && window.syncHomeMore) setTimeout(window.syncHomeMore, 0);   // đo lại nút "Xem thêm" khi tab vừa hiện ra
