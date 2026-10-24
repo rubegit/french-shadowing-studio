@@ -5376,6 +5376,102 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
       }
     };
 
+    // Quản lý nạp YouTube Iframe API toàn cục an toàn (không ghi đè callback của nhau)
+    window._ytApiCallbacks = window._ytApiCallbacks || [];
+    window.ensureYouTubeIframeApi = function(cb) {
+      if (window.YT && window.YT.Player) {
+        if (typeof cb === 'function') cb();
+        return;
+      }
+      if (typeof cb === 'function') {
+        window._ytApiCallbacks.push(cb);
+      }
+      if (!window._ytApiScriptInjected) {
+        window._ytApiScriptInjected = true;
+        if (!document.getElementById('yt-api-script')) {
+          const tag = document.createElement('script');
+          tag.id = 'yt-api-script';
+          tag.src = 'https://www.youtube.com/iframe_api';
+          document.head.appendChild(tag);
+        }
+        const prevOnReady = window.onYouTubeIframeAPIReady;
+        window.onYouTubeIframeAPIReady = function() {
+          if (typeof prevOnReady === 'function') {
+            try { prevOnReady(); } catch (e) {}
+          }
+          const cbs = window._ytApiCallbacks.slice();
+          window._ytApiCallbacks = [];
+          cbs.forEach(fn => { try { fn(); } catch(e) {} });
+        };
+      }
+    };
+
+    // Khởi tạo sớm (Pre-warm) player ngầm để phát Audio Video từ vựng không bị chậm hoặc bị iOS chặn autoplay
+    window.ensureBgAudioPlayer = function(callback) {
+      if (window._bgYtPlayer && window._bgYtReady) {
+        if (typeof callback === 'function') callback(window._bgYtPlayer);
+        return;
+      }
+      let container = document.getElementById('bg-audio-yt-wrap');
+      if (!container) {
+        container = document.createElement('div');
+        container.id = 'bg-audio-yt-wrap';
+        container.setAttribute('aria-hidden', 'true');
+        container.style.cssText = 'position:fixed;left:-4000px;top:0;width:480px;height:270px;overflow:hidden;pointer-events:none;z-index:-1;';
+        const inner = document.createElement('div');
+        inner.id = 'bg-audio-yt';
+        container.appendChild(inner);
+        document.body.appendChild(container);
+      }
+      window.ensureYouTubeIframeApi(() => {
+        if (window._bgYtPlayer && window._bgYtReady) {
+          if (typeof callback === 'function') callback(window._bgYtPlayer);
+          return;
+        }
+        if (window._bgYtInitializing) {
+          if (typeof callback === 'function') {
+            const checkTimer = setInterval(() => {
+              if (window._bgYtReady && window._bgYtPlayer) {
+                clearInterval(checkTimer);
+                callback(window._bgYtPlayer);
+              }
+            }, 60);
+          }
+          return;
+        }
+        window._bgYtInitializing = true;
+        try {
+          window._bgYtPlayer = new window.YT.Player('bg-audio-yt', {
+            width: 480,
+            height: 270,
+            playerVars: {
+              autoplay: 0,
+              controls: 0,
+              rel: 0,
+              playsinline: 1,
+              modestbranding: 1,
+              disablekb: 1,
+              fs: 0,
+              cc_load_policy: 0,
+              iv_load_policy: 3
+            },
+            events: {
+              onReady: () => {
+                window._bgYtReady = true;
+                window._bgYtInitializing = false;
+                if (typeof callback === 'function') callback(window._bgYtPlayer);
+              },
+              onError: () => {
+                window._bgYtInitializing = false;
+              }
+            }
+          });
+        } catch (e) {
+          window._bgYtInitializing = false;
+        }
+      });
+    };
+
     window.playVideoAudioSegment = function(videoId, startTime = 0, duration = 4, options = {}) {
       const onStart = options.onStart || null;
       const onEnd = options.onEnd || null;
@@ -5396,19 +5492,6 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
         try { window.speechSynthesis.cancel(); } catch(e) {}
       }
       window.stopVideoAudioSegment();
-
-      // Đảm bảo DOM container cho player YouTube ẩn
-      let container = document.getElementById('bg-audio-yt-wrap');
-      if (!container) {
-        container = document.createElement('div');
-        container.id = 'bg-audio-yt-wrap';
-        container.setAttribute('aria-hidden', 'true');
-        container.style.cssText = 'position:fixed;left:-4000px;top:0;width:480px;height:270px;overflow:hidden;pointer-events:none;z-index:-1;';
-        const inner = document.createElement('div');
-        inner.id = 'bg-audio-yt';
-        container.appendChild(inner);
-        document.body.appendChild(container);
-      }
 
       const startSec = Math.max(0, Number(startTime) || 0);
       const durSec = Math.max(1.5, Math.min(15, Number(duration) || 4));
@@ -5445,37 +5528,39 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
           }
         };
 
-        const executePlay = () => {
+        const executePlay = (player) => {
           try {
+            const p = player || window._bgYtPlayer;
             const now = Date.now();
-            try { if (window._bgYtPlayer.unMute) window._bgYtPlayer.unMute(); } catch (e) {}
-            try { if (window._bgYtPlayer.setPlaybackRate) window._bgYtPlayer.setPlaybackRate(rate); } catch (e) {}
+            try { if (p.unMute) p.unMute(); } catch (e) {}
+            try { if (p.setVolume) p.setVolume(100); } catch (e) {}
+            try { if (p.setPlaybackRate) p.setPlaybackRate(rate); } catch (e) {}
 
             if (window._bgYtCurrentVid !== videoId) {
               window._bgYtCurrentVid = videoId;
-              window._bgYtPlayer.loadVideoById({
+              p.loadVideoById({
                 videoId: videoId,
                 startSeconds: startSec
               });
             } else {
-              window._bgYtPlayer.seekTo(startSec, true);
-              window._bgYtPlayer.playVideo();
+              p.seekTo(startSec, true);
+              p.playVideo();
             }
 
             window._bgYtTimer = setInterval(() => {
-              if (!window._bgYtPlayer || !window._bgYtPlayer.getCurrentTime) return;
+              if (!p || !p.getCurrentTime) return;
               let curr = 0;
               let state = -1;
               try {
-                curr = window._bgYtPlayer.getCurrentTime() || 0;
-                state = window._bgYtPlayer.getPlayerState();
+                curr = p.getCurrentTime() || 0;
+                state = p.getPlayerState();
               } catch (e) { return; }
 
               if (!hasTriggeredStart) {
                 if (state === 1) {
                   hasTriggeredStart = true;
                   if (typeof onStart === 'function') onStart();
-                } else if (Date.now() - now > 5000) {
+                } else if (Date.now() - now > 10000) {
                   cleanupAndFinish(false);
                   return;
                 }
@@ -5491,48 +5576,9 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
           }
         };
 
-        if (window._bgYtPlayer && window._bgYtReady) {
-          executePlay();
-        } else {
-          let attempts = 0;
-          const checkYTApi = () => {
-            if (window.YT && window.YT.Player) {
-              try {
-                window._bgYtPlayer = new window.YT.Player('bg-audio-yt', {
-                  width: 480,
-                  height: 270,
-                  playerVars: {
-                    autoplay: 0,
-                    controls: 0,
-                    rel: 0,
-                    playsinline: 1,
-                    modestbranding: 1,
-                    disablekb: 1,
-                    fs: 0,
-                    cc_load_policy: 0,
-                    iv_load_policy: 3
-                  },
-                  events: {
-                    onReady: () => {
-                      window._bgYtReady = true;
-                      executePlay();
-                    },
-                    onError: () => {
-                      cleanupAndFinish(false);
-                    }
-                  }
-                });
-              } catch (e) {
-                cleanupAndFinish(false);
-              }
-            } else if (++attempts < 50) {
-              setTimeout(checkYTApi, 100);
-            } else {
-              cleanupAndFinish(false);
-            }
-          };
-          checkYTApi();
-        }
+        window.ensureBgAudioPlayer((player) => {
+          executePlay(player);
+        });
       });
     };
 
@@ -9570,14 +9616,18 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
       stopSubtitleLoop();
       resetSubtitleSearch();
       resetBilingualForNewVideo();
-      const tag = document.createElement('script');
-      tag.src = 'https://www.youtube.com/iframe_api';
-      if (!document.getElementById('yt-api-script')) {
-        tag.id = 'yt-api-script';
-        document.body.appendChild(tag);
+      if (typeof window.ensureYouTubeIframeApi === 'function') {
+        window.ensureYouTubeIframeApi(() => { createYTPlayer(); });
+      } else {
+        const tag = document.createElement('script');
+        tag.src = 'https://www.youtube.com/iframe_api';
+        if (!document.getElementById('yt-api-script')) {
+          tag.id = 'yt-api-script';
+          document.body.appendChild(tag);
+        }
+        window.onYouTubeIframeAPIReady = () => { createYTPlayer(); };
+        if (window.YT && window.YT.Player) { createYTPlayer(); }
       }
-      window.onYouTubeIframeAPIReady = () => { createYTPlayer(); };
-      if (window.YT && window.YT.Player) { createYTPlayer(); }
     }
 
     // Tắt phụ đề của chính YouTube (app đã có phụ đề Anh/Việt riêng nên không cần). YouTube hay nạp lại module phụ đề
@@ -13378,6 +13428,10 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
       const lessonScope = scope === 'lesson' && fromPractice && !!currentVideoId;
       if (lessonScope) { vocabSource = vocabSourceInfo({ videoId: currentVideoId }).key; vocabScrollY = 0; }
       renderVocabPage();
+      // Khởi tạo sớm player ngầm để bấm "Audio video" phát ngay lập tức
+      if (typeof window.ensureBgAudioPlayer === 'function') {
+        window.ensureBgAudioPlayer();
+      }
       // Khôi phục vị trí cuộn lần trước (chỉ nhớ trong phiên này; tải lại trang thì về đầu)
       requestAnimationFrame(() => requestAnimationFrame(() => window.scrollTo({ top: vocabScrollY, behavior: 'auto' })));
     }
