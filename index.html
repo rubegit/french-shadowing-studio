@@ -11,7 +11,7 @@
        Class rt-boot được router gỡ ngay sau khi mở xong màn hình (hoặc sau 10 giây nếu có lỗi). -->
   <style>
     html.rt-boot { background: #070b14; }
-    html.rt-boot #screen-input, html.rt-boot #home-nav { display: none !important; }
+    html.rt-boot #screen-input { display: none !important; }
     html.rt-boot body::after { content: ''; position: fixed; left: 50%; top: 50%; width: 30px; height: 30px; margin: -15px 0 0 -15px; border: 3px solid #1e293b; border-top-color: #60a5fa; border-radius: 50%; animation: rtBootSpin .8s linear infinite; z-index: 99999; }
     @keyframes rtBootSpin { to { transform: rotate(360deg); } }
   </style>
@@ -2504,142 +2504,7 @@ body:not(.bk-hl-saved) .bk-w.bk-saved { text-decoration:none; background:none; }
     .netflix-row-wrapper.is-expanded .netflix-nav-btn { display: none; }
     @keyframes rowCardIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
-    /* ---- Thanh điều hướng ----
-       Thiết kế: cột vạch (ở mép phải) ĐỨNG YÊN tuyệt đối và luôn hiển thị. Khi mở, chỉ có phần nền kính
-       và phần nhãn (icon + tên + số video) trượt nhẹ từ phải sang trái và hiện dần ra bên cạnh cột vạch.
-       Mọi chuyển động chỉ dùng transform + opacity (chạy trên GPU), không đổi kích thước/vị trí layout
-       => mượt, và các vạch không hề xê dịch giữa hai trạng thái. */
-    #home-nav {
-      --hn-ax: 29px;                          /* tâm icon tính từ mép trái mục = padding-left 16px + nửa icon 13px → điểm neo phóng to */
-      --hn-slot: 34px;
-      --hn-w: min(360px, calc(100vw - 64px));
-      position: fixed; top: 0; right: 0; bottom: 0; width: 0;
-      z-index: 30; pointer-events: none;
-    }
-    #home-nav.hn-hidden { display: none; }
-
-    #home-nav .hn-panel {
-      position: absolute; right: 0; top: 50%;
-      width: var(--hn-w); padding: 10px 0;
-      transform: translateY(-50%);
-      isolation: isolate;
-      pointer-events: none;                 /* vùng trống bên trái không chặn click vào nội dung trang */
-    }
-
-    /* nền kính khi mở */
-    #home-nav .hn-panel::before {
-      content: ''; position: absolute; inset: 0; z-index: -1;
-      border-radius: 18px 0 0 18px;
-      background: rgba(8, 14, 30, .92);
-      border: 1px solid rgba(96, 165, 250, .45); border-right: 0;
-      /* glow khi mở (mạnh hơn lúc thu gọn): viền sáng + quầng xanh lan rộng + bóng đổ */
-      box-shadow:
-        0 10px 32px rgba(0, 0, 0, .45),
-        0 0 26px rgba(59, 130, 246, .34),
-        0 0 72px rgba(59, 130, 246, .16),
-        inset 0 1px 0 rgba(147, 197, 253, .14),
-        inset 0 0 22px rgba(59, 130, 246, .06);
-      /* không dùng backdrop-filter ở đây: nền đã đục ~92% nên blur gần như không thấy, nhưng nó buộc trình duyệt
-         tính lại lớp mờ mỗi khung hình khi các mục phóng to → giật */
-      left: -6px;                            /* chừa sẵn chỗ cho nền mục phóng to nở nhẹ sang trái (tĩnh, không animate → nhẹ) */
-      opacity: 0; transform: translate3d(56px, 0, 0);
-      transition: transform .26s cubic-bezier(.4, 0, .2, 1), opacity .2s ease;
-    }
-    /* "đường ray" mờ phía sau cột vạch khi thu gọn */
-    #home-nav .hn-panel::after {
-      content: ''; position: absolute; top: 0; bottom: 0; right: 0; width: var(--hn-slot); z-index: -1;
-      border-radius: 12px 0 0 12px;
-      background: rgba(8, 14, 30, .3);
-      border: 1px solid rgba(96, 165, 250, .13); border-right: 0;
-      /* thu gọn: tối giản, chỉ một quầng sáng rất nhẹ */
-      box-shadow:
-        0 0 14px rgba(59, 130, 246, .08),
-        0 0 36px rgba(59, 130, 246, .035);
-      -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
-      opacity: 1; transition: opacity .26s ease .04s;
-    }
-
-    #home-nav .hn-list {
-      position: relative; max-height: calc(100vh - 40px); max-height: calc(100dvh - 40px);   /* khung giãn theo số mục, chỉ cuộn khi màn hình thấp hơn cả danh sách */
-      /* vùng đệm trong suốt (trái + trên/dưới) để mục phóng to không bị cắt; bù bằng margin âm nên bố cục giữ nguyên */
-      margin: -6px 0 -6px -24px; padding: 6px 0 6px 24px;
-      overflow-y: auto; overscroll-behavior: contain;
-      scrollbar-width: none;
-    }
-    #home-nav .hn-list::-webkit-scrollbar { display: none; }
-
-    #home-nav .hn-item {
-      display: flex; align-items: center;
-      width: 100%; height: 38px; padding: 0 0 0 16px;
-      border-radius: 10px 0 0 10px; text-align: left;
-      color: #94a3b8; pointer-events: none;
-      /* Magnification: JS đặt transform trực tiếp mỗi khung hình (có làm mượt). Điểm neo là TÂM ICON của chính mục đó:
-         icon đứng yên, nhãn nở sang phải, nền nở lên/xuống. Vạch và số video được JS bù lại để luôn nằm đúng chỗ ở mép phải. */
-      transform-origin: var(--hn-ax) 50%;
-      position: relative;
-      transition: background-color .15s ease, color .15s ease;
-      will-change: transform;
-    }
-    /* phần nhãn: trượt + hiện dần khi mở */
-    #home-nav .hn-main {
-      flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px;
-      opacity: 0; transform: translate3d(28px, 0, 0);
-      transition: opacity .16s ease, transform .22s cubic-bezier(.4, 0, .2, 1);
-    }
-    #home-nav .hn-ico { flex: none; width: 26px; height: 26px; }
-    #home-nav .hn-ico svg { width: 100%; height: 100%; display: block; }
-    #home-nav .hn-ico img { width: 100%; height: 100%; display: block; border-radius: 7px; object-fit: cover; }
-    #home-nav .hn-label {
-      flex: 1; min-width: 0;
-      font-size: 14px; font-weight: 700; line-height: 1.25;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-      /* chừa chỗ để nhãn nở sang phải (~17% bề rộng) khi phóng to mà không đè lên số video */
-      margin-right: calc((var(--hn-w) - 120px) * .17);
-    }
-    #home-nav .hn-count {
-      flex: none; font: 600 12px/1 'JetBrains Mono', ui-monospace, monospace; color: #64748b;
-      transform-origin: right center;
-      will-change: transform;                /* JS bù vị trí để mép phải số video đứng yên */
-    }
-
-    /* cột vạch: luôn sát mép phải, luôn bắt được chuột */
-    #home-nav .hn-tick-slot {
-      flex: none; width: var(--hn-slot); height: 100%;
-      display: flex; align-items: center; justify-content: center;
-      pointer-events: auto;
-      will-change: transform;                /* JS bù vị trí để tâm cột vạch đứng yên khi mục phóng to */
-    }
-    #home-nav .hn-tick {
-      display: block; width: 16px; height: 4px; border-radius: 4px;
-      background: rgba(148, 163, 184, .42);
-      transform: scaleX(.6);                 /* mục thường: vạch co lại gọn (~9.6px) */
-      transition: transform .25s cubic-bezier(.4, 0, .2, 1), background-color .2s ease;
-    }
-    #home-nav .hn-item.active .hn-tick { transform: scaleX(1); background: rgba(96, 165, 250, .85); }   /* mục active: đủ 16px */
-
-    /* ---- Trạng thái mở (JS thêm .open khi chuột ở gần/trên thanh; hoặc điều hướng bằng bàn phím) ---- */
-    #home-nav.open .hn-panel, #home-nav:has(:focus-visible) .hn-panel { pointer-events: auto; }
-    #home-nav.open .hn-item, #home-nav:has(:focus-visible) .hn-item { pointer-events: auto; }
-    #home-nav.open .hn-panel::before, #home-nav:has(:focus-visible) .hn-panel::before {
-      opacity: 1; transform: none;
-      transition: transform .42s cubic-bezier(.22, 1, .36, 1), opacity .25s ease;
-    }
-    #home-nav.open .hn-panel::after, #home-nav:has(:focus-visible) .hn-panel::after { opacity: 0; }
-    #home-nav.open .hn-main, #home-nav:has(:focus-visible) .hn-main {
-      opacity: 1; transform: none;
-      transition: opacity .28s ease .06s, transform .42s cubic-bezier(.22, 1, .36, 1) .02s;
-    }
-    #home-nav.open .hn-tick, #home-nav:has(:focus-visible) .hn-tick { background: rgba(148, 163, 184, .85); }
-    #home-nav.open .hn-item:hover { background: rgba(30, 41, 59, .8); color: #e2e8f0; }
-    #home-nav.open .hn-item:hover .hn-tick { background: #cbd5e1; }
-    #home-nav.open .hn-item.active:hover .hn-tick, #home-nav.open .hn-item.active .hn-tick { background: #60a5fa; }
-    #home-nav .hn-item.active { color: #fff; }
-    #home-nav.open .hn-item.active { background: rgba(37, 99, 235, .2); box-shadow: inset 0 0 16px rgba(59, 130, 246, .18); }
-    #home-nav.open .hn-item.active .hn-tick { box-shadow: 0 0 9px rgba(96, 165, 250, .7); }
-    #home-nav .hn-item:focus-visible { outline: 2px solid #3b82f6; outline-offset: -2px; }
-
     @media (prefers-reduced-motion: reduce) {
-      #home-nav *, #home-nav *::before, #home-nav *::after { transition: none !important; }
       .netflix-row-wrapper.is-expanded .yt-card, .netflix-row-wrapper.is-expanded .article-card { animation: none !important; }
     }
   
@@ -3377,10 +3242,7 @@ body.text-mode .split-panel-right,body.text-mode #panel-right{width:100%!importa
 <style id="ios-fix">
 /* Trang chủ: nút "Từ vựng đã lưu" + "Ủng hộ tác giả" dịch lên 5px */
 .home-top-row{position:relative;top:-5px}
-/* Thanh điều hướng mép phải chỉ dành cho máy tính/laptop (có chuột, rê chuột để mở).
-   Điện thoại + máy tính bảng (cảm ứng, không có hover) -> ẩn hoàn toàn. Cửa sổ hẹp (<768px) cũng ẩn như cũ. */
-@media (max-width:767px){#home-nav{display:none!important}}
-@media (hover:none) and (pointer:coarse){#home-nav{display:none!important}}
+
 
 /* iPhone/Android: ô nhập dưới 16px làm iOS tự phóng to trang khi bấm vào -> ép 16px trên màn hình cảm ứng */
 @media (hover:none) and (pointer:coarse){
@@ -17573,27 +17435,13 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
 
   </script>
 
-  <!-- Thanh điều hướng trang chủ: được dựng tự động từ các hàng (.netflix-row-wrapper) -->
-  <nav id="home-nav" class="hn-hidden" aria-label="Điều hướng các mục trang chủ">
-    <div class="hn-panel"><div class="hn-list" id="home-nav-list"></div></div>
-  </nav>
-
   <script>
   (function () {
     const root = document.documentElement;
-    const nav = document.getElementById('home-nav');
-    const panel = nav.querySelector('.hn-panel');
-    const list = document.getElementById('home-nav-list');
     const expandedRows = new Set();           // nhớ hàng nào đang mở rộng, để không mất khi trang chủ vẽ lại
-    const isTouch = window.matchMedia('(hover: none)');
-    const SLOT = 34;                          // bề rộng cột vạch (khớp --hn-slot trong CSS)
-    let rows = [];                            // [{wrapper, item}]
-    let activeIdx = -1;
 
-    const getWrappers = () => Array.from(document.querySelectorAll('#netflix-categories-container .netflix-row-wrapper'));
     const getMoreWrappers = () => Array.from(document.querySelectorAll('#netflix-categories-container .netflix-row-wrapper, #text-history-container .netflix-row-wrapper, #library-cat-page .netflix-row-wrapper'));   // gồm cả hàng ở tab Đọc báo/IELTS
     const homeVisible = () => { const h = document.getElementById('screen-input'); return !!h && !h.classList.contains('hidden') && !root.classList.contains('rt-boot'); };
-    const navHidden = () => nav.classList.contains('hn-hidden');
 
     /* ---------------- "XEM THÊM" ---------------- */
     function syncMoreButtons() {
@@ -17631,258 +17479,25 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
       if (!noSync) syncMoreButtons();
     };
 
-    /* ---------------- MỞ / ĐÓNG THANH ---------------- */
-    let isOpen = false;
-
-    function setOpen(v) {
-      if (v === isOpen) return;
-      isOpen = v;
-      nav.classList.toggle('open', v);
-      if (!v) {
-        resetMag();
-        // Chuột đã rời vùng thanh: bỏ focus của mục vừa click. Nếu không, mục đó vẫn giữ focus và khi bấm
-        // Shift/Ctrl/... trình duyệt chuyển sang chế độ "bàn phím" -> :focus-visible khớp lại -> thanh tự mở ra
-        // (qua luật :has(:focus-visible)) dù chuột không ở trong vùng.
-        const ae = document.activeElement;
-        if (ae && ae !== document.body && nav.contains(ae)) ae.blur();
-      }
-      if (v) ensureActiveVisible();
-    }
-
-    // Vùng của thanh = đúng hình chữ nhật của panel (cả lúc mở lẫn lúc thu gọn theo chiều dọc), KHÔNG có đệm
-    // và KHÔNG có độ trễ: chuột vừa ra khỏi vùng là thanh thu lại ngay.
-    //  - Chiều dọc: luôn đúng bằng panel (top/bottom cố định, chỉ trượt ngang) → lúc mở và lúc đóng dùng chung
-    //    một ranh giới, nên không bị nhấp nháy mở/đóng liên tục ở rìa.
-    //  - Chiều ngang: bên phải KHÔNG bị chặn (x lớn tới đâu, kể cả đã chạm thanh cuộn trình duyệt, vẫn tính là trong vùng).
-    //    Thu gọn: chỉ cần chạm vào dải gần cột vạch để mở. Đang mở: vùng là cả panel (rộng hơn dải đó nên luôn bao trọn nó).
-    function inZone(x, y) {
-      const r = panel.getBoundingClientRect();
-      const cw = root.clientWidth;
-      const left = isOpen ? r.left - 6 : cw - SLOT - 30;   // -6: nền mục phóng to nở nhẹ sang trái
-      return x >= left && y >= r.top && y <= r.bottom;
-    }
-
-    document.addEventListener('pointermove', (e) => {
-      if (e.pointerType === 'touch' || navHidden()) return;
-      setOpen(inZone(e.clientX, e.clientY));
-    }, { passive: true });
-
-    /* ---------------- MAGNIFICATION (kiểu Dock macOS) ----------------
-       Mục đang trỏ chuột to lên 1.2 lần; các mục lân cận to nhẹ theo độ gần (giảm dần dạng chuông).
-       Hiệu năng: chỉ đổi `transform` (chạy trên GPU, không layout/paint lại), mỗi khung hình đọc hết rồi mới ghi hết
-       (không bị layout thrashing), và tự làm mượt bằng vòng rAF thay vì CSS transition bị khởi động lại sau mỗi lần rê chuột. */
-    const MAG_MAX = 0.2;                      // +20%
-    const MAG_SIGMA = 0.6;                    // độ lan sang các mục kế bên (tính theo chiều cao 1 mục)
-    const ICON_CX = 29;                       // tâm icon tính từ mép trái mục (khớp --hn-ax trong CSS)
-    const MAG_TAU = 55;                       // ms — hằng số làm mượt (nhỏ = bám chuột sát hơn)
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-    let magRaf = 0, magY = null, magLast = 0;
-    const magCur = [];                        // độ phóng hiện tại của từng mục (đã làm mượt)
-
-    function magFrame(now) {
-      magRaf = 0;
-      const n = rows.length;
-      if (!n) return;
-      const dt = Math.min(64, magLast ? now - magLast : 16); magLast = now;
-      const k = reduceMotion.matches ? 1 : 1 - Math.exp(-dt / MAG_TAU);
-
-      // --- ĐỌC (một lượt, trước khi ghi gì) ---
-      const lt = list.getBoundingClientRect().top + list.clientTop - list.scrollTop;
-      const W = panel.offsetWidth;
-      const geo = rows.map(({ item }) => ({ cy: lt + item.offsetTop + item.offsetHeight / 2, h: item.offsetHeight || 1 }));
-
-      // --- TÍNH + GHI ---
-      let moving = false;
-      for (let i = 0; i < n; i++) {
-        let target = 0;
-        if (magY !== null) {
-          const d = (magY - geo[i].cy) / geo[i].h;
-          if (Math.abs(d) < 2.5) target = MAG_MAX * Math.exp(-(d * d) / (2 * MAG_SIGMA * MAG_SIGMA));
-        }
-        let cur = magCur[i] || 0;
-        cur += (target - cur) * k;
-        if (Math.abs(target - cur) < 0.0015) cur = target; else moving = true;
-        if (cur === (magCur[i] || 0) && cur === 0) { magCur[i] = 0; continue; }
-        magCur[i] = cur;
-
-        const r = rows[i];
-        const s = 1 + cur;
-        if (!r.slot) { r.slot = r.item.querySelector('.hn-tick-slot'); r.count = r.item.querySelector('.hn-count'); }
-        if (cur === 0) {
-          r.item.style.transform = ''; r.slot.style.transform = ''; r.count.style.transform = '';
-          r.item.style.zIndex = '';
-        } else {
-          r.item.style.transform = 'scale(' + s.toFixed(4) + ')';
-          // bù trừ để tâm cột vạch và mép phải số video đứng yên (item đang phóng to quanh tâm icon)
-          r.slot.style.transform = 'translateX(' + (-(s - 1) * (W - SLOT / 2 - ICON_CX) / s).toFixed(2) + 'px)';
-          r.count.style.transform = 'translateX(' + (-(s - 1) * (W - SLOT - ICON_CX) / s).toFixed(2) + 'px)';
-          r.item.style.zIndex = String(Math.round(cur * 100));
-        }
-      }
-      if (moving || magY !== null) magRaf = requestAnimationFrame(magFrame); else magLast = 0;
-    }
-    function kickMag() { if (!magRaf) magRaf = requestAnimationFrame(magFrame); }
-    function resetMag() {                     // dừng ngay, xoá hết (dùng khi đóng thanh / dựng lại danh sách)
-      if (magRaf) { cancelAnimationFrame(magRaf); magRaf = 0; }
-      magY = null; magLast = 0; magCur.length = 0;
-      rows.forEach((r) => {
-        r.item.style.transform = ''; r.item.style.zIndex = '';
-        if (r.slot) r.slot.style.transform = '';
-        if (r.count) r.count.style.transform = '';
-      });
-    }
-    list.addEventListener('pointermove', (e) => {
-      if (e.pointerType === 'touch') return;
-      magY = e.clientY; kickMag();
-    }, { passive: true });
-    list.addEventListener('pointerleave', () => { magY = null; kickMag(); });   // thu về từ từ cho mượt
-
-    // Chuột rời hẳn khỏi trang (qua mép phải, hoặc lên thanh cuộn): trình duyệt không gửi mousemove nữa,
-    // nên dựa vào sự kiện "rời đi" cuối cùng. Rời qua mép phải ngang tầm thanh -> giữ thanh mở.
-    // Rời qua hướng khác -> đóng.
-    function onPageLeave(e) {
-      if (e.relatedTarget || e.pointerType === 'touch' || navHidden()) return;
-      const r = panel.getBoundingClientRect();
-      const throughRight = e.clientX >= root.clientWidth - 8;
-      setOpen(throughRight && e.clientY >= r.top && e.clientY <= r.bottom);
-    }
-    root.addEventListener('mouseleave', onPageLeave);
-    document.addEventListener('mouseout', onPageLeave);
-
-    // Cảm ứng: chạm vào cột vạch để mở; chạm ra ngoài để đóng.
-    nav.addEventListener('click', (e) => {
-      if (isTouch.matches && !isOpen && !e.target.closest('.hn-item')) { setOpen(true); }
-    });
-    document.addEventListener('click', (e) => { if (isTouch.matches && !nav.contains(e.target)) setOpen(false); });
-
-    /* ---------------- DỰNG DANH SÁCH ---------------- */
-    function scrollToRow(w) {
-      if (window.homeBeforeJump) window.homeBeforeJump(w);   // dựng hàng đích trước, các hàng ở giữa để yên cho cuộn mượt
-      window.scrollTo({ top: w.getBoundingClientRect().top + window.scrollY - 20, behavior: 'smooth' });
-    }
-
-    function buildNav() {
-      const wrappers = getWrappers();
-      resetMag();
-      list.textContent = '';
-
-      // Mục đầu tiên: "YouTube Shadowing Studio" (icon của app) -> bấm để về đầu trang.
-      const homeTop = document.getElementById('screen-input');
-      const entries = [{ top: true, w: homeTop, label: 'YouTube Shadowing Studio', count: '' }];
-      wrappers.forEach((w, i) => {
-        entries.push({
-          top: false, w,
-          label: ((w.querySelector('h4') || {}).textContent || 'Mục ' + (i + 1)).trim(),
-          count: ((w.querySelector('h4 + span') || {}).textContent || '').trim(),
-          iconSvg: w.querySelector('.cat-row-ico svg')
-        });
-      });
-
-      rows = entries.map((en, i) => {
-        const item = document.createElement('button');
-        item.type = 'button';
-        item.className = 'hn-item' + (en.top ? ' hn-home' : '');
-        // không đặt item.title: thuộc tính này làm trình duyệt hiện thêm khung tooltip đen mỗi khi hover (nhãn đã hiển thị sẵn trong thanh)
-        item.setAttribute('aria-label', en.top ? en.label + ' — về đầu trang' : en.label);
-
-        const ico = document.createElement('span'); ico.className = 'hn-ico';
-        if (en.top) {
-          const im = document.createElement('img');
-          im.src = 'icons/icon128.png'; im.alt = ''; im.width = 26; im.height = 26; im.decoding = 'async';
-          ico.appendChild(im);
-        } else if (en.iconSvg) {
-          ico.appendChild(en.iconSvg.cloneNode(true));
-        }
-        const lb = document.createElement('span'); lb.className = 'hn-label'; lb.textContent = en.label;
-        const ct = document.createElement('span'); ct.className = 'hn-count'; ct.textContent = en.count;
-        const slot = document.createElement('span'); slot.className = 'hn-tick-slot';
-        const tick = document.createElement('i'); tick.className = 'hn-tick'; slot.appendChild(tick);
-        const main = document.createElement('span'); main.className = 'hn-main';
-        main.append(ico, lb, ct);
-        item.append(main, slot);
-
-        item.addEventListener('click', (e) => {
-          // Cảm ứng: chạm lần đầu chỉ để mở thanh ra, chạm lần hai mới nhảy tới mục.
-          if (isTouch.matches && !isOpen) { e.preventDefault(); setOpen(true); return; }
-          if (en.top) { if (window.homeBeforeJump) window.homeBeforeJump(null); window.scrollTo({ top: 0, behavior: 'smooth' }); }
-          else scrollToRow(en.w);
-          setActive(i);
-          // Click bằng chuột (detail > 0): không giữ focus trên nút. Enter/Space từ bàn phím (detail = 0) vẫn giữ focus.
-          if (e.detail > 0 && e.pointerType !== 'touch') item.blur();
-          if (isTouch.matches) setOpen(false);
-        });
-        list.appendChild(item);
-        return { wrapper: en.w, item };
-      });
-      activeIdx = -1;
-      updateVisibility();
-      updateActive();
-    }
-
-    function setActive(i) {
-      if (i === activeIdx) return;
-      if (rows[activeIdx]) { rows[activeIdx].item.classList.remove('active'); rows[activeIdx].item.removeAttribute('aria-current'); }
-      activeIdx = i;
-      if (rows[i]) { rows[i].item.classList.add('active'); rows[i].item.setAttribute('aria-current', 'true'); }
-      ensureActiveVisible();
-    }
-
-    // Chỉ cuộn danh sách trong thanh khi mục đang active bị khuất (màn hình thấp, nhiều mục).
-    function ensureActiveVisible() {
-      const r = rows[activeIdx];
-      if (!r) return;
-      const top = r.item.offsetTop, h = r.item.offsetHeight;
-      if (top < list.scrollTop || top + h > list.scrollTop + list.clientHeight) {
-        list.scrollTop = top - list.clientHeight / 2 + h / 2;
-      }
-    }
-
-    // Scroll-spy: mục "hiện tại" là mục cuối cùng có đầu mục đã lên tới ~30% chiều cao màn hình.
-    function updateActive() {
-      if (!rows.length || navHidden()) return;
-      const line = window.innerHeight * 0.3;
-      let idx = 0;
-      for (let i = 0; i < rows.length; i++) { if (rows[i].wrapper.getBoundingClientRect().top <= line) idx = i; else break; }
-      if (window.scrollY > 0 && window.innerHeight + window.scrollY >= root.scrollHeight - 4) idx = rows.length - 1;
-      setActive(idx);
-    }
-
-    const touchOnly = window.matchMedia('(hover: none) and (pointer: coarse)');   // điện thoại / máy tính bảng: không dùng thanh này
-    function updateVisibility() {
-      const libWrap = document.querySelector('.lib-wrap');
-      const libVisible = libWrap && !libWrap.classList.contains('is-hidden') && !libWrap.classList.contains('hidden') && getComputedStyle(libWrap).display !== 'none';
-      const show = homeVisible() && libVisible && rows.length > 1 && !touchOnly.matches && !document.querySelector('.lib-wrap.cat-open');   // đang ở trang riêng của thể loại hoặc ẩn thư viện thì ẩn thanh
-      nav.classList.toggle('hn-hidden', !show);
-      if (!show) setOpen(false);
-    }
-
-    let ticking = false;
-    window.addEventListener('scroll', () => {
-      if (ticking) return; ticking = true;
-      requestAnimationFrame(() => { ticking = false; updateActive(); });
-    }, { passive: true });
-    window.addEventListener('resize', () => { syncMoreButtons(); updateVisibility(); updateActive(); });
-    if (touchOnly.addEventListener) touchOnly.addEventListener('change', () => { updateVisibility(); updateActive(); });
+    window.addEventListener('resize', () => { syncMoreButtons(); });
 
     // Chỉ hiện ở trang chủ; đo lại nút "Xem thêm" khi trang chủ hiện trở lại.
     const homeEl = document.getElementById('screen-input');
     if (homeEl) {
       new MutationObserver(() => {
-        updateVisibility();
         if (homeVisible() && window.homeOnShown) window.homeOnShown();
-        if (homeVisible()) requestAnimationFrame(() => { syncMoreButtons(); updateActive(); });
+        if (homeVisible()) requestAnimationFrame(() => { syncMoreButtons(); });
       }).observe(homeEl, { attributes: true, attributeFilter: ['class'] });
     }
 
     // Được gọi ở cuối renderNetflixCategories() mỗi khi trang chủ vẽ lại.
     window.syncHomeMore = syncMoreButtons;
-    window.homeNavRefresh = function () { updateVisibility(); updateActive(); };
+    window.homeNavRefresh = function () {};
     window.refreshHomeNav = function () {
       syncMoreButtons();
-      buildNav();
     };
 
-    if (getWrappers().length) window.refreshHomeNav();
+    syncMoreButtons();
   })();
   </script>
   <script id="pv-script">
