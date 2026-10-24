@@ -173,7 +173,7 @@
     .text-mode-toggle .tab-ico { width: 20px; height: 20px; flex: none; filter: drop-shadow(0 1px 2px rgba(0,0,0,.35)); }
 
 
-    /* ===== Đọc báo/IELTS: thư viện bài viết có sẵn ===== */
+    /* ===== Đọc báo tiếng Pháp: thư viện bài viết có sẵn ===== */
     .txt-ext { margin-bottom: 4px; }
     .art-lib { display: flex; flex-direction: column; gap: 12px; }
     .art-lib-head { display: flex; align-items: center; gap: 12px; padding: 0 4px; }
@@ -202,7 +202,7 @@
     #text-history-container .netflix-row-wrapper { margin: 0; }
     .art-lib-msg { padding: 14px 16px; border-radius: 14px; border: 1px dashed #334155; color: #94a3b8; font-size: 13.5px; line-height: 1.55; }
 
-    /* ===== Giao diện "Đọc báo/IELTS" (trước đây là "Luyện với văn bản") ===== */
+    /* ===== Giao diện "Đọc báo tiếng Pháp" ===== */
     #text-input-mode:not(.hidden) { display: flex; flex-direction: column; gap: 18px; }
     .txt-head { display: flex; align-items: center; gap: 16px; }
     .txt-head-ico { width: 58px; height: 58px; flex: none; border-radius: 18px; display: flex; align-items: center; justify-content: center;
@@ -244,10 +244,115 @@
     .txt-cta:hover .txt-cta-ico { transform: scale(1.12); }
     .txt-note { margin: 0; text-align: center; color: #94a3b8; font-size: 13px; line-height: 1.6; }
     .txt-note b { color: #cbd5e1; }
+
+    /* Lối tắt các trang báo tiếng Pháp thông dụng */
+    .fr-news-wrap {
+      background: rgba(13, 21, 48, 0.7);
+      border: 1px solid rgba(59, 130, 246, 0.28);
+      border-radius: 18px;
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .fr-news-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .fr-news-title {
+      font-size: 14.5px;
+      font-weight: 700;
+      color: #93c5fd;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .fr-news-sub {
+      font-size: 12px;
+      color: #94a3b8;
+    }
+    .fr-news-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 10px;
+    }
+    .fr-news-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      background: #080e22;
+      border: 1px solid #1e293b;
+      border-radius: 13px;
+      text-decoration: none;
+      color: #f1f5f9;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .fr-news-item:hover {
+      background: #111d3d;
+      border-color: #3b82f6;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(59, 130, 246, 0.25);
+    }
+    .fr-news-logo {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 11.5px;
+      flex-shrink: 0;
+      letter-spacing: .02em;
+    }
+    .fr-news-meta {
+      flex: 1;
+      min-width: 0;
+    }
+    .fr-news-name {
+      font-weight: 700;
+      font-size: 13px;
+      color: #fff;
+      line-height: 1.25;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .fr-news-desc {
+      font-size: 11px;
+      color: #94a3b8;
+      line-height: 1.3;
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .fr-news-arrow {
+      color: #64748b;
+      margin-left: auto;
+      flex-shrink: 0;
+      transition: transform 0.2s;
+    }
+    .fr-news-item:hover .fr-news-arrow {
+      color: #60a5fa;
+      transform: translateX(3px);
+    }
+    .txt-file-btn:hover {
+      color: #fff !important;
+      border-color: #60a5fa !important;
+      background: #1e3a8a !important;
+    }
+
     @media (max-width: 560px) {
       .txt-head { align-items: flex-start; }
       .txt-title { font-size: 19px; }
       .txt-card { padding: 14px; }
+      .fr-news-grid { grid-template-columns: 1fr; }
+    }
     }
 </style>
 
@@ -3843,7 +3948,7 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
           </button>
           <button type="button" id="mode-tab-text" onclick="setInputMode('text')">
             <svg class="tab-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="1.8" width="16" height="20.4" rx="3.5" fill="#2dd4bf"/><path d="M14.5 1.8H16.5A3.5 3.5 0 0 1 20 5.3V7.5Z" fill="#fde047"/><path d="M8 9.5h8M8 13h8M8 16.5h5" stroke="#fff" stroke-width="1.9" stroke-linecap="round"/></svg>
-            <span>Đọc báo/IELTS</span>
+            <span>Đọc báo tiếng Pháp</span>
           </button>
           <button type="button" id="mode-tab-book" onclick="setInputMode('book')">
             <svg class="tab-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4.5C3 3.7 3.7 3 4.5 3H9a3 3 0 0 1 3 3v15a2.5 2.5 0 0 0-2.5-2.5H4.5A1.5 1.5 0 0 1 3 17z" fill="#f59e0b"/><path d="M21 4.5c0-.8-.7-1.5-1.5-1.5H15a3 3 0 0 0-3 3v15a2.5 2.5 0 0 1 2.5-2.5h5a1.5 1.5 0 0 0 1.5-1.5z" fill="#fde68a"/><path d="M6 8h3M6 11h3M15 8h3M15 11h3" stroke="#92400e" stroke-width="1.4" stroke-linecap="round"/></svg>
@@ -3900,7 +4005,8 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
               <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="1.8" width="16" height="20.4" rx="3.5" fill="#fff"/><path d="M14.5 1.8H16.5A3.5 3.5 0 0 1 20 5.3V7.5Z" fill="#fde047"/><path d="M8 10h8M8 13.5h8M8 17h5" stroke="#14b8a6" stroke-width="1.9" stroke-linecap="round"/></svg>
             </span>
             <div>
-              <h3 class="txt-title">Đọc báo/IELTS</h3>
+              <h3 class="txt-title">Đọc báo tiếng Pháp</h3>
+              <p class="txt-sub">Luyện đọc hiểu qua các bài báo và tin tức tiếng Pháp thực tế. Tách câu thông minh, dịch song ngữ Pháp – Việt, tra từ điển Larousse và phát âm chuẩn.</p>
             </div>
           </div>
 
@@ -3911,13 +4017,102 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
             <span class="txt-chip"><i style="background:rgba(52,211,153,.16)"><svg viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.8 2.8L16.5 9.5"/></svg></i>Tự động lưu lịch sử</span>
           </div>
 
-          <!-- Hướng dẫn cài extension để nhập bài báo / IELTS Reading -->
-          <div class="ext-strip txt-ext">
-            <span class="ext-strip-text">Để nhập bất cứ bài báo/IELTS Reading nào vào app để đọc, vui lòng cài Extension sau.<br>Sau khi cài xong: mở bất cứ bài báo/IELTS nào —&gt; bôi đen toàn bộ bài đọc —&gt; click chuột phải —&gt; chọn <b>"Đọc bằng Shadowing Studio"</b></span>
-            <a id="txt-ext-btn" class="ext-guide-btn" href="https://chromewebstore.google.com/detail/jdfodpjhiiggdhdiddhnkbhaimnjkfjp?utm_source=item-share-cb" target="_blank" rel="noopener">
-              <span class="ext-guide-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg></span>
-              <span class="ext-guide-label">Cài extension</span>
-            </a>
+          <!-- Lối tắt các trang báo tiếng Pháp thông dụng -->
+          <div class="fr-news-wrap">
+            <div class="fr-news-head">
+              <span class="fr-news-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                Trang báo tiếng Pháp khuyên đọc
+              </span>
+              <span class="fr-news-sub">Bấm để mở trang báo, chọn bài và sao chép nội dung dán vào bên dưới</span>
+            </div>
+            <div class="fr-news-grid">
+              <a href="https://francaisfacile.rfi.fr/" target="_blank" rel="noopener" class="fr-news-item" title="Tin tức thời sự tiếng Pháp dễ hiểu, kèm audio đọc chậm">
+                <span class="fr-news-logo" style="background:#e11d48;color:#fff;">RFI</span>
+                <div class="fr-news-meta">
+                  <div class="fr-news-name">RFI Français Facile</div>
+                  <div class="fr-news-desc">Tiếng Pháp dễ hiểu & Audio</div>
+                </div>
+                <svg class="fr-news-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </a>
+
+              <a href="https://www.lemonde.fr/" target="_blank" rel="noopener" class="fr-news-item" title="Nhật báo thời sự, chính trị và văn hóa số 1 nước Pháp">
+                <span class="fr-news-logo" style="background:#1e293b;color:#facc15;border:1px solid #475569;">LM</span>
+                <div class="fr-news-meta">
+                  <div class="fr-news-name">Le Monde</div>
+                  <div class="fr-news-desc">Nhật báo số 1 nước Pháp</div>
+                </div>
+                <svg class="fr-news-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </a>
+
+              <a href="https://www.france24.com/fr/" target="_blank" rel="noopener" class="fr-news-item" title="Kênh tin tức truyền hình quốc tế tiếng Pháp 24/7">
+                <span class="fr-news-logo" style="background:#0284c7;color:#fff;">F24</span>
+                <div class="fr-news-meta">
+                  <div class="fr-news-name">France 24</div>
+                  <div class="fr-news-desc">Tin tức truyền hình quốc tế 24/7</div>
+                </div>
+                <svg class="fr-news-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </a>
+
+              <a href="https://www.lefigaro.fr/" target="_blank" rel="noopener" class="fr-news-item" title="Nhật báo lâu đời và có lượng độc giả lớn của Pháp">
+                <span class="fr-news-logo" style="background:#1e3a8a;color:#93c5fd;">FIG</span>
+                <div class="fr-news-meta">
+                  <div class="fr-news-name">Le Figaro</div>
+                  <div class="fr-news-desc">Báo chí chính luận lớn & lâu đời</div>
+                </div>
+                <svg class="fr-news-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </a>
+
+              <a href="https://apprendre.tv5monde.com/fr" target="_blank" rel="noopener" class="fr-news-item" title="Học tiếng Pháp qua phóng sự truyền hình theo cấp độ A1-B2">
+                <span class="fr-news-logo" style="background:#7c3aed;color:#fff;">TV5</span>
+                <div class="fr-news-meta">
+                  <div class="fr-news-name">TV5Monde Apprendre</div>
+                  <div class="fr-news-desc">Tin bài học tiếng Pháp A1–B2</div>
+                </div>
+                <svg class="fr-news-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </a>
+
+              <a href="https://www.courrierinternational.com/" target="_blank" rel="noopener" class="fr-news-item" title="Điểm tin và góc nhìn báo chí toàn cầu bằng tiếng Pháp">
+                <span class="fr-news-logo" style="background:#d97706;color:#fff;">CI</span>
+                <div class="fr-news-meta">
+                  <div class="fr-news-name">Courrier International</div>
+                  <div class="fr-news-desc">Góc nhìn báo chí toàn cầu</div>
+                </div>
+                <svg class="fr-news-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </a>
+            </div>
+          </div>
+
+          <!-- Khung dán bài báo tiếng Pháp trực tiếp -->
+          <div class="txt-card">
+            <div class="txt-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              <span>Nhập hoặc dán bài báo tiếng Pháp</span>
+              <em>(Dán nội dung bài viết từ các trang báo trên vào đây)</em>
+            </div>
+
+            <input id="text-shadow-title-input" type="text" placeholder="Tiêu đề bài viết (tùy chọn — nếu bỏ trống, câu đầu tiên sẽ làm tiêu đề)" />
+
+            <textarea id="text-shadow-textarea" placeholder="Dán nội dung bài báo hoặc đoạn văn bản tiếng Pháp vào đây để bắt đầu đọc..."></textarea>
+
+            <div class="txt-foot">
+              <span class="txt-count"><b id="text-wc">0</b> từ</span>
+              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                <label class="txt-file-btn" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:999px;background:#0d1530;border:1px solid #1e2d5c;color:#93c5fd;font-size:12.5px;font-weight:600;cursor:pointer;transition:all .15s;">
+                  <input type="file" id="text-file-input" accept=".txt,.docx,.md,.html,.htm" style="display:none;" onchange="handleTextFileInput(event)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  Tải file (.txt, .docx, .md)
+                </label>
+                <button type="button" id="text-clear-btn" class="txt-clear">Xóa trắng</button>
+              </div>
+            </div>
+
+            <button type="button" class="txt-cta" onclick="startTextShadowingFromPaste()">
+              <span class="txt-cta-ico">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              </span>
+              <span>Bắt đầu đọc bài viết</span>
+            </button>
           </div>
 
           <!-- Văn bản Bạn Đã Luyện: hàng thẻ lịch sử các bài đã đọc (vẽ bởi renderTextHistoryRow) -->
@@ -3931,14 +4126,6 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
               <small>bấm vào bài để đọc</small>
             </div>
             <div id="art-lib-grid" class="art-lib-grid"></div>
-          </div>
-
-          <!-- Phần tử ẩn: giữ lại để code cũ không bị lỗi null (đã bỏ nhập tay) -->
-          <div hidden aria-hidden="true" style="display:none">
-            <input id="text-shadow-title-input" type="text" tabindex="-1" />
-            <textarea id="text-shadow-textarea" tabindex="-1"></textarea>
-            <b id="text-wc">0</b>
-            <button type="button" id="text-clear-btn" tabindex="-1"></button>
           </div>
         </div>
         <!-- ==================== ĐỌC SÁCH: KHU NHẬP SÁCH + THƯ VIỆN SÁCH ==================== -->
@@ -9083,6 +9270,54 @@ html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
       const title = (document.getElementById('text-shadow-title-input').value || '').trim();
       enterTextShadowing(raw, title, null);
     }
+
+    window.handleTextFileInput = function(e) {
+      const file = e.target && e.target.files && e.target.files[0];
+      if (!file) return;
+      const baseName = file.name.replace(/\.[^.]+$/, '');
+      const ti = document.getElementById('text-shadow-title-input');
+      const ta = document.getElementById('text-shadow-textarea');
+      if (ti && !ti.value.trim()) ti.value = baseName;
+
+      const ext = (file.name.split('.').pop() || '').toLowerCase();
+      if (ext === 'docx') {
+        const fr = new FileReader();
+        fr.onload = async () => {
+          try {
+            const blocks = await artParseDocx(fr.result);
+            const text = blocks.filter(b => b.t !== 'img').map(b => b.x).join('\n\n');
+            if (ta) {
+              ta.value = text;
+              const wc = document.getElementById('text-wc');
+              if (wc) wc.textContent = text ? text.split(/\s+/).length : 0;
+            }
+            showVocabToast('Đã nạp file Word thành công', true);
+          } catch(err) {
+            showVocabToast('Không đọc được file docx này: ' + (err.message || err), false);
+          }
+        };
+        fr.readAsArrayBuffer(file);
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        let content = String(reader.result || '');
+        if (ext === 'html' || ext === 'htm') {
+          const doc = new DOMParser().parseFromString(content, 'text/html');
+          content = doc.body ? doc.body.innerText : content;
+        } else if (ext === 'md' || ext === 'markdown') {
+          content = typeof artMdInline === 'function' ? artMdInline(content) : content;
+        }
+        if (ta) {
+          ta.value = content.trim();
+          const wc = document.getElementById('text-wc');
+          if (wc) wc.textContent = content.trim() ? content.trim().split(/\s+/).length : 0;
+        }
+        showVocabToast('Đã nạp file thành công', true);
+      };
+      reader.readAsText(file);
+    };
 
     // Mở một bài trong "Thư viện bài viết" (mục "Article" trong category.json): đọc file văn bản
     // thuần <articleId>.txt cùng thư mục với index.html, giống quy ước <videoId>.srt của video.

@@ -18,7 +18,7 @@ Khác với các ứng dụng xem video thông thường, French Shadowing Studi
 
 ---
 
-## 🌟 7 Nhóm tính năng cốt lõi
+## 🌟 8 Nhóm tính năng cốt lõi
 
 ### 1. 🎙️ Luyện Shadowing & Ghi âm Đối sánh Ngữ điệu
 - **Đồng bộ từng từ (Word-level timestamps):** Hiệu ứng chữ chạy karaoke mượt mà 60 khung hình/giây giúp người học bắt kịp nhịp điệu và ngữ điệu tự nhiên của người bản xứ.
@@ -61,7 +61,24 @@ Khác với các ứng dụng xem video thông thường, French Shadowing Studi
 - **Tra cứu nghĩa theo ngữ cảnh với Google AI:** Hiểu nghĩa chính xác của từ hoặc cụm từ tùy thuộc vào ngữ cảnh của câu thoại.
 - **Liên kết Từ điển danh tiếng:** Mở nhanh trang từ điển chuẩn **Larousse** (`larousse.fr`) và bảng phiên âm quốc tế **IPA**.
 
-### 7. ☁️ Đồng bộ Đám mây Đa thiết bị với Supabase
+### 7. 📰 Đọc báo tiếng Pháp & Cơ chế Tạo File Song ngữ
+- **Lối tắt báo chí tiếng Pháp (Quick News Links):** Tích hợp sẵn cụm nút bấm truy cập nhanh tới các trang báo lớn và uy tín nhất nước Pháp:
+  - **RFI Français Facile:** Tin tức thời sự tiếng Pháp dễ hiểu, kèm audio đọc chậm cực kỳ phù hợp cho người học.
+  - **Le Monde:** Nhật báo thời sự, văn hóa và chính trị số 1 nước Pháp.
+  - **France 24:** Kênh truyền hình tin tức quốc tế 24/7.
+  - **Le Figaro:** Báo chí chính luận lớn và lâu đời bậc nhất.
+  - **TV5Monde Apprendre:** Tin bài học tiếng Pháp phân chia theo cấp độ CEFR A1–B2.
+  - **Courrier International:** Điểm tin và góc nhìn báo chí toàn cầu.
+- **Khung dán bài đọc trực tiếp & Nạp file từ máy:**
+  - Sao chép bất kỳ bài báo nào trên web dán vào ô nội dung (tự động đếm từ và nhận diện tiêu đề).
+  - Hoặc bấm nút **"Tải file (.txt, .docx, .md)"** để nạp tài liệu sẵn có từ máy tính.
+- **Giải thích 2 cơ chế tạo File Song ngữ (Bilingual Translation):**
+  1. *Cách 1 – Dùng công cụ "Song ngữ AI" trong app (Khi đọc bài bất kỳ):*
+     Khi mở bài đọc trong app, bấm nút **"Song ngữ AI"** (hoặc `Nhờ AI dịch`). Ứng dụng tự động sinh Prompt chuẩn kèm toàn bộ các câu tiếng Pháp của bài đọc. Bấm **"Copy Prompt"** -> Dán vào ChatGPT / Claude / Gemini -> Copy câu trả lời của AI -> Dán lại vào app và bấm **"Áp dụng"**. Thuật toán `applyBilingualFromAi` sẽ tự động ghép từng câu dịch tiếng Việt vào đúng vị trí câu tiếng Pháp.
+  2. *Cách 2 – Tạo sẵn file song ngữ lưu trữ vĩnh viễn (`<tên_bài>_vi.txt` hoặc `.docx`):*
+     Đặt file bài gốc vào thư mục `articles/` (ví dụ `articles/marie-curie.docx`), sau đó tạo file song ngữ đặt cạnh mang tên `articles/marie-curie_vi.docx` (hoặc `.txt`). Nội dung file `_vi` là kết quả câu tiếng Pháp xen kẽ câu tiếng Việt do AI tạo ra. Khi mở bài, hệ thống sẽ tự động quét thấy file `_vi` và nạp song ngữ 100% không cần thao tác thêm.
+
+### 8. ☁️ Đồng bộ Đám mây Đa thiết bị với Supabase
 - Tích hợp đám mây qua [Supabase](https://supabase.com/), tự động đồng bộ danh sách từ vựng đã lưu, ghi chú cá nhân và tiến độ luyện tập giữa Máy tính, iPhone, iPad và điện thoại Android.
 - Hỗ trợ lưu trữ cục bộ (*Offline-first*) khi mất mạng và tự động đồng bộ hóa khi có kết nối trở lại.
 
