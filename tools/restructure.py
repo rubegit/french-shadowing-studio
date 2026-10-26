@@ -48,7 +48,9 @@ def cmd_scan(_):
 def build():
     t = SRC.read_text(encoding='utf-8'); man = json.loads(MAN.read_text(encoding='utf-8'))
     for e in man['entries']:
-        if e['kind'] == 'include': t = t.replace(e['replacement'], P(e['file']).read_text(encoding='utf-8'))
+        if e['kind'] == 'include' and e['replacement'] in t:
+            p = P(e['file'])
+            if p.exists(): t = t.replace(e['replacement'], p.read_text(encoding='utf-8'))
     OUT.write_text(t, encoding='utf-8'); return t
 
 def cmd_extract(a):

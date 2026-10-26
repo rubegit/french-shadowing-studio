@@ -137,7 +137,6 @@ graph TD
 │   ├── modal-translate-ai.html             # Trợ lý AI dịch Việt → Pháp (#vt-ai-modal)
 │   ├── modal-vocab-meaning.html            # Bảng tra nghĩa từ vựng hàng loạt (#vocab-meaning-modal)
 │   ├── view-book.html                      # Màn hình đọc sách E-Reader (#screen-book)
-│   ├── view-donate.html                    # Màn hình ủng hộ tác giả (#screen-donate)
 │   ├── view-guide.html                     # Màn hình hướng dẫn cài extension (#screen-guide)
 │   ├── view-home.html                      # Màn hình chính / Nhập link / Catalog (#screen-input)
 │   ├── view-practice.html                  # Phòng luyện Shadowing, Karaoke & Split-panel (#screen-practice)
@@ -180,7 +179,7 @@ graph TD
 | [`index.html`](file:///Users/linhvu/AI%20Project/Shadowing/index.html) | Root | **Tệp HTML phân phối chính (Production Asset).** Được tạo tự động bởi `python3 tools/restructure.py build`. Đảm bảo phục vụ nhanh nhất cho Vercel CDN mà không cần server build. |
 | [`index.src.html`](file:///Users/linhvu/AI%20Project/Shadowing/src/index.src.html) | `src/` | **Khung xương template ứng dụng (~345 dòng).** Chứa thẻ `<head>`, thẻ nạp stylesheet `css/*.css`, khung tooltip bôi đen, các chỉ thị `<!-- @include partials/... -->` và các thẻ nạp script `js/*.js`. |
 | `modal-*.html` | `partials/` | **9 hộp thoại chuyên biệt:** Bảng cài đặt song ngữ, phím ký tự dấu, chia sẻ bài học, trích xuất từ vựng khó, tra nghĩa nhanh, ôn tập ngắt quãng (SRS), trợ lý AI dịch thuật, nạp sách và dịch song ngữ sách. |
-| `view-*.html` | `partials/` | **7 màn hình chức năng chính:** `view-home` (Trang chủ & Netflix Rows), `view-practice` (Phòng luyện Shadowing & Player), `view-translate` (Luyện dịch Việt → Pháp), `view-vocab` (Từ vựng đã lưu), `view-guide` (Hướng dẫn cài đặt), `view-donate` (Ủng hộ tác giả), `view-book` (Trình đọc sách E-Reader). |
+| `view-*.html` | `partials/` | **6 màn hình chức năng chính:** `view-home` (Trang chủ & Netflix Rows), `view-practice` (Phòng luyện Shadowing & Player), `view-translate` (Luyện dịch Việt → Pháp), `view-vocab` (Từ vựng đã lưu), `view-guide` (Hướng dẫn cài đặt), `view-book` (Trình đọc sách E-Reader). |
 
 ---
 

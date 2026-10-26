@@ -20,7 +20,7 @@
       try {
         var h = location.hash || '';
         if (/^#share=/.test(h) || /[?&]v=/.test(location.search)) return;
-        if (/^#\/(vocab|guide|donate|watch\/|read\/|book\/|translate\/.)/.test(h)) {
+        if (/^#\/(vocab|guide|watch\/|read\/|book\/|translate\/.)/.test(h)) {
           document.documentElement.classList.add('rt-boot');
           setTimeout(function () { document.documentElement.classList.remove('rt-boot'); }, 10000);
         }
@@ -294,13 +294,7 @@
 
   <div id="gd-lightbox" role="dialog" aria-modal="true" aria-label="Ảnh phóng to"><img id="gd-lightbox-img" alt="" /><p>Chạm vào bất kỳ đâu để đóng</p></div>
 
-  <!-- ==================== MÀN HÌNH: ỦNG HỘ TÁC GIẢ (DONATE) ==================== -->
-  <!-- @include partials/view-donate.html -->
 
-  <div id="dn-lightbox" onclick="closeDonateQr()" role="dialog" aria-modal="true" aria-label="Mã QR phóng to">
-    <div class="dn-lb-box"><img id="dn-lightbox-img" alt="Mã QR" /></div>
-    <p>Chạm vào bất kỳ đâu để đóng</p>
-  </div>
 
   <!-- ==================== ĐỌC SÁCH: MÀN HÌNH ĐỌC ==================== -->
   <div id="bk-loading" class="bk-loading"><div class="bk-loading-box"><div class="bk-spin"></div><div id="bk-loading-text">Đang xử lý...</div></div></div>

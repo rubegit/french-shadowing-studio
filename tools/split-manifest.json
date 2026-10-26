@@ -507,11 +507,7 @@
    "kind": "include",
    "replacement": "<!-- @include partials/view-guide.html -->",
    "file": "partials/view-guide.html"
-  },
-  {
-   "kind": "include",
-   "replacement": "<!-- @include partials/view-donate.html -->",
-   "file": "partials/view-donate.html"
+
   },
   {
    "kind": "include",

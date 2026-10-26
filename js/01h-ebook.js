@@ -1718,7 +1718,7 @@
     (function setupHashRouter() {
       const $ = (id) => document.getElementById(id);
       const vis = (id) => { const e = $(id); return !!e && !e.classList.contains('hidden'); };
-      const SCREENS = ['screen-input', 'screen-practice', 'screen-vocab', 'screen-book', 'screen-guide', 'screen-donate', 'screen-vt'];
+      const SCREENS = ['screen-input', 'screen-practice', 'screen-vocab', 'screen-book', 'screen-guide', 'screen-vt'];
       let ready = false;      // chỉ ghi hash sau khi app khởi động xong
       let routing = 0;        // > 0: router đang tự chuyển màn hình, không ghi ngược lại hash
       let syncTimer = null;
@@ -1746,7 +1746,6 @@
           return (isTextMode ? '/read/' : '/watch/') + encodeURIComponent(currentVideoId) + (pv && pv !== 'default' ? '/' + pv : '');
         }
         if (vis('screen-guide')) return '/guide';
-        if (vis('screen-donate')) return '/donate';
         if (vis('screen-vt')) { const k = window.vtCurrentKey ? window.vtCurrentKey() : ''; return k ? '/translate/' + encodeURIComponent(k) : null; }
         if (vis('screen-input')) {
           const lr = (currentInputMode === 'video' && window.libCatRoute) ? window.libCatRoute() : '';   // trang riêng của thể loại: #/library/<thể loại>[/<playlist>]
@@ -1778,7 +1777,6 @@
         else if (vis('screen-vt')) { if (window.vtClose) window.vtClose(); }
         else if (vis('screen-book')) bkClose();
         else if (vis('screen-guide')) closeGuideScreen();
-        else if (vis('screen-donate')) closeDonateScreen();
       }
 
       function toast(msg) { try { showVocabToast(msg, false); } catch (e) {} }
@@ -1840,7 +1838,7 @@
             return;
           }
           case 'vocab':
-            if (vis('screen-guide') || vis('screen-donate')) leaveToHome();
+            if (vis('screen-guide')) leaveToHome();
             openVocabScreen();
             return;
           case 'guide':
@@ -1848,8 +1846,7 @@
             openGuideScreen();
             return;
           case 'donate':
-            if (!vis('screen-input')) leaveToHome();
-            openDonateScreen();
+            leaveToHome();
             return;
           case 'watch':
           case 'read': {

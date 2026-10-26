@@ -20,7 +20,7 @@
       try {
         var h = location.hash || '';
         if (/^#share=/.test(h) || /[?&]v=/.test(location.search)) return;
-        if (/^#\/(vocab|guide|donate|watch\/|read\/|book\/|translate\/.)/.test(h)) {
+        if (/^#\/(vocab|guide|watch\/|read\/|book\/|translate\/.)/.test(h)) {
           document.documentElement.classList.add('rt-boot');
           setTimeout(function () { document.documentElement.classList.remove('rt-boot'); }, 10000);
         }
@@ -1013,78 +1013,7 @@
 
   <div id="gd-lightbox" role="dialog" aria-modal="true" aria-label="Ảnh phóng to"><img id="gd-lightbox-img" alt="" /><p>Chạm vào bất kỳ đâu để đóng</p></div>
 
-  <!-- ==================== MÀN HÌNH: ỦNG HỘ TÁC GIẢ (DONATE) ==================== -->
-  <div id="screen-donate" class="hidden">
-    <div class="dn-wrap">
-      <div class="dn-top">
-        <button type="button" class="vocab-btn" onclick="closeDonateScreen()"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i><span>Quay lại</span></button>
-      </div>
 
-      <header class="dn-hero">
-        <span class="dn-aurora" aria-hidden="true"></span>
-        <div class="dn-avatar">
-          <svg viewBox="0 0 64 64" fill="none" stroke="#fcd34d" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 25h34v12a15 15 0 0 1-15 15h-4A15 15 0 0 1 12 37z" fill="rgba(252,211,77,.16)"/><path d="M46 28.5h2.5a6.5 6.5 0 0 1 0 13H44"/><path d="M7 58h44"/></svg>
-          <img data-src="images/author.jpg" width="1080" height="1080" alt="Tác giả" onerror="this.remove()" />
-        </div>
-        <h2 class="dn-title">Mình quyết định để app <span class="dn-grad">miễn phí</span> để mọi người đều có thể dùng.</h2>
-        <p class="dn-sub">Nếu bạn thấy app hữu ích, mời mình 1 ly cà phê nhé.</p>
-      </header>
-
-      <div class="dn-panel">
-        <div class="dn-tabs" id="dn-tabs" role="tablist" aria-label="Phương thức ủng hộ" data-active="momo" onkeydown="donateTabKey(event)">
-          <span class="dn-thumb" aria-hidden="true"></span>
-          <button type="button" class="dn-tab" role="tab" id="dn-tab-momo" data-tab="momo" aria-selected="true" aria-controls="dn-pane-momo" onclick="setDonateTab('momo')"><span class="dn-mark momo" data-txt="mo"><img data-src="icons/momo_icon.png" alt="" onerror="this.parentNode.classList.add('no-img');this.remove()" /></span>MoMo</button>
-          <button type="button" class="dn-tab" role="tab" id="dn-tab-vcb" data-tab="vcb" aria-selected="false" tabindex="-1" aria-controls="dn-pane-vcb" onclick="setDonateTab('vcb')"><span class="dn-mark vcb" data-txt="VCB"><img data-src="icons/vcb_icon.png" alt="" onerror="this.parentNode.classList.add('no-img');this.remove()" /></span>Vietcombank</button>
-        </div>
-
-        <div class="dn-body">
-          <div class="dn-stage">
-            <!-- MoMo -->
-            <div class="dn-pane is-active" id="dn-pane-momo" data-pane="momo" role="tabpanel" aria-labelledby="dn-tab-momo">
-              <div class="dn-qrcol">
-                <div class="dn-scan"><i></i><i></i><i></i><i></i>
-                  <button type="button" class="dn-qr" onclick="openDonateQr(this)" title="Chạm để phóng to" aria-label="Phóng to mã QR MoMo">
-                    <img data-src="images/momo_QR.png" width="647" height="710" alt="Mã QR MoMo" onerror="this.parentNode.classList.add('is-missing')" />
-                    <span class="dn-qr-missing">Chưa tìm thấy ảnh<br><b>momo_QR.png</b></span>
-                  </button>
-                </div>
-                <a class="dn-save" href="images/momo_QR.png" download="momo_QR.png"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-4.5-4.5M12 15l4.5-4.5M4 20h16"/></svg>Lưu ảnh QR</a>
-              </div>
-              <div class="dn-info dn-info-momo">
-                <span class="dn-brand" data-txt="mo" aria-hidden="true"><img data-src="icons/momo_icon.png" alt="" onerror="this.parentNode.classList.add('no-img');this.remove()" /></span>
-                <h3 class="dn-pane-title">Donate qua MoMo</h3>
-              </div>
-            </div>
-
-            <!-- Vietcombank -->
-            <div class="dn-pane" id="dn-pane-vcb" data-pane="vcb" role="tabpanel" aria-labelledby="dn-tab-vcb">
-              <div class="dn-qrcol">
-                <div class="dn-scan"><i></i><i></i><i></i><i></i>
-                  <button type="button" class="dn-qr" onclick="openDonateQr(this)" title="Chạm để phóng to" aria-label="Phóng to mã QR Vietcombank">
-                    <img data-src="images/VCB_QR.jpg" width="372" height="539" alt="Mã QR Vietcombank" onerror="this.parentNode.classList.add('is-missing')" />
-                    <span class="dn-qr-missing">Chưa tìm thấy ảnh<br><b>VCB_QR.jpg</b></span>
-                  </button>
-                </div>
-                <a class="dn-save" href="images/VCB_QR.jpg" download="VCB_QR.jpg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-4.5-4.5M12 15l4.5-4.5M4 20h16"/></svg>Lưu ảnh QR</a>
-              </div>
-              <div class="dn-info">
-                <dl class="dn-facts">
-                  <div class="dn-fact"><dt>Số tài khoản</dt><dd class="dn-numrow"><span id="dn-acc-number">1018754996</span><button type="button" class="dn-copy" onclick="copyDonateAccount(this)" aria-live="polite"><svg class="ic-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2.5"/><path d="M5 15H4.5A1.5 1.5 0 0 1 3 13.5v-9A1.5 1.5 0 0 1 4.5 3h9A1.5 1.5 0 0 1 15 4.5V5"/></svg><svg class="ic-ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg><span class="dn-copy-text">Sao chép</span></button></dd></div>
-                  <div class="dn-fact"><dt>Chủ tài khoản</dt><dd>LONG NGOC GIANG</dd></div>
-                  <div class="dn-fact"><dt>Ngân hàng</dt><dd>Vietcombank</dd></div>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div id="dn-lightbox" onclick="closeDonateQr()" role="dialog" aria-modal="true" aria-label="Mã QR phóng to">
-    <div class="dn-lb-box"><img id="dn-lightbox-img" alt="Mã QR" /></div>
-    <p>Chạm vào bất kỳ đâu để đóng</p>
-  </div>
 
   <!-- ==================== ĐỌC SÁCH: MÀN HÌNH ĐỌC ==================== -->
   <div id="bk-loading" class="bk-loading"><div class="bk-loading-box"><div class="bk-spin"></div><div id="bk-loading-text">Đang xử lý...</div></div></div>
