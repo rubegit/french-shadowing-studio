@@ -24,6 +24,15 @@ When authorization to code is granted in Step 4, you must adhere to the followin
 * **No Unapproved Alterations:** Do not alter, refactor, or delete any surrounding code beyond the explicitly agreed-upon modifications established in Step 2 and listed in the current Module Card.
 * **Modified files are written in full:** When an already-approved file must change, write the entire updated file to disk and list a short changelog (3-5 lines) in the chat. Never leave a partial edit or a placeholder in place of the file content.
 
+## 2.1. Quy tắc chỉnh sửa HTML/CSS/JS sau khi tách (Post-split Workflow)
+* **Không sửa tay `index.html`:** Tệp `index.html` hiện là tệp được sinh tự động bởi công cụ build. Mọi thay đổi cấu trúc hoặc nội dung HTML bắt buộc phải thực hiện trong `src/index.src.html` hoặc các tệp tương ứng trong `partials/`.
+* **Lệnh build bắt buộc:** Sau khi chỉnh sửa bất kỳ tệp HTML nào trong `src/` hoặc `partials/`, phải chạy lệnh:
+  ```bash
+  python3 tools/restructure.py build
+  ```
+  để cập nhật lại `index.html`. Luôn commit cả `index.html` lên repository để Vercel phục vụ trực tiếp mà không cần bước build server.
+* **Chỉnh sửa CSS & JS:** Sửa trực tiếp trong các tệp module tương ứng tại `css/` và `js/`. Tuyệt đối giữ nguyên tính chất classic script (không tự ý đổi sang `type="module"`, không thêm `defer`/`async` làm hỏng inline event handlers và biến toàn cục).
+
 ## 3. Delivery Units & Module Card (Đơn vị giao & Phiếu khai báo module)
 A module is a valid Delivery Unit only if it satisfies ALL of the following:
 

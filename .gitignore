@@ -6,3 +6,4 @@ dist/
 
 __pycache__/
 *.pyc
+.agents/**/__pycache__/
