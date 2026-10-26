@@ -1,0 +1,122 @@
+[
+  {
+    "blocks": [1],
+    "file": "css/01-boot.css"
+  },
+  {
+    "blocks": [2],
+    "file": "js/00-boot.js"
+  },
+  {
+    "blocks": [3],
+    "file": "css/02-base.css"
+  },
+  {
+    "blocks": [4],
+    "file": "css/03-layout.css"
+  },
+  {
+    "blocks": [5],
+    "file": "css/04-view-reader.css"
+  },
+  {
+    "blocks": [6],
+    "file": "css/05-view-catalog.css"
+  },
+  {
+    "blocks": [7],
+    "file": "css/06-view-news.css"
+  },
+  {
+    "blocks": [8],
+    "file": "css/07-view-practice.css"
+  },
+  {
+    "blocks": [9, 10, 11],
+    "file": "css/08-player-fixes.css"
+  },
+  {
+    "blocks": [12],
+    "file": "css/09-view-translate.css"
+  },
+  {
+    "blocks": [13, 14, 15, 16, 17],
+    "file": "css/10-player-components.css"
+  },
+  {
+    "block": 18,
+    "split": [
+      {
+        "to_line": 1201,
+        "file": "js/01-core.js"
+      },
+      {
+        "to_line": 2443,
+        "file": "js/02-catalog.js"
+      },
+      {
+        "to_line": 3514,
+        "file": "js/03-subtitles.js"
+      },
+      {
+        "to_line": 5843,
+        "file": "js/04-player.js"
+      },
+      {
+        "to_line": 6603,
+        "file": "js/05-translate-ai.js"
+      },
+      {
+        "to_line": 8109,
+        "file": "js/06-lookup.js"
+      },
+      {
+        "to_line": 10984,
+        "file": "js/07-vocab-list.js"
+      },
+      {
+        "file": "js/08-ebook.js"
+      }
+    ]
+  },
+  {
+    "blocks": [19],
+    "file": "js/09-pv-helper.js"
+  },
+  {
+    "blocks": [20],
+    "file": "js/10-practice-engine.js"
+  },
+  {
+    "blocks": [21],
+    "file": "js/11-vt-helper.js"
+  },
+  {
+    "blocks": [22],
+    "file": "js/12-translate-engine.js"
+  },
+  {
+    "blocks": [23, 24, 25, 26],
+    "file": "css/11-mobile-responsive.css"
+  },
+  {
+    "blocks": [27],
+    "file": "js/13-audio-sync.js"
+  },
+  {
+    "blocks": [28],
+    "file": "js/14-timeline-cc.js"
+  },
+  {
+    "blocks": [29],
+    "file": "js/15-responsive-height.js"
+  },
+  {
+    "blocks": [30],
+    "file": "js/16-keyboard-helper.js"
+  },
+  {
+    "blocks": [31],
+    "file": "js/17-own-video.js"
+  }
+]

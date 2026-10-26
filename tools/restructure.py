@@ -2,12 +2,13 @@
 """Tách index.html thành css/, js/, partials/ mà KHÔNG đổi nội dung (lossless).
 Chạy tại thư mục gốc repo:  python3 tools/restructure.py <lệnh>
   scan                     Báo cáo các khối <style>/<script> nội tuyến (không ghi gì)
-  extract [--map map.json] [--bust]   Tách khối nội tuyến ra file, tạo src/index.src.html
+  extract [--map map.json] [--bust]   Tách khối nội tuyến ra file (giữ id/data-*), tạo src/index.src.html
+                           map.json: {"blocks":[..],"file":..} gộp; {"block":N,"split":[..]} cắt; {"keep":[..]} giữ nội tuyến
   cut --id <id> --to partials/x.html  Cắt một phần tử HTML (theo id) thành partial
   build                    Ghép src/index.src.html + partials -> index.html
   verify                   Chứng minh việc tách là lossless (ngay sau extract/cut)
 Chỉ dùng thư viện chuẩn Python 3."""
-import re, sys, json, hashlib, argparse, pathlib, shutil, subprocess
+import re, sys, json, hashlib, argparse, pathlib, shutil, subprocess, html
 P = pathlib.Path
 ORIG, SRC, OUT, MAN = P('index.original.html'), P('src/index.src.html'), P('index.html'), P('tools/split-manifest.json')
 TOK = re.compile(r'<!--.*?-->|<(script|style)\b([^>]*)>(.*?)</\1\s*>', re.S | re.I)
@@ -34,11 +35,15 @@ def blocks(t):
 
 def cmd_scan(_):
     t = (ORIG if ORIG.exists() else OUT).read_text(encoding='utf-8')
+    extra = ''.join(p.read_text(encoding='utf-8', errors='ignore') for p in list(P('.').glob('*.js')) + list(P('.').glob('*.css')))
     bs = blocks(t); print(f'{len(t.splitlines())} dòng, {len(bs)} khối nội tuyến\n')
-    print(' #  loại    dòng-bắt-đầu   số-dòng  thuộc-tính / gợi-ý')
+    print(' #  loại    dòng-bắt-đầu   số-dòng  id và số lần id xuất hiện NGOÀI thẻ mở của nó / gợi-ý')
     for b in bs:
-        first = next((l.strip() for l in b['body'].splitlines() if l.strip()), '')[:60]
-        print(f"{b['n']:>3}  {b['kind']:<7} {line_of(t, b['start']):>10} {b['body'].count(chr(10)) + 1:>9}  {b['rawattrs'].strip()[:25]:<25} {first}")
+        first = next((l.strip() for l in b['body'].splitlines() if l.strip()), '')[:50]
+        i = b['attrs'].get('id'); ref = ''
+        if i: ref = f"id={i} refs={t.count(i) - b['open'].count(i) + extra.count(i)}"
+        print(f"{b['n']:>3}  {b['kind']:<7} {line_of(t, b['start']):>10} {b['body'].count(chr(10)) + 1:>9}  {ref:<34} {first}")
+    print('\nrefs > 0: có chỗ khác nhắc tới id này (JS/CSS/HTML). Công cụ giữ id trên thẻ thay thế; KHÔNG gộp khối đó với khối khác.')
 
 def build():
     t = SRC.read_text(encoding='utf-8'); man = json.loads(MAN.read_text(encoding='utf-8'))
@@ -52,6 +57,9 @@ def cmd_extract(a):
     groups = {b['n']: [b] for b in bs}
     if a.map:
         for g in json.loads(P(a.map).read_text(encoding='utf-8')):
+            if 'keep' in g:
+                for n in g['keep']: groups.pop(n, None)
+                continue
             if 'split' in g:  # cắt MỘT khối thành nhiều file theo số dòng
                 b = next(b for b in bs if b['n'] == g['block']); b['split'] = g['split']; continue
             ns = g['blocks']; gb = [next(b for b in bs if b['n'] == n) for n in ns]
@@ -71,13 +79,16 @@ def cmd_extract(a):
             if len(parts) > len(b0['split']): sys.exit('Danh sách split chưa phủ hết khối; thêm một mục cuối không có to_line.')
         else:
             parts = [(b0.get('file') or (f"css/{b0['n']:02d}-style.css" if b0['kind'] == 'style' else f"js/{b0['n']:02d}-script.js"), body)]
-        tags = []
-        for f, txt in parts:
+        tags = []; ids = [x['attrs'].get('id') for x in gb if x['attrs'].get('id')]
+        if len(ids) > 1: print(f'  CẢNH BÁO: gộp nhiều khối có id, chỉ giữ id đầu; BỊ BỎ: {ids[1:]}')
+        extra_attr = ''.join(f' {k}="{html.escape(v, quote=True)}"' for k, v in b0['attrs'].items() if k == 'id' or k.startswith('data-'))
+        for pi, (f, txt) in enumerate(parts):
+            ea = extra_attr if pi == 0 else ''
             if b0['kind'] == 'style':
-                med = b0['attrs'].get('media'); tg = f'<link rel="stylesheet" href="{f}"' + (f' media="{med}"' if med else '') + '>'
+                med = b0['attrs'].get('media'); tg = f'<link rel="stylesheet" href="{f}"{ea}' + (f' media="{med}"' if med else '') + '>'
             else:
                 keep = ' type="module"' if b0['attrs'].get('type', '').lower() == 'module' else ''
-                tg = f'<script{keep} src="{f}"></script>'
+                tg = f'<script{ea}{keep} src="{f}"></script>'
             if a.bust: tg = tg.replace(f'"{f}"', f'"{f}?v={sha(txt)[:8]}"')
             P(f).parent.mkdir(parents=True, exist_ok=True); P(f).write_text(txt, encoding='utf-8'); tags.append(tg)
             print(f'  {f}  ({txt.count(chr(10)) + 1} dòng)')

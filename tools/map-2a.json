@@ -1,0 +1,182 @@
+[
+ {
+  "keep": [
+   1,
+   2
+  ]
+ },
+ {
+  "blocks": [
+   3
+  ],
+  "file": "css/02-base.css"
+ },
+ {
+  "blocks": [
+   4
+  ],
+  "file": "css/03-layout.css"
+ },
+ {
+  "blocks": [
+   5
+  ],
+  "file": "css/04-view-reader.css"
+ },
+ {
+  "blocks": [
+   6
+  ],
+  "file": "css/05-view-catalog.css"
+ },
+ {
+  "blocks": [
+   7
+  ],
+  "file": "css/06-view-news.css"
+ },
+ {
+  "blocks": [
+   8
+  ],
+  "file": "css/07-practice-modes.css"
+ },
+ {
+  "blocks": [
+   9
+  ],
+  "file": "css/08-speed-control.css"
+ },
+ {
+  "blocks": [
+   10
+  ],
+  "file": "css/09-text-mode-fix.css"
+ },
+ {
+  "blocks": [
+   11
+  ],
+  "file": "css/10-ios-fix.css"
+ },
+ {
+  "blocks": [
+   12
+  ],
+  "file": "css/11-view-translate.css"
+ },
+ {
+  "blocks": [
+   13
+  ],
+  "file": "css/12-video-timeline.css"
+ },
+ {
+  "blocks": [
+   14
+  ],
+  "file": "css/13-default-controls.css"
+ },
+ {
+  "blocks": [
+   15
+  ],
+  "file": "css/14-subtitle-card.css"
+ },
+ {
+  "blocks": [
+   16
+  ],
+  "file": "css/15-ipa-highlight.css"
+ },
+ {
+  "blocks": [
+   17
+  ],
+  "file": "css/16-own-video.css"
+ },
+ {
+  "blocks": [
+   18
+  ],
+  "file": "js/01-main.js"
+ },
+ {
+  "blocks": [
+   19
+  ],
+  "file": "js/02-pv-helper.js"
+ },
+ {
+  "blocks": [
+   20
+  ],
+  "file": "js/03-practice-engine.js"
+ },
+ {
+  "blocks": [
+   21
+  ],
+  "file": "js/04-vt-helper.js"
+ },
+ {
+  "blocks": [
+   22
+  ],
+  "file": "js/05-translate-engine.js"
+ },
+ {
+  "blocks": [
+   23
+  ],
+  "file": "css/17-mobile-tweaks.css"
+ },
+ {
+  "blocks": [
+   24
+  ],
+  "file": "css/18-controls-layout.css"
+ },
+ {
+  "blocks": [
+   25
+  ],
+  "file": "css/19-vs-style.css"
+ },
+ {
+  "blocks": [
+   26
+  ],
+  "file": "css/20-mobile-polish.css"
+ },
+ {
+  "blocks": [
+   27
+  ],
+  "file": "js/06-audio-sync.js"
+ },
+ {
+  "blocks": [
+   28
+  ],
+  "file": "js/07-timeline-cc.js"
+ },
+ {
+  "blocks": [
+   29
+  ],
+  "file": "js/08-responsive-height.js"
+ },
+ {
+  "blocks": [
+   30
+  ],
+  "file": "js/09-keyboard-fix.js"
+ },
+ {
+  "blocks": [
+   31
+  ],
+  "file": "js/10-own-video.js"
+ }
+]
