@@ -666,7 +666,7 @@
             <span class="vph-mastery-tag"><span class="vph-dot learning"></span> Đang củng cố: <b id="vph-stat-learning">0</b></span>
             <span class="vph-mastery-tag"><span class="vph-dot mastered"></span> Thuộc lòng: <b id="vph-stat-mastered">0</b></span>
           </div>
-          <div style="font-weight:600; color:#cbd5e1" id="vph-scope-label">Đang xem: Toàn bộ bài học</div>
+          <div class="vph-scope-label-box" id="vph-scope-label">Đang xem: Toàn bộ bài học</div>
         </div>
 
         <!-- Score & Streak Strip -->
@@ -902,8 +902,8 @@
     body.innerHTML = `
       <div class="vph-empty">
         <div class="vph-empty-icon">📚</div>
-        <h3 style="color:#ffffff; font-size:18px; font-weight:800">Chưa có từ nào thuộc ${lvlText}!</h3>
-        <p style="font-size:13.5px; line-height:1.6; color:#94a3b8">
+        <h3 class="vph-empty-title">Chưa có từ nào thuộc ${lvlText}!</h3>
+        <p class="vph-empty-desc">
           Trong phạm vi bài học đang chọn chưa có từ vựng nào gắn nhãn <b>${lvlText}</b>.<br>
           Bạn có thể chuyển sang cấp độ khác hoặc luyện tập toàn bộ từ vựng.
         </p>
@@ -977,8 +977,8 @@
     body.innerHTML = `
       <div class="vph-empty">
         <div class="vph-empty-icon">🎉</div>
-        <h3 style="color:#ffffff; font-size:20px; font-weight:800">Không có từ nào đến hạn ôn!</h3>
-        <p style="font-size:14px; line-height:1.6; color:#94a3b8">
+        <h3 class="vph-empty-title">Không có từ nào đến hạn ôn!</h3>
+        <p class="vph-empty-desc">
           Bạn đã hoàn thành xuất sắc toàn bộ các từ cần ôn theo chu kỳ lặp lại ngắt quãng (SRS).
           ${deltaStr ? `<br>Từ tiếp theo sẽ đến hạn sau khoảng <b>${deltaStr}</b> nữa.` : ''}
         </p>
@@ -1051,7 +1051,7 @@
     }
 
     const directionLabel = q.isFrToVi ? '🇫🇷 Tiếng Pháp → 🇻🇳 Tiếng Việt' : '🇻🇳 Tiếng Việt → 🇫🇷 Tiếng Pháp';
-    const srsDueTag = srsIsDue(q.item) ? `<span style="font-size:11px;padding:2px 8px;border-radius:6px;background:rgba(239,68,68,0.2);color:#fca5a5;font-weight:700">Đến hạn ôn</span>` : '';
+    const srsDueTag = srsIsDue(q.item) ? `<span class="vph-srs-due-badge">Đến hạn ôn</span>` : '';
     const qNum = `Câu ${state.currentIndex + 1} / ${state.questions.length}`;
 
     if (typeof window.stopVideoAudioSegment === 'function') window.stopVideoAudioSegment();
@@ -1063,7 +1063,7 @@
             <span class="vph-direction-badge">${directionLabel}</span>
             ${srsDueTag}
           </div>
-          <span style="font-weight:700; color:#cbd5e1">${qNum}</span>
+          <span class="vph-qnum-tag">${qNum}</span>
         </div>
 
         <!-- Timer bar -->
@@ -1258,7 +1258,7 @@
     updateStatsBar();
     const q = state.questions[state.currentIndex];
     const qNum = `Câu ${state.currentIndex + 1} / ${state.questions.length}`;
-    const srsDueTag = srsIsDue(q.item) ? `<span style="font-size:11px;padding:2px 8px;border-radius:6px;background:rgba(239,68,68,0.2);color:#fca5a5;font-weight:700">Đến hạn ôn</span>` : '';
+    const srsDueTag = srsIsDue(q.item) ? `<span class="vph-srs-due-badge">Đến hạn ôn</span>` : '';
 
     const ytUrl = (q.videoId && !q.item?.bookId)
       ? `https://www.youtube.com/watch?v=${encodeURIComponent(q.videoId)}&t=${Math.max(0, Math.floor((q.t || 0) - 2))}s`
@@ -1272,7 +1272,7 @@
             <span class="vph-direction-badge">🎧 Nghe & Điền từ khuyết</span>
             ${srsDueTag}
           </div>
-          <span style="font-weight:700; color:#cbd5e1">${qNum}</span>
+          <span class="vph-qnum-tag">${qNum}</span>
         </div>
 
         <div class="vph-cloze-card">
@@ -1889,15 +1889,15 @@
     let wrongReviewHtml = '';
     if (state.wrongList.length > 0) {
       wrongReviewHtml = `
-        <div style="width:100%; text-align:left; background:rgba(2,6,23,0.5); border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:14px; margin-top:8px;">
-          <div style="font-size:12px; font-weight:700; color:#f87171; margin-bottom:8px; text-transform:uppercase; letter-spacing:0.04em">
+        <div class="vph-wrong-review-card">
+          <div class="vph-wrong-review-title">
             Từ cần lưu ý ôn lại (${state.wrongList.length}):
           </div>
-          <div style="display:flex; flex-direction:column; gap:6px; max-height:160px; overflow-y:auto;">
+          <div class="vph-wrong-review-list">
             ${state.wrongList.map(w => `
-              <div style="display:flex; justify-content:space-between; align-items:center; font-size:13px; padding:6px 10px; background:rgba(255,255,255,0.03); border-radius:8px;">
-                <b style="color:#6ee7b7">${escHtml(w.frenchWord)}</b>
-                <span style="color:#cbd5e1">${formatGrammarBadgeHtml(escHtml(w.vietnameseMeaning), { mask: false })}</span>
+              <div class="vph-wrong-review-row">
+                <b class="vph-wrong-word">${escHtml(w.frenchWord)}</b>
+                <span class="vph-wrong-meaning">${formatGrammarBadgeHtml(escHtml(w.vietnameseMeaning), { mask: false })}</span>
               </div>
             `).join('')}
           </div>

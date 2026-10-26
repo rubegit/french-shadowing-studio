@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><title>Player</title><script src="./vendor/react.js"></script>
+<script src="./vendor/react-dom.js"></script>
+<script src="./support.js"></script></head><body><x-dc><helmet><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Literata:wght@400;600&amp;display=swap"><style>
+body{margin:0}
+.pg{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);min-height:800px}
+.top{display:flex;align-items:center;gap:24px;padding:14px 40px;background:var(--sf);border-bottom:1px solid var(--ln);flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px}
+.mark{width:36px;height:36px;border-radius:10px;background:var(--pr);color:var(--pt);display:grid;place-items:center;font-size:14px;font-weight:800}
+.nav{display:flex;gap:4px;flex:1;flex-wrap:wrap}
+.nav a{padding:11px 16px;border-radius:999px;color:var(--mu);text-decoration:none;font-weight:600;font-size:14px}
+.nav a.on{background:var(--tn);color:var(--ta)}
+.pill{padding:11px 16px;border:1px solid var(--ln);border-radius:999px;font-size:13px;font-weight:600;background:var(--sf);color:var(--ink)}
+.wrap{max-width:1200px;margin:0 auto;padding:32px 40px;display:grid;gap:24px}
+.c2{grid-template-columns:minmax(0,7fr) minmax(0,4fr)}.c2r{grid-template-columns:minmax(0,4fr) minmax(0,8fr)}
+h1{margin:0 0 6px;font-size:32px;line-height:1.15;font-weight:800;letter-spacing:-.02em}
+h2{margin:0;font-size:18px;font-weight:800}
+.sub,.mu{color:var(--mu);font-size:15px;line-height:1.5;margin:0 0 16px}
+.card{background:var(--sf);border:1px solid var(--ln);border-radius:20px;padding:24px;box-shadow:0 8px 24px var(--sh)}
+.hd{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px}
+.hd span{color:var(--mu);font-size:13px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
+.btn{padding:12px 18px;border:0;border-radius:12px;background:var(--pr);color:var(--pt);font:inherit;font-weight:700;font-size:14px;min-height:44px}
+.btn.g{background:var(--sf);color:var(--ta);border:1px solid var(--bd)}
+.chip{padding:8px 14px;border-radius:999px;border:1px solid var(--bd);font-size:13px;font-weight:600;color:var(--mu)}
+.chip.on{background:var(--tn);color:var(--ta);border-color:var(--tn)}
+.seg{display:inline-flex;background:var(--bg);border:1px solid var(--ln);border-radius:12px;padding:3px}
+.seg button{border:0;background:none;color:var(--mu);font:inherit;font-size:13px;font-weight:600;padding:10px 14px;min-height:44px;border-radius:9px}
+.seg button.on{background:var(--pr);color:var(--pt)}
+.vid{aspect-ratio:16/9;background:var(--tn);border-radius:16px;display:grid;place-items:center;color:var(--ta);font-weight:700}
+.big{font-size:24px;font-weight:700;line-height:1.4;margin:16px 0 4px}
+.hl{background:var(--pr);color:var(--pt);padding:0 6px;border-radius:6px}
+.li{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--ln);border-radius:12px;margin-bottom:8px;font-size:14px;font-weight:600}
+.li.on{border-color:var(--pr);background:var(--tn)}
+.li small{display:block;color:var(--mu);font-weight:500;font-size:13px}
+.st{font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;white-space:nowrap}
+.s1{background:var(--g1b);color:var(--g1t)}.s2{background:var(--g2b);color:var(--g2t)}.s3{background:var(--g3b);color:var(--g3t)}.s4{background:var(--g4b);color:var(--g4t)}
+.ta{width:100%;box-sizing:border-box;min-height:150px;border:1px solid var(--bd);border-radius:12px;padding:14px;font:inherit;font-size:15px;background:var(--bg);color:var(--ink)}
+.g3{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-bottom:24px}
+.src{background:var(--sf);border:1px solid var(--ln);border-radius:16px;padding:16px;font-size:14px;font-weight:700}
+.src small{display:block;margin-top:4px;color:var(--mu);font-weight:500;font-size:13px;line-height:1.4}
+.book{aspect-ratio:3/4;background:var(--tn);border-radius:14px;padding:14px;font-size:14px;font-weight:700;color:var(--ta);display:flex;flex-direction:column;justify-content:flex-end}
+.drop{border:1.5px dashed var(--bd);border-radius:16px;padding:32px;text-align:center;color:var(--mu);font-size:15px;background:var(--bg)}
+.read{max-width:620px;margin:0 auto;font-family:'Literata',Georgia,serif;font-size:19px;line-height:1.8}
+.read .tr{color:var(--mu);font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:15px;margin:0 0 20px}
+.dots{display:flex;gap:8px;margin:8px 0 18px}.dots i{width:44px;height:44px;border-radius:12px;border:2px solid var(--bd)}
+.lbl{font-size:13px;font-weight:700;color:var(--mu);margin:14px 0 6px}
+.kw{display:flex;flex-wrap:wrap;gap:4px 8px;font-size:26px;font-weight:700;line-height:1.5;margin:16px 0 4px}
+.kw span{padding:0 6px;border-radius:8px}
+.kw .done{color:var(--ta)}.kw .now{background:var(--pr);color:var(--pt)}.kw .next{color:var(--mu);font-weight:600}
+.kw .saved{text-decoration:underline dotted;text-decoration-thickness:2px;text-underline-offset:6px}
+.pos{display:inline-block;font-size:12px;font-weight:700;font-style:italic;padding:3px 10px;border-radius:8px;background:var(--tn);color:var(--ta);margin-right:6px}
+@media(max-width:900px){.wrap.c2,.wrap.c2r{grid-template-columns:1fr;padding:24px 20px}.top{padding:12px 20px}}
+.pg{--bg:#F4FBF7;--sf:#fff;--ln:#E3E8F1;--ink:#14213D;--mu:#4A566B;--pr:#A8E6CF;--pt:#0F3D2B;--tn:#E1F5EC;--ta:#0B5A3C;--bd:#CBD3E1;--sh:rgba(20,33,61,.06);--g1b:#D6F5E6;--g1t:#0B5A3C;--g2b:#FFF1CC;--g2t:#7A5400;--g3b:#FFE0DC;--g3t:#9B2C1F;--g4b:#EEF1F6;--g4t:#4A566B;}
+</style></helmet>
+<div class="pg"><div class="top"><div class="logo"><div class="mark">FS</div>French Shadowing Studio</div><nav class="nav"><a href="#" class="on">Luyện Video</a><a href="#">Đọc báo</a><a href="#">Đọc sách</a><a href="#">Luyện dịch</a><a href="#">Video của bạn</a></nav><span class="pill">Từ vựng đã lưu · [N]</span><span class="pill">Đồng bộ Cloud</span></div><div class="wrap c2"><div><div class="hd"><h1>[Tiêu đề video]</h1><div class="seg"><button class="on">Mặc định</button><button>Shadowing</button><button>Chép chính tả</button></div></div><div class="vid">Video YouTube</div><div class="card" style="margin-top:16px"><div class="row" style="margin:0"><span class="chip on">Song ngữ</span><span class="chip on">Karaoke</span><span class="chip">IPA</span><span class="chip">Tự dừng</span><span class="chip">Cuộn theo chữ</span></div><div class="kw"><span class="done">Voici</span><span class="done">une</span><span class="now">phrase</span><span class="next saved">longue</span><span class="next">en</span><span class="next">français.</span></div><p class="mu" style="margin:0">/[phiên âm IPA]/</p><p class="mu">[Bản dịch tiếng Việt]</p><div class="row"><button class="btn g">Câu trước</button><button class="btn">Phát</button><button class="btn g">Câu sau</button><button class="btn g">Thu âm</button><div class="seg"><button>0.5x</button><button>0.75x</button><button>0.9x</button><button class="on">1.0x</button></div></div></div></div><div class="card"><div class="hd"><h2>Danh sách câu</h2><span>Câu 1/[N]</span></div><div class="li on"><span>[Câu 1]</span><span class="st s1">Hoàn hảo</span></div><div class="li"><span>[Câu 2]</span><span class="st s2">Gần đúng</span></div><div class="li"><span>[Câu 3]</span><span class="st s3">Cần luyện</span></div><div class="li"><span>[Câu 4]</span><span class="st s4">Chưa làm</span></div><div class="li"><span>[Câu 5]</span><span class="st s4">Chưa làm</span></div></div></div></div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script></body></html>

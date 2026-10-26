@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><title>Luyện Video (tối)</title><script src="./vendor/react.js"></script>
+<script src="./vendor/react-dom.js"></script>
+<script src="./support.js"></script></head><body><x-dc><helmet><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap"><style>
+body{margin:0}
+.pg{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:#0E1714;color:#E8F3EE;min-height:780px}
+.top{display:flex;align-items:center;gap:24px;padding:14px 40px;background:#16221E;border-bottom:1px solid #26362F;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px}
+.mark{width:36px;height:36px;border-radius:10px;background:#A8E6CF;color:#0F3D2B;display:grid;place-items:center;font-size:14px;font-weight:800}
+.nav{display:flex;gap:4px;flex:1;flex-wrap:wrap}
+.nav a{padding:11px 16px;border-radius:999px;color:#A3B5AC;text-decoration:none;font-weight:600;font-size:14px}
+.nav a.on{background:#1D3A30;color:#A8E6CF}
+.pill{padding:11px 16px;border:1px solid #26362F;border-radius:999px;font-size:13px;font-weight:600;background:#16221E;color:#E8F3EE}
+.wrap{max-width:1200px;margin:0 auto;padding:48px 40px;display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:32px}
+h1{margin:0 0 8px;font-size:42px;line-height:1.1;font-weight:800;letter-spacing:-.02em}
+.sub{margin:0 0 24px;color:#A3B5AC;font-size:16px;line-height:1.5}
+.card{background:#16221E;border:1px solid #26362F;border-radius:20px;padding:24px;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.step{display:flex;gap:12px;align-items:center;margin-bottom:8px;font-weight:700;font-size:14px}
+.n{width:26px;height:26px;border-radius:50%;background:#1D3A30;color:#A8E6CF;display:grid;place-items:center;font-size:13px}
+.in{display:flex;gap:8px;margin-bottom:20px}
+.in input{background:#0E1714;color:#E8F3EE;flex:1;min-width:0;padding:14px 16px;border:1px solid #3A4D44;border-radius:12px;font:inherit;font-size:14px}
+.btn{padding:14px 20px;border:0;border-radius:12px;background:#A8E6CF;color:#0F3D2B;font:inherit;font-weight:700;font-size:14px;min-height:44px}
+.btn.g{background:#16221E;color:#A8E6CF;border:1px solid #3A4D44}
+.drop{border:1.5px dashed #3A4D44;border-radius:12px;padding:18px;color:#A3B5AC;font-size:14px;margin-bottom:20px;background:#0E1714}
+.hd{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px}
+.hd h2{margin:0;font-size:22px;font-weight:800}
+.hd span{color:#A3B5AC;font-size:13px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+.v{background:#16221E;border:1px solid #26362F;border-radius:16px;overflow:hidden}
+.th{height:124px;background:#1D3A30;position:relative}
+.lv{position:absolute;left:10px;top:10px;background:#16221E;color:#A8E6CF;font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px}
+.vb{padding:14px 16px;font-size:14px;font-weight:600;line-height:1.4}
+.vb small{display:block;margin-top:4px;color:#A3B5AC;font-weight:500;font-size:13px}
+@media(max-width:900px){.wrap{grid-template-columns:1fr;padding:32px 20px}.top{padding:12px 20px}}
+</style></helmet>
+<div class="pg">
+<div class="top">
+<div class="logo"><div class="mark">FS</div>French Shadowing Studio</div>
+<nav class="nav"><a href="#" class="on">Luyện Video</a><a href="#">Đọc báo</a><a href="#">Đọc sách</a><a href="#">Luyện dịch</a><a href="#">Video của bạn</a></nav>
+<span class="pill">Từ vựng đã lưu · 0</span><span class="pill">Đồng bộ Cloud</span>
+</div>
+<div class="wrap">
+<div>
+<h1>Luyện nghe tiếng Pháp qua YouTube</h1>
+<p class="sub">Shadowing với phụ đề song ngữ Pháp – Việt, tra từ Larousse và phát âm IPA.</p>
+<div class="card">
+<div class="step"><span class="n">1</span>Link hoặc ID video YouTube</div>
+<div class="in"><input type="text" aria-label="Link video YouTube" placeholder="https://youtube.com/watch?v=..."><button class="btn g">Dán</button></div>
+<div class="step"><span class="n">2</span>Nạp phụ đề tiếng Pháp</div>
+<div class="drop">Chọn file SRT / VTT / TXT hoặc dán bản chép lời</div>
+<button class="btn">Bắt đầu luyện tập</button>
+</div>
+</div>
+<div>
+<div class="hd"><h2>Thư viện video</h2><span>Tổng: 0 video</span></div>
+<div class="grid">
+<div class="v"><div class="th"><span class="lv">B1</span></div><div class="vb">[Tiêu đề video]<small>[Kênh]</small></div></div>
+<div class="v"><div class="th"><span class="lv">A2</span></div><div class="vb">[Tiêu đề video]<small>[Kênh]</small></div></div>
+<div class="v"><div class="th"><span class="lv">B2</span></div><div class="vb">[Tiêu đề video]<small>[Kênh]</small></div></div>
+<div class="v"><div class="th"><span class="lv">C1</span></div><div class="vb">[Tiêu đề video]<small>[Kênh]</small></div></div>
+</div>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":780}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script></body></html>

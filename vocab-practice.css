@@ -1821,3 +1821,79 @@
   color: #93c5fd;
 }
 
+/* Base styles for semantic classes (Dark theme fallback) */
+.vph-scope-label-box {
+  font-weight: 600;
+  color: #cbd5e1;
+}
+
+.vph-qnum-tag {
+  font-weight: 700;
+  color: #cbd5e1;
+}
+
+.vph-srs-due-badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+  font-weight: 700;
+}
+
+.vph-empty-title {
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.vph-empty-desc {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: #94a3b8;
+}
+
+.vph-wrong-review-card {
+  width: 100%;
+  text-align: left;
+  background: rgba(2, 6, 23, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 14px;
+  margin-top: 8px;
+}
+
+.vph-wrong-review-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #f87171;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.vph-wrong-review-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 160px;
+  overflow-y: auto;
+}
+
+.vph-wrong-review-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+}
+
+.vph-wrong-word {
+  color: #6ee7b7;
+}
+
+.vph-wrong-meaning {
+  color: #cbd5e1;
+}

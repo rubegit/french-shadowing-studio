@@ -483,6 +483,9 @@ ${transcript}
                 <span>Mở Claude</span>
               </a>
             </span>
+            <button type="button" class="tcf-demo-btn" onclick="TcfExam.loadDemoTest()" title="Nạp đề thi mẫu 3 câu để trải nghiệm ngay">
+              <span>🎲 Thử đề mẫu</span>
+            </button>
           </div>
 
           <!-- Paste text area -->
@@ -884,14 +887,72 @@ ${transcript}
     updateAudioBar(true);
   }
 
+  // In-App Confirm Dialog bo góc 20px (Hủy / Nộp bài)
+  function showTcfConfirmDialog(opts) {
+    const oldModal = document.getElementById('tcf-confirm-modal');
+    if (oldModal) oldModal.remove();
+
+    const backdrop = document.createElement('div');
+    backdrop.id = 'tcf-confirm-modal';
+    backdrop.className = 'tcf-confirm-backdrop';
+    backdrop.innerHTML = `
+      <div class="tcf-confirm-box" role="dialog" aria-modal="true" aria-labelledby="tcf-confirm-title">
+        <div class="tcf-confirm-header">
+          <div class="tcf-confirm-icon">📋</div>
+          <h3 id="tcf-confirm-title" class="tcf-confirm-title">${esc(opts.title || 'Nộp bài thi TCF')}</h3>
+        </div>
+        <div class="tcf-confirm-body">
+          <p class="tcf-confirm-message">${esc(opts.message || 'Bạn có chắc chắn muốn nộp bài thi?')}</p>
+          ${opts.submessage ? `<p class="tcf-confirm-sub">${esc(opts.submessage)}</p>` : ''}
+        </div>
+        <div class="tcf-confirm-actions">
+          <button type="button" class="tcf-confirm-btn tcf-confirm-btn-cancel" id="tcf-confirm-cancel">${esc(opts.cancelText || 'Hủy')}</button>
+          <button type="button" class="tcf-confirm-btn tcf-confirm-btn-submit" id="tcf-confirm-ok">${esc(opts.confirmText || 'Nộp bài')}</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(backdrop);
+    requestAnimationFrame(() => backdrop.classList.add('open'));
+
+    function close(confirmed) {
+      backdrop.classList.remove('open');
+      setTimeout(() => backdrop.remove(), 220);
+      if (confirmed && typeof opts.onConfirm === 'function') {
+        opts.onConfirm();
+      } else if (!confirmed && typeof opts.onCancel === 'function') {
+        opts.onCancel();
+      }
+    }
+
+    const cancelBtn = backdrop.querySelector('#tcf-confirm-cancel');
+    const okBtn = backdrop.querySelector('#tcf-confirm-ok');
+    if (cancelBtn) cancelBtn.onclick = () => close(false);
+    if (okBtn) okBtn.onclick = () => close(true);
+    backdrop.onmousedown = (e) => { if (e.target === backdrop) close(false); };
+  }
+
   // Submit & Grade
-  function submitExam() {
+  function submitExam(force) {
     const total = tcfState.currentQuestions.length;
     const answered = Object.keys(tcfState.userAnswers).length;
 
-    if (answered < total) {
-      const confirmSubmit = confirm(`Bạn mới trả lời ${answered}/${total} câu hỏi. Bạn có chắc chắn muốn nộp bài thi ngay không?`);
-      if (!confirmSubmit) return;
+    if (!force) {
+      const isComplete = answered >= total;
+      const message = isComplete
+        ? `Bạn đã hoàn thành ${answered}/${total} câu hỏi.`
+        : `Bạn mới trả lời ${answered}/${total} câu hỏi (${total - answered} câu chưa làm).`;
+      const submessage = 'Sau khi nộp bài, hệ thống sẽ chấm điểm và phân cấp CLB theo chuẩn TCF Canada.';
+
+      showTcfConfirmDialog({
+        title: 'Xác nhận nộp bài thi',
+        message: message,
+        submessage: submessage,
+        confirmText: 'Nộp bài',
+        cancelText: 'Hủy',
+        onConfirm: () => submitExam(true)
+      });
+      return;
     }
 
     // Stop timer
@@ -1051,6 +1112,73 @@ ${transcript}
     return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
+  // Demo Questions for quick trial
+  const DEMO_QUESTIONS = [
+    {
+      question: "Quel est l'objectif principal du projet présenté dans l'enregistrement ?",
+      level: "B1",
+      type: "Compréhension globale",
+      options: {
+        A: "Encourager l'usage des transports en commun en zone périurbaine.",
+        B: "Développer une plateforme collaborative pour l'apprentissage linguistique.",
+        C: "Organiser un festival culturel annuel dans la capitale.",
+        D: "Rénover les infrastructures historiques du quartier historique."
+      },
+      answer: "B",
+      quote: "Notre ambition est de démocratiser l'immersion orale à travers la pratique du shadowing.",
+      explain: "Le document met en avant la création d'outils collaboratifs favorisant l'apprentissage actif và phonétique.",
+      piege: "L'option A est mentionnée comme exemple de sujet de discussion mais ne constitue pas le but du projet.",
+      time: "00:15",
+      timeSeconds: 15
+    },
+    {
+      question: "D'après la personne interrogée, quelle difficulté majeure rencontrent les apprenants ?",
+      level: "B2",
+      type: "Détail implicite",
+      options: {
+        A: "Le manque d'accès aux manuels de grammaire traditionnels.",
+        B: "L'absence de locuteurs natifs dans leur entourage immédiat.",
+        C: "La rapidité du débit et la complexité des liaisons phonétiques.",
+        D: "Le coût prohibitif des cours de perfectionnement en ligne."
+      },
+      answer: "C",
+      quote: "Ce qui déstabilise le plus souvent, c'est l'enchaînement naturel des mots et la vitesse réelle d'élocution.",
+      explain: "L'intervenant insiste sur les phénomènes de liaisons et le rythme rapide de la parole spontanée.",
+      piege: "L'option B semble logique mais n'est pas le facteur déterminant souligné par le locuteur.",
+      time: "00:45",
+      timeSeconds: 45
+    },
+    {
+      question: "Quelle recommandation finale est formulée pour progresser rapidement ?",
+      level: "C1",
+      type: "Idée générale / Synthèse",
+      options: {
+        A: "S'entraîner quotidiennement par sessions courtes et ciblées.",
+        B: "Mémoriser intégralement des dictionnaires thématiques.",
+        C: "Privilégier exclusivement la rédaction écrite avant l'expression orale.",
+        D: "Attendre d'avoir un niveau parfait avant d'oser s'exprimer."
+      },
+      answer: "A",
+      quote: "Mieux vaut dix minutes de répétition active chaque matin qu'une session épuisante le week-end.",
+      explain: "La régularité et la micro-pratique quotidienne sont valorisées comme gage d'efficacité motrice et auditive.",
+      piege: "L'option C contredit formellement la méthode de répétition immédiate préconisée.",
+      time: "01:20",
+      timeSeconds: 80
+    }
+  ];
+
+  function loadDemoTest() {
+    const ta = document.getElementById('tcf-textarea');
+    if (ta) {
+      ta.value = JSON.stringify(DEMO_QUESTIONS, null, 2);
+    }
+    const status = document.getElementById('tcf-status');
+    if (status) {
+      status.textContent = '✨ Đã nạp thành công bộ đề mẫu TCF Canada (3 câu đa cấp độ B1-C1). Nhấn "Bắt đầu làm bài thi TCF →" để làm bài ngay!';
+      status.className = 'ai-status ok';
+    }
+  }
+
   // Public Interface
   window.TcfExam = {
     openModal: openTcfModal,
@@ -1060,6 +1188,7 @@ ${transcript}
     copyPrompt: copyPrompt,
     applyAnswer: applyAnswer,
     loadSavedExam: loadSavedExam,
+    loadDemoTest: loadDemoTest,
     startExam: startExam,
     closeExam: closeExam,
     togglePlayAudio: togglePlayAudio,
@@ -1072,6 +1201,12 @@ ${transcript}
   // Keyboard shortcut (Escape to close)
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
+      const confirmM = document.getElementById('tcf-confirm-modal');
+      if (confirmM && confirmM.classList.contains('open')) {
+        const cancelBtn = confirmM.querySelector('#tcf-confirm-cancel');
+        if (cancelBtn) cancelBtn.click();
+        return;
+      }
       const exam = document.getElementById('tcf-exam-backdrop');
       if (exam && exam.classList.contains('open')) {
         closeExam();

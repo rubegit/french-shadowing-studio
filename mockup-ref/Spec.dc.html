@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><title>Đặc tả</title><script src="./vendor/react.js"></script>
+<script src="./vendor/react-dom.js"></script>
+<script src="./support.js"></script></head><body><x-dc><helmet><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@500&amp;display=swap"><style>
+body{margin:0}
+.sp{width:1280px;height:1000px;box-sizing:border-box;padding:40px 48px;background:#fff;color:#14213D;font-family:'Plus Jakarta Sans',system-ui,sans-serif;display:grid;grid-template-columns:400px 1fr;gap:40px;font-size:14px;line-height:1.5}
+h2{margin:0 0 12px;font-size:20px;font-weight:800}
+h3{margin:0 0 4px;font-size:15px;font-weight:700}
+p{margin:0 0 8px;color:#3B475C}
+code{font-family:'JetBrains Mono',monospace;font-size:12.5px;background:#E9F7F0;padding:1px 6px;border-radius:6px;color:#0B5A3C}
+.sw{display:flex;gap:8px;margin:8px 0 16px;flex-wrap:wrap}
+.c{width:56px;height:56px;border-radius:12px;border:1px solid #E3E8F1;font-size:11px;display:flex;align-items:flex-end;padding:4px;box-sizing:border-box;font-family:'JetBrains Mono',monospace}
+.rule{background:#F4FBF7;border-radius:14px;padding:16px;margin-top:16px}
+.rule li{margin-bottom:6px;color:#3B475C}
+ul{margin:0;padding-left:18px}
+.m{display:grid;grid-template-columns:44px 1fr;gap:12px;padding:9px 0;border-bottom:1px solid #E3E8F1}
+.id{width:44px;height:32px;border-radius:8px;background:#E1F5EC;color:#0B5A3C;font-weight:800;display:grid;place-items:center;font-size:13px}
+</style></helmet>
+<div class="sp">
+<div>
+<h2>Hướng thẩm mỹ</h2>
+<p>Sáng, thoáng, hiện đại: nền trắng ngả xanh mint rất nhạt, thẻ trắng bo 16–20px, đổ bóng mềm, một màu nhấn xanh mint pastel (nút dùng chữ xanh lá đậm để đủ tương phản). Font Plus Jakarta Sans (có tiếng Việt), nút ≥44px, chữ đạt tương phản 4.5:1.</p>
+<div class="sw"><div class="c" style="background:#F4FBF7">bg</div><div class="c" style="background:#fff">surface</div><div class="c" style="background:#A8E6CF;color:#0F3D2B">primary</div><div class="c" style="background:#E1F5EC">tint</div><div class="c" style="background:#14213D;color:#fff">ink</div><div class="c" style="background:#E3E8F1">line</div></div><h3>Dark mode (cùng tên token, giá trị tối)</h3><div class="sw"><div class="c" style="background:#0E1714;color:#E8F3EE">bg</div><div class="c" style="background:#16221E;color:#E8F3EE">surface</div><div class="c" style="background:#A8E6CF;color:#0F3D2B">primary</div><div class="c" style="background:#1D3A30;color:#A8E6CF">tint</div><div class="c" style="background:#E8F3EE">ink</div><div class="c" style="background:#26362F;color:#E8F3EE">line</div></div>
+<h3>Token (CSS variables, thêm mới)</h3>
+<p><code>--fs-bg</code> <code>--fs-surface</code> <code>--fs-primary</code> <code>--fs-tint</code> <code>--fs-ink</code> <code>--fs-muted</code> <code>--fs-line</code> <code>--fs-radius</code> <code>--fs-shadow</code> <code>--fs-font</code></p>
+<div class="rule"><h3>Quy tắc bất di bất dịch</h3><ul>
+<li>Chỉ đổi lớp trình bày: CSS và class/markup tĩnh.</li>
+<li>Không đổi, không xoá <code>id</code>, <code>data-*</code>, tên class mà JS đang dùng (<code>querySelector</code>, <code>classList</code>).</li>
+<li>Không đổi thứ tự DOM, event handler, logic phụ đề, tra từ, thu âm, đồng bộ Cloud, localStorage, extension, userscript.</li>
+<li>Style mới nằm trong một file <code>theme-light.css</code> nạp cuối, bọc trong <code>html[data-ui="light"]</code> để bật/tắt, rollback ngay.</li>
+<li>Mỗi module làm xong phải chạy checklist hồi quy trước khi sang module kế.</li><li>Dark mode: ghi đè token trong <code>html[data-ui="light"][data-theme="dark"]</code>, mặc định theo <code>prefers-color-scheme</code>. Lựa chọn người dùng lưu bằng một key mới, không đụng key hiện có. Không đổi 4 nền đọc sách.</li><li>Karaoke, từ loại (<code>n.m.</code>, <code>v.</code>...), từ trong ví dụ, từ đã lưu, từ khó: chỉ đổi style các trạng thái (đã đọc, đang đọc, chưa đọc, gạch chấm). Không đổi logic tách từ và đồng bộ thời gian.</li><li>Mỗi màn hình có bản sáng và tối trên canvas; dùng chung một bộ class (<code>.card</code>, <code>.btn</code>, <code>.chip</code>, <code>.seg</code>, <code>.li</code>, <code>.st</code>) làm chuẩn.</li>
+</ul></div>
+</div>
+<div>
+<h2>Module (làm tuần tự, mỗi module một lượt nhờ AI)</h2>
+<div class="m"><div class="id">M0</div><div><h3>Token &amp; nền tảng</h3><p>Khai báo biến (mỗi token có cặp giá trị sáng/tối), font, reset, thanh cuộn, focus ring. Chưa đổi component nào.</p></div></div>
+<div class="m"><div class="id">M1</div><div><h3>Header &amp; thanh tab</h3><p>5 tab (Luyện Video, Đọc báo, Đọc sách, Luyện dịch, Video của bạn) dạng pill, tab đang chọn nền tint. Chip Từ vựng, Đồng bộ Cloud và nút chuyển sáng/tối bên phải.</p></div></div>
+<div class="m"><div class="id">M2</div><div><h3>Màn Luyện Video &amp; thư viện</h3><p>Thẻ nhập link/phụ đề 2 bước, lưới thư viện video, chip cấp độ A1–C2.</p></div></div>
+<div class="m"><div class="id">M3</div><div><h3>Trình luyện tập</h3><p>Khung video, phụ đề karaoke, danh sách câu, thanh điều khiển tốc độ, 3 chế độ (Mặc định, Shadowing, Chép chính tả). Giữ nguyên màu trạng thái Hoàn hảo/Gần đúng/Cần luyện, chỉ làm sáng hơn.</p></div></div>
+<div class="m"><div class="id">M4</div><div><h3>Đọc báo &amp; Luyện dịch</h3><p>Ô dán văn bản, danh sách báo gợi ý (RFI, Le Monde…), bài có sẵn, trang dịch Việt → Pháp.</p></div></div>
+<div class="m"><div class="id">M5</div><div><h3>Đọc sách</h3><p>Thư viện sách, giao diện đọc, bảng cài đặt (nền, phông, cỡ chữ). Không đụng 4 nền đọc hiện có.</p></div></div>
+<div class="m"><div class="id">M6</div><div><h3>Modal &amp; drawer</h3><p>Từ vựng đã lưu, prompt AI, chia sẻ, hướng dẫn userscript, donate: chung một kiểu overlay mờ + thẻ trắng bo 20px.</p></div></div>
+<div class="m"><div class="id">M7</div><div><h3>Responsive &amp; trợ năng</h3><p>Điểm gãy 900px và 600px, nút ≥44px, <code>aria-label</code> cho nút chỉ có icon, tương phản chữ.</p></div></div><div class="m"><div class="id">M8</div><div><h3>Thi thử TCF</h3><p>Thiết lập, làm bài (đồng hồ, 4 đáp án A–D), kết quả và giải thích. Đúng/sai phải có chữ kèm màu. Không đổi quy tắc nghe 1 lần.</p></div></div><div class="m"><div class="id">M9</div><div><h3>Trạng thái &amp; tương tác</h3><p>Trống, đang tải, lỗi, hover, focus, nhấn, vô hiệu hoá; bản điện thoại.</p></div></div>
+<div class="rule"><h3>Checklist hồi quy sau mỗi module</h3><p>Nạp video + phụ đề, karaoke chạy, tra từ + lưu từ, thu âm so sánh, đồng bộ Cloud, mở sách cũ, tab Đọc báo, Luyện dịch, mọi modal mở/đóng được.</p></div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":940}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script></body></html>
