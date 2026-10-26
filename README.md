@@ -138,7 +138,7 @@ Mở trình duyệt và truy cập: **`http://localhost:3333`**
 Nếu bạn muốn tự triển khai máy chủ Supabase riêng:
 1. Tạo một dự án mới trên [Supabase](https://supabase.com/).
 2. Chạy tệp SQL schema tại [supabase-schema.sql](file:///Users/linhvu/AI%20Project/Shadowing/supabase-schema.sql) trong SQL Editor của Supabase.
-3. Điền `SUPABASE_URL` và `SUPABASE_ANON_KEY` vào tệp [supabase-sync.js](file:///Users/linhvu/AI%20Project/Shadowing/supabase-sync.js).
+3. Điền `SUPABASE_URL` và `SUPABASE_ANON_KEY` vào tệp [js/supabase-sync.js](file:///Users/linhvu/AI%20Project/Shadowing/js/supabase-sync.js).
 
 ---
 
@@ -146,18 +146,19 @@ Nếu bạn muốn tự triển khai máy chủ Supabase riêng:
 
 ```text
 french-shadowing-studio/
-├── index.html              # Giao diện chính (SPA), Video Player, Dictation & Logic cốt lõi
-├── tcf-exam.js             # Logic tạo đề thi TCF Canada, sinh prompt AI và giao diện thi thử
-├── tcf-exam.css            # Bộ giao diện chuẩn cho phòng thi khảo thí TCF Canada
-├── vocab-practice.js       # Logic Vocab Practice Hub (Flashcard 3D, QCM, SRS Algorithm)
-├── vocab-practice.css      # Bộ giao diện cho trung tâm luyện từ vựng
-├── supabase-sync.js        # Module đồng bộ dữ liệu đám mây đa thiết bị
+├── index.html              # Tệp giao diện chính (SPA Production build từ src/ + partials/)
+├── src/index.src.html      # Khung sườn template HTML chính
+├── partials/               # 16 component HTML con (9 modals & 7 screens/views)
+├── css/                    # Hệ thống 22 tệp CSS module hóa (giao diện, layout, TCF, Vocab, Theme)
+├── js/                     # Hệ thống 20 tệp JavaScript module hóa (player, subs, SRS, TCF, Sync)
+├── tools/                  # Bộ công cụ build & verify lossless (restructure.py)
 ├── supabase-schema.sql     # Cấu trúc bảng dữ liệu Supabase Database
 ├── catalog.json            # Danh mục dữ liệu video luyện tập trang chủ
 ├── category.json           # Danh mục phân loại thể loại video
 ├── videos-data.json        # Metadata thông tin thời lượng và phụ đề của từng video
 ├── library-index.json      # Chỉ mục thư viện bài học
 ├── vercel.json             # Cấu hình Cache-Busting và HTTP Security Headers cho Production
+├── .vercelignore          # Loại trừ mã nguồn nội bộ khi deploy
 ├── AGENTS.md               # Quy định quy trình phát triển và tiêu chuẩn mã nguồn
 └── README.md               # Tài liệu giới thiệu và hướng dẫn sử dụng toàn diện
 ```

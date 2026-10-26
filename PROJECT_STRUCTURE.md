@@ -2,24 +2,25 @@
 ## French Shadowing Studio (Mô hình Thiết kế & Phân bổ Tệp tin)
 
 > **Tài liệu đặc tả kiến trúc, phân bổ thư mục, vai trò kỹ thuật của từng tệp và ma trận luồng dữ liệu của toàn bộ dự án French Shadowing Studio.**
-> *Cập nhật: 25/10/2026 | Phiên bản: v2.5.0-modular-architecture*
+> *Cập nhật: 25/10/2026 | Phiên bản: v2.6.0-clean-root-architecture*
 
 ---
 
 ## 1. Tổng quan Kiến trúc Hệ thống (System Architecture)
 
 **French Shadowing Studio** được xây dựng theo kiến trúc **Modular Vanilla Web Application hiệu năng cao (Zero-bundler & Build-assisted Architecture)**:
-- **Kiến trúc Mã nguồn Module hóa (Clean Modular Separation):** Mã nguồn ban đầu từ tệp đơn khối (~22.926 dòng) đã được phân tách thành các module độc lập theo trách nhiệm chuyên biệt:
+- **Kiến trúc Mã nguồn Module hóa (Clean Modular Separation):** Mã nguồn ban đầu từ tệp đơn khối (~22.926 dòng) và các tệp gốc đã được phân bổ triệt để vào các thư mục chuyên biệt:
   - Khung sườn template chính tại `src/index.src.html` (~345 dòng).
   - 16 tệp giao diện con (9 modals và 7 screens/views) tại thư mục `partials/`.
-  - 19 tệp CSS chuyên biệt theo từng phân hệ giao diện tại thư mục `css/`.
-  - 17 tệp JavaScript xử lý logic theo từng tính năng cốt lõi tại thư mục `js/`.
+  - 22 tệp CSS chuyên biệt theo từng phân hệ giao diện tại thư mục `css/`.
+  - 20 tệp JavaScript xử lý logic theo từng tính năng cốt lõi tại thư mục `js/`.
+- **Thư mục Gốc Tối giản (Clean Root):** Gốc repository chỉ chứa các tệp cấu hình cốt lõi (`index.html`, `catalog.json`, `vercel.json`, `.vercelignore`, `README.md`...) và các thư mục dữ liệu, không còn các tệp css/js lẻ tẻ.
 - **Tốc độ nạp tức thì & Tương thích 100% (Native Classic Scripts):** Toàn bộ script được giữ ở dạng classic script có thứ tự nạp chuẩn xác, bảo toàn tuyệt đối 187+ trình xử lý sự kiện `onclick` nội tuyến, biến toàn cục và hỗ trợ trình duyệt mọi nền tảng (kể cả Safari iOS cũ).
 - **Quy trình Build Tự động Không Phụ thuộc (Zero-bundler Build Tooling):** Bộ công cụ `tools/restructure.py` bằng Python chuẩn, cho phép ghép nối lossless (`python3 tools/restructure.py build`) để sinh ra `index.html` hoàn chỉnh sẵn sàng phục vụ trực tiếp trên Vercel CDN mà không cần cài đặt node_modules hay bundler nặng nề.
-- **Hệ thống Design Tokens (theme-light.css):** Quản lý màu sắc Mint Pastel, độ tương phản chuẩn WCAG 4.5:1, hỗ trợ chuyển đổi mượt mà giữa **Light Mode** và **Dark Mode**.
-- **Phân hệ Khảo thí Thi thử TCF Canada (tcf-exam.js / css):** Engine phòng thi trắc nghiệm âm thanh, In-app dialogs, bảng giải thích bẫy đề thi và chấm điểm CEFR/CLB.
-- **Trung tâm Luyện tập Từ vựng (vocab-practice.js / css):** Động cơ Spaced Repetition (SRS SuperMemo SM-2) với 4 chế độ: Trắc nghiệm, Nghe & Điền từ, Ghép thẻ nhanh và Flashcard 3D.
-- **Lớp Đồng bộ Đám mây (supabase-sync.js / sql):** Lưu trữ dữ liệu từ vựng và tiến trình học tập lên PostgreSQL đám mây không máy chủ.
+- **Hệ thống Design Tokens (css/theme-light.css):** Quản lý màu sắc Mint Pastel, độ tương phản chuẩn WCAG 4.5:1, hỗ trợ chuyển đổi mượt mà giữa **Light Mode** và **Dark Mode**.
+- **Phân hệ Khảo thí Thi thử TCF Canada (js/tcf-exam.js & css/tcf-exam.css):** Engine phòng thi trắc nghiệm âm thanh, In-app dialogs, bảng giải thích bẫy đề thi và chấm điểm CEFR/CLB.
+- **Trung tâm Luyện tập Từ vựng (js/vocab-practice.js & css/vocab-practice.css):** Động cơ Spaced Repetition (SRS SuperMemo SM-2) với 4 chế độ: Trắc nghiệm, Nghe & Điền từ, Ghép thẻ nhanh và Flashcard 3D.
+- **Lớp Đồng bộ Đám mây (js/supabase-sync.js & supabase-schema.sql):** Lưu trữ dữ liệu từ vựng và tiến trình học tập lên PostgreSQL đám mây không máy chủ.
 
 ```mermaid
 graph TD
@@ -31,15 +32,17 @@ graph TD
         Builder --> ProdHTML
     end
 
-    subgraph Modular_Stylesheets [Hệ thống CSS Modular - css/]
+    subgraph Modular_Stylesheets [Hệ thống CSS Modular - css/ - 22 files]
         ProdHTML --> CSSBase[02-base.css & 03-layout.css]
         ProdHTML --> CSSViews[04-view-reader.css, 05-view-catalog.css, 06-view-news.css, 11-view-translate.css]
         ProdHTML --> CSSControls[07-practice-modes.css .. 16-own-video.css]
         ProdHTML --> CSSMobile[17-mobile-tweaks.css .. 20-mobile-polish.css]
+        ProdHTML --> CSSTcf[tcf-exam.css]
+        ProdHTML --> CSSVocab[vocab-practice.css]
         ProdHTML --> Tokens[theme-light.css - Mint Pastel Tokens]
     end
 
-    subgraph Modular_Scripts [Hệ thống JS Modular - js/]
+    subgraph Modular_Scripts [Hệ thống JS Modular - js/ - 20 files]
         ProdHTML --> JSCore[01-core.js - State & YouTube API Loader]
         ProdHTML --> JSCatalog[01b-catalog.js - Catalogs & Netflix Rows]
         ProdHTML --> JSSubs[01c-subtitles.js - JSON3 / SRT Parser]
@@ -49,20 +52,17 @@ graph TD
         ProdHTML --> JSVocab[01g-vocab-list.js - Vocab & SRS Flashcards]
         ProdHTML --> JSEbook[01h-ebook.js - EPUB/PDF Reader & IndexedDB]
         ProdHTML --> JSSupport[02-pv-helper.js .. 10-own-video.js]
-    end
-
-    subgraph Core_Engines [Các Module Độc lập Bổ sung]
-        ProdHTML --> TCFEngine[TCF Canada Exam Engine - tcf-exam.js]
-        ProdHTML --> VocabEngine[Vocabulary Practice Hub - vocab-practice.js]
-        ProdHTML --> CloudSync[Supabase Sync Engine - supabase-sync.js]
+        ProdHTML --> JSTcf[tcf-exam.js - TCF Exam Engine]
+        ProdHTML --> JSVocabHub[vocab-practice.js - Practice Engine]
+        ProdHTML --> JSCloud[supabase-sync.js - Cloud Sync Engine]
     end
 
     subgraph Storage_Data [Dữ liệu & Đồng bộ Đám mây]
-        TCFEngine --> LocalStore[(Browser LocalStorage)]
-        VocabEngine --> LocalStore
+        JSTcf --> LocalStore[(Browser LocalStorage)]
+        JSVocabHub --> LocalStore
         JSEbook --> IDB[(IndexedDB: Books)]
-        LocalStore <--> CloudSync
-        CloudSync <--> CloudDB[(Supabase PostgreSQL)]
+        LocalStore <--> JSCloud
+        JSCloud <--> CloudDB[(Supabase PostgreSQL)]
     end
 ```
 
@@ -82,7 +82,7 @@ graph TD
 │   └── README.txt                          # Hướng dẫn môi trường Vercel CLI
 ├── assets/                                 # Tài nguyên ngôn ngữ tĩnh
 │   └── french-ipa.txt                      # Bảng từ điển ánh xạ phiên âm quốc tế IPA tiếng Pháp
-├── css/                                    # Hệ thống Stylesheets đã tách theo module (19 files)
+├── css/                                    # Toàn bộ Stylesheets của dự án (22 files)
 │   ├── 02-base.css                         # CSS nền tảng, thiết lập layer, typography
 │   ├── 03-layout.css                       # Bố cục 2 cột (5fr : 7fr), thanh cuộn, container
 │   ├── 04-view-reader.css                  # Kiểu dáng màn hình đọc sách song ngữ
@@ -101,8 +101,11 @@ graph TD
 │   ├── 17-mobile-tweaks.css                # Tinh chỉnh di động / iPad (#mobile-tweaks)
 │   ├── 18-controls-layout.css              # Bố cục hàng điều khiển trên mobile (#pv-ctl-layout)
 │   ├── 19-vs-style.css                     # Màu sắc và độ đậm nhạt đánh dấu từ (#vs-style)
-│   └── 20-mobile-polish.css                # Đánh bóng giao diện điều khiển mobile (#mobile-polish)
-├── js/                                     # Hệ thống Scripts đã tách theo module (17 files)
+│   ├── 20-mobile-polish.css                # Đánh bóng giao diện điều khiển mobile (#mobile-polish)
+│   ├── tcf-exam.css                        # Định kiểu phòng thi khảo thí TCF Canada
+│   ├── theme-light.css                     # Hệ thống Design Tokens Mint Pastel & Theme Overrides
+│   └── vocab-practice.css                  # Định kiểu Trung tâm Luyện tập Từ vựng
+├── js/                                     # Toàn bộ Scripts của dự án (20 files)
 │   ├── 01-core.js                          # Khởi tạo trạng thái, storage, icon SVG, Web Audio, YouTube API loader
 │   ├── 01b-catalog.js                      # Danh mục video, Netflix row cards, playlist, lazy load
 │   ├── 01c-subtitles.js                    # Bộ phân tích phụ đề JSON3/SRT, thuật toán chỉnh lệch tem thời gian
@@ -119,7 +122,10 @@ graph TD
 │   ├── 07-timeline-cc.js                   # Thanh timeline tùy biến, nút CC, phụ đề trên video (#vp-script)
 │   ├── 08-responsive-height.js             # Tính toán chiều cao linh hoạt trên di động/iPad
 │   ├── 09-keyboard-fix.js                  # Khắc phục lỗi bàn phím ảo trên iOS (#kb-fix)
-│   └── 10-own-video.js                     # Xử lý luồng tải video YouTube riêng (#own-yt-script)
+│   ├── 10-own-video.js                     # Xử lý luồng tải video YouTube riêng (#own-yt-script)
+│   ├── supabase-sync.js                    # Động cơ đồng bộ dữ liệu đám mây Supabase
+│   ├── tcf-exam.js                         # Động cơ khảo thí thi thử TCF Canada
+│   └── vocab-practice.js                   # Động cơ luyện tập từ vựng & Spaced Repetition (SRS)
 ├── partials/                               # Các khối giao diện HTML con theo component (16 files)
 │   ├── modal-bilingual.html                # Cài đặt phụ đề song ngữ (#bilingual-modal)
 │   ├── modal-book-import.html              # Nạp & phân đoạn chương sách (#bk-import-modal)
@@ -159,14 +165,8 @@ graph TD
 ├── README.md                               # Hướng dẫn sử dụng & tính năng tổng quan
 ├── RESTRUCTURE-PLAN.md                     # Kế hoạch chi tiết tái cấu trúc index.html thành modular
 ├── supabase-schema.sql                     # Cấu trúc bảng PostgreSQL trên Supabase Cloud
-├── supabase-sync.js                        # Động cơ đồng bộ dữ liệu đám mây Supabase
-├── tcf-exam.css                            # Định kiểu giao diện phòng thi khảo thí TCF Canada
-├── tcf-exam.js                             # Logic engine khảo thí thi thử TCF Canada
-├── theme-light.css                         # Hệ thống Design Tokens Mint Pastel & Theme Overrides
 ├── vercel.json                             # Cấu hình triển khai, header cache & Clean URLs Vercel
-├── videos-data.json                        # Dữ liệu chi tiết metadata của từng video bài học
-├── vocab-practice.css                      # Định kiểu Trung tâm Luyện tập Từ vựng
-└── vocab-practice.js                       # Logic động cơ luyện tập từ vựng & Spaced Repetition (SRS)
+└── videos-data.json                        # Dữ liệu chi tiết metadata của từng video bài học
 ```
 
 ---
@@ -184,7 +184,7 @@ graph TD
 
 ---
 
-### 3.2. Phân hệ Stylesheet Modular (`css/`)
+### 3.2. Phân hệ Stylesheet Modular (`css/` - 22 files)
 
 | Tệp tin | Vai trò kỹ thuật |
 | :--- | :--- |
@@ -207,11 +207,13 @@ graph TD
 | `css/18-controls-layout.css` | Tinh chỉnh bố cục cụm điều khiển phát trên màn hình nhỏ (`#pv-ctl-layout`). |
 | `css/19-vs-style.css` | Màu sắc và độ đậm nhạt đánh dấu từ/cụm/câu đã lưu trong bài (`#vs-style`). |
 | `css/20-mobile-polish.css` | Đánh bóng các nút điều khiển, bo góc và tối ưu vùng chạm trên mobile (`#mobile-polish`). |
-| [`theme-light.css`](file:///Users/linhvu/AI%20Project/Shadowing/theme-light.css) | **Hệ thống Design System toàn diện.** Khai báo Design Tokens HSL/Hex (Mint Pastel: `--fs-bg`, `--fs-surface`, `--fs-primary`, `--fs-tint`, `--fs-accent-text`, `--g1b` đến `--gvb`). Định nghĩa toàn bộ kiểu dáng giao diện cho 10 Modules (L1 – L10), hỗ trợ Dark Theme tự động qua `data-theme="dark"` và bảo toàn giao diện gốc khi tắt `data-ui="light"`. |
+| [`css/tcf-exam.css`](file:///Users/linhvu/AI%20Project/Shadowing/css/tcf-exam.css) | **Định kiểu phòng thi TCF.** Thiết kế overlay phòng thi chuẩn quốc tế, thanh điều hướng số câu hỏi, bảng kết quả, huy hiệu cấp độ CEFR/CLB và thẻ xem lại giải thích chi tiết. |
+| [`css/vocab-practice.css`](file:///Users/linhvu/AI%20Project/Shadowing/css/vocab-practice.css) | **Kiểu dáng cho Vocabulary Hub.** Tạo hiệu ứng 3D lật thẻ (`perspective`, `transform-style: preserve-3d`), dải tiến trình gradient, hiệu ứng rung khi chọn sai (`@keyframes vphShake`), lưới thẻ ghép và bộ màu từ loại cho giao diện dark gốc. |
+| [`css/theme-light.css`](file:///Users/linhvu/AI%20Project/Shadowing/css/theme-light.css) | **Hệ thống Design System toàn diện.** Khai báo Design Tokens HSL/Hex (Mint Pastel: `--fs-bg`, `--fs-surface`, `--fs-primary`, `--fs-tint`, `--fs-accent-text`, `--g1b` đến `--gvb`). Định nghĩa toàn bộ kiểu dáng giao diện cho 10 Modules (L1 – L10), hỗ trợ Dark Theme tự động qua `data-theme="dark"` và bảo toàn giao diện gốc khi tắt `data-ui="light"`. |
 
 ---
 
-### 3.3. Phân hệ JavaScript Modular (`js/`)
+### 3.3. Phân hệ JavaScript Modular (`js/` - 20 files)
 
 | Tệp tin | Vai trò kỹ thuật & Chức năng chi tiết |
 | :--- | :--- |
@@ -232,22 +234,13 @@ graph TD
 | `js/08-responsive-height.js` | Tự động đo đạc và điều chỉnh chiều cao khung phát trên màn hình xoay dọc di động/iPad. |
 | `js/09-keyboard-fix.js` | Ngăn chặn lỗi bàn phím ảo che khuất vùng nhập liệu trên iOS (`#kb-fix`). |
 | `js/10-own-video.js` | Xử lý luồng tải video YouTube ngoài bằng ID hoặc đường dẫn URL (`#own-yt-script`). |
+| [`js/tcf-exam.js`](file:///Users/linhvu/AI%20Project/Shadowing/js/tcf-exam.js) | **Bộ máy khảo thí TCF Canada (Compréhension Orale).** Quản lý trạng thái phòng thi mô phỏng, đồng hồ đếm ngược, phân đoạn âm thanh theo câu hỏi, hệ thống hộp thoại xác nhận In-App bo tròn (`.tcf-confirm-box`), tính điểm và xếp loại chuẩn CEFR (A1–C2) / CLB (3–10), thẻ phân tích bẫy đề thi (*Pièges TCF*) và tính năng 1-click test đề mẫu `TcfExam.loadDemoTest()`. |
+| [`js/vocab-practice.js`](file:///Users/linhvu/AI%20Project/Shadowing/js/vocab-practice.js) | **Động cơ Trung tâm Luyện tập Từ vựng (Vocabulary Practice Hub).** Triển khai thuật toán Spaced Repetition (SuperMemo SM-2) tính toán khoảng thời gian lặp lại và hệ số dễ dàng (*Ease factor*). Vận hành 4 chế độ: Trắc nghiệm phản xạ 4 đáp án (Quiz), Nghe & Điền từ khuyết (Cloze Test), Ghép thẻ nhanh (Fast Match 4×3), và Flashcard 3D lật mặt. |
+| [`js/supabase-sync.js`](file:///Users/linhvu/AI%20Project/Shadowing/js/supabase-sync.js) | **Bộ đồng bộ đám mây Supabase Client.** Tự động phát hiện thay đổi trên `localStorage`, đồng bộ 2 chiều (Local <-> Cloud), giải quyết xung đột thời gian (Last-Write-Wins), quản lý phiên đăng nhập và sao lưu kho từ vựng cá nhân. |
 
 ---
 
-### 3.4. Các Engine Mở rộng Độc lập (Root Engines)
-
-| Tệp tin | Kích thước / Dòng | Vai trò kỹ thuật & Chức năng chi tiết |
-| :--- | :---: | :--- |
-| [`tcf-exam.js`](file:///Users/linhvu/AI%20Project/Shadowing/tcf-exam.js) | ~1.219 dòng<br>~48 KB | **Bộ máy khảo thí TCF Canada (Compréhension Orale).** Quản lý trạng thái phòng thi mô phỏng, đồng hồ đếm ngược, phân đoạn âm thanh theo câu hỏi, hệ thống hộp thoại xác nhận In-App bo tròn (`.tcf-confirm-box`), tính điểm và xếp loại chuẩn CEFR (A1–C2) / CLB (3–10), thẻ phân tích bẫy đề thi (*Pièges TCF*) và tính năng 1-click test đề mẫu `TcfExam.loadDemoTest()`. |
-| [`tcf-exam.css`](file:///Users/linhvu/AI%20Project/Shadowing/tcf-exam.css) | ~638 dòng<br>~16 KB | **Định kiểu phòng thi TCF.** Thiết kế overlay phòng thi chuẩn quốc tế, thanh điều hướng số câu hỏi, bảng kết quả, huy hiệu cấp độ CEFR/CLB và thẻ xem lại giải thích chi tiết. |
-| [`vocab-practice.js`](file:///Users/linhvu/AI%20Project/Shadowing/vocab-practice.js) | ~1.988 dòng<br>~77 KB | **Động cơ Trung tâm Luyện tập Từ vựng (Vocabulary Practice Hub).** Triển khai thuật toán Spaced Repetition (SuperMemo SM-2) tính toán khoảng thời gian lặp lại và hệ số dễ dàng (*Ease factor*). Vận hành 4 chế độ: Trắc nghiệm phản xạ 4 đáp án (Quiz), Nghe & Điền từ khuyết (Cloze Test), Ghép thẻ nhanh (Fast Match 4×3), và Flashcard 3D lật mặt. |
-| [`vocab-practice.css`](file:///Users/linhvu/AI%20Project/Shadowing/vocab-practice.css) | ~1.899 dòng<br>~39 KB | **Kiểu dáng nền tảng cho Vocabulary Hub.** Tạo hiệu ứng 3D lật thẻ (`perspective`, `transform-style: preserve-3d`), dải tiến trình gradient, hiệu ứng rung khi chọn sai (`@keyframes vphShake`), lưới thẻ ghép và bộ màu từ loại cho giao diện dark gốc. |
-| [`supabase-sync.js`](file:///Users/linhvu/AI%20Project/Shadowing/supabase-sync.js) | ~864 dòng<br>~32 KB | **Bộ đồng bộ đám mây Supabase Client.** Tự động phát hiện thay đổi trên `localStorage`, đồng bộ 2 chiều (Local <-> Cloud), giải quyết xung đột thời gian (Last-Write-Wins), quản lý phiên đăng nhập và sao lưu kho từ vựng cá nhân. |
-
----
-
-### 3.5. Công cụ Quản lý Tái cấu trúc & Build (`tools/`)
+### 3.4. Công cụ Quản lý Tái cấu trúc & Build (`tools/`)
 
 | Tệp tin | Vai trò kỹ thuật & Chức năng chi tiết |
 | :--- | :--- |
@@ -263,10 +256,10 @@ graph TD
 | Thực thể dữ liệu | Lưu trữ Cục bộ (Local) | Lưu trữ Đám mây (Cloud) | Module sử dụng chính |
 | :--- | :--- | :--- | :--- |
 | **Kho từ vựng cá nhân** | `localStorage["fss_vocab_list"]` | Supabase Table `user_vocab` | Tra từ, Hard List, Flashcard SRS |
-| **Chu kỳ lặp lại SRS** | `item.srs: { ease, interval, reps, due }` | Supabase Column `srs_state` | Vocabulary Practice Hub (`vocab-practice.js`) |
+| **Chu kỳ lặp lại SRS** | `item.srs: { ease, interval, reps, due }` | Supabase Column `srs_state` | Vocabulary Practice Hub (`js/vocab-practice.js`) |
 | **Tiến độ chuỗi học (Streak)** | `localStorage["fss_streak_data"]` | Supabase Table `user_profiles` | Thanh trò chơi & Dashboard thống kê |
-| **Lịch sử thi thử TCF** | `localStorage["fss_tcf_exam_history"]` | Supabase Table `tcf_results` | TCF Exam Module (`tcf-exam.js`) |
-| **Tùy chọn giao diện (Theme)** | `localStorage["fss_theme_pref"]` (`light`/`dark`) | Đồng bộ qua profile người dùng | Navbar Theme Toggle (`theme-light.css`) |
+| **Lịch sử thi thử TCF** | `localStorage["fss_tcf_exam_history"]` | Supabase Table `tcf_results` | TCF Exam Module (`js/tcf-exam.js`) |
+| **Tùy chọn giao diện (Theme)** | `localStorage["fss_theme_pref"]` (`light`/`dark`) | Đồng bộ qua profile người dùng | Navbar Theme Toggle (`css/theme-light.css`) |
 | **Chế độ tự dừng câu (Auto-stop)**| `localStorage["fss_auto_stop"]` (`true`/`false`) | Cục bộ trên từng thiết bị | Player Control Header (`js/01d-player.js`) |
 | **Dữ liệu Sách E-Reader** | IndexedDB: `fss_books_db` | Lưu cục bộ trên thiết bị | Trình đọc sách song ngữ (`js/01h-ebook.js`) |
 
@@ -288,7 +281,7 @@ graph TD
 ### 5.2. Quy trình Chỉnh sửa CSS & JS
 1. Sửa trực tiếp trong các module chuyên biệt tại `css/` hoặc `js/`.
 2. Giữ nguyên tính chất classic script của JS (không dùng `type="module"`, không thêm `defer`/`async` làm hỏng thứ tự khởi tạo và các hàm gọi qua thuộc tính `onclick`).
-3. Với CSS giao diện sáng: Mọi quy tắc CSS cho giao diện Sáng mới phải được đặt trong vùng chọn `html[data-ui="light"]` tại `theme-light.css` và dùng các biến CSS chuẩn hóa (`--fs-bg`, `--fs-surface`, `--fs-primary`, `--fs-ink`, `--g1b`, ...).
+3. Với CSS giao diện sáng: Mọi quy tắc CSS cho giao diện Sáng mới phải được đặt trong vùng chọn `html[data-ui="light"]` tại `css/theme-light.css` và dùng các biến CSS chuẩn hóa (`--fs-bg`, `--fs-surface`, `--fs-primary`, `--fs-ink`, `--g1b`, ...).
 
 ### 5.3. Thêm Bài học / Video Mới
 1. Đặt tệp phụ đề vào thư mục `subs/` theo cú pháp: `{videoId}.fr.json3` và `{videoId}.fr.srt`.
