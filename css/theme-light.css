@@ -464,6 +464,10 @@ html[data-ui="light"] .cloud-sync-btn.home-top-btn {
   align-items: center !important;
   gap: 8px !important;
   cursor: pointer !important;
+  width: auto !important;
+  max-width: none !important;
+  overflow: visible !important;
+  white-space: nowrap !important;
 }
 
 html[data-ui="light"] .vocab-btn.home-top-btn:hover,
@@ -487,6 +491,7 @@ html[data-ui="light"] .vocab-count-badge {
   padding: 2px 8px !important;
   font-size: 11.5px !important;
   margin-left: 2px !important;
+  flex-shrink: 0 !important;
 }
 
 html[data-ui="light"] .vocab-due-badge {
@@ -496,6 +501,7 @@ html[data-ui="light"] .vocab-due-badge {
   border-radius: var(--fs-radius-pill) !important;
   padding: 2px 7px !important;
   font-size: 11px !important;
+  flex-shrink: 0 !important;
 }
 
 /* --- 2. THEME TOGGLE BUTTON (.fs-theme-toggle) --- */
@@ -3125,11 +3131,51 @@ html[data-ui="light"] .karaoke-word-active {
 }
 
 /* 3. Trạng thái Từ đã lưu (.vs-w / .vocab-saved-word) */
+html[data-ui="light"] {
+  --vs-color: #fde047;
+  --vs-opacity: 0.45;
+  --vs-bg: #fef08a !important;
+}
+
+html[data-ui="light"] .vs-w,
 html[data-ui="light"] .sub-word-unit.vs-w,
-html[data-ui="light"] .vocab-saved-word,
-html[data-ui="light"] .ul {
-  text-decoration: underline dotted 2px var(--fs-accent-text) !important;
-  text-underline-offset: 5px !important;
+html[data-ui="light"] .sh-w.vs-w,
+html[data-ui="light"] .vocab-saved-word {
+  background-color: #fef08a !important;
+  color: #0f172a !important;
+  border-radius: 4px !important;
+  text-decoration: underline dotted 2px #d97706 !important;
+  text-underline-offset: 4px !important;
+}
+
+html[data-ui="light"] .vs-w.vs-first,
+html[data-ui="light"] .sub-word-unit.vs-w.vs-first {
+  border-top-left-radius: 4px !important;
+  border-bottom-left-radius: 4px !important;
+}
+
+html[data-ui="light"] .vs-w.vs-last,
+html[data-ui="light"] .sub-word-unit.vs-w.vs-last {
+  border-top-right-radius: 4px !important;
+  border-bottom-right-radius: 4px !important;
+}
+
+html[data-ui="light"] #subtitles-scroll-container .sub-word-unit.vs-w {
+  box-shadow: 0 0 0 .12rem #fef08a !important;
+  color: #0f172a !important;
+}
+
+html[data-ui="light"] #subtitles-scroll-container .sub-word-unit.vs-w.vs-cont {
+  box-shadow: 0 0 0 .12rem #fef08a, calc(.3em + var(--sub-ws, 0em)) 0 0 0 #fef08a !important;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  html[data-ui="light"] .sub-word-unit.vs-w:hover:not(.karaoke-word-active),
+  html[data-ui="light"] #subtitles-scroll-container .sub-word-unit.vs-w.word-hover:hover:not(.karaoke-word-active) {
+    background-color: #fde047 !important;
+    box-shadow: 0 0 0 .12rem #fde047 !important;
+    color: #0f172a !important;
+  }
 }
 
 /* 4. Bản dịch tiếng Việt trong thẻ câu (.sub-vi-text) */
@@ -6731,6 +6777,61 @@ html[data-ui="light"] .vocab-vi {
   color: var(--fs-ink-muted) !important;
   font-size: 14px !important;
   line-height: 1.55 !important;
+}
+
+/* Khối câu ví dụ (Example sentences in Vocab & Review) */
+html[data-ui="light"] .vocab-more-btn {
+  background: var(--fs-tint) !important;
+  border: 1px solid var(--fs-primary) !important;
+  color: var(--fs-accent-text) !important;
+  border-radius: var(--fs-radius-sm, 8px) !important;
+  font-weight: 700 !important;
+  padding: 5px 12px !important;
+  font-size: 12px !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+}
+
+html[data-ui="light"] .vocab-more-btn:hover {
+  background: var(--fs-primary) !important;
+  color: var(--fs-on-primary) !important;
+}
+
+html[data-ui="light"] .vocab-examples {
+  border-left: 2px solid var(--fs-primary) !important;
+  margin-top: 8px !important;
+  padding: 2px 0 2px 12px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+}
+
+html[data-ui="light"] .vocab-examples[hidden] {
+  display: none !important;
+}
+
+html[data-ui="light"] .vocab-ex-en {
+  color: var(--fs-ink, #0f172a) !important;
+  font-size: 15px !important;
+  line-height: 1.55 !important;
+  font-weight: 600 !important;
+}
+
+html[data-ui="light"] .vocab-ex-vi {
+  color: var(--fs-muted, #475569) !important;
+  font-size: 13.5px !important;
+  line-height: 1.5 !important;
+  margin-top: 3px !important;
+}
+
+html[data-ui="light"] .vocab-ex-en mark,
+html[data-ui="light"] .review-card .vocab-ex-en mark,
+html[data-ui="light"] .vocab-card .vocab-ex-en mark {
+  background: #fef08a !important;
+  color: #854d0e !important;
+  font-weight: 700 !important;
+  padding: 1px 4px !important;
+  border-radius: 4px !important;
 }
 
 html[data-ui="light"] .vocab-src {
