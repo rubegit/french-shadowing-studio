@@ -1,0 +1,28 @@
+<div id="bk-import-modal" class="ai-modal-backdrop" onmousedown="if (event.target === this) bkImportCancel()">
+    <div class="ai-modal bk-imp">
+      <div class="ai-modal-head">
+        <div class="ai-modal-title">Nhập sách</div>
+        <button type="button" class="ai-modal-close" onclick="bkImportCancel()" title="Đóng"><i data-lucide="x"></i></button>
+      </div>
+      <div class="bk-row2">
+        <div class="bk-field"><label for="bk-imp-title">Tên sách</label><input id="bk-imp-title" type="text" /></div>
+        <div class="bk-field"><label for="bk-imp-author">Tác giả</label><input id="bk-imp-author" type="text" /></div>
+      </div>
+      <div class="bk-row2">
+        <div class="bk-field" id="bk-imp-mode-wrap">
+          <label for="bk-imp-mode">Cách chia chương</label>
+          <select id="bk-imp-mode" onchange="bkImportRechunk()">
+            <option value="auto">Tự động (theo tiêu đề)</option>
+            <option value="size">Chia đều theo độ dài (~2.500 từ/phần)</option>
+          </select>
+        </div>
+      </div>
+      <div class="bk-sumline"><span id="bk-imp-sum"></span><span><button type="button" class="bk-link" onclick="bkImpAll(true)">Chọn tất cả</button><button type="button" class="bk-link" onclick="bkImpAll(false)">Bỏ chọn</button></span></div>
+      <div id="bk-imp-list" class="bk-chlist"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button type="button" class="ai-btn ai-btn-primary" onclick="bkImportConfirm()">Nhập sách và đọc ngay</button>
+        <button type="button" class="ai-btn ai-btn-ghost" onclick="bkImportCancel()">Huỷ</button>
+      </div>
+      <p class="ai-step-text" style="margin:10px 0 0;color:#64748b">Bỏ chọn những mục không cần (mục lục, bản quyền, lời khen…). Chương nào quá dài sẽ tự được chia nhỏ để đọc nhẹ hơn.</p>
+    </div>
+  </div>

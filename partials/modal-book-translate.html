@@ -1,0 +1,52 @@
+<div id="bk-tr-modal" class="ai-modal-backdrop" onmousedown="if (event.target === this) bkCloseTranslate()">
+    <div class="ai-modal bk-tr">
+      <div class="ai-modal-head">
+        <div class="ai-modal-title" id="bk-tr-title">Dịch song ngữ</div>
+        <button type="button" class="ai-modal-close" onclick="bkCloseTranslate()" title="Đóng"><i data-lucide="x"></i></button>
+      </div>
+      <div class="bk-sumline"><span id="bk-tr-prog-text"></span></div>
+      <div class="bk-trmeter"><i id="bk-tr-meter"></i></div>
+      <div class="bk-row2">
+        <div class="bk-field">
+          <label for="bk-tr-from">Bắt đầu dịch từ</label>
+          <select id="bk-tr-from" onchange="bkTrRefresh()">
+            <option value="cursor">Tiếp nối phần vừa dịch</option>
+            <option value="read">Chỗ tôi đang đọc</option>
+            <option value="chapter">Đầu chương đang đọc</option>
+            <option value="start">Đầu sách</option>
+          </select>
+        </div>
+        <div class="bk-field">
+          <label for="bk-tr-size">Cỡ mỗi đợt dịch</label>
+          <select id="bk-tr-size" onchange="bkTrSizeChange()">
+            <option value="S">Nhỏ (~600 từ) – dễ cho AI</option>
+            <option value="M">Vừa (~1.100 từ) – khuyên dùng</option>
+            <option value="L">Lớn (~1.800 từ) – ít lần copy hơn</option>
+          </select>
+        </div>
+      </div>
+      <div id="bk-tr-info" class="bk-trinfo"></div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button type="button" id="bk-tr-copy" class="ai-btn ai-btn-primary" onclick="bkTrCopy(this)"><i data-lucide="copy"></i><span>Copy prompt</span></button>
+        <button type="button" class="bk-link" onclick="bkTrTogglePrev()">Xem prompt</button>
+      </div>
+      <pre id="bk-tr-prev" class="bk-prevbox"></pre>
+      <textarea id="bk-tr-text" class="ai-textarea" spellcheck="false" placeholder="Dán câu trả lời của AI vào đây (xen kẽ câu tiếng Pháp và câu tiếng Việt)..."></textarea>
+      <div class="bk-trfoot">
+        <button type="button" class="ai-btn ai-btn-primary" onclick="bkTrApply()">Áp dụng bản dịch</button>
+        <span style="font-size:.72rem;color:#64748b">Nếu AI bị cắt giữa chừng, cứ áp dụng phần đã có, đợt kế tiếp sẽ tự bắt đầu từ chỗ AI dừng.</span>
+      </div>
+      <div id="bk-tr-status" class="ai-status"></div>
+      <details class="bk-details" style="margin-top:8px">
+        <summary>Ghi chú thuật ngữ / văn phong (tự thêm vào mọi prompt)</summary>
+        <textarea id="bk-tr-gloss" class="bk-gl" spellcheck="false" onchange="bkTrSaveGloss()" placeholder="Ví dụ: Xưng hô &quot;bạn&quot;. Dịch &quot;leverage&quot; là &quot;đòn bẩy&quot;, &quot;specific knowledge&quot; là &quot;kiến thức đặc thù&quot;. Giữ nguyên tên riêng."></textarea>
+      </details>
+      <details class="bk-details">
+        <summary>Quản lý bản dịch</summary>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
+          <button type="button" class="ai-btn ai-btn-ghost" style="color:#fca5a5" onclick="bkTrClear('chapter')">Xóa bản dịch chương này</button>
+          <button type="button" class="ai-btn ai-btn-ghost" style="color:#fca5a5" onclick="bkTrClear('book')">Xóa bản dịch cả sách</button>
+        </div>
+      </details>
+    </div>
+  </div>

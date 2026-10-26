@@ -1,0 +1,53 @@
+<div id="screen-vt" class="hidden">
+  <header class="vt-header">
+    <div class="vt-hl">
+      <button type="button" class="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-blue-950/80 hover:bg-blue-900 border border-blue-800/80 text-blue-300 hover:text-white text-xs font-semibold transition-all cursor-pointer shadow-xs shrink-0 whitespace-nowrap btn-interactive" onclick="vtClose()" title="Quay lại thư viện">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg><span class="hidden sm:inline">Thư viện</span>
+      </button>
+      <div class="h-4 w-[1px] bg-slate-800 hidden md:block"></div>
+      <div class="vt-hd-title">Luyện dịch Việt → Pháp</div>
+    </div>
+    <div class="vt-hr">
+      <button type="button" class="dc-chip2" id="vt-readall" aria-pressed="false" title="Hiện tất cả bản dịch AI của mọi câu và ẩn ô gõ — dùng khi chỉ muốn đọc lướt">Hiện hết bản dịch</button>
+      <button type="button" class="dc-btn vt-ai-btn" onclick="vtOpenAI()" title="Lấy prompt nhờ AI dịch rồi dán kết quả vào app"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>Nhờ AI dịch</button>
+      <button type="button" class="fs-theme-toggle" onclick="toggleTheme()" title="Chuyển chế độ Sáng / Tối" aria-label="Chuyển giao diện sáng tối">
+        <svg class="fs-moon-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg class="fs-sun-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </button>
+    </div>
+  </header>
+  <div class="vt-body">
+  <aside class="dc-side vt-side" id="vt-side" aria-label="Danh sách câu">
+    <div class="dc-side-head"><div class="dc-side-title">Danh sách câu</div><button type="button" class="dc-link" id="vt-side-hide" title="Ẩn danh sách câu">Ẩn</button></div>
+    <div class="dc-side-sum">
+      <div class="dc-side-big" id="vt-side-big"></div>
+      <div class="dc-side-bar" id="vt-side-bar"></div>
+      <div class="dc-side-meta" id="vt-side-meta"></div>
+    </div>
+    <div class="dc-side-grid" id="vt-side-grid"></div>
+    <div class="dc-legend"><span><i style="background:#22c55e"></i>Đã xem bản dịch</span><span><i style="background:#f59e0b"></i>Đã gõ, chưa xem</span><span><i style="background:#17213f;border:1px solid #2b3f7a"></i>Chưa làm</span></div>
+  </aside>
+  <div class="vt-main" id="vt-main">
+    <div class="sh-wrap">
+      <div class="sh-top">
+        <div><h2 class="sh-title" id="vt-title">Luyện dịch</h2><div class="sh-sub" id="vt-sub"></div></div>
+        <div class="vt-top-r">
+          <div class="dc-seg" id="vt-filter" role="group" aria-label="Lọc câu"><button type="button" data-f="all" class="on">Tất cả</button><button type="button" data-f="todo">Chưa luyện</button></div>
+        </div>
+      </div>
+      <div class="sh-progress"><i id="vt-bar"></i></div>
+      <div class="vt-nav">
+        <button type="button" class="dc-iconbtn dc-side-show" id="vt-side-show" title="Hiện danh sách câu" aria-label="Hiện danh sách câu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></button>
+        <button type="button" class="dc-iconbtn" id="vt-prev" title="Câu trước" aria-label="Câu trước"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+        <button type="button" class="dc-count" id="vt-count" aria-haspopup="dialog" aria-expanded="false" title="Chọn câu / xem tiến độ">
+          <span id="vt-count-now">Câu 1</span><small id="vt-count-total">/ 1</small>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <button type="button" class="dc-iconbtn" id="vt-next" title="Câu sau" aria-label="Câu sau"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
+        <div class="dc-pop pv-x" id="vt-pop" role="dialog" aria-label="Danh sách câu"></div>
+      </div>
+      <div class="sh-list" id="vt-list" style="margin-top:12px"></div>
+    </div>
+  </div>
+  </div>
+</div>

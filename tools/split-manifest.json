@@ -442,6 +442,86 @@
      "gap": ""
     }
    ]
+  },
+  {
+   "kind": "include",
+   "replacement": "<!-- @include partials/modal-bilingual.html -->",
+   "file": "partials/modal-bilingual.html"
+  },
+  {
+   "kind": "include",
+   "replacement": "<!-- @include partials/modal-punctuation.html -->",
+   "file": "partials/modal-punctuation.html"
+  },
+  {
+   "kind": "include",
+   "replacement": "<!-- @include partials/modal-share.html -->",
+   "file": "partials/modal-share.html"
+  },
+  {
+   "kind": "include",
+   "replacement": "<!-- @include partials/modal-keyvocab.html -->",
+   "file": "partials/modal-keyvocab.html"
+  },
+  {
+   "kind": "include",
+   "replacement": "<!-- @include partials/modal-vocab-meaning.html -->",
+   "file": "partials/modal-vocab-meaning.html"
+  },
+  {
+   "kind": "include",
+   "replacement": "<!-- @include partials/modal-review-srs.html -->",
+   "file": "partials/modal-review-srs.html"
+  },
+  {
+   "kind": "include",
+   "replacement": "<!-- @include partials/modal-translate-ai.html -->",
+   "file": "partials/modal-translate-ai.html"
+  },
+  {
+   "kind": "include",
+   "replacement": "<!-- @include partials/modal-book-import.html -->",
+   "file": "partials/modal-book-import.html"
+  },
+  {
+   "kind": "include",
+   "replacement": "<!-- @include partials/modal-book-translate.html -->",
+   "file": "partials/modal-book-translate.html"
+  },
+  {
+   "kind": "include",
+   "replacement": "<!-- @include partials/view-home.html -->",
+   "file": "partials/view-home.html"
+  },
+  {
+   "kind": "include",
+   "replacement": "<!-- @include partials/view-translate.html -->",
+   "file": "partials/view-translate.html"
+  },
+  {
+   "kind": "include",
+   "replacement": "<!-- @include partials/view-vocab.html -->",
+   "file": "partials/view-vocab.html"
+  },
+  {
+   "kind": "include",
+   "replacement": "<!-- @include partials/view-guide.html -->",
+   "file": "partials/view-guide.html"
+  },
+  {
+   "kind": "include",
+   "replacement": "<!-- @include partials/view-donate.html -->",
+   "file": "partials/view-donate.html"
+  },
+  {
+   "kind": "include",
+   "replacement": "<!-- @include partials/view-book.html -->",
+   "file": "partials/view-book.html"
+  },
+  {
+   "kind": "include",
+   "replacement": "<!-- @include partials/view-practice.html -->",
+   "file": "partials/view-practice.html"
   }
  ]
 }

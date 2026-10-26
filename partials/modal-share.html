@@ -1,0 +1,17 @@
+<div id="share-modal" class="ai-modal-backdrop" onmousedown="if (event.target === this) closeShareModal()">
+    <div class="ai-modal" role="dialog" aria-modal="true">
+      <div class="ai-modal-head">
+        <div class="ai-modal-title">Chia sẻ video này</div>
+        <button type="button" class="ai-modal-close" onclick="closeShareModal()" title="Đóng (Esc)"><i data-lucide="x"></i></button>
+      </div>
+      <p class="ai-step-text">Link ngắn (đã copy sẵn):</p>
+      <input id="share-link-input" type="text" readonly onfocus="this.select()" class="ai-textarea" style="min-height:0;height:44px;resize:none;" />
+      <p class="ai-step-text" style="margin-top:12px">Link này chỉ hoạt động sau khi file <strong id="share-file-name"></strong> (vừa được tải về máy) nằm trong <strong>thư mục subs</strong> trên hosting (cùng chỗ với các file phụ đề). Upload/ghi đè file đó là xong; file chứa phụ đề từng từ (karaoke) và bản dịch. Sửa bản dịch sau này thì bấm chia sẻ lại và upload đè file mới.</p>
+      <p id="share-extra" class="ai-step-text"></p>
+      <p id="share-file-warn" class="ai-step-text" style="display:none;color:#fbbf24">Lưu ý: trang đang mở trực tiếp từ file trên máy nên người khác chưa mở được link, cần đưa cả thư mục lên hosting.</p>
+      <div class="ai-actions">
+        <button type="button" class="ai-btn ai-btn-primary" onclick="copyShareLink(this)"><i data-lucide="copy"></i><span>Copy link</span></button>
+        <button type="button" class="ai-btn ai-btn-ghost" onclick="closeShareModal()">Đóng</button>
+      </div>
+    </div>
+  </div>

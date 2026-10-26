@@ -1,0 +1,109 @@
+<div id="screen-book" class="hidden" data-theme="night" data-font="serif">
+    <header class="bk-top">
+      <div class="bk-grp">
+        <button type="button" class="bk-ib" onclick="bkClose()" title="Về thư viện"><i data-lucide="arrow-left"></i><span class="lbl">Thư viện</span></button>
+        <button type="button" class="bk-ib" id="bk-btn-toc" onclick="bkToggleDrawer('toc')" title="Mục lục (T)"><i data-lucide="list"></i><span class="lbl">Mục lục</span></button>
+      </div>
+      <div class="bk-titlebox" onclick="bkToggleDrawer('toc')" title="Mở mục lục">
+        <div class="a" id="bk-title"></div>
+        <div class="b" id="bk-subtitle"></div>
+      </div>
+      <div class="bk-grp">
+        <button type="button" class="bk-ib" onclick="bkToggleDrawer('search')" title="Tìm trong sách (/)"><i data-lucide="search"></i></button>
+        <button type="button" class="bk-ib" onclick="openVocabScreen()" title="Từ vựng đã lưu"><i data-lucide="bookmark"></i><span class="lbl">Từ vựng</span><span class="vocab-count-badge vocab-count-pill" style="display:none">0</span></button>
+        <button type="button" class="bk-ib" id="bk-btn-bi" onclick="bkToggleBilingual()" title="Hiện / ẩn bản dịch (B)"><i data-lucide="languages"></i><span class="lbl">Song ngữ</span><span class="bk-dot"></span></button>
+        <button type="button" class="bk-ib" onclick="bkOpenTranslate()" title="Tạo / dịch tiếp bản dịch"><i data-lucide="sparkles"></i><span class="lbl">Dịch</span></button>
+        <button type="button" class="bk-ib" id="bk-btn-set" onclick="bkToggleSettings()" title="Giao diện chữ và nền"><i data-lucide="type"></i></button>
+        <button type="button" class="bk-ib" onclick="bkToggleFocus()" title="Chế độ tập trung (F)"><i data-lucide="maximize"></i></button>
+      </div>
+    </header>
+
+    <div class="bk-body">
+      <aside id="bk-drawer" aria-label="Mục lục và tìm kiếm">
+        <div class="bk-dtabs">
+          <button type="button" id="bk-tab-toc" class="on" onclick="bkToggleDrawer('toc', true)">Mục lục</button>
+          <button type="button" id="bk-tab-search" onclick="bkToggleDrawer('search', true)">Tìm kiếm</button>
+          <button type="button" class="bk-dclose" onclick="bkCloseDrawer()" title="Đóng (T)" aria-label="Đóng">✕</button>
+        </div>
+        <div id="bk-pane-toc" class="bk-dpane on"></div>
+        <div id="bk-pane-search" class="bk-dpane">
+          <div class="bk-sbox"><input id="bk-search-input" type="text" placeholder="Tìm từ, cụm từ (Anh hoặc Việt)..." oninput="bkSearchInput(this.value)" /></div>
+          <div id="bk-search-res"><div class="bk-dnote">Gõ ít nhất 2 ký tự để tìm trong toàn bộ cuốn sách.</div></div>
+        </div>
+      </aside>
+      <div id="bk-drawer-back" onclick="bkCloseDrawer()"></div>
+
+      <div class="bk-main">
+        <div id="bk-scroll" class="bk-scroll" tabindex="-1" style="outline:none" onscroll="bkOnScroll()">
+          <article id="bk-content" class="bk-content" lang="en"></article>
+        </div>
+      </div>
+
+      <div id="bk-set" role="dialog" aria-label="Giao diện đọc">
+        <div class="bk-sg">
+          <label>Nền</label>
+          <div class="bk-seg">
+            <button type="button" class="bk-theme-chip" data-theme="night" onclick="bkSetPref('theme','night')" style="background:#0b1120;color:#dfe5f1">Aa</button>
+            <button type="button" class="bk-theme-chip" data-theme="dim" onclick="bkSetPref('theme','dim')" style="background:#1a1b1f;color:#d4d4d8">Aa</button>
+            <button type="button" class="bk-theme-chip" data-theme="sepia" onclick="bkSetPref('theme','sepia')" style="background:#f3ead6;color:#4a3b2a">Aa</button>
+            <button type="button" class="bk-theme-chip" data-theme="paper" onclick="bkSetPref('theme','paper')" style="background:#fbfaf7;color:#27272a">Aa</button>
+          </div>
+        </div>
+        <div class="bk-sg">
+          <label>Phông chữ</label>
+          <div class="bk-seg">
+            <button type="button" data-font="serif" onclick="bkSetPref('font','serif')" style="font-family:'Literata',Georgia,serif">Literata</button>
+            <button type="button" data-font="georgia" onclick="bkSetPref('font','georgia')" style="font-family:Georgia,serif">Georgia</button>
+            <button type="button" data-font="sans" onclick="bkSetPref('font','sans')">Sans</button>
+          </div>
+        </div>
+        <div class="bk-sg">
+          <label>Cỡ chữ</label>
+          <div class="bk-stepper"><button type="button" onclick="bkStep('size',-1)">A−</button><span id="bk-v-size"></span><button type="button" onclick="bkStep('size',1)">A+</button></div>
+        </div>
+        <div class="bk-sg">
+          <label>Giãn dòng</label>
+          <div class="bk-stepper"><button type="button" onclick="bkStep('lh',-1)">−</button><span id="bk-v-lh"></span><button type="button" onclick="bkStep('lh',1)">+</button></div>
+        </div>
+        <div class="bk-sg">
+          <label>Độ nổi bật của chữ</label>
+          <div class="bk-stepper"><button type="button" onclick="bkStep('ct',-1)" title="Chữ dịu hơn">−</button><span id="bk-v-ct"></span><button type="button" onclick="bkStep('ct',1)" title="Chữ nổi bật hơn">+</button></div>
+        </div>
+        <div class="bk-sg">
+          <label>Độ rộng cột chữ</label>
+          <div class="bk-seg">
+            <button type="button" data-width="620" onclick="bkSetPref('width',620)">Hẹp</button>
+            <button type="button" data-width="760" onclick="bkSetPref('width',760)">Vừa</button>
+            <button type="button" data-width="940" onclick="bkSetPref('width',940)">Rộng</button>
+          </div>
+        </div>
+        <div class="bk-sg">
+          <label>Căn lề</label>
+          <div class="bk-seg">
+            <button type="button" data-align="left" onclick="bkSetPref('align','left')">Trái</button>
+            <button type="button" data-align="justify" onclick="bkSetPref('align','justify')">Đều hai bên</button>
+          </div>
+        </div>
+        <div class="bk-sg">
+          <label>Bản dịch tiếng Việt hiện</label>
+          <div class="bk-seg">
+            <button type="button" data-lay="par" onclick="bkSetPref('lay','par')">Dưới mỗi đoạn</button>
+            <button type="button" data-lay="sent" onclick="bkSetPref('lay','sent')">Dưới từng câu</button>
+          </div>
+        </div>
+        <div class="bk-sg">
+          <label class="bk-switch"><span>Gạch chân từ đã lưu</span><input type="checkbox" id="bk-chk-hl" onchange="bkSetPref('hl', this.checked)"></label>
+        </div>
+      </div>
+    </div>
+
+    <footer class="bk-bottom">
+      <button type="button" class="bk-ib" onclick="bkPrevChapter()" title="Chương trước (←)"><i data-lucide="chevron-left"></i></button>
+      <span class="bk-stat" id="bk-st-ch"></span>
+      <input id="bk-slider" class="bk-slider" type="range" min="0" max="1000" value="0" oninput="bkSliderInput(this.value)" onchange="bkSliderCommit(this.value)" aria-label="Tiến độ đọc cả cuốn sách" />
+      <span class="bk-stat" id="bk-st-pct"></span>
+      <span class="bk-stat hide-sm" id="bk-st-left"></span>
+      <button type="button" id="bk-trpill" class="bk-trpill" onclick="bkOpenTranslate()"><span>Sắp hết phần đã dịch</span><b>Dịch tiếp →</b></button>
+      <button type="button" class="bk-ib" onclick="bkNextChapter()" title="Chương sau (→)"><i data-lucide="chevron-right"></i></button>
+    </footer>
+  </div>

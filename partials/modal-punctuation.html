@@ -1,0 +1,22 @@
+<div id="punct-modal" class="ai-modal-backdrop" onmousedown="if (event.target === this) closePunctModal()">
+    <div class="ai-modal" role="dialog" aria-modal="true" aria-labelledby="pc-title">
+      <div class="ai-modal-head">
+        <div id="pc-title" class="ai-modal-title">Thêm dấu câu cho phụ đề</div>
+        <button type="button" class="ai-modal-close" onclick="closePunctModal()" title="Đóng (Esc)">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <p class="ai-step-text">Copy prompt sau và gửi AI. AI sẽ thêm dấu câu và chia câu ngắn gọn (không dịch), sau đó paste kết quả của nó vào đây:</p>
+      <button type="button" class="ai-btn ai-btn-copy" onclick="aiCopy('punct-player', this)">
+        <i data-lucide="copy"></i><span>Copy prompt</span>
+      </button>
+      <textarea id="pc-textarea" class="ai-textarea" spellcheck="false" placeholder="Dán văn bản tiếng Pháp đã có dấu câu của AI vào đây..."></textarea>
+      <div class="ai-actions">
+        <button type="button" class="ai-btn ai-btn-primary" onclick="aiApply('punct-player')">
+          <i data-lucide="check"></i><span>Áp dụng</span>
+        </button>
+        <button type="button" class="ai-btn ai-btn-ghost" onclick="closePunctModal()">Để sau</button>
+      </div>
+      <div id="pc-status" class="ai-status"></div>
+    </div>
+  </div>

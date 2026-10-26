@@ -1,0 +1,438 @@
+<div id="screen-input" class="pg min-h-screen flex flex-col">
+    <header class="home-top-row fs-header top">
+      <div class="fs-brand logo">
+        <div class="fs-logo mark" aria-hidden="true">FS</div>
+        <div class="fs-brand-text">
+          <span class="fs-brand-title">French Shadowing Studio</span>
+        </div>
+      </div>
+      
+      <div class="mode-tabs-wrap nav">
+        <div class="text-mode-toggle">
+          <button type="button" id="mode-tab-video" class="active" onclick="setInputMode('video')">
+            <svg class="tab-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="1.5" y="4.5" width="21" height="15" rx="4.5" fill="#ef4444"/><rect x="1.5" y="4.5" width="21" height="7" rx="3.5" fill="#fff" fill-opacity=".18"/><path d="M10 8.8v6.4l5.6-3.2z" fill="#fff"/></svg>
+            <span>Luyện Video</span>
+          </button>
+          <button type="button" id="mode-tab-text" onclick="setInputMode('text')">
+            <svg class="tab-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="1.8" width="16" height="20.4" rx="3.5" fill="#2dd4bf"/><path d="M14.5 1.8H16.5A3.5 3.5 0 0 1 20 5.3V7.5Z" fill="#fde047"/><path d="M8 9.5h8M8 13h8M8 16.5h5" stroke="#fff" stroke-width="1.9" stroke-linecap="round"/></svg>
+            <span>Đọc báo</span>
+          </button>
+          <button type="button" id="mode-tab-book" onclick="setInputMode('book')">
+            <svg class="tab-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4.5C3 3.7 3.7 3 4.5 3H9a3 3 0 0 1 3 3v15a2.5 2.5 0 0 0-2.5-2.5H4.5A1.5 1.5 0 0 1 3 17z" fill="#f59e0b"/><path d="M21 4.5c0-.8-.7-1.5-1.5-1.5H15a3 3 0 0 0-3 3v15a2.5 2.5 0 0 1 2.5-2.5h5a1.5 1.5 0 0 0 1.5-1.5z" fill="#fde68a"/><path d="M6 8h3M6 11h3M15 8h3M15 11h3" stroke="#92400e" stroke-width="1.4" stroke-linecap="round"/></svg>
+            <span>Đọc sách</span>
+          </button>
+          <button type="button" id="mode-tab-vt" onclick="setInputMode('vt')">
+            <svg class="tab-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="3" width="13" height="11" rx="3.2" fill="#a78bfa"/><path d="M5 14v3.5l3.5-3.5Z" fill="#a78bfa"/><rect x="9" y="9" width="13" height="11" rx="3.2" fill="#38bdf8"/><path d="M19 20v3l-3.2-3Z" fill="#38bdf8"/><path d="M5.5 7.2h6M8.5 6v1.2M7 10c.8-1.4 2-2.2 3.2-2.6M9.2 7.2c-.4 1.6-1.8 2.8-3.2 3.4" stroke="#fff" stroke-width="1.2" stroke-linecap="round" fill="none"/><path d="m13.2 17.6 2.2-5.4 2.2 5.4M14 16h2.8" stroke="#fff" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+            <span>Luyện dịch</span>
+          </button>
+          <button type="button" id="mode-tab-custom-yt" onclick="setInputMode('custom-yt')">
+            <svg class="tab-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="1.5" y="4.5" width="21" height="15" rx="4.5" fill="#f43f5e"/><rect x="1.5" y="4.5" width="21" height="7" rx="3.5" fill="#fff" fill-opacity=".18"/><path d="M10 8.8v6.4l5.6-3.2z" fill="#fff"/></svg>
+            <span>Video của bạn</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="fs-header-right">
+        <button type="button" class="vocab-btn primary home-top-btn pill" onclick="openVocabScreen()">
+          <i data-lucide="bookmark" class="w-3.5 h-3.5"></i>
+          <span>Từ vựng đã lưu</span>
+          <span class="vocab-count-badge vocab-count-pill" style="display:none">0</span>
+          <span id="vocab-due-badge-2" class="vocab-due-badge" style="display:none">0</span>
+        </button>
+        <button type="button" id="btn-cloud-sync" class="cloud-sync-btn home-top-btn pill" onclick="openCloudSyncModal()" title="Đồng bộ đám mây (Supabase)">
+          <svg class="w-3.5 h-3.5 text-blue-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+          <span id="cloud-sync-status-text">Đồng bộ Cloud</span>
+          <span class="cloud-sync-dot disconnected"></span>
+        </button>
+        <button type="button" class="fs-theme-toggle home-top-btn pill" onclick="toggleFsTheme()" title="Chuyển chế độ Sáng / Tối" aria-label="Chuyển chế độ Sáng / Tối">
+          <svg class="fs-theme-icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          <svg class="fs-theme-icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="wrap w-full max-w-[1200px] mx-auto py-8 px-4 sm:px-10 space-y-7">
+
+      <div id="main-card" class="bg-[#0a1124] border border-blue-950/80 rounded-2xl p-5 sm:p-8 shadow-2xl space-y-7">
+        <div id="video-input-mode">
+          <div class="home-hero-text">
+            <h1 class="home-title">Luyện nghe tiếng Pháp qua YouTube</h1>
+            <p class="sub home-sub">Shadowing với phụ đề song ngữ Pháp – Việt, tra từ Larousse và phát âm IPA.</p>
+          </div>
+
+          <div class="card home-card">
+            <div class="step"><span class="n">1</span>Link hoặc ID video YouTube</div>
+            <div class="in">
+              <input id="input-youtube-url" type="text" aria-label="Link video YouTube" placeholder="https://youtube.com/watch?v=..." autocomplete="off" />
+              <button type="button" class="btn g" id="btn-paste-url" onclick="pasteYoutubeUrl()" title="Dán link từ bộ nhớ tạm">Dán</button>
+            </div>
+            <div id="youtube-url-feedback" class="home-feedback"></div>
+
+            <div class="step"><span class="n">2</span>Nạp phụ đề tiếng Pháp</div>
+            <div id="drop-zone" class="drop" role="button" tabindex="0">
+              <input id="file-input" type="file" accept=".srt,.vtt,.txt,.json,.json3,.xml,.ttml,.srv1,.srv2,.srv3,.sbv,.lrc,.ass,.ssa,text/plain,text/vtt,application/json,application/x-subrip,application/xml" class="hidden" />
+              <span id="drop-zone-text">Chọn file SRT / VTT / TXT hoặc dán bản chép lời</span>
+            </div>
+            <div id="file-status-badge" class="hidden"><span id="file-status-text"></span></div>
+            <div class="sub-paste-toggle-row">
+              <span class="sub-paste-label">Hoặc dán bản chép lời:</span>
+              <button type="button" id="btn-switch-sub-mode" class="sub-paste-toggle-btn" onclick="toggleSubtitleInputMode()">Dán văn bản</button>
+            </div>
+            <div id="raw-sub-container" class="hidden">
+              <textarea id="raw-sub-textarea" rows="4" placeholder="Dán nội dung phụ đề .srt hoặc transcript YouTube vào đây..."></textarea>
+              <button type="button" class="btn g btn-sm" onclick="applyRawSubtitles()" style="margin-top:8px;font-size:13px;padding:6px 14px;min-height:36px;">Áp dụng phụ đề</button>
+            </div>
+            <div id="parse-error-alert" class="hidden"><span id="parse-error-message"></span></div>
+
+            <div id="cta-glow-container" class="cta-glow-wrapper disabled" style="margin-top:12px;">
+              <button type="button" id="btn-start-practice" class="btn w-full" disabled onclick="startPractice()">Bắt đầu luyện tập</button>
+            </div>
+          </div>
+
+          <!-- Dải hướng dẫn cài extension (tự ẩn khi app phát hiện extension đã cài) -->
+          <div id="ext-install-strip" class="ext-strip">
+            <span class="ext-strip-text">Để mở bất cứ video YouTube nào bạn thích bằng app luyện tiếng Pháp này,<br>vui lòng làm theo hướng dẫn sau:</span>
+            <button type="button" class="ext-guide-btn" onclick="openGuideScreen()">
+              <span class="ext-guide-ico">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19.439 7.85c-.049.322.059.648.289.878l1.568 1.568c.47.47.706 1.087.706 1.704s-.235 1.233-.706 1.704l-1.611 1.611a.98.98 0 0 1-.837.276c-.47-.07-.802-.48-.968-.925a2.501 2.501 0 1 0-3.214 3.214c.446.166.855.497.925.968a.979.979 0 0 1-.276.837l-1.61 1.61a2.404 2.404 0 0 1-1.705.707 2.402 2.402 0 0 1-1.704-.706l-1.568-1.568a1.026 1.026 0 0 0-.877-.29c-.493.074-.84.504-1.02.968a2.5 2.5 0 1 1-3.237-3.237c.464-.18.894-.527.967-1.02a1.026 1.026 0 0 0-.289-.877l-1.568-1.568A2.402 2.402 0 0 1 1.998 12c0-.617.236-1.234.706-1.704L4.23 8.77c.24-.24.581-.353.917-.303.515.077.877.528 1.073 1.01a2.5 2.5 0 1 0 3.259-3.259c-.482-.196-.933-.558-1.01-1.073-.05-.336.062-.676.303-.917l1.525-1.525A2.402 2.402 0 0 1 12 1.998c.617 0 1.234.236 1.704.706l1.568 1.568c.23.23.556.338.877.29.493-.074.84-.504 1.02-.968a2.5 2.5 0 1 1 3.237 3.237c-.464.18-.894.527-.967 1.02Z"/></svg>
+              </span>
+              <span class="ext-guide-label">Cài Userscript / Extension</span>
+              <svg class="ext-guide-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div id="text-input-mode" class="hidden">
+          <div class="txt-head">
+            <span class="txt-head-ico">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="1.8" width="16" height="20.4" rx="3.5" fill="#fff"/><path d="M14.5 1.8H16.5A3.5 3.5 0 0 1 20 5.3V7.5Z" fill="#fde047"/><path d="M8 10h8M8 13.5h8M8 17h5" stroke="#14b8a6" stroke-width="1.9" stroke-linecap="round"/></svg>
+            </span>
+            <div>
+              <h3 class="txt-title">Đọc báo tiếng Pháp</h3>
+              <p class="txt-sub">Luyện đọc hiểu qua các bài báo và tin tức tiếng Pháp thực tế. Tách câu thông minh, dịch song ngữ Pháp – Việt, tra từ điển Larousse và phát âm chuẩn.</p>
+            </div>
+          </div>
+
+          <div class="txt-chips">
+            <span class="txt-chip"><i style="background:rgba(34,211,238,.16)"><svg viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2.4" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 5.5 5.5"/></svg></i>Tra nghĩa nhanh</span>
+            <span class="txt-chip"><i style="background:rgba(251,191,36,.16)"><svg viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2.4" stroke-linejoin="round"><path d="M6.5 3.5h11v17l-5.5-4-5.5 4z"/></svg></i>Lưu từ vựng</span>
+            <span class="txt-chip"><i style="background:rgba(167,139,250,.18)"><svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2.3" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18"/></svg></i>Dịch song ngữ</span>
+            <span class="txt-chip"><i style="background:rgba(52,211,153,.16)"><svg viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.8 2.8L16.5 9.5"/></svg></i>Tự động lưu lịch sử</span>
+          </div>
+
+          <!-- Lối tắt các trang báo tiếng Pháp thông dụng -->
+          <div class="fr-news-wrap">
+            <div class="fr-news-head">
+              <span class="fr-news-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                Trang báo tiếng Pháp khuyên đọc
+              </span>
+              <span class="fr-news-sub">Bấm để mở trang báo, chọn bài và sao chép nội dung dán vào bên dưới</span>
+            </div>
+            <div class="fr-news-grid">
+              <a href="https://francaisfacile.rfi.fr/" target="_blank" rel="noopener" class="fr-news-item" title="Tin tức thời sự tiếng Pháp dễ hiểu, kèm audio đọc chậm">
+                <span class="fr-news-logo" style="background:#e11d48;color:#fff;">RFI</span>
+                <div class="fr-news-meta">
+                  <div class="fr-news-name">RFI Français Facile</div>
+                  <div class="fr-news-desc">Tiếng Pháp dễ hiểu & Audio</div>
+                </div>
+                <svg class="fr-news-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </a>
+
+              <a href="https://www.lemonde.fr/" target="_blank" rel="noopener" class="fr-news-item" title="Nhật báo thời sự, chính trị và văn hóa số 1 nước Pháp">
+                <span class="fr-news-logo" style="background:#1e293b;color:#facc15;border:1px solid #475569;">LM</span>
+                <div class="fr-news-meta">
+                  <div class="fr-news-name">Le Monde</div>
+                  <div class="fr-news-desc">Nhật báo số 1 nước Pháp</div>
+                </div>
+                <svg class="fr-news-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </a>
+
+              <a href="https://www.france24.com/fr/" target="_blank" rel="noopener" class="fr-news-item" title="Kênh tin tức truyền hình quốc tế tiếng Pháp 24/7">
+                <span class="fr-news-logo" style="background:#0284c7;color:#fff;">F24</span>
+                <div class="fr-news-meta">
+                  <div class="fr-news-name">France 24</div>
+                  <div class="fr-news-desc">Tin tức truyền hình quốc tế 24/7</div>
+                </div>
+                <svg class="fr-news-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </a>
+
+              <a href="https://www.lefigaro.fr/" target="_blank" rel="noopener" class="fr-news-item" title="Nhật báo lâu đời và có lượng độc giả lớn của Pháp">
+                <span class="fr-news-logo" style="background:#1e3a8a;color:#93c5fd;">FIG</span>
+                <div class="fr-news-meta">
+                  <div class="fr-news-name">Le Figaro</div>
+                  <div class="fr-news-desc">Báo chí chính luận lớn & lâu đời</div>
+                </div>
+                <svg class="fr-news-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </a>
+
+              <a href="https://apprendre.tv5monde.com/fr" target="_blank" rel="noopener" class="fr-news-item" title="Học tiếng Pháp qua phóng sự truyền hình theo cấp độ A1-B2">
+                <span class="fr-news-logo" style="background:#7c3aed;color:#fff;">TV5</span>
+                <div class="fr-news-meta">
+                  <div class="fr-news-name">TV5Monde Apprendre</div>
+                  <div class="fr-news-desc">Tin bài học tiếng Pháp A1–B2</div>
+                </div>
+                <svg class="fr-news-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </a>
+
+              <a href="https://www.courrierinternational.com/" target="_blank" rel="noopener" class="fr-news-item" title="Điểm tin và góc nhìn báo chí toàn cầu bằng tiếng Pháp">
+                <span class="fr-news-logo" style="background:#d97706;color:#fff;">CI</span>
+                <div class="fr-news-meta">
+                  <div class="fr-news-name">Courrier International</div>
+                  <div class="fr-news-desc">Góc nhìn báo chí toàn cầu</div>
+                </div>
+                <svg class="fr-news-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </a>
+            </div>
+          </div>
+
+          <!-- Khung dán bài báo tiếng Pháp trực tiếp -->
+          <div class="txt-card">
+            <div class="txt-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              <span>Nhập hoặc dán bài báo tiếng Pháp</span>
+              <em>(Dán nội dung bài viết từ các trang báo trên vào đây)</em>
+            </div>
+
+            <input id="text-shadow-title-input" type="text" placeholder="Tiêu đề bài viết (tùy chọn — nếu bỏ trống, câu đầu tiên sẽ làm tiêu đề)" />
+
+            <textarea id="text-shadow-textarea" placeholder="Dán nội dung bài báo hoặc đoạn văn bản tiếng Pháp vào đây để bắt đầu đọc..."></textarea>
+
+            <div class="txt-foot">
+              <span class="txt-count"><b id="text-wc">0</b> từ</span>
+              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                <label class="txt-file-btn" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:999px;background:#0d1530;border:1px solid #1e2d5c;color:#93c5fd;font-size:12.5px;font-weight:600;cursor:pointer;transition:all .15s;">
+                  <input type="file" id="text-file-input" accept=".txt,.docx,.md,.html,.htm" style="display:none;" onchange="handleTextFileInput(event)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  Tải file (.txt, .docx, .md)
+                </label>
+                <button type="button" id="text-clear-btn" class="txt-clear">Xóa trắng</button>
+              </div>
+            </div>
+
+            <button type="button" class="txt-cta" onclick="startTextShadowingFromPaste()">
+              <span class="txt-cta-ico">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              </span>
+              <span>Bắt đầu đọc bài viết</span>
+            </button>
+          </div>
+
+          <!-- Văn bản Bạn Đã Luyện: hàng thẻ lịch sử các bài đã đọc (vẽ bởi renderTextHistoryRow) -->
+          <div id="text-history-container"></div>
+
+          <!-- Thử đọc bài viết có sẵn: đọc từ thư mục articles/ (cùng chỗ với index.html) -->
+          <div class="art-lib">
+            <div class="art-lib-head">
+              <span class="art-lib-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M8 7h8M8 11h6"/></svg></span>
+              <h4>Thử đọc bài viết có sẵn</h4>
+              <small>bấm vào bài để đọc</small>
+            </div>
+            <div id="art-lib-grid" class="art-lib-grid"></div>
+          </div>
+        </div>
+        <!-- ==================== ĐỌC SÁCH: KHU NHẬP SÁCH + THƯ VIỆN SÁCH ==================== -->
+<!-- ===== Pane Luyện dịch Việt → Pháp (trong main-card) ===== -->
+<div id="vt-input-mode" class="hidden">
+  <div class="bk-intro">
+    <span class="bk-intro-ico" style="background:linear-gradient(135deg,#7c3aed,#2563eb);box-shadow:0 8px 24px rgba(99,102,241,.3)"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8l6 6"/><path d="M4 14l6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg></span>
+    <div><h3>Luyện dịch Việt → Pháp</h3><p>Đọc câu tiếng Việt, tự dịch sang tiếng Pháp (trong đầu hoặc gõ ra), rồi so với bản dịch sát nghĩa và bản dịch thoáng của AI để nối ý tưởng với cách diễn đạt tiếng Pháp.</p></div>
+  </div>
+  <div class="ext-strip vt-ext">
+    <span class="ext-strip-text" id="vt-ext-text">Để tự import video Youtube hoặc bài viết / bài báo tiếng Việt của riêng bạn,<br>vui lòng cài extension sau:</span>
+    <a id="vt-ext-btn" class="ext-guide-btn" href="zip-files/ShadowingStudio-VN-Importer.zip" download="ShadowingStudio-VN-Importer.zip">
+      <span class="ext-guide-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg></span>
+      <span class="ext-guide-label">Tải extension</span>
+    </a>
+    <div id="vt-ext-hint" class="vt-steps"><div class="vt-step"><span class="vt-step-n">1</span><span class="vt-step-t">Tải xong, giải nén file zip</span></div><div class="vt-step"><span class="vt-step-n">2</span><span class="vt-step-t">Mở <b>chrome://extensions</b></span></div><div class="vt-step"><span class="vt-step-n">3</span><span class="vt-step-t">Bật <b>Developer mode</b></span></div><div class="vt-step"><span class="vt-step-n">4</span><span class="vt-step-t">Chọn <b>Load unpacked</b></span></div><div class="vt-step"><span class="vt-step-n">5</span><span class="vt-step-t">Chọn thư mục vừa được giải nén</span></div></div>
+  </div>
+  <div id="vt-hist-wrap" style="display:none"><div id="vt-hist-head" class="vt-hist-head"></div><div id="vt-hist" class="vt-grid"></div></div>
+  <div class="vt-lib-head">
+    <span class="vt-lib-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2.5"/><path d="m10 8.5 5 3.5-5 3.5z"/></svg></span>
+    <h4>Thư viện video tiếng Việt</h4>
+    <small>bấm vào video để luyện dịch</small>
+  </div>
+  <div id="vt-cats" class="vt-chips"></div>
+  <div id="vt-lib" class="vt-grid"></div>
+</div>
+
+        <div id="book-input-mode" class="hidden">
+          <div class="bk-intro">
+            <span class="bk-intro-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></span>
+            <div>
+              <h3>Đọc cả một cuốn sách tiếng Pháp</h3>
+              <p>Nạp sách (EPUB, PDF, TXT, MD, HTML) và đọc trong giao diện đọc sách riêng, có mục lục, tìm kiếm, nhớ vị trí đọc. Vẫn tra nghĩa, lưu từ vựng và song ngữ như bình thường. Bản dịch tạo theo từng đợt, đọc tới đâu dịch tới đó.</p>
+            </div>
+          </div>
+
+          <div id="bk-samples-wrap">
+            <div class="bk-lib-title" style="margin:0 0 10px"><h4>Dùng thử ngay</h4><small>không cần nạp file</small></div>
+            <div id="bk-samples" class="bk-samples"></div>
+          </div>
+          <div class="bk-or" style="margin-top:18px">hoặc nạp sách của riêng bạn</div>
+
+          <div id="bk-drop" class="bk-drop" tabindex="0" role="button" aria-label="Chọn file sách">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+            <b>Kéo thả file sách vào đây, hoặc bấm để chọn file</b>
+            <span>.epub · .pdf · .txt · .md · .html · .json (file sao lưu từ app này)</span>
+          </div>
+          <input type="file" id="bk-file" accept=".epub,.pdf,.txt,.md,.markdown,.html,.htm,.json" class="hidden" />
+
+          <div class="bk-or">hoặc dán văn bản</div>
+          <div class="bk-paste-row">
+            <input id="bk-paste-title" type="text" placeholder="Tên sách (không bắt buộc)" />
+            <button type="button" class="ai-btn ai-btn-copy" onclick="bkImportPasted()">Nạp văn bản đã dán</button>
+          </div>
+          <textarea id="bk-paste-text" spellcheck="false" placeholder="Dán toàn bộ nội dung sách tiếng Pháp vào đây..."></textarea>
+
+          <div class="bk-lib-title"><h4>Thư viện sách của bạn</h4><small id="bk-lib-count"></small></div>
+          <div id="bk-lib" class="bk-lib"></div>
+          <p class="txt-note" style="margin-top:14px">Sách, vị trí đọc và bản dịch được lưu ngay trong trình duyệt này (không cần tải lên đâu cả). Nhớ dùng nút <b>sao lưu</b> trên thẻ sách để xuất file .json phòng khi xóa dữ liệu trình duyệt.</p>
+        </div>
+
+        <!-- ===== Pane Luyện tiếng Pháp với video YouTube của bạn ===== -->
+        <div id="custom-yt-input-mode" class="hidden">
+          <div class="bk-intro" style="margin-bottom: 20px;">
+            <span class="bk-intro-ico" style="background: linear-gradient(135deg, #f43f5e, #ec4899); box-shadow: 0 8px 24px rgba(244, 63, 94, .35);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="2" y="5" width="20" height="14" rx="4"/><path d="m10 9.5 5 2.5-5 2.5z" fill="#fff"/>
+              </svg>
+            </span>
+            <div>
+              <h3>Luyện tiếng Pháp với video YouTube của bạn</h3>
+              <p>Dán link bất kỳ video YouTube tiếng Pháp nào và nạp file phụ đề (hoặc dán bản chép transcript) để bắt đầu luyện Shadowing, tra từ vựng và xem phụ đề song ngữ.</p>
+            </div>
+          </div>
+          <div id="own-yt-wrap" class="oy-wrap">
+            <button type="button" id="own-yt-toggle" class="ext-guide-btn oy-toggle" aria-expanded="true" aria-controls="own-yt-panel">
+              <span class="ext-guide-ico">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="4"/><path d="m10 9.5 5 2.5-5 2.5z" fill="currentColor"/></svg>
+              </span>
+              <span class="ext-guide-label"><span class="oy-l">Luyện tiếng Pháp với video YouTube</span> <span class="oy-l">của bạn</span></span>
+              <svg class="ext-guide-arrow oy-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+
+            <div id="own-yt-panel" class="oy-panel">
+              <div class="oy-step">
+                <div class="oy-step-head"><span class="oy-n">1</span><span class="oy-step-title">Link hoặc ID video YouTube</span></div>
+                <div class="oy-row">
+                  <input id="own-yt-url" class="oy-input" type="text" inputmode="url" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Dán link YouTube hoặc ID video (11 ký tự)" />
+                  <button type="button" id="own-yt-paste" class="oy-mini" title="Dán từ bộ nhớ tạm">Dán</button>
+                </div>
+                <div id="own-yt-url-fb" class="oy-fb"></div>
+              </div>
+
+              <div class="oy-step">
+                <div class="oy-step-head"><span class="oy-n">2</span><span class="oy-step-title">Nạp phụ đề tiếng Pháp</span></div>
+                <input id="own-yt-file" type="file" accept=".srt,.vtt,.txt,.json,.json3,.xml,.ttml,.srv1,.srv2,.srv3,.sbv,.lrc,.ass,.ssa,text/plain,text/vtt,application/json,application/x-subrip,application/xml" class="oy-file-hidden" tabindex="-1" />
+                <button type="button" id="own-yt-pick" class="oy-pick">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m17 8-5-5-5 5"/><path d="M12 3v12"/></svg>
+                  <span id="own-yt-pick-label">Chọn file phụ đề từ máy</span>
+                </button>
+                <div id="own-yt-file-ok" class="oy-ok" hidden></div>
+                <div id="own-yt-file-err" class="oy-err" hidden></div>
+                <div class="oy-paste-sub-wrap" style="margin-top: 10px; margin-bottom: 10px; padding: 10px 12px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px;">
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:13px; color:#cbd5e1; font-weight:600;">Dán trực tiếp bản chép lời (Transcript) / SRT:</span>
+                    <button type="button" id="oy-toggle-paste-sub" style="font-size:12px; color:#60a5fa; font-weight:600; cursor:pointer; background:rgba(37,99,235,0.15); border:1px solid rgba(37,99,235,0.4); border-radius:6px; padding:3px 8px;">Mở ô dán</button>
+                  </div>
+                  <div id="oy-paste-sub-box" style="display:none; margin-top:8px;">
+                    <textarea id="oy-sub-textarea" rows="4" style="width:100%; border-radius:8px; background:#070d1e; border:1px solid #1e3a8a; color:#f1f5f9; padding:8px 10px; font-size:12px; font-family:monospace; resize:vertical; box-sizing:border-box;" placeholder="Dán phụ đề .srt hoặc copy bản chép lời YouTube vào đây..."></textarea>
+                    <button type="button" id="oy-apply-sub-btn" style="margin-top:6px; padding:6px 14px; background:#2563eb; color:white; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; border:none;">Áp dụng phụ đề</button>
+                  </div>
+                </div>
+
+                <a class="oy-dl" href="https://downsub.com/" target="_blank" rel="noopener noreferrer">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>
+                  <span>Chưa có phụ đề? Tải phụ đề tiếng Pháp tại <b>downsub.com</b></span>
+                </a>
+                <div class="oy-hint">Có extension: mở video YouTube tiếng Pháp rồi dùng nút Shadowing Studio để gửi captions tự động, thường có timestamp từng từ chính xác hơn. Nếu không dùng extension, tải file SRT/VTT/TXT từ video rồi chọn ở đây. SRT/VTT thường chỉ có mốc thời gian theo câu nên thời gian từng từ sẽ được ước lượng.</div>
+              </div>
+
+              <button type="button" id="own-yt-start" class="oy-start" disabled>
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg>
+                <span>Bắt đầu luyện tập</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- THƯ VIỆN VIDEO CỦA BẠN (SPEC 2.9) -->
+          <div id="oy-history-wrap" class="oy-history-wrap">
+            <div class="oy-hist-head">
+              <div class="oy-hist-title">
+                <span class="oy-hist-ico">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="5" width="20" height="14" rx="4"></rect>
+                    <path d="m10 9.5 5 2.5-5 2.5z" fill="currentColor"></path>
+                  </svg>
+                </span>
+                <span>Thư viện video của bạn</span>
+              </div>
+              <span id="oy-hist-total" class="oy-hist-total">Tổng: <strong id="oy-hist-count">0</strong> video</span>
+            </div>
+            <div id="oy-hist-grid" class="oy-hist-grid"></div>
+          </div>
+        </div>
+
+         <!-- THƯ VIỆN VIDEO (ĐỔI SANG IN HOA TOÀN BỘ VÀ TÁCH RỘNG KHÔNG GIAN BÊN DƯỚI - ITEM 4) -->
+        <div class="pt-6 pb-1 border-t border-slate-800/80 lib-wrap">
+          <div class="p-5 sm:p-7 rounded-2xl bg-gradient-to-b from-[#091129] to-[#070d1e] border border-blue-900/60 shadow-xl space-y-5">
+            
+            <div class="flex flex-col items-center text-center gap-2 lib-head">
+              <label class="block text-2xl sm:text-[27px] font-extrabold text-white tracking-wide flex items-center justify-center gap-4 uppercase">
+                <span class="lib-head-ico lib-ico-glow"><svg class="shrink-0" style="width:60px;height:60px;filter:drop-shadow(0 2px 6px rgba(0,0,0,.45))" viewBox="0 0 100 100" aria-hidden="true">
+                  <path d="M8 56 L52 40 L94 56 L94 72 L48 90 L8 72 Z" fill="#1e4e9c"/>
+                  <path d="M8 56 L52 40 L94 56 L50 74 Z" fill="#2f6bc4"/>
+                  <path d="M50 74 L94 56 L94 72 L48 90 Z" fill="#cfe0f3"/>
+                  <path d="M50 74 L94 56 L94 62 L50 80 Z" fill="#a9c3de"/>
+                  <path d="M8 56 L50 74 L48 90 L8 72 Z" fill="#245ab0"/>
+                  <path d="M20 44 L56 32 L88 44 L88 54 L52 68 L20 56 Z" fill="#b52a3c"/>
+                  <path d="M20 44 L56 32 L88 44 L52 58 Z" fill="#ef4458"/>
+                  <path d="M52 58 L88 44 L88 54 L52 68 Z" fill="#cfe0f3"/>
+                  <path d="M52 58 L88 44 L88 48 L52 62 Z" fill="#a9c3de"/>
+                  <path d="M20 44 L52 58 L52 68 L20 56 Z" fill="#d23a4d"/>
+                  <path d="M14 30 L52 14 L90 30 L90 38 L52 54 L14 38 Z" fill="#d9531b"/>
+                  <path d="M14 30 L52 14 L90 30 L52 46 Z" fill="#f7a35b"/>
+                  <path d="M52 46 L90 30 L90 38 L52 54 Z" fill="#cfe0f3"/>
+                  <path d="M52 46 L90 30 L90 33 L52 49 Z" fill="#a9c3de"/>
+                  <path d="M14 30 L52 46 L52 54 L14 38 Z" fill="#ef7a35"/>
+                </svg></span>
+                <span class="lib-title-text">THƯ VIỆN VIDEO</span>
+              </label>
+              <div class="w-full flex items-center gap-3" style="justify-content:flex-end;">
+                <span class="text-xs sm:text-sm font-mono text-slate-400">
+                  Tổng: <strong id="library-total-count" class="text-blue-300 font-bold">0</strong> video
+                </span>
+              </div>
+            </div>
+
+            <div class="search-container mt-2">
+              <div class="search-icon-box">
+                <i data-lucide="search" class="w-5 h-5 text-blue-400"></i>
+              </div>
+              <input
+                id="library-search-input"
+                type="text"
+                oninput="handleLibrarySearch(this.value)"
+                placeholder="Tìm kiếm video trong thư viện (theo tên hoặc Video ID)..."
+                class="search-input-field"
+              />
+            </div>
+
+            <div id="netflix-categories-container" class="space-y-6 pt-3">
+              <div class="text-center py-8 text-slate-400 text-xs">
+                <span class="inline-block w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin mr-2 align-middle"></span>
+                Đang nạp thư viện video...
+              </div>
+            </div>
+
+            <div id="library-cat-page" aria-live="polite"></div>
+
+          </div>
+        </div>
+
+        <div id="site-counter-footer" class="site-counter-footer"></div>
+
+      </div>
+    </div>
+  </div>
