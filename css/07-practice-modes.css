@@ -1,0 +1,550 @@
+
+    /* ==================== BỘ CHUYỂN GIAO DIỆN LUYỆN TẬP + CHÉP CHÍNH TẢ ==================== */
+    /* Lưu ý: CSS Tailwind trong file này là bản đã biên dịch (nằm trong @layer) nên bị CSS thường đè -> dùng class ẩn riêng */
+    .pv-x { display: none !important; }
+    .pv-tools-hidden { display: none !important; }
+
+    /* Giao diện Mặc định khi đang ở giao diện khác: đẩy ra ngoài màn hình nhưng KHÔNG gỡ khỏi trang,
+       để trình phát YouTube vẫn sống và dùng làm nguồn âm thanh cho Chép chính tả. */
+    #pv-default.pv-offscreen { position: fixed !important; left: -4000px; top: 0; width: 1200px; height: 720px; overflow: hidden; pointer-events: none; }
+
+    .pv-switch { position: relative; display: inline-flex; }
+    .pv-switch-btn { display: inline-flex; align-items: center; gap: 9px; padding: 4px 13px; border-radius: 11px; border: 1px solid #1e40af; background: rgba(30, 58, 138, .35); color: #dbeafe; cursor: pointer; transition: all .15s; white-space: nowrap; text-align: left; }
+    .pv-switch-btn:hover { background: rgba(37, 99, 235, .45); color: #fff; }
+    .pv-switch-btn[aria-expanded="true"] { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, .22); }
+    .pv-sw-ico { width: 28px; height: 28px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; background: #1e3a8a; color: #bfdbfe; flex: none; }
+    .pv-sw-ico svg { width: 16px; height: 16px; }
+    .pv-sw-label { display: flex; flex-direction: column; line-height: 1.15; }
+    .pv-sw-label small { font-size: 9.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #7f9bd6; }
+    .pv-sw-label b { font-size: 12.5px; font-weight: 800; }
+    .pv-sw-caret { width: 13px; height: 13px; opacity: .75; transition: transform .15s; flex: none; }
+    .pv-switch-btn[aria-expanded="true"] .pv-sw-caret { transform: rotate(180deg); }
+    /* Nút "Giao diện" là nút quan trọng: luôn hiện chữ ở mọi kích thước màn hình (header tự vuốt ngang nếu thiếu chỗ) */
+    @media (max-width: 639px) { .pv-switch-btn { padding-right: 10px; gap: 7px; flex: none; } }
+
+    .pv-menu { position: absolute; top: calc(100% + 9px); left: 0; z-index: 90; width: 326px; max-width: calc(100vw - 20px); padding: 6px; border-radius: 15px; background: #0b1328; border: 1px solid #1f2e57; box-shadow: 0 20px 56px rgba(0, 0, 0, .6); animation: pvPop .14s ease both; }
+    @keyframes pvPop { from { opacity: 0; transform: translateY(-4px) scale(.98); } to { opacity: 1; transform: none; } }
+    .pv-menu-title { font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: #64748b; font-weight: 800; padding: 7px 10px 5px; }
+    .pv-opt { display: flex; align-items: flex-start; gap: 11px; width: 100%; text-align: left; padding: 9px 10px; border-radius: 11px; border: 1px solid transparent; background: transparent; color: #cbd5e1; cursor: pointer; transition: background .12s; }
+    /* Trên laptop menu nằm TRONG header, mà header có luật "button { white-space: nowrap }" nên mô tả bị tràn ra ngoài thẻ -> ép xuống dòng lại */
+    #screen-practice header .pv-opt { white-space: normal; flex-shrink: 1; }
+    .pv-opt > span:not(.pv-opt-ico) { min-width: 0; flex: 1 1 auto; }
+    .pv-opt:hover { background: #111b38; }
+    .pv-opt.active { background: rgba(37, 99, 235, .16); border-color: rgba(59, 130, 246, .45); }
+    .pv-opt-ico { width: 36px; height: 36px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; flex: none; background: rgba(59, 130, 246, .16); color: #93c5fd; }
+    .pv-opt-ico svg { width: 18px; height: 18px; }
+    .pv-opt[data-v="shadowing"] .pv-opt-ico { background: rgba(167, 139, 250, .16); color: #c4b5fd; }
+    .pv-opt[data-v="dictation"] .pv-opt-ico { background: rgba(45, 212, 191, .15); color: #5eead4; }
+    .pv-opt-name { font-size: 13px; font-weight: 800; color: #f1f5f9; display: flex; align-items: center; gap: 7px; }
+    .pv-opt-desc { font-size: 11.5px; line-height: 1.45; color: #8a9bb8; margin-top: 2px; font-weight: 500; }
+    .pv-soon { font-size: 9.5px; font-weight: 800; padding: 1px 7px; border-radius: 99px; background: rgba(245, 158, 11, .14); color: #fbbf24; border: 1px solid rgba(245, 158, 11, .32); letter-spacing: .02em; }
+    .pv-opt-check { margin-left: auto; color: #60a5fa; opacity: 0; width: 16px; height: 16px; flex: none; margin-top: 2px; }
+    .pv-opt.active .pv-opt-check { opacity: 1; }
+    .pv-header-title { max-width: 34vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12.5px; font-weight: 600; color: #7d8db0; padding-left: 12px; }
+    @media (max-width: 767px) { .pv-header-title { display: none; } }
+
+    /* ---------- Khung chung của các giao diện thay thế ---------- */
+    .pv-view { flex: 1 1 0; min-height: 0; overflow-y: auto; background: radial-gradient(900px 360px at 50% -90px, rgba(37, 99, 235, .11), transparent 70%), #070b14; }
+    .pv-view::-webkit-scrollbar { width: 10px; }
+    .pv-view::-webkit-scrollbar-thumb { background: #1a2547; border-radius: 8px; border: 2px solid #070b14; }
+    /* =====================================================================================================
+       ⚙️  [CHỈNH ĐỘ RỘNG GIAO DIỆN CHÉP CHÍNH TẢ]  — tìm nhanh bằng từ khoá:  DC_MAX_WIDTH
+       Đổi con số ngay bên dưới (dòng "--dc-max-width").
+         • Ban đầu là 780px. Hiện là 900px (rộng hơn ~15%).
+         • Muốn rộng hơn: tăng số (vd 1000px). Muốn hẹp lại: giảm số (vd 780px).
+         • Đây là bề rộng TỐI ĐA của cả khối (gồm 32px lề trái/phải): chỉ có tác dụng khi màn hình còn dư chỗ.
+           Laptop nhỏ / iPad / điện thoại tự co lại cho vừa nên không bị ảnh hưởng.
+         • Cột "Danh sách câu" bên trái (268px, chỉ hiện từ 1024px trở lên) nằm ngoài khối này, không bị tính vào.
+       ===================================================================================================== */
+    #pv-dictation { --dc-max-width: 900px; }   /* DC_MAX_WIDTH  <-- sửa số này */
+    .dc-wrap { max-width: var(--dc-max-width, 900px); margin: 0 auto; padding: 20px 16px 80px; display: flex; flex-direction: column; gap: 14px; }
+
+    .dc-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+    .dc-nav { display: flex; align-items: center; gap: 4px; position: relative; }
+    .dc-top > .ts-ctl { margin-left: auto; }   /* khối Thời gian nằm sát bên phải hàng Câu N/M */
+    .dc-iconbtn { width: 34px; height: 34px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; background: #0d1630; border: 1px solid #1e2c52; color: #94a3b8; cursor: pointer; transition: all .15s; flex: none; }
+    .dc-iconbtn svg { width: 16px; height: 16px; }
+    .dc-iconbtn:hover:not(:disabled) { color: #fff; background: #14204a; border-color: #2b3f7a; }
+    .dc-iconbtn:disabled { opacity: .3; cursor: default; }
+    .dc-count { display: inline-flex; align-items: center; gap: 7px; padding: 5px 11px; border-radius: 10px; background: transparent; border: 1px solid transparent; color: #f1f5f9; font-size: 17px; font-weight: 800; cursor: pointer; transition: all .15s; }
+    .dc-count small { font-size: 13px; color: #64748b; font-weight: 700; }
+    .dc-count svg { width: 13px; height: 13px; color: #64748b; }
+    .dc-count:hover, .dc-count[aria-expanded="true"] { background: #0d1630; border-color: #1e2c52; }
+    .dc-meta { font-size: 12.5px; color: #7d8db0; font-weight: 600; margin-left: 8px; display: inline-flex; align-items: center; gap: 8px; }
+    .dc-tag { font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 99px; background: rgba(45, 212, 191, .12); color: #5eead4; border: 1px solid rgba(45, 212, 191, .3); }
+    .dc-seg { display: inline-flex; padding: 3px; gap: 2px; border-radius: 11px; background: #060a17; border: 1px solid #1e293b; }
+    .dc-seg button { padding: 5px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; color: #7d8db0; background: transparent; border: 0; cursor: pointer; transition: all .15s; white-space: nowrap; }
+    .dc-seg button.on { background: #2563eb; color: #fff; box-shadow: 0 2px 10px rgba(37, 99, 235, .35); }
+    .dc-seg button:not(.on):hover { color: #e2e8f0; }
+
+    .dc-ribbon { display: flex; gap: 3px; height: 8px; padding: 0 1px; }
+    .dc-ribbon i { flex: 1 1 0; min-width: 2px; border-radius: 3px; background: #17213f; cursor: pointer; transition: background .2s, transform .15s; }
+    .dc-ribbon i:hover { transform: scaleY(1.7); }
+    .dc-ribbon i.perfect { background: #22c55e; }
+    .dc-ribbon i.partial { background: #f59e0b; }
+    .dc-ribbon i.poor { background: #ef4444; }
+    .dc-ribbon i.revealed { background: #64748b; }
+    .dc-ribbon i.cur { box-shadow: 0 0 0 2px #070b14, 0 0 0 3.5px #60a5fa; position: relative; }
+    .dc-stats { display: flex; gap: 6px 16px; flex-wrap: wrap; font-size: 12px; color: #6b7ca3; font-weight: 600; margin-top: -4px; }
+    .dc-stats b { color: #cbd5e1; font-weight: 800; }
+
+    .dc-pop { position: absolute; top: calc(100% + 9px); left: 0; z-index: 40; width: min(430px, calc(100vw - 32px)); padding: 14px; border-radius: 16px; background: #0b1328; border: 1px solid #1f2e57; box-shadow: 0 22px 60px rgba(0, 0, 0, .6); animation: pvPop .14s ease both; }
+    .dc-pop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); gap: 6px; max-height: 270px; overflow-y: auto; padding: 3px; }
+    .dc-chip { height: 34px; border-radius: 9px; font-size: 12px; font-weight: 700; border: 1px solid #1e2c52; background: #0d1630; color: #9fb0cf; cursor: pointer; transition: all .12s; }
+    .dc-chip:hover { border-color: #3b5bb5; color: #fff; }
+    .dc-chip.perfect { background: rgba(34, 197, 94, .16); border-color: rgba(34, 197, 94, .5); color: #86efac; }
+    .dc-chip.partial { background: rgba(245, 158, 11, .15); border-color: rgba(245, 158, 11, .5); color: #fcd34d; }
+    .dc-chip.poor { background: rgba(239, 68, 68, .15); border-color: rgba(239, 68, 68, .5); color: #fca5a5; }
+    .dc-chip.revealed { background: rgba(100, 116, 139, .18); border-color: rgba(100, 116, 139, .5); color: #cbd5e1; }
+    .dc-chip.cur { outline: 2px solid #60a5fa; outline-offset: 1px; color: #fff; }
+    .dc-pop-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+    .dc-legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 11.5px; color: #7d8db0; font-weight: 600; }
+    .dc-legend i { display: inline-block; width: 9px; height: 9px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+    .dc-link { background: none; border: 0; color: #7aa2ff; font-weight: 700; cursor: pointer; font-size: 12px; padding: 2px 4px; }
+    .dc-link:hover { color: #fff; }
+    .dc-link.danger { color: #f87171; }
+
+    .dc-card { background: #0a1124; border: 1px solid #17224a; border-radius: 18px; padding: 16px 18px; box-shadow: 0 10px 30px rgba(0, 0, 0, .25); }
+
+    /* Khối nghe */
+    .dc-player { display: grid; grid-template-columns: auto auto 1fr; gap: 14px; align-items: center; }   /* 3 cột: [Play đỏ] [Phát lại] [dải sóng] */
+    .dc-play { width: 60px; height: 60px; border-radius: 50%; border: 0; cursor: pointer; color: #fff; background: linear-gradient(180deg, #ef4444, #b91c1c); box-shadow: 0 8px 22px rgba(220, 38, 38, .38), inset 0 1px 0 rgba(255, 255, 255, .25); display: inline-flex; align-items: center; justify-content: center; transition: transform .12s; flex: none; }
+    .dc-play:hover { transform: scale(1.05); }
+    .dc-play:active { transform: scale(.96); }
+    .dc-play svg { width: 24px; height: 24px; }
+    .dc-play .i-pause { display: none; }
+    .dc-play.on .i-play { display: none; }
+    .dc-play.on .i-pause { display: block; }
+    .dc-play.on { animation: dcPulse 1.5s ease-out infinite; }
+    /* Nút Phát lại: tròn, nhỏ hơn nút Play (60px) — chỉnh cỡ nút ở width/height, cỡ icon ở "svg" bên dưới */
+    .dc-replay { width: 40px; height: 40px; border-radius: 50%; border: 1px solid #1e2c52; background: #0d1630; color: #94a3b8; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; flex: none; transition: color .15s, background .15s, border-color .15s, transform .12s; }
+    .dc-replay svg { width: 18px; height: 18px; }
+    .dc-replay:hover { color: #fff; background: #14204a; border-color: #2b3f7a; }
+    .dc-replay:active { transform: scale(.93); }
+    @keyframes dcPulse { 0% { box-shadow: 0 8px 22px rgba(220, 38, 38, .38), 0 0 0 0 rgba(239, 68, 68, .5); } 100% { box-shadow: 0 8px 22px rgba(220, 38, 38, .38), 0 0 0 16px rgba(239, 68, 68, 0); } }
+    .dc-mid { min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+    .dc-wave { display: flex; align-items: center; justify-content: space-between; gap: 3px; height: 36px; }
+    .dc-wave b { flex: 1 1 0; min-width: 2px; max-width: 8px; border-radius: 3px; background: #1d2b57; height: var(--h, 10px); transition: background .12s; }
+    .dc-wave b.on { background: #60a5fa; }
+    .dc-timeline { display: flex; justify-content: space-between; font-size: 11.5px; color: #64748b; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .dc-chips { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; padding-top: 13px; border-top: 1px solid #131d3d; }
+    .dc-chip2 { display: inline-flex; align-items: center; gap: 6px; padding: 6px 11px; border-radius: 9px; font-size: 12px; font-weight: 700; background: #0d1630; border: 1px solid #1e2c52; color: #9fb0cf; cursor: pointer; transition: all .15s; white-space: nowrap; }
+    .dc-chip2 svg { width: 14px; height: 14px; }
+    .dc-chip2:hover { color: #fff; border-color: #2b3f7a; }
+    .dc-chip2.on { background: rgba(37, 99, 235, .2); border-color: #2563eb; color: #bfdbfe; }
+
+    /* Khối gõ */
+    .dc-input { display: block; width: 100%; min-height: 112px; resize: none; background: #060b18; border: 1px solid #1b2850; border-radius: 14px; padding: 14px 16px; color: #f1f5f9; font-family: inherit; font-size: 19px; line-height: 1.6; font-weight: 500; outline: none; transition: border-color .15s, box-shadow .15s; }
+    .dc-input::placeholder { color: #46578a; }
+    .dc-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, .18); }
+    .dc-input[readonly] { color: #aebbd6; }
+    .dc-input.shake { animation: dcShake .35s; border-color: #ef4444; }
+    @keyframes dcShake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-6px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(4px); } }
+    /* Hàng phím ký tự đặc biệt tiếng Pháp */
+    .dc-accents-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 9px; margin-bottom: 2px; }
+    .dc-acc-btn { display: inline-flex; align-items: center; justify-content: center; min-width: 32px; height: 32px; padding: 0 7px; border-radius: 8px; background: #0b132b; border: 1px solid #1e2d5c; color: #93c5fd; font: 700 14px/1 system-ui, -apple-system, sans-serif; cursor: pointer; user-select: none; -webkit-user-select: none; touch-action: manipulation; transition: all .12s ease; }
+    .dc-acc-btn:hover { background: #1e3a8a; border-color: #3b82f6; color: #fff; transform: translateY(-1px); }
+    .dc-acc-btn:active { transform: translateY(1px); background: #2563eb; }
+    .dc-acc-btn.dc-acc-shift { background: #131f45; border-color: #2b3f7a; color: #60a5fa; font-size: 15px; }
+    .dc-acc-btn.dc-acc-shift.active { background: #2563eb; border-color: #60a5fa; color: #fff; box-shadow: 0 0 10px rgba(37,99,235,.55); }
+    @media (max-width: 640px) {
+      .dc-accents-bar { gap: 4px; margin-top: 7px; }
+      .dc-acc-btn { min-width: 27px; height: 30px; font-size: 13px; padding: 0 4px; border-radius: 6px; }
+    }
+    .dc-hint { display: flex; flex-wrap: wrap; gap: 4px 10px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px dashed #17224a; font-size: 16px; line-height: 1.5; font-weight: 700; color: #3f5183; min-height: 26px; }
+    .dc-hw { letter-spacing: .05em; border-radius: 6px; padding: 0 2px; cursor: pointer; transition: background .08s, color .08s; }
+    .dc-hw:hover { background: rgba(148, 163, 184, .14); }
+    .dc-hw.ok { color: #4ade80; letter-spacing: 0; }
+    .dc-hw.nx { color: #93c5fd; box-shadow: inset 0 -2px 0 #3b82f6; }
+    .dc-hw.cur { background: rgba(96, 165, 250, .28); color: #fff; }   /* karaoke: từ đang được đọc */
+    .dc-hw.ok.cur { color: #86efac; }
+    .dc-hw.loopsel { box-shadow: inset 0 0 0 1.5px rgba(34, 197, 94, .75); background: rgba(34, 197, 94, .16); }   /* từ nằm trong đoạn đang loop */
+    .dc-hw.loopsel.cur { background: rgba(34, 197, 94, .42); color: #fff; }
+    .dc-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+    .dc-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .dc-btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 9px 15px; border-radius: 11px; font-size: 13px; font-weight: 700; background: #0d1630; border: 1px solid #1e2c52; color: #b6c4e0; cursor: pointer; transition: all .15s; white-space: nowrap; }
+    .dc-btn svg { width: 15px; height: 15px; }
+    .dc-btn:hover { color: #fff; border-color: #2b3f7a; background: #14204a; }
+    .dc-btn.primary { background: #2563eb; border-color: #2563eb; color: #fff; box-shadow: 0 4px 16px rgba(37, 99, 235, .35); }
+    .dc-btn.primary:hover { background: #3b82f6; border-color: #3b82f6; }
+    .dc-foot .dc-actions { margin-left: auto; }
+    .dc-keys { margin-top: 0; font-size: 11.5px; color: #64748b; display: flex; gap: 6px 16px; flex-wrap: wrap; align-items: center; font-weight: 500; }
+    .dc-keys kbd { display: inline-block; min-width: 22px; padding: 1px 6px; border-radius: 6px; border: 1px solid #28407a; background: #0f1a38; color: #bcd0ff; font: 700 10.5px 'JetBrains Mono', monospace; text-align: center; margin-right: 5px; }
+    @media (hover: none) { .dc-keys { display: none; } }
+    @media (max-width: 768px) {
+      #dc-type .dc-foot { flex-direction: column; align-items: stretch; }
+      #dc-type .dc-actions { display: flex; flex-wrap: wrap; gap: 8px; width: 100%; margin-left: 0; }
+      #dc-type .dc-actions .dc-btn { flex: 1 1 0; min-height: 42px; padding: 8px 6px; font-size: 13px; }
+      #dc-type .dc-actions #dc-check { flex: 1 1 100% !important; width: 100% !important; min-height: 46px; margin-top: 2px; font-size: 14.5px; }
+    }
+    #dc-type.is-checked .dc-actions, #dc-type.is-checked .dc-accents-bar { display: none; }
+
+    /* Kết quả */
+    .dc-result { animation: dcIn .28s ease both; }
+    @keyframes dcIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    .dc-res-head { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+    .dc-ring { --p: 0; --c: #22c55e; width: 62px; height: 62px; border-radius: 50%; background: conic-gradient(var(--c) calc(var(--p) * 1%), #17224a 0); display: grid; place-items: center; position: relative; flex: none; }
+    .dc-ring::before { content: ""; position: absolute; inset: 6px; border-radius: 50%; background: #0a1124; }
+    .dc-ring span { position: relative; font-weight: 800; font-size: 15px; color: #fff; }
+    .dc-ring.reveal { background: #17224a; }
+    .dc-ring.reveal svg { position: relative; width: 24px; height: 24px; color: #94a3b8; }
+    .dc-verdict { font-size: 17px; font-weight: 800; color: #f1f5f9; }
+    .dc-sub { font-size: 12.5px; color: #8a9bb8; margin-top: 3px; font-weight: 600; line-height: 1.5; }
+    .dc-diff { font-size: 20px; line-height: 2.2; color: #e2e8f0; padding: 14px 16px 10px; border-radius: 14px; background: #060b18; border: 1px solid #131d3d; user-select: text; }
+    .dc-result.perfect .dc-diff { border-color: rgba(34, 197, 94, .38); box-shadow: 0 0 0 3px rgba(34, 197, 94, .07); }
+    .dc-d { display: inline-block; position: relative; border-radius: 6px; padding: 0 4px; margin: 0 1px; vertical-align: bottom; }
+    .dc-d.ok { color: #86efac; }
+    .dc-d.plain { color: #e2e8f0; }
+    .dc-d.miss { color: #fca5a5; background: rgba(239, 68, 68, .13); box-shadow: inset 0 -2px 0 #ef4444; }
+    .dc-d.wrong { color: #fff; background: rgba(239, 68, 68, .16); box-shadow: inset 0 -2px 0 #ef4444; }
+    .dc-d.close { color: #fff; background: rgba(245, 158, 11, .16); box-shadow: inset 0 -2px 0 #f59e0b; }
+    .dc-d.extra { color: #94a3b8; text-decoration: line-through; text-decoration-color: #ef4444; font-size: .8em; }
+    .dc-d .dc-typed { position: absolute; left: 50%; transform: translateX(-50%); top: -1.15em; font-size: .52em; line-height: 1; white-space: nowrap; color: #f87171; text-decoration: line-through; font-weight: 600; }
+    .dc-d.close .dc-typed { color: #fbbf24; }
+    .dc-trans { margin-top: 12px; font-size: 14.5px; font-style: italic; color: #9fb0cf; line-height: 1.65; }
+    .dc-trans b { font-style: normal; font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: #5b6c95; margin-right: 8px; }
+    .dc-res-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+    /* Điện thoại: 3 nút (Gõ lại / Nghe lại / Câu tiếp theo) cố gắng nằm chung 1 hàng, giãn đều hết chiều ngang.
+       display:contents gộp 2 nhóm nút thành các ô con của cùng 1 hàng; nếu màn hình quá hẹp mới tự xuống dòng (vẫn giãn đều, không lẻ loi). */
+    @media (max-width: 560px) {
+      #dc-res-foot { gap: 8px; justify-content: stretch; }
+      #dc-res-foot .dc-actions { display: contents; }
+      #dc-res-foot .dc-btn { flex: 1 1 auto; padding-left: 10px; padding-right: 10px; }
+    }
+    @media (hover: none) and (pointer: coarse) { #dc-next2 kbd { display: none; } }   /* điện thoại không có phím Enter: bỏ nhãn cho gọn */
+
+    /* Tổng kết */
+    .dc-sum-title { font-size: 20px; font-weight: 800; color: #fff; }
+    .dc-sum-sub { font-size: 13px; color: #8a9bb8; margin-top: 4px; }
+    .dc-sum-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 16px 0; }
+    .dc-sum-stat { padding: 14px 10px; text-align: center; border-radius: 14px; background: #060b18; border: 1px solid #131d3d; }
+    .dc-sum-stat b { display: block; font-size: 24px; font-weight: 800; color: #fff; }
+    .dc-sum-stat span { font-size: 11.5px; color: #7d8db0; font-weight: 600; }
+
+    /* Giao diện Shadowing (tạm thời) */
+    .pv-soon-card { max-width: 520px; margin: 14vh auto 0; text-align: center; padding: 38px 28px; }
+    .pv-soon-ico { width: 56px; height: 56px; border-radius: 16px; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; background: rgba(167, 139, 250, .15); color: #c4b5fd; }
+    .pv-soon-ico svg { width: 28px; height: 28px; }
+    .pv-soon-card h2 { font-size: 20px; font-weight: 800; color: #fff; }
+    .pv-soon-card p { margin: 8px 0 20px; color: #9fb0cf; font-size: 14.5px; line-height: 1.6; }
+
+    @media (max-width: 560px) {
+      .dc-wrap { padding: 14px 10px 70px; gap: 12px; }
+      .dc-diff { font-size: 17px; }
+      .dc-input { font-size: 17px; }
+      .dc-card { padding: 14px; border-radius: 16px; }
+      .dc-play { width: 54px; height: 54px; }
+      .dc-replay { width: 38px; height: 38px; }
+      .dc-sum-grid { gap: 7px; }
+      .dc-meta { display: none; }
+    }
+
+    /* ---------- Chép chính tả: cột danh sách câu bên trái ---------- */
+    #pv-dictation { display: flex; overflow: hidden; }
+    .dc-scroll { flex: 1 1 0; min-width: 0; overflow-y: auto; }
+    .dc-scroll::-webkit-scrollbar { width: 10px; }
+    .dc-scroll::-webkit-scrollbar-thumb { background: #1a2547; border-radius: 8px; border: 2px solid #070b14; }
+    .dc-side { display: none; width: 268px; flex: none; flex-direction: column; gap: 14px; padding: 20px 16px 20px 18px; border-right: 1px solid #111a38; background: rgba(6, 10, 23, .55); overflow-y: auto; }
+    .dc-side::-webkit-scrollbar { width: 8px; }
+    .dc-side::-webkit-scrollbar-thumb { background: #1a2547; border-radius: 8px; }
+    .dc-side-head { display: flex; align-items: center; justify-content: space-between; }
+    .dc-side-title { font-size: 13px; font-weight: 800; color: #e2e8f0; letter-spacing: .01em; }
+    .dc-side-sum { padding: 13px 14px; border-radius: 14px; background: #0a1124; border: 1px solid #17224a; }
+    .dc-side-big { display: flex; align-items: baseline; gap: 6px; }
+    .dc-side-big b { font-size: 26px; font-weight: 800; color: #fff; line-height: 1; }
+    .dc-side-big span { font-size: 12.5px; color: #7d8db0; font-weight: 700; }
+    .dc-side-bar { height: 6px; border-radius: 4px; background: #14204a; overflow: hidden; margin: 10px 0 9px; display: flex; }
+    .dc-side-bar i { display: block; height: 100%; transition: width .3s; }
+    .dc-side-bar i.p { background: #22c55e; }
+    .dc-side-bar i.o { background: #f59e0b; }
+    .dc-side-meta { display: flex; justify-content: space-between; gap: 8px; font-size: 11.5px; color: #7d8db0; font-weight: 600; }
+    .dc-side-meta b { color: #cbd5e1; font-weight: 800; }
+    .dc-side-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+    .dc-side-grid .dc-chip { height: 36px; padding: 0; }
+    .dc-side .dc-legend { flex-direction: column; gap: 6px; padding-top: 4px; }
+    .dc-side-show { display: none; }
+    @media (min-width: 1024px) {
+      .dc-side { display: flex; }
+      #pv-dictation.side-off .dc-side { display: none; }
+      #pv-dictation.side-off .dc-side-show { display: inline-flex; }
+      #pv-dictation:not(.side-off) .dc-ribbon { display: none; }
+      #pv-dictation:not(.side-off) .dc-stats { display: none; }
+      #pv-dictation:not(.side-off) #dc-count svg { display: none; }
+    }
+
+    /* ---------- Giao diện Shadowing (chỉ nghe, không hiện video) ---------- */
+    .sh-wrap { max-width: 840px; margin: 0 auto; padding: 22px 16px 100px; }
+    .sh-top { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px 16px; flex-wrap: wrap; }
+    .sh-title { font-size: 22px; font-weight: 800; color: #fff; letter-spacing: -.01em; }
+    .sh-sub { font-size: 12.5px; color: #7d8db0; font-weight: 600; margin-top: 5px; }
+    .sh-sub b { color: #cbd5e1; font-weight: 800; }
+    .sh-tools { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .sh-tools .dc-chip2:disabled { opacity: .4; cursor: default; }
+    .sh-progress { height: 6px; border-radius: 4px; background: #14204a; margin: 14px 0 16px; overflow: hidden; }
+    .sh-progress i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #2563eb, #22c55e); transition: width .3s; }
+    .sh-list { display: flex; flex-direction: column; gap: 8px; }
+    .sh-empty { text-align: center; color: #64748b; font-size: 13.5px; padding: 40px 10px; }
+
+    .sh-row { display: flex; align-items: flex-start; gap: 12px; padding: 13px 14px; border-radius: 14px; background: #0a1124; border: 1px solid #131d3d; border-left-width: 3px; cursor: pointer; transition: border-color .15s, background .15s; scroll-margin-top: 12px; }
+    .sh-row:hover { background: #0c1630; border-color: #2b3f7a; }
+    .sh-row.done { border-left-color: #3b82f6; }
+    .sh-num { min-width: 26px; text-align: center; font-size: 13px; font-weight: 800; color: #5b6c95; padding-top: 3px; flex: none; }
+    .sh-body { flex: 1; min-width: 0; }
+    .sh-text { font-size: 16.5px; line-height: 1.55; color: #e2e8f0; font-weight: 600; }
+    .sh-vi { font-size: 13.5px; color: #7d8db0; margin-top: 3px; line-height: 1.55; }
+    .sh-side { display: flex; align-items: center; gap: 8px; flex: none; }
+    .sh-badge { font-size: 11px; font-weight: 800; padding: 3px 9px; border-radius: 99px; border: 1px solid transparent; white-space: nowrap; }
+    .sh-badge.done { background: rgba(59, 130, 246, .14); color: #93c5fd; border-color: rgba(59, 130, 246, .4); }
+    .sh-ico { width: 36px; height: 36px; border-radius: 50%; border: 1px solid #1e2c52; background: #0d1630; color: #9fb0cf; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: all .15s; flex: none; }
+    .sh-ico svg { width: 16px; height: 16px; }
+    .sh-ico:hover { color: #fff; border-color: #7f1d1d; background: #2a1017; }
+    .sh-text.masked { user-select: none; -webkit-user-select: none; }
+
+    .sh-row.active { flex-direction: column; align-items: stretch; gap: 14px; padding: 18px; cursor: default; border-color: #2563eb; border-left-width: 1px; background: #0a1330; box-shadow: 0 0 0 3px rgba(37, 99, 235, .12), 0 14px 40px rgba(0, 0, 0, .35); }
+    .sh-head { display: flex; align-items: flex-start; gap: 12px; }
+    .sh-num.on { background: rgba(37, 99, 235, .2); color: #bfdbfe; border-radius: 9px; padding: 5px 0; min-width: 34px; }
+    /* Nút nghe mẫu: màu đỏ (cùng tông với nút phát bên Chép chính tả) để cân bằng với các mảng xanh dương */
+    .sh-speaker { width: 42px; height: 42px; border-radius: 50%; border: 0; background: linear-gradient(180deg, #ef4444, #b91c1c); color: #fff; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; flex: none; box-shadow: 0 6px 18px rgba(220, 38, 38, .38), inset 0 1px 0 rgba(255, 255, 255, .25); transition: transform .12s, box-shadow .15s; }
+    .sh-speaker svg { width: 20px; height: 20px; }
+    /* Nút đỏ nghe mẫu: icon Play / Pause giống nút phát bên Chép chính tả (đang phát -> hiện Pause) */
+    #sh-play svg { width: 22px; height: 22px; }
+    #sh-play .i-pause { display: none; }
+    #sh-play.on .i-play { display: none; }
+    #sh-play.on .i-pause { display: block; }
+    .sh-speaker:hover { transform: scale(1.06); }
+    .sh-speaker:active { transform: scale(.96); }
+    .sh-speaker.on { animation: shPulse 1.3s ease-out infinite; }
+    @keyframes shPulse { 0% { box-shadow: 0 6px 18px rgba(220, 38, 38, .38), 0 0 0 0 rgba(239, 68, 68, .55); } 100% { box-shadow: 0 6px 18px rgba(220, 38, 38, .38), 0 0 0 14px rgba(239, 68, 68, 0); } }
+    .sh-head .sh-text { flex: 1; min-width: 0; }
+    .sh-text.big { font-size: 25px; line-height: 1.5; font-weight: 700; color: #f1f5f9; }
+    .sh-w { border-radius: 6px; padding: 0 2px; cursor: pointer; transition: background .08s, color .08s; }
+    .sh-w:hover { background: rgba(148, 163, 184, .14); }
+    /* IPA: nằm ngay dưới từ, căn giữa theo từ (inline-flex dọc, mỗi từ + IPA là 1 khối nên IPA luôn đúng dưới từ của nó).
+       IPA vẽ bằng ::after nên không bị lẫn vào vùng bôi đen / copy chữ */
+    .sh-w[data-ipa] { display: inline-flex; flex-direction: column; align-items: center; vertical-align: top; }
+    .sh-w[data-ipa]::after { content: attr(data-ipa); margin: 1px 0 6px; font-size: .85em; line-height: 1.25; font-weight: 400; font-style: normal; color: #3fbd6d; white-space: nowrap; user-select: none; -webkit-user-select: none; pointer-events: none; }
+    .sh-w.past { color: inherit; }   /* giữ chữ đã phát ở màu trắng cho dễ đọc */
+    .sh-w.cur { background: rgba(96, 165, 250, .28); color: #fff; }
+    .sh-vi.big { font-size: 15px; font-style: italic; margin-top: -4px; padding-left: 90px; }
+    .sh-collapse { width: 30px; height: 30px; border-radius: 9px; background: transparent; border: 0; color: #64748b; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+    .sh-collapse:hover { color: #fff; background: #14204a; }
+    .sh-collapse svg { width: 16px; height: 16px; }
+
+    /* Thanh tiến độ + ô tốc độ (gõ số bất kỳ 0.25 - 2, giống giao diện Mặc định) */
+    .sh-progrow { display: flex; align-items: center; gap: 14px; }
+    .sh-prog { flex: 1; min-width: 0; height: 4px; background: #14204a; border-radius: 3px; overflow: hidden; }
+    .sh-prog i { display: block; height: 100%; width: 0; background: #60a5fa; }
+    .sh-rate { display: inline-flex; align-items: center; gap: 2px; padding: 3px 9px 3px 8px; border-radius: 9px; background: #060b18; border: 1px solid #1e293b; color: #7d8db0; flex: none; cursor: text; transition: border-color .15s, box-shadow .15s; }
+    .sh-rate:hover { border-color: #334155; }
+    .sh-rate:focus-within { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, .22); }
+    .sh-rate.invalid { border-color: #dc2626; box-shadow: 0 0 0 2px rgba(220, 38, 38, .22); }
+    .sh-rate svg { width: 14px; height: 14px; flex: none; margin-right: 5px; }
+    .sh-rate input { width: 34px; padding: 3px 0; text-align: right; background: transparent; border: 0; outline: none; color: #e2e8f0; font: 700 12.5px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .sh-rate span { color: #9fb0cf; font: 700 12.5px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+
+    /* Thanh báo đang loop đoạn bôi đen */
+    .sh-loopbar { display: flex; align-items: center; gap: 10px 12px; flex-wrap: wrap; padding: 8px 12px; border-radius: 12px; background: rgba(16, 185, 129, .1); border: 1px solid rgba(45, 212, 191, .35); font-size: 12.5px; color: #a7f3d0; }
+    .sh-loopbar:empty { display: none; }
+    .sh-loop-dot { width: 8px; height: 8px; border-radius: 50%; background: #34d399; animation: shBlink 1s ease-in-out infinite; flex: none; }
+    .sh-loop-label { flex: 1 1 140px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; }
+    .sh-loop-delay { display: inline-flex; align-items: center; gap: 6px; color: #6ee7b7; font-weight: 700; }
+    .sh-loop-delay button { width: 22px; height: 22px; border-radius: 7px; border: 1px solid rgba(45, 212, 191, .35); background: rgba(6, 78, 59, .5); color: #d1fae5; cursor: pointer; font-weight: 800; line-height: 1; padding: 0; }
+    .sh-loop-delay button:hover { background: rgba(5, 150, 105, .6); }
+    .sh-loop-delay b { min-width: 24px; text-align: center; color: #ecfdf5; font-weight: 800; }
+    .sh-loop-stop { padding: 5px 12px; border-radius: 9px; border: 1px solid rgba(248, 113, 113, .45); background: rgba(127, 29, 29, .35); color: #fecaca; font-weight: 700; font-size: 12px; cursor: pointer; }
+    .sh-loop-stop:hover { background: rgba(185, 28, 28, .5); color: #fff; }
+
+    /* Khu thu âm: nút nhỏ gọn, cố định 1 vị trí. Chưa thu: [Nhấn để thu âm]. Thu xong: [Thu âm lại] [Nghe thu âm] */
+    .sh-recrow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .sh-recbtn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-width: 204px; height: 46px; padding: 0 20px; border-radius: 13px; border: 1.5px solid #2b3f7a; background: #0d1630; color: #93c5fd; font-family: inherit; font-weight: 800; font-size: 14px; cursor: pointer; transition: all .15s; white-space: nowrap; }
+    .sh-recbtn svg { width: 18px; height: 18px; flex: none; }
+    .sh-recbtn:hover { border-color: #3b82f6; background: #12204a; color: #fff; }
+    .sh-recbtn b { font: 700 13px 'JetBrains Mono', monospace; }
+    .sh-recbtn.rec { border-color: #ef4444; background: rgba(239, 68, 68, .12); color: #fecaca; }
+    .sh-recbtn.rec:hover { background: rgba(239, 68, 68, .2); color: #fff; }
+    /* Nút thu âm chính (chưa thu): đỏ nhạt, viền đỏ, icon mic fill đỏ nằm trong vòng tròn */
+    .sh-recbtn.go { min-width: 0; gap: 12px; padding: 0 24px 0 9px; border-color: #ef4444; background: rgba(239, 68, 68, .10); color: #fff; box-shadow: 0 0 0 3px rgba(239, 68, 68, .10), 0 4px 18px rgba(239, 68, 68, .18); }
+    .sh-recbtn.go .sh-micdot { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; background: rgba(239, 68, 68, .18); flex: none; }
+    .sh-recbtn.go svg { width: 17px; height: 17px; color: #ef4444; }
+    .sh-recbtn.go:hover { border-color: #f87171; background: rgba(239, 68, 68, .16); color: #fff; box-shadow: 0 0 0 3px rgba(239, 68, 68, .16), 0 4px 22px rgba(239, 68, 68, .28); }
+    .sh-recbtn.go:hover svg { color: #f87171; }
+    /* Thu âm lại (đã có bản thu): nhẹ hơn, để Nghe thu âm / Câu sau làm hành động chính */
+    .sh-recbtn.redo { min-width: 0; padding: 0 18px; color: #b6c4e0; border-color: #1e2c52; }
+    .sh-recbtn.redo svg { width: 16px; height: 16px; color: #ef4444; }
+    .sh-recbtn.redo:hover { border-color: #ef4444; background: rgba(239, 68, 68, .08); color: #fff; }
+    .sh-recbtn.alt { min-width: 152px; color: #b6c4e0; border-color: #1e2c52; }
+    .sh-recbtn.alt svg { width: 15px; height: 15px; }
+    .sh-recbtn.alt:hover { border-color: #2b3f7a; background: #14204a; color: #fff; }
+    .sh-recbtn.alt.on { background: rgba(37, 99, 235, .25); border-color: #2563eb; color: #fff; }
+    .sh-recdot { width: 10px; height: 10px; border-radius: 50%; background: #ef4444; animation: shBlink 1s ease-in-out infinite; flex: none; }
+    @keyframes shBlink { 50% { opacity: .25; } }
+    .sh-meter { display: flex; align-items: center; gap: 3px; height: 22px; margin-left: 2px; }
+    .sh-meter b { width: 4px; height: 4px; border-radius: 2px; background: #ef4444; transition: height .06s; }
+    .sh-nav { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; padding-top: 12px; border-top: 1px solid #131d3d; }
+    .sh-keys { font-size: 11.5px; color: #64748b; display: flex; gap: 6px 14px; flex-wrap: wrap; }
+    .sh-keys kbd { display: inline-block; min-width: 20px; padding: 1px 6px; border-radius: 6px; border: 1px solid #28407a; background: #0f1a38; color: #bcd0ff; font: 700 10.5px 'JetBrains Mono', monospace; text-align: center; margin-right: 5px; }
+    @media (hover: none) { .sh-keys { display: none; } }
+    /* Popup bôi đen trong giao diện Shadowing chỉ có nút Loop: cho hiện kể cả ở chế độ văn bản (mặc định đang ẩn Loop) */
+    body[data-pv-view="shadowing"] #btn-loop-action { display: inline-flex !important; }
+    @media (max-width: 560px) {
+      .sh-text.big { font-size: 21px; }
+      .sh-vi.big { padding-left: 0; }
+      .sh-row.active { padding: 14px; }
+      .sh-head { flex-wrap: wrap; }
+      .sh-recbtn { min-width: 0; padding: 0 16px; flex: 1 1 auto; }
+    }
+
+    /* ============ NÚT GỘP CỠ CHỮ + GIÃN DÒNG (giao diện Mặc định) ============ */
+    .fs-wrap { position: relative; display: inline-flex; flex: none; }
+    .fs-btn { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: #cbd5e1; font-size: 13px; font-weight: 700; cursor: pointer; transition: all .15s; white-space: nowrap; }
+    .fs-btn:hover { color: #fff; background: #1e293b; }
+    .fs-btn[aria-expanded="true"] { border-color: #3b82f6; color: #fff; box-shadow: 0 0 0 3px rgba(59, 130, 246, .22); }
+    .fs-btn svg { width: 12px; height: 12px; transition: transform .15s; }
+    .fs-btn[aria-expanded="true"] svg { transform: rotate(180deg); }
+    .fs-pop { position: absolute; top: calc(100% + 9px); right: 0; z-index: 90; width: 292px; max-width: calc(100vw - 20px); padding: 12px; border-radius: 14px; background: #0b1328; border: 1px solid #1f2e57; box-shadow: 0 20px 56px rgba(0, 0, 0, .6); display: flex; flex-direction: column; gap: 12px; animation: pvPop .14s ease both; }
+    .fs-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .fs-lbl { font-size: 12px; font-weight: 700; color: #94a3b8; white-space: nowrap; }
+    .fs-grp { display: inline-flex; align-items: center; background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 2px; }
+    .fs-grp button { padding: 4px 10px; font-size: 13px; font-weight: 700; color: #cbd5e1; background: transparent; border: 0; border-radius: 6px; cursor: pointer; transition: all .15s; }
+    .fs-grp button:hover { color: #fff; background: #1e293b; }
+    .fs-grp button.fs-reset { font-size: 12px; font-weight: 600; border-radius: 0; border-left: 1px solid #1e293b; border-right: 1px solid #1e293b; }
+    .fs-grp button.fs-reset.blue { color: #60a5fa; }
+    .fs-grp button.fs-reset.amber { color: #fbbf24; }
+
+    /* ============ RESPONSIVE HEADER TOOLS ============ */
+    #practice-header-tools {
+      overflow-x: auto;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      -webkit-overflow-scrolling: touch;
+    }
+    #practice-header-tools::-webkit-scrollbar { display: none; }
+    
+    /* Menu cuộn ngang: hiển thị full chữ tất cả các nút trên mobile / tablet, không ẩn chữ */
+    @media (max-width: 768px) {
+      #practice-header-tools {
+        justify-content: flex-start;
+      }
+    }
+
+    /* ============ TIMESTAMP TỪNG CÂU (Chép chính tả + Shadowing) ============ */
+    .ts-ctl { display: inline-flex; align-items: center; gap: 6px; flex: none; }
+    .ts-lbl { font-size: 12px; font-weight: 700; color: #7d8db0; margin-right: 2px; white-space: nowrap; }
+    .ts-step { width: 26px; height: 26px; padding: 0; border-radius: 8px; border: 1px solid #1e2c52; background: #0d1630; color: #9fb0cf; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; flex: none; transition: all .15s; }
+    .ts-step svg { width: 14px; height: 14px; }
+    .ts-step:hover { color: #fff; border-color: #3b82f6; background: #12204a; }
+    .ts-step:active { transform: scale(.93); }
+    .ts-in { width: 76px; padding: 4px 6px; text-align: center; border-radius: 8px; border: 1px solid #1e293b; background: #060b18; color: #e2e8f0; font: 700 12.5px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; outline: none; transition: border-color .15s, box-shadow .15s; }
+    .ts-in:hover { border-color: #334155; }
+    .ts-in:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, .22); }
+    .ts-in.invalid { border-color: #dc2626; box-shadow: 0 0 0 2px rgba(220, 38, 38, .22); }
+    .ts-in.mod { color: #fcd34d; }
+    .ts-sep { color: #475569; font-weight: 700; }
+    .dc-toolrow { display: flex; align-items: center; justify-content: space-between; gap: 10px 16px; flex-wrap: wrap; }
+    .dc-tl { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .sh-recrow .sh-ts { margin-left: auto; }
+    .dc-wave { cursor: pointer; }
+    .dc-wave:hover b:not(.on) { background: #2a3d78; }
+    @media (max-width: 560px) {
+      .sh-recrow .sh-ts { margin-left: 0; width: 100%; justify-content: flex-end; }
+      .dc-toolrow { justify-content: flex-start; }
+      .ts-in { width: 68px; }
+    }
+
+    .sh-htools { display: none; align-items: center; gap: 8px; flex: none; margin-left: 10px; }
+    body[data-pv-view="shadowing"] .sh-htools { display: inline-flex; }
+    body[data-pv-view="shadowing"] .pv-header-title { margin-left: auto; }
+    .sh-htools .dc-chip2:disabled { opacity: .4; cursor: default; }
+    .sh-progrow { flex-wrap: wrap; gap: 10px 14px; }
+    .sh-progrow .sh-prog { flex: 1 1 80px; }
+    .ts-reset { margin-left: 2px; }
+    .ts-reset:disabled { opacity: .35; cursor: default; pointer-events: none; }
+
+    /* ==================== TỐI ƯU ĐIỆN THOẠI / IPAD ==================== */
+    /* (1) Menu thả xuống nằm trong header. Dưới 1024px header cuộn ngang (overflow-x:auto nên overflow-y cũng bị cắt),
+           menu position:absolute bị cắt mất hoàn toàn. JS (pvPlaceFloating) chuyển sang position:fixed và tính toạ độ
+           theo nút bấm, nhờ đó menu không còn bị header cắt. */
+    .pv-menu.pv-fixed, .fs-pop.pv-fixed { position: fixed; z-index: 300; bottom: auto; max-height: calc(100vh - 76px); overflow-y: auto; overscroll-behavior: contain; }
+    @supports (height: 100dvh) { .pv-menu.pv-fixed, .fs-pop.pv-fixed { max-height: calc(100dvh - 76px); } }
+
+    /* (2) Cảm ứng: bỏ độ trễ chạm / double-tap-zoom, bỏ khung sáng khi chạm */
+    .pv-switch-btn, .pv-opt, .fs-btn, .pv-view button, .pv-view .sh-row, .dc-wave { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+    @media (max-width: 1023px), (orientation: portrait) and (max-width: 1100px) {
+      .pv-view, .dc-scroll { -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+    }
+
+    /* (3) Màn hình cảm ứng: nút to đủ chạm (~40-44px), ô nhập 16px để iOS không tự phóng to khi bấm vào */
+    @media (hover: none) and (pointer: coarse) {
+      .sh-rate input, .ts-in { font-size: 16px; }
+      .sh-rate input { width: 46px; }
+      .ts-in { width: 88px; }
+      .sh-rate { padding: 4px 11px 4px 10px; }
+      .dc-btn { min-height: 44px; }
+      .dc-iconbtn { width: 42px; height: 42px; }
+      .dc-replay { width: 42px; height: 42px; }
+      .dc-count { padding: 8px 12px; }
+      .dc-chip2 { min-height: 40px; padding: 8px 13px; }
+      .dc-seg button { min-height: 38px; padding: 8px 14px; }
+      .dc-chip { height: 40px; }
+      .dc-side-grid .dc-chip { height: 42px; }
+      .dc-link { padding: 10px 8px; }
+      .ts-step { width: 36px; height: 36px; }
+      .sh-ico { width: 42px; height: 42px; }
+      .sh-collapse { width: 40px; height: 40px; }
+      .sh-speaker { width: 48px; height: 48px; }
+      .sh-recbtn { height: 50px; }
+      .sh-loop-delay button { width: 32px; height: 32px; }
+      .sh-loop-stop { padding: 9px 14px; }
+      .pv-switch-btn { padding-top: 5px; padding-bottom: 5px; }
+      .pv-opt { padding: 12px 10px; }
+      .pv-opt-desc { font-size: 12px; }
+      .fs-grp button { padding: 8px 13px; }
+      .fs-btn { padding: 8px 12px; }
+      .sh-row:hover { background: #0a1124; border-color: #131d3d; }
+      .sh-row.done:hover { border-left-color: #3b82f6; }
+    }
+
+    /* (4) Điện thoại dọc */
+    @media (max-width: 560px) {
+      /* câu đang mở: số + loa + nút đóng nằm 1 hàng, chữ chiếm trọn chiều ngang bên dưới (trước đây bị ép thành cột hẹp giữa loa và nút X) */
+      .sh-head .sh-text { order: 3; flex: 1 1 100%; }
+      .sh-head .sh-collapse { margin-left: auto; }
+      .sh-head .sh-num.on { align-self: center; }
+      .sh-head { align-items: center; }
+      .sh-nav .dc-btn { flex: 1 1 0; }
+      .ts-ctl { flex-wrap: wrap; row-gap: 6px; max-width: 100%; }
+      .sh-progrow .ts-ctl { flex: 1 1 100%; }
+      .ts-lbl { flex: 1 1 100%; }
+      #dc-type .dc-foot { flex-direction: column; align-items: stretch; }
+      #dc-type .dc-actions { display: flex; flex-wrap: wrap; gap: 8px; width: 100%; margin-left: 0; }
+      #dc-type .dc-actions .dc-btn { flex: 1 1 0; min-height: 42px; padding: 8px 6px; font-size: 13px; }
+      #dc-type .dc-actions #dc-check { flex: 1 1 100% !important; width: 100% !important; min-height: 46px; margin-top: 2px; font-size: 14.5px; }
+    }
+
+    /* (4b) Chép chính tả trên điện thoại dọc: bỏ phần không cần thiết cho gọn
+           - bỏ thanh tiến độ nhỏ dưới "Câu n / tổng" và dòng "Đã làm / Hoàn hảo / Chính xác TB"
+           - bỏ chữ "Tốc độ:" và "Thời gian:" -> mỗi thứ chỉ chiếm đúng 1 dòng */
+    @media (max-width: 560px) {
+      #pv-dictation .dc-ribbon,
+      #pv-dictation .dc-stats { display: none; }
+      #pv-dictation .ts-lbl { display: none; }
+      #pv-dictation .dc-toolrow { flex-direction: column; align-items: flex-start; gap: 8px; }
+      #pv-dictation .dc-tl { flex-wrap: wrap; row-gap: 8px; max-width: 100%; }   /* thêm nút chọn nhanh tốc độ nên cho phép xuống dòng */
+      #pv-dictation .ts-ctl { flex-wrap: nowrap; max-width: 100%; gap: 4px; }
+      #pv-dictation .ts-ctl .ts-step { width: 32px; height: 32px; }
+      #pv-dictation .ts-ctl .ts-in { width: 62px; padding: 4px 2px; }
+      .sh-progrow .ts-ctl { gap: 4px; }
+      .sh-progrow .ts-ctl .ts-step { width: 32px; height: 32px; }
+      .sh-progrow .ts-ctl .ts-in { width: 62px; padding: 4px 2px; }
+    }
+
+    /* (5) Điện thoại xoay ngang: màn hình thấp, gọn lại để còn thấy ô gõ / nút thu âm */
+    @media (max-width: 1023px) and (max-height: 500px) {
+      .dc-wrap { padding: 10px 14px 40px; gap: 10px; }
+      .sh-wrap { padding: 12px 14px 60px; }
+      .dc-input { min-height: 72px; }
+      .sh-text.big { font-size: 20px; }
+      .dc-play { width: 48px; height: 48px; }
+      .dc-replay { width: 36px; height: 36px; }
+    }
+  

@@ -1,0 +1,56 @@
+
+/* =====================================================================================
+   GIAO DIỆN MẶC ĐỊNH - KHU ĐIỀU KHIỂN: một hàng  [CC] [Thu âm] [Tốc độ] [0.5x 0.75x 0.9x 1.0x]
+   1) Mỗi nút có CỠ TỰ NHIÊN cố định; dư chỗ thì chỉ căn giữa, KHÔNG phình ra.
+   2) Hết chỗ mới thu nhỏ, theo từng bậc a1..a5 do JS (pcFit) ĐO bề rộng thật rồi chọn (không dựa vào số ước lượng, không bị lệch bởi zoom).
+      Hàng không bao giờ rớt dòng; cỡ chỉ đi một chiều theo bề rộng.
+   Bậc: a1 nút thu âm chỉ còn icon | a2 chọn nhanh gọn + hàng thấp hơn | a3 ô tốc độ bỏ icon, bỏ thanh âm lượng
+        a4 gọn hơn nữa | a5 sát nhất (cho phép co)
+   ===================================================================================== */
+#pv-ctl .pc { display: flex; flex-direction: column; align-items: stretch; gap: 10px; width: 100%; min-width: 0; box-sizing: border-box; }
+#pv-ctl .pc > .tl { flex: 0 0 auto; }
+#pv-ctl .pc-r1 {
+  --rate-h: 41px; --pc-gap: 6px; --pc-fs: 12.5px;
+  display: flex; flex-wrap: nowrap; align-items: center; justify-content: center; justify-content: safe center;
+  gap: var(--pc-gap); width: 100%; min-width: 0; box-sizing: border-box;
+}
+#pv-ctl .pc-r1 > * { flex: 0 0 auto; }
+/* QUAN TRỌNG: các nút có `transition: all`. Khi đổi bậc, chiều rộng/đệm/cỡ chữ sẽ TRƯỢT dần -> pcFit đo sai (nút còn đang nhỏ), rồi nút phình ra tràn màn hình.
+   Chỉ cho hiệu ứng trên màu / viền / bóng / độ mờ / transform, tuyệt đối không trên kích thước. */
+#pv-ctl .pc-r1, #pv-ctl .pc-r1 * {
+  transition-property: color, background-color, background, border-color, box-shadow, opacity, transform, filter, stop-color, stroke, fill, outline-color !important;
+}
+/* CC: hình vuông cùng chiều cao hàng */
+#pv-ctl .cc-btn { padding: 0; min-width: var(--rate-h); }
+/* Ô tốc độ gọn: [icon tốc kế][1.0x]. Ô số tự đo theo số ký tự (JS pcFit): "1.0x" gọn, "0.75x" dãn thêm đúng 1 chữ số. */
+#pv-ctl .rate-ctl.big { flex: 0 0 auto; padding: 0 13px; }
+#pv-ctl .rate-ctl.big .rate-input-wrap { display: inline-flex; align-items: center; gap: 0; height: 100%; padding: 0; cursor: text; }
+#pv-ctl .rate-ctl.big .rate-input-wrap svg { display: block; width: calc(var(--h) * .4); height: calc(var(--h) * .4); margin: 0 6px 0 0; flex: none; }
+#pv-ctl .rate-ctl.big #rate-input { flex: none; width: calc(3ch - 2px); min-width: 0; margin: 0; padding: 0; border: 0; background: transparent; font-family: inherit; font-weight: 700; font-size: var(--pc-fs); line-height: 1; font-variant-numeric: tabular-nums; text-align: left; }
+#pv-ctl .rate-ctl.big .rate-input-x { font-family: inherit; font-weight: 700; font-size: var(--pc-fs); line-height: 1; margin-left: -1px; }
+/* Chọn nhanh tốc độ: nút theo đúng chiều cao viên thuốc (luật cảm ứng chung ép cao >= 38px làm nút lòi ra viền) */
+#pv-ctl .pv-speeds button { min-height: 0; }
+#pv-ctl .pv-meter { display: flex; }
+
+/* ---------- Các bậc thu nhỏ ---------- */
+/* a1: nút thu âm chỉ còn icon (vẫn hiện chấm đỏ + thời gian khi đang thu) */
+#pv-ctl .pc.a1 .pv-rbtn .lbl { display: none; }
+#pv-ctl .pc.a1 .pv-rbtn { padding: 0; min-width: var(--rate-h); }
+#pv-ctl .pc.a1 .pv-rbtn.rec { padding: 0 12px; }
+/* a2: chọn nhanh gọn, hạ chiều cao cả hàng */
+#pv-ctl .pc.a2 .pc-r1 { --rate-h: 38px; --pc-fs: 12px; }
+#pv-ctl .pc.a2 .pv-speeds button { padding: 0 9px; font-size: 12px; }
+/* a3: ô tốc độ bỏ icon đồng hồ, bỏ thanh đo âm lượng khi đang thu */
+#pv-ctl .pc.a3 .rate-ctl.big .rate-input-wrap svg { display: none; }
+#pv-ctl .pc.a3 .rate-ctl.big { padding: 0 11px; }
+#pv-ctl .pc.a3 .pv-meter { display: none; }
+/* a4 */
+#pv-ctl .pc.a4 .pc-r1 { --rate-h: 35px; --pc-gap: 5px; --pc-fs: 11.5px; }
+#pv-ctl .pc.a4 .pv-speeds button { padding: 0 6px; font-size: 11.5px; }
+#pv-ctl .pc.a4 .rate-ctl.big { padding: 0 9px; }
+/* a5: sát nhất, cho phép mọi thứ co thêm một chút để không bao giờ tràn */
+#pv-ctl .pc.a5 .pc-r1 { --rate-h: 32px; --pc-gap: 4px; --pc-fs: 10.5px; }
+#pv-ctl .pc.a5 .pv-speeds button { padding: 0 4px; font-size: 10.5px; }
+#pv-ctl .pc.a5 .pv-speeds button i { display: none; }
+#pv-ctl .pc.a5 .rate-ctl.big { padding: 0 7px; }
+#pv-ctl .pc.a5 .pc-r1 > * { flex: 0 1 auto !important; min-width: 0; }

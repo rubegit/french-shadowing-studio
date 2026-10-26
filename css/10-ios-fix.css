@@ -1,0 +1,12 @@
+
+/* Trang chủ: nút "Từ vựng đã lưu" + "Ủng hộ tác giả" dịch lên 5px */
+.home-top-row{position:relative;top:-5px}
+
+
+/* iPhone/Android: ô nhập dưới 16px làm iOS tự phóng to trang khi bấm vào -> ép 16px trên màn hình cảm ứng */
+@media (hover:none) and (pointer:coarse){
+  .ai-textarea,#library-search-input,#bk-paste-title,#bk-paste-text,input.vt-input,#vocab-toast .vt-input,.search-container input{font-size:16px!important}
+}
+/* Hộp thoại (Nhờ AI dịch, dán bản dịch...): 100vh trên iPhone tính cả thanh địa chỉ nên đáy hộp bị cắt -> dùng dvh */
+@supports (height:100dvh){.ai-modal{max-height:calc(100dvh - 2rem)}}
+.ai-modal{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}

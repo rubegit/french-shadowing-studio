@@ -1,0 +1,153 @@
+
+    /* =====================================================================
+       THANH ĐIỀU HƯỚNG TRANG CHỦ (dọc, bên phải) + NÚT "XEM THÊM"
+       ===================================================================== */
+
+    /* ---- Nút "Xem thêm / Thu gọn" ở đầu mỗi hàng ---- */
+    .row-more-btn {
+      display: none; align-items: center; gap: 4px;
+      padding: 4px 10px 4px 12px; border-radius: 9999px;
+      font-size: 11.5px; font-weight: 700; letter-spacing: .01em;
+      color: #94a3b8; background: rgba(15, 23, 42, .6);
+      border: 1px solid rgba(71, 85, 105, .55);
+      transition: color .18s, border-color .18s, background-color .18s;
+      white-space: nowrap;
+    }
+    .row-more-btn.show { display: inline-flex; }
+    .row-more-btn:hover { color: #bfdbfe; border-color: rgba(59, 130, 246, .7); background: rgba(30, 64, 175, .22); }
+    .row-more-btn .rm-chev { transition: transform .22s ease; }
+    .netflix-row-wrapper.is-expanded .row-more-btn .rm-chev { transform: rotate(180deg); }
+
+    /* ---- Hàng đang mở rộng: các video xổ xuống thành nhiều hàng (lưới) ---- */
+    .netflix-row-wrapper.is-expanded .netflix-scroll-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 1.25rem;
+      overflow: visible;
+    }
+    .netflix-row-wrapper.is-expanded .yt-card {
+      flex: none; width: auto; min-width: 0; max-width: none;
+      animation: rowCardIn .28s ease both;
+    }
+    .netflix-row-wrapper.is-expanded .article-card { width: auto; animation: rowCardIn .28s ease both; }
+    .netflix-row-wrapper.is-expanded .netflix-nav-btn { display: none; }
+    @keyframes rowCardIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+    @media (prefers-reduced-motion: reduce) {
+      .netflix-row-wrapper.is-expanded .yt-card, .netflix-row-wrapper.is-expanded .article-card { animation: none !important; }
+    }
+  
+    /* =====================================================================
+       TỐI ƯU ĐIỆN THOẠI & IPAD (< 1024px). Máy tính (>= 1024px) giữ nguyên.
+       ===================================================================== */
+
+    /* ---- Trang chủ: tiêu đề mỗi mục không còn bị bóp thành từng chữ một dòng ---- */
+    @media (max-width: 767px) {
+      /* Điện thoại: 1 hàng gọn  [icon] [Tiêu đề (tối đa 2 dòng) / thẻ số video] ........ [Xem thêm]. Không còn nhảy hàng, thẻ không bị bẻ chữ. */
+      .netflix-row-wrapper > .row-head { flex-wrap: nowrap; align-items: center; column-gap: 10px; }
+      .netflix-row-wrapper > .row-head > div:first-child { flex: 1 1 auto; min-width: 0; gap: 10px; align-items: center; }
+      .netflix-row-wrapper > .row-head > div:last-child { flex: 0 0 auto; margin-left: 0; gap: 6px; flex-direction: column; align-items: flex-end; }
+      .netflix-row-wrapper > .row-head h4 { font-size: 0.95rem; line-height: 1.25; }
+      /* Điện thoại: bỏ thẻ số video / số playlist và nút "Xem thêm" (bấm tiêu đề để mở trang riêng hoặc mở rộng playlist) -> tiêu đề luôn thẳng hàng với icon */
+      .row-head-txt { flex-wrap: nowrap; align-items: center; min-width: 0; }
+      .row-head-txt > h4 { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; margin: 0; }
+      .row-head-txt > span:not(.rt-arrow):not(.rt-chev) { display: none; }
+      .netflix-row-wrapper .row-more-btn { display: none !important; }
+      .cat-stats { display: none; }
+    }
+
+    /* ---- Chạm: ẩn bảng phím tắt (điện thoại/iPad không có bàn phím), ô nhập đủ 16px để iOS không tự phóng to ---- */
+    @media (hover: none) and (pointer: coarse) {
+      #btn-shortcuts-toggle, #shortcuts-panel { display: none !important; }
+    }
+    @media (max-width: 1023px), (orientation: portrait) and (max-width: 1100px) {
+      #sub-search-input { font-size: 16px !important; }
+      #screen-practice { height: 100vh !important; }
+      @supports (height: 100dvh) { #screen-practice { height: 100dvh !important; } }
+
+      /* Thanh công cụ: 1 hàng gọn, vuốt ngang; bỏ zoom phóng to dành cho màn hình lớn */
+      #screen-practice header {
+        zoom: 1; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; row-gap: 0;
+        padding: 6px 8px; min-height: 0; gap: 8px; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+      }
+      #screen-practice header::-webkit-scrollbar { display: none; }
+      #screen-practice header > div { flex-wrap: nowrap; row-gap: 0; }
+      #screen-practice header > div:last-child { justify-content: flex-start; }
+      #panel-left > div:nth-of-type(2), #panel-left > div:nth-of-type(3) { zoom: 1; }
+      #subtitles-scroll-container { padding: 10px 12px calc(70px + env(safe-area-inset-bottom, 16px)) !important; }
+    }
+
+    /* ---- Điện thoại / iPad dọc: video ghim trên cùng, nút điều khiển ngay dưới, phụ đề chiếm phần còn lại ---- */
+    @media (max-width: 1023px) and (min-height: 501px), (orientation: portrait) and (max-width: 1100px) {
+      body:not(.text-mode) #split-container {
+        --vid-h: min(calc((100vw - 20px) * 0.5625), 38dvh);
+        display: flex; flex-direction: column; gap: 0; overflow-y: auto; overflow-x: hidden;
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+      }
+      body:not(.text-mode) #panel-left,
+      body:not(.text-mode) #panel-left > div:nth-of-type(2) { display: contents; }
+      body:not(.text-mode) #panel-left > * { flex-shrink: 0; }
+      /* Iframe YouTube dễ bị hiện đen trên Android khi nằm trong khối có transform 3D / overflow+bo góc / sticky */
+      #screen-practice, #panel-left, #yt-player-container {
+        transform: none !important; -webkit-transform: none !important;
+        backface-visibility: visible !important; -webkit-backface-visibility: visible !important;
+      }
+      body:not(.text-mode) #video-frame-wrapper { overflow: visible; }
+      #video-frame-wrapper iframe { border-radius: 14px; background: #000; }
+
+      body:not(.text-mode) #cs-card {
+        order: 0; margin: 0 0 8px 0; flex-shrink: 0;
+      }
+      body:not(.text-mode) #video-frame-wrapper {
+        order: 1; position: sticky; top: 0; z-index: 15;
+        width: calc(var(--vid-h) * 1.7778); max-width: 100%; margin: 0 auto; height: var(--vid-h);
+        aspect-ratio: auto; border-radius: 14px;
+      }
+      /* Hàng nút Phát / Dừng / ±5s: dính ngay dưới video, luôn bấm được khi cuộn */
+      body:not(.text-mode) #panel-left > div:nth-of-type(2) > div:first-child {
+        order: 2; position: sticky; top: var(--vid-h); z-index: 14; flex-shrink: 0;
+        background: #070b14; padding: 8px 0 8px; margin: 0; justify-content: center;
+      }
+
+      body:not(.text-mode) #panel-right {
+        /* Phần phụ đề vừa khít phần màn hình còn lại (--sub-avail do JS đo ở cuối file); ô tìm kiếm cộng thêm bên dưới nên nằm ngoài màn hình, cuộn xuống mới thấy */
+        order: 3; flex: 0 0 auto; width: 100% !important; height: calc(var(--sub-avail, max(180px, calc(100dvh - var(--vid-h) - 150px))) + var(--sub-search-h, 76px) + 3px);
+        min-height: 0;
+      }
+      /* Tự dừng cuối câu + Tốc độ phát, Ghi âm, ... nằm dưới phụ đề (vuốt xuống để dùng) */
+      body:not(.text-mode) #panel-left > div:nth-of-type(2) > div:nth-child(2) {
+        order: 4; margin-top: 12px; padding: 14px; background: #091024; border: 1px solid #1e293b; border-radius: 16px;
+        grid-template-columns: minmax(0, 1fr); gap: 14px;
+      }
+      body:not(.text-mode) #panel-left > div:nth-of-type(3) { order: 5; margin-top: 12px; }
+      body:not(.text-mode) #panel-left > div:nth-of-type(4) { order: 6; margin-top: 12px; }
+      body:not(.text-mode) #video-stats-footer { order: 7; margin-top: 8px; }
+      body:not(.text-mode) .split-resizer { display: none; }
+    }
+
+    /* ---- Điện thoại xoay ngang: video bên trái, phụ đề bên phải (không còn bị video chiếm hết màn hình) ---- */
+    @media (max-width: 1023px) and (max-height: 500px) {
+      #screen-practice header { padding: 4px 8px; }
+      #screen-practice > div.flex-1 { padding: 6px !important; }
+      .split-layout-container { flex-direction: row; gap: 8px; }
+      .split-panel-left { width: 48%; flex-shrink: 0; height: 100%; overflow-y: auto; }
+      .split-panel-right { width: 52%; flex-shrink: 0; height: 100%; min-height: 0; }
+      #panel-left > div:nth-of-type(2) { padding: 10px; }
+      #panel-left > div:nth-of-type(2) > div:first-child { padding-bottom: 0; }
+      #subtitles-scroll-container { padding: 10px; }
+      body.text-mode .split-panel-left { display: none !important; }
+      body.text-mode .split-panel-right { width: 100% !important; }
+    }
+  
+    /* ---- Sửa khoảng trống lớn: <body> có min-height:100vh (tính cả lúc thanh địa chỉ/thanh dưới của trình duyệt đang hiện)
+       nên trang bị cuộn lên 1 đoạn (khi mở video / bấm ô tìm kiếm), để lộ dải trống phía dưới màn hình luyện tập.
+       Trên điện thoại/iPad: khóa cuộn cả trang, ghim màn hình luyện tập đúng bằng vùng nhìn thấy. ---- */
+    @media (max-width: 1023px), (orientation: portrait) and (max-width: 1100px) {
+      html:has(#screen-practice:not(.hidden)),
+      body:has(#screen-practice:not(.hidden)) { overflow: hidden !important; overscroll-behavior: none; }
+      #screen-practice:not(.hidden) {
+        position: fixed !important; top: 0; right: 0; bottom: 0; left: 0;
+        height: auto !important; width: 100%;
+      }
+    }
+  

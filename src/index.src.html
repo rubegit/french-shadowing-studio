@@ -1,0 +1,1816 @@
+<!DOCTYPE html>
+<html lang="vi" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content" />
+  <title>French Shadowing Studio</title>
+  <!-- Mở thẳng trang đang xem khi F5: nếu hash trỏ tới màn hình khác trang chủ thì giấu trang chủ NGAY từ đầu (không cho nháy trang chủ rồi mới chuyển).
+       Class rt-boot được router gỡ ngay sau khi mở xong màn hình (hoặc sau 10 giây nếu có lỗi). -->
+  <style>
+    html.rt-boot { background: #070b14; }
+    html.rt-boot #screen-input { display: none !important; }
+    html.rt-boot body::after { content: ''; position: fixed; left: 50%; top: 50%; width: 30px; height: 30px; margin: -15px 0 0 -15px; border: 3px solid #1e293b; border-top-color: #60a5fa; border-radius: 50%; animation: rtBootSpin .8s linear infinite; z-index: 99999; }
+    @keyframes rtBootSpin { to { transform: rotate(360deg); } }
+  </style>
+  <script>
+    (function () {
+      try {
+        var h = location.hash || '';
+        if (/^#share=/.test(h) || /[?&]v=/.test(location.search)) return;
+        if (/^#\/(vocab|guide|donate|watch\/|read\/|book\/|translate\/.)/.test(h)) {
+          document.documentElement.classList.add('rt-boot');
+          setTimeout(function () { document.documentElement.classList.remove('rt-boot'); }, 10000);
+        }
+      } catch (e) {}
+      // Khởi tạo Theme giao diện mới (Spec 2026: Mint Pastel, mặc định bật data-ui="light")
+      try {
+        var uiMode = localStorage.getItem('fss_ui_mode');
+        if (uiMode !== 'legacy') {
+          document.documentElement.setAttribute('data-ui', 'light');
+        }
+        var savedTheme = localStorage.getItem('fss_ui_theme');
+        if (savedTheme === 'dark' || savedTheme === 'light') {
+          document.documentElement.setAttribute('data-theme', savedTheme);
+        }
+        if (!localStorage.getItem('vtData_v1')) {
+          var sampleVt = {
+            videos: {
+              'sample_vi_fr_1': {
+                key: 'sample_vi_fr_1',
+                kind: 'text',
+                title: 'Luyện dịch mẫu: Cuộc sống hàng ngày ở Pháp',
+                duration: '03:20',
+                channel: 'Pháp Ngữ Thực Hành',
+                ts: 1729780000000,
+                sents: [
+                  { id: 1, t: 'Mỗi buổi sáng, tôi thức dậy lúc 7 giờ và uống một tách cà phê.', lit: 'Chaque matin, je me réveille à 7 heures et je bois une tasse de café.', nat: 'Tous les matins, je me lève à 7h et je prends un café.' },
+                  { id: 2, t: 'Hôm nay trời rất đẹp, chúng ta có thể đi dạo trong công viên.', lit: 'Aujourd\'hui le temps est très beau, nous pouvons nous promener dans le parc.', nat: 'Il fait très beau aujourd\'hui, on pourrait aller se balader au parc.' },
+                  { id: 3, t: 'Học tiếng Pháp cần sự kiên trì và luyện tập đều đặn mỗi ngày.', lit: 'Apprendre le français nécessite de la persévérance et une pratique régulière chaque jour.', nat: 'Pour apprendre le français, il faut être persévérant et pratiquer régulièrement au quotidien.' }
+                ],
+                ans: {},
+                seen: {},
+                idx: 0
+              }
+            }
+          };
+          localStorage.setItem('vtData_v1', JSON.stringify(sampleVt));
+        }
+        if (!localStorage.getItem('shadowing_saved_vocab_v1')) {
+          var sampleVocab = [
+            {
+              id: 'vocab_sample_1',
+              text: 'persévérance',
+              kind: 'word',
+              level: 'B2',
+              wordVi: '[n.f.] tính kiên trì, sự bền chí',
+              en: 'Apprendre le français nécessite de la persévérance et une pratique régulière chaque jour.',
+              vi: 'Học tiếng Pháp cần sự kiên trì và luyện tập đều đặn mỗi ngày.',
+              hs: 37,
+              he: 49,
+              videoTitle: 'Cuộc sống hàng ngày ở Pháp',
+              createdAt: Date.now() - 3600000,
+              srs: { step: 0, nextDue: Date.now() - 1000 }
+            },
+            {
+              id: 'vocab_sample_2',
+              text: 'se balader',
+              kind: 'phrase',
+              level: 'A2',
+              wordVi: '[v.pr.] đi dạo, tản bộ',
+              en: 'Il fait très beau aujourd\'hui, on pourrait aller se balader au parc.',
+              vi: 'Hôm nay trời rất đẹp, chúng ta có thể đi dạo trong công viên.',
+              hs: 45,
+              he: 55,
+              videoTitle: 'Cuộc sống hàng ngày ở Pháp',
+              createdAt: Date.now() - 7200000,
+              srs: { step: 1, nextDue: Date.now() - 1000 }
+            }
+          ];
+          localStorage.setItem('shadowing_saved_vocab_v1', JSON.stringify(sampleVocab));
+        }
+        if (!localStorage.getItem('shadowing_keyvocab_v1')) {
+          var sampleKv = {
+            'dwt1yeNtKeQ': {
+              ts: Date.now(),
+              items: [
+                {
+                  term: 'se réveiller',
+                  kind: 'từ',
+                  level: 'A2',
+                  meaning: '[v.pr.] thức dậy, tỉnh giấc',
+                  inText: 'réveille',
+                  examples: [
+                    { en: 'Je me réveille tôt le matin pour faire du sport.', vi: 'Tôi thức dậy sớm vào buổi sáng để tập thể dục.' },
+                    { en: 'À quelle heure tu te réveilles d\'habitude ?', vi: 'Bạn thường thức dậy lúc mấy giờ?' },
+                    { en: 'Le bébé s\'est réveillé en pleurant.', vi: 'Em bé đã thức giấc và khóc.' }
+                  ]
+                },
+                {
+                  term: 'quotidien',
+                  kind: 'từ',
+                  level: 'B1',
+                  meaning: '[adj. / n.m.] hàng ngày, đời sống thường nhật',
+                  inText: 'quotidien',
+                  examples: [
+                    { en: 'C\'est une tâche de la vie quotidienne.', vi: 'Đó là một công việc trong cuộc sống hàng ngày.' },
+                    { en: 'Le stress quotidien affecte la santé.', vi: 'Căng thẳng hàng ngày ảnh hưởng đến sức khỏe.' },
+                    { en: 'Il lit son journal quotidien au petit-déjeuner.', vi: 'Anh ấy đọc tờ nhật báo vào bữa sáng.' }
+                  ]
+                },
+                {
+                  term: 'persévérance',
+                  kind: 'từ',
+                  level: 'B2',
+                  meaning: '[n.f.] tính kiên trì, lòng bền chí',
+                  inText: 'persévérance',
+                  examples: [
+                    { en: 'La persévérance est la clé de la réussite.', vi: 'Sự kiên trì là chìa khóa của thành công.' },
+                    { en: 'Il a surmonté les difficultés nhờ vào lòng kiên trì.', vi: 'Anh ấy đã vượt qua các khó khăn nhờ sự kiên trì.' },
+                    { en: 'Apprendre une langue exige beaucoup de persévérance.', vi: 'Học một ngôn ngữ đòi hỏi rất nhiều sự kiên trì.' }
+                  ]
+                },
+                {
+                  term: 'se balader',
+                  kind: 'cụm từ',
+                  level: 'A2+',
+                  meaning: '[v.pr.] đi dạo, tản bộ (khẩu ngữ thân mật)',
+                  inText: 'balader',
+                  examples: [
+                    { en: 'On va se balader le long de la Seine.', vi: 'Chúng ta sẽ đi dạo dọc theo sông Seine.' },
+                    { en: 'J\'aime me balader en forêt le dimanche.', vi: 'Tôi thích đi dạo trong rừng vào Chủ nhật.' },
+                    { en: 'Tu veux venir te balader avec nous ?', vi: 'Bạn có muốn đi dạo cùng chúng tôi không?' }
+                  ]
+                }
+              ]
+            }
+          };
+          localStorage.setItem('shadowing_keyvocab_v1', JSON.stringify(sampleKv));
+        }
+      } catch (e) {}
+    })();
+    window.toggleFsTheme = function () {
+      try {
+        var cur = document.documentElement.getAttribute('data-theme');
+        if (!cur) {
+          var sysDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          cur = sysDark ? 'dark' : 'light';
+        }
+        var next = (cur === 'dark') ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem('fss_ui_theme', next);
+      } catch (e) {}
+    };
+  </script>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🇫🇷</text></svg>">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/icon32.png" />
+  <link rel="icon" type="image/png" sizes="48x48" href="icons/icon48.png" />
+  <link rel="icon" type="image/png" sizes="128x128" href="icons/icon128.png" />
+  <link rel="apple-touch-icon" href="icons/icon128.png" />
+  <meta name="description" content="Công cụ luyện tập Shadowing chuyên sâu trên video YouTube tiếng Pháp với phụ đề song ngữ Pháp - Việt. Tự động ghép câu trọn vẹn, tra từ điển Larousse và phát âm IPA." />
+  <!-- Xem trước khi chia sẻ link (Facebook, Zalo, Messenger, Twitter...): luôn dùng icon của app -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="French Shadowing Studio" />
+  <meta property="og:title" content="French Shadowing Studio" />
+  <meta property="og:description" content="Công cụ luyện tập Shadowing chuyên sâu trên video YouTube tiếng Pháp với phụ đề song ngữ Pháp - Việt. Tự động ghép câu trọn vẹn, tra từ điển Larousse và phát âm IPA." />
+  <meta property="og:url" content="https://shadowingstudio.pages.dev/" />
+  <meta property="og:locale" content="vi_VN" />
+  <meta property="og:image" content="https://shadowingstudio.pages.dev/icons/icon128.png" />
+  <meta property="og:image:secure_url" content="https://shadowingstudio.pages.dev/icons/icon128.png" />
+  <meta property="og:image:type" content="image/png" />
+  <meta property="og:image:width" content="128" />
+  <meta property="og:image:height" content="128" />
+  <meta property="og:image:alt" content="French Shadowing Studio" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="French Shadowing Studio" />
+  <meta name="twitter:description" content="Công cụ luyện tập Shadowing chuyên sâu trên video YouTube tiếng Pháp với phụ đề song ngữ Pháp - Việt. Tự động ghép câu trọn vẹn, tra từ điển Larousse và phát âm IPA." />
+  <meta name="twitter:image" content="https://shadowingstudio.pages.dev/icons/icon128.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;0,7..72,700;1,7..72,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="vocab-practice.css?v=20261023f">
+  <link rel="stylesheet" href="tcf-exam.css">
+  
+  <link rel="stylesheet" href="css/02-base.css?v=ca84d219">
+
+  <link rel="stylesheet" href="css/03-layout.css?v=2ab11a92">
+  <link rel="stylesheet" href="css/04-view-reader.css?v=9972a115">
+
+  <link rel="stylesheet" href="css/05-view-catalog.css?v=86f8be75" id="playlist-page-style">
+
+  <link rel="stylesheet" href="css/06-view-news.css?v=531f03a4">
+  <link rel="stylesheet" href="css/07-practice-modes.css?v=a92519c5" id="pv-style">
+
+<link rel="stylesheet" href="css/08-speed-control.css?v=c5ea6d87" id="df-style">
+<link rel="stylesheet" href="css/09-text-mode-fix.css?v=62f2b4b2" id="txt-mode-fix">
+<link rel="stylesheet" href="css/10-ios-fix.css?v=d3dc0391" id="ios-fix">
+<link rel="stylesheet" href="css/11-view-translate.css?v=799a268c" id="vt-style">
+<link rel="stylesheet" href="css/12-video-timeline.css?v=f5eef356" id="vp-style">
+<link rel="stylesheet" href="css/13-default-controls.css?v=12e6e602" id="pv-ctl-style">
+
+  <link rel="stylesheet" href="css/14-subtitle-card.css?v=e940e088" id="cs-style">
+<link rel="stylesheet" href="css/15-ipa-highlight.css?v=5b8c6b2b" id="ipa-hl-style">
+<link rel="stylesheet" href="css/16-own-video.css?v=165d56ee" id="own-yt-style">
+  <!-- Redesign Theme: Mint Pastel & Dark Mode (Spec 2026) -->
+  <link rel="stylesheet" href="theme-light.css?v=20261025vph">
+</head>
+<body class="bg-[#070b14] text-slate-100 min-h-screen flex flex-col antialiased selection:bg-red-600/40 selection:text-white" onclick="ensurePageFocus()">
+
+  <!-- ==================== POPUP TRA NGHĨA KHI BÔI ĐEN ==================== -->
+  <!-- ==================== CỬA SỔ DÁN BẢN DỊCH (nút "Song ngữ" khi chưa có bản dịch) ==================== -->
+  <div id="bilingual-modal" class="ai-modal-backdrop" onmousedown="if (event.target === this) closeBilingualModal()">
+    <div class="ai-modal" role="dialog" aria-modal="true" aria-labelledby="bl-title">
+      <div class="ai-modal-head">
+        <div id="bl-title" class="ai-modal-title">Chưa có bản dịch tiếng Việt</div>
+        <button type="button" class="ai-modal-close" onclick="closeBilingualModal()" title="Đóng (Esc)">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <p id="bl-desc" class="ai-step-text">Chưa có bản dịch tiếng Việt. Copy prompt sau và gửi AI, sau đó paste bản dịch của nó vào đây:</p>
+      <div class="ai-copy-row">
+        <button type="button" class="ai-btn ai-btn-copy" onclick="aiCopy('trans-player', this)">
+          <i data-lucide="copy"></i><span>Copy prompt</span>
+        </button>
+        <span class="ai-open-links"><a class="ai-btn ai-open-link" href="https://gemini.google.com/app" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="gmg-bl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4285f4"/><stop offset=".55" stop-color="#9b72cb"/><stop offset="1" stop-color="#d96570"/></linearGradient></defs><path fill="url(#gmg-bl)" d="M12 0C12 6.63 6.63 12 0 12c6.63 0 12 5.37 12 12 0-6.63 5.37-12 12-12-6.63 0-12-5.37-12-12z"/></svg><span>Mở Gemini</span></a><a class="ai-btn ai-open-link" href="https://claude.ai/" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><g fill="#d97757"><rect x="10.8" y="1" width="2.4" height="22" rx="1.2"/><rect x="10.8" y="1" width="2.4" height="22" rx="1.2" transform="rotate(45 12 12)"/><rect x="10.8" y="1" width="2.4" height="22" rx="1.2" transform="rotate(90 12 12)"/><rect x="10.8" y="1" width="2.4" height="22" rx="1.2" transform="rotate(135 12 12)"/></g></svg><span>Mở Claude</span></a></span>
+      </div>
+      <textarea id="bl-textarea" class="ai-textarea" spellcheck="false" placeholder="Dán bản dịch của AI (xen kẽ câu tiếng Pháp và câu tiếng Việt) vào đây..."></textarea>
+      <div class="ai-actions">
+        <button type="button" class="ai-btn ai-btn-primary" onclick="aiApply('trans-player')">
+          <i data-lucide="check"></i><span>Áp dụng &amp; bật Song ngữ</span>
+        </button>
+        <button type="button" class="ai-btn ai-btn-ghost" onclick="closeBilingualModal()">Để sau</button>
+        <button type="button" id="bl-delete" class="ai-btn ai-btn-ghost ai-hide" onclick="deleteBilingual()" style="color:#fca5a5">
+          <i data-lucide="trash-2"></i><span>Xóa bản dịch</span>
+        </button>
+      </div>
+      <div id="bl-status" class="ai-status"></div>
+    </div>
+  </div>
+
+  <!-- ==================== CỬA SỔ CHIA SẺ ==================== -->
+  <div id="punct-modal" class="ai-modal-backdrop" onmousedown="if (event.target === this) closePunctModal()">
+    <div class="ai-modal" role="dialog" aria-modal="true" aria-labelledby="pc-title">
+      <div class="ai-modal-head">
+        <div id="pc-title" class="ai-modal-title">Thêm dấu câu cho phụ đề</div>
+        <button type="button" class="ai-modal-close" onclick="closePunctModal()" title="Đóng (Esc)">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <p class="ai-step-text">Copy prompt sau và gửi AI. AI sẽ thêm dấu câu và chia câu ngắn gọn (không dịch), sau đó paste kết quả của nó vào đây:</p>
+      <button type="button" class="ai-btn ai-btn-copy" onclick="aiCopy('punct-player', this)">
+        <i data-lucide="copy"></i><span>Copy prompt</span>
+      </button>
+      <textarea id="pc-textarea" class="ai-textarea" spellcheck="false" placeholder="Dán văn bản tiếng Pháp đã có dấu câu của AI vào đây..."></textarea>
+      <div class="ai-actions">
+        <button type="button" class="ai-btn ai-btn-primary" onclick="aiApply('punct-player')">
+          <i data-lucide="check"></i><span>Áp dụng</span>
+        </button>
+        <button type="button" class="ai-btn ai-btn-ghost" onclick="closePunctModal()">Để sau</button>
+      </div>
+      <div id="pc-status" class="ai-status"></div>
+    </div>
+  </div>
+
+  <div id="share-modal" class="ai-modal-backdrop" onmousedown="if (event.target === this) closeShareModal()">
+    <div class="ai-modal" role="dialog" aria-modal="true">
+      <div class="ai-modal-head">
+        <div class="ai-modal-title">Chia sẻ video này</div>
+        <button type="button" class="ai-modal-close" onclick="closeShareModal()" title="Đóng (Esc)"><i data-lucide="x"></i></button>
+      </div>
+      <p class="ai-step-text">Link ngắn (đã copy sẵn):</p>
+      <input id="share-link-input" type="text" readonly onfocus="this.select()" class="ai-textarea" style="min-height:0;height:44px;resize:none;" />
+      <p class="ai-step-text" style="margin-top:12px">Link này chỉ hoạt động sau khi file <strong id="share-file-name"></strong> (vừa được tải về máy) nằm trong <strong>thư mục subs</strong> trên hosting (cùng chỗ với các file phụ đề). Upload/ghi đè file đó là xong; file chứa phụ đề từng từ (karaoke) và bản dịch. Sửa bản dịch sau này thì bấm chia sẻ lại và upload đè file mới.</p>
+      <p id="share-extra" class="ai-step-text"></p>
+      <p id="share-file-warn" class="ai-step-text" style="display:none;color:#fbbf24">Lưu ý: trang đang mở trực tiếp từ file trên máy nên người khác chưa mở được link, cần đưa cả thư mục lên hosting.</p>
+      <div class="ai-actions">
+        <button type="button" class="ai-btn ai-btn-primary" onclick="copyShareLink(this)"><i data-lucide="copy"></i><span>Copy link</span></button>
+        <button type="button" class="ai-btn ai-btn-ghost" onclick="closeShareModal()">Đóng</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== CỬA SỔ TỪ VỰNG KHÓ TRONG BÀI (AI) ==================== -->
+  <div id="keyvocab-modal" class="ai-modal-backdrop" onmousedown="if (event.target === this) closeKeyVocabModal()">
+    <div class="ai-modal" role="dialog" aria-modal="true">
+      <div class="ai-modal-head">
+        <div id="kv-title" class="ai-modal-title">Từ vựng khó trong bài</div>
+        <button type="button" class="ai-modal-close" onclick="closeKeyVocabModal()" title="Đóng (Esc)"><i data-lucide="x"></i></button>
+      </div>
+      <div id="kv-input-view">
+        <p class="ai-step-text">Bấm "Copy prompt", dán cho AI (ChatGPT/Claude...). AI sẽ liệt kê từ vựng, cụm từ, thành ngữ, tiếng lóng (argot) tiếng Pháp trong bài này, mỗi mục kèm nghĩa và 3 câu ví dụ tiếng Pháp thực tế. Sau đó dán nguyên câu trả lời của AI vào ô bên dưới rồi bấm "Áp dụng".</p>
+        
+        <!-- Cài đặt Trình độ trích xuất CEFR (tối giản A1-C2, tối ưu mobile) -->
+        <div class="kv-level-box" id="kv-level-box">
+          <div class="kv-level-chips">
+            <button type="button" class="kv-level-chip" data-level="A1" onclick="kvToggleLevel('A1')" title="Trình độ A1 (Cơ bản / Vỡ lòng)">A1</button>
+            <button type="button" class="kv-level-chip" data-level="A2" onclick="kvToggleLevel('A2')" title="Trình độ A2 (Sơ cấp)">A2</button>
+            <button type="button" class="kv-level-chip" data-level="A2+" onclick="kvToggleLevel('A2+')" title="Trình độ A2+ (Tiền trung cấp)">A2+</button>
+            <button type="button" class="kv-level-chip" data-level="B1" onclick="kvToggleLevel('B1')" title="Trình độ B1 (Trung cấp 1)">B1</button>
+            <button type="button" class="kv-level-chip" data-level="B2" onclick="kvToggleLevel('B2')" title="Trình độ B2 (Trung cấp 2)">B2</button>
+            <button type="button" class="kv-level-chip" data-level="C1" onclick="kvToggleLevel('C1')" title="Trình độ C1 (Cao cấp)">C1</button>
+            <button type="button" class="kv-level-chip" data-level="C2" onclick="kvToggleLevel('C2')" title="Trình độ C2 (Thành thạo / Bản xứ)">C2</button>
+          </div>
+        </div>
+
+        <div class="ai-copy-row">
+          <button type="button" class="ai-btn ai-btn-copy" onclick="copyKeyVocabPrompt(this)">
+            <i data-lucide="copy"></i><span>Copy prompt</span>
+          </button>
+          <span class="ai-open-links"><a class="ai-btn ai-open-link" href="https://gemini.google.com/app" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="gmg-kv" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4285f4"/><stop offset=".55" stop-color="#9b72cb"/><stop offset="1" stop-color="#d96570"/></linearGradient></defs><path fill="url(#gmg-kv)" d="M12 0C12 6.63 6.63 12 0 12c6.63 0 12 5.37 12 12 0-6.63 5.37-12 12-12-6.63 0-12-5.37-12-12z"/></svg><span>Mở Gemini</span></a><a class="ai-btn ai-open-link" href="https://claude.ai/" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><g fill="#d97757"><rect x="10.8" y="1" width="2.4" height="22" rx="1.2"/><rect x="10.8" y="1" width="2.4" height="22" rx="1.2" transform="rotate(45 12 12)"/><rect x="10.8" y="1" width="2.4" height="22" rx="1.2" transform="rotate(90 12 12)"/><rect x="10.8" y="1" width="2.4" height="22" rx="1.2" transform="rotate(135 12 12)"/></g></svg><span>Mở Claude</span></a></span>
+        </div>
+        <textarea id="kv-textarea" class="ai-textarea" spellcheck="false" placeholder="Dán câu trả lời của AI vào đây..."></textarea>
+        <div class="ai-actions">
+          <button type="button" class="ai-btn ai-btn-primary" onclick="applyKeyVocabAnswer()"><i data-lucide="check"></i><span>Áp dụng</span></button>
+          <button type="button" id="kv-back-btn" class="ai-btn ai-btn-ghost ai-hide" onclick="kvShowView('list')">Xem danh sách</button>
+          <button type="button" class="ai-btn ai-btn-ghost" onclick="closeKeyVocabModal()">Đóng</button>
+        </div>
+        <div id="kv-status" class="ai-status"></div>
+      </div>
+      <div id="kv-list-view" style="display:none">
+        <div class="kv-head-row">
+          <span id="kv-count" class="kv-count"></span>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <button type="button" class="kv-save-btn" id="kv-save-all-btn" onclick="kvSaveAll()">Lưu tất cả</button>
+            <button type="button" class="vocab-mini" onclick="kvShowView('input')">Dán câu trả lời khác</button>
+            <button type="button" class="vocab-mini del" onclick="kvClear()">Xóa danh sách</button>
+          </div>
+        </div>
+        <div id="kv-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== CỬA SỔ ĐIỀN NGHĨA TỪ VỰNG HÀNG LOẠT (AI) ==================== -->
+  <div id="vocab-meaning-modal" class="ai-modal-backdrop" onmousedown="if (event.target === this) closeVocabMeaningModal()">
+    <div class="ai-modal" role="dialog" aria-modal="true">
+      <div class="ai-modal-head">
+        <div class="ai-modal-title">Điền nghĩa riêng cho từ vựng</div>
+        <button type="button" class="ai-modal-close" onclick="closeVocabMeaningModal()" title="Đóng (Esc)"><i data-lucide="x"></i></button>
+      </div>
+      <p id="vm-desc" class="ai-step-text">Đang kiểm tra...</p>
+      <div class="ai-copy-row">
+        <button type="button" id="vm-copy-btn" class="ai-btn ai-btn-copy" onclick="copyVocabMeaningPrompt(this)">
+          <i data-lucide="copy"></i><span>Copy prompt</span>
+        </button>
+        <span class="ai-open-links"><a class="ai-btn ai-open-link" href="https://gemini.google.com/app" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="gmg-vm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4285f4"/><stop offset=".55" stop-color="#9b72cb"/><stop offset="1" stop-color="#d96570"/></linearGradient></defs><path fill="url(#gmg-vm)" d="M12 0C12 6.63 6.63 12 0 12c6.63 0 12 5.37 12 12 0-6.63 5.37-12 12-12-6.63 0-12-5.37-12-12z"/></svg><span>Mở Gemini</span></a><a class="ai-btn ai-open-link" href="https://claude.ai/" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><g fill="#d97757"><rect x="10.8" y="1" width="2.4" height="22" rx="1.2"/><rect x="10.8" y="1" width="2.4" height="22" rx="1.2" transform="rotate(45 12 12)"/><rect x="10.8" y="1" width="2.4" height="22" rx="1.2" transform="rotate(90 12 12)"/><rect x="10.8" y="1" width="2.4" height="22" rx="1.2" transform="rotate(135 12 12)"/></g></svg><span>Mở Claude</span></a></span>
+      </div>
+      <textarea id="vm-textarea" class="ai-textarea" spellcheck="false" placeholder="Dán câu trả lời của AI vào đây (mỗi mục gồm dòng 'N. Nghĩa: ...' và 3 dòng VD...)"></textarea>
+      <div class="ai-actions">
+        <button type="button" class="ai-btn ai-btn-primary" onclick="applyVocabMeaningAnswer()">
+          <i data-lucide="check"></i><span>Áp dụng</span>
+        </button>
+        <button type="button" class="ai-btn ai-btn-ghost" onclick="closeVocabMeaningModal()">Đóng</button>
+      </div>
+      <div id="vm-status" class="ai-status"></div>
+    </div>
+  </div>
+
+  <!-- ==================== ÔN TẬP TỪ VỰNG (SPACED REPETITION) ==================== -->
+  <div id="review-backdrop" class="review-backdrop" onmousedown="if (event.target === this) closeReviewScreen()">
+    <div class="review-card" role="dialog" aria-modal="true">
+      <div class="review-head">
+        <div class="review-title"><i data-lucide="brain" class="w-4 h-4" style="color:#4ade80"></i><span id="review-title-text">Ôn tập từ vựng</span></div>
+        <button type="button" class="review-close" onclick="closeReviewScreen()" title="Đóng (Esc)"><i data-lucide="x"></i></button>
+      </div>
+      <div id="review-body"></div>
+    </div>
+  </div>
+
+  <div
+    id="lookup-tooltip"
+    onmouseenter="handleLookupTooltipMouseEnter()"
+    onmouseleave="handleLookupTooltipMouseLeave()"
+  >
+    <div class="lookup-btn-row">
+      <button type="button" id="btn-lookup-action">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.3-4.3"></path>
+        </svg>
+        <span>Tra nghĩa</span>
+      </button>
+      <button type="button" id="btn-pronounce-action" style="display:none" title="Phát âm từ này (Shift + click: Mở Từ điển Larousse)">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+          <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+        </svg>
+        <span>Phát âm</span>
+      </button>
+      <button type="button" id="btn-loop-action">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 2.1l4 4-4 4"></path>
+          <path d="M3 12.2v-2a4 4 0 0 1 4-4h12.8"></path>
+          <path d="M7 21.9l-4-4 4-4"></path>
+          <path d="M21 11.8v2a4 4 0 0 1-4 4H4.2"></path>
+        </svg>
+        <span>Loop</span>
+      </button>
+      <button type="button" id="btn-save-action">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path>
+        </svg>
+        <span>Lưu</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ==================== MÀN HÌNH 1: NHẬP LIỆU ==================== -->
+  <div id="screen-input" class="pg min-h-screen flex flex-col">
+    <header class="home-top-row fs-header top">
+      <div class="fs-brand logo">
+        <div class="fs-logo mark" aria-hidden="true">FS</div>
+        <div class="fs-brand-text">
+          <span class="fs-brand-title">French Shadowing Studio</span>
+        </div>
+      </div>
+      
+      <div class="mode-tabs-wrap nav">
+        <div class="text-mode-toggle">
+          <button type="button" id="mode-tab-video" class="active" onclick="setInputMode('video')">
+            <svg class="tab-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="1.5" y="4.5" width="21" height="15" rx="4.5" fill="#ef4444"/><rect x="1.5" y="4.5" width="21" height="7" rx="3.5" fill="#fff" fill-opacity=".18"/><path d="M10 8.8v6.4l5.6-3.2z" fill="#fff"/></svg>
+            <span>Luyện Video</span>
+          </button>
+          <button type="button" id="mode-tab-text" onclick="setInputMode('text')">
+            <svg class="tab-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="1.8" width="16" height="20.4" rx="3.5" fill="#2dd4bf"/><path d="M14.5 1.8H16.5A3.5 3.5 0 0 1 20 5.3V7.5Z" fill="#fde047"/><path d="M8 9.5h8M8 13h8M8 16.5h5" stroke="#fff" stroke-width="1.9" stroke-linecap="round"/></svg>
+            <span>Đọc báo</span>
+          </button>
+          <button type="button" id="mode-tab-book" onclick="setInputMode('book')">
+            <svg class="tab-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4.5C3 3.7 3.7 3 4.5 3H9a3 3 0 0 1 3 3v15a2.5 2.5 0 0 0-2.5-2.5H4.5A1.5 1.5 0 0 1 3 17z" fill="#f59e0b"/><path d="M21 4.5c0-.8-.7-1.5-1.5-1.5H15a3 3 0 0 0-3 3v15a2.5 2.5 0 0 1 2.5-2.5h5a1.5 1.5 0 0 0 1.5-1.5z" fill="#fde68a"/><path d="M6 8h3M6 11h3M15 8h3M15 11h3" stroke="#92400e" stroke-width="1.4" stroke-linecap="round"/></svg>
+            <span>Đọc sách</span>
+          </button>
+          <button type="button" id="mode-tab-vt" onclick="setInputMode('vt')">
+            <svg class="tab-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="3" width="13" height="11" rx="3.2" fill="#a78bfa"/><path d="M5 14v3.5l3.5-3.5Z" fill="#a78bfa"/><rect x="9" y="9" width="13" height="11" rx="3.2" fill="#38bdf8"/><path d="M19 20v3l-3.2-3Z" fill="#38bdf8"/><path d="M5.5 7.2h6M8.5 6v1.2M7 10c.8-1.4 2-2.2 3.2-2.6M9.2 7.2c-.4 1.6-1.8 2.8-3.2 3.4" stroke="#fff" stroke-width="1.2" stroke-linecap="round" fill="none"/><path d="m13.2 17.6 2.2-5.4 2.2 5.4M14 16h2.8" stroke="#fff" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+            <span>Luyện dịch</span>
+          </button>
+          <button type="button" id="mode-tab-custom-yt" onclick="setInputMode('custom-yt')">
+            <svg class="tab-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="1.5" y="4.5" width="21" height="15" rx="4.5" fill="#f43f5e"/><rect x="1.5" y="4.5" width="21" height="7" rx="3.5" fill="#fff" fill-opacity=".18"/><path d="M10 8.8v6.4l5.6-3.2z" fill="#fff"/></svg>
+            <span>Video của bạn</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="fs-header-right">
+        <button type="button" class="vocab-btn primary home-top-btn pill" onclick="openVocabScreen()">
+          <i data-lucide="bookmark" class="w-3.5 h-3.5"></i>
+          <span>Từ vựng đã lưu</span>
+          <span class="vocab-count-badge vocab-count-pill" style="display:none">0</span>
+          <span id="vocab-due-badge-2" class="vocab-due-badge" style="display:none">0</span>
+        </button>
+        <button type="button" id="btn-cloud-sync" class="cloud-sync-btn home-top-btn pill" onclick="openCloudSyncModal()" title="Đồng bộ đám mây (Supabase)">
+          <svg class="w-3.5 h-3.5 text-blue-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+          <span id="cloud-sync-status-text">Đồng bộ Cloud</span>
+          <span class="cloud-sync-dot disconnected"></span>
+        </button>
+        <button type="button" class="fs-theme-toggle home-top-btn pill" onclick="toggleFsTheme()" title="Chuyển chế độ Sáng / Tối" aria-label="Chuyển chế độ Sáng / Tối">
+          <svg class="fs-theme-icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          <svg class="fs-theme-icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="wrap w-full max-w-[1200px] mx-auto py-8 px-4 sm:px-10 space-y-7">
+
+      <div id="main-card" class="bg-[#0a1124] border border-blue-950/80 rounded-2xl p-5 sm:p-8 shadow-2xl space-y-7">
+        <div id="video-input-mode">
+          <div class="home-hero-text">
+            <h1 class="home-title">Luyện nghe tiếng Pháp qua YouTube</h1>
+            <p class="sub home-sub">Shadowing với phụ đề song ngữ Pháp – Việt, tra từ Larousse và phát âm IPA.</p>
+          </div>
+
+          <div class="card home-card">
+            <div class="step"><span class="n">1</span>Link hoặc ID video YouTube</div>
+            <div class="in">
+              <input id="input-youtube-url" type="text" aria-label="Link video YouTube" placeholder="https://youtube.com/watch?v=..." autocomplete="off" />
+              <button type="button" class="btn g" id="btn-paste-url" onclick="pasteYoutubeUrl()" title="Dán link từ bộ nhớ tạm">Dán</button>
+            </div>
+            <div id="youtube-url-feedback" class="home-feedback"></div>
+
+            <div class="step"><span class="n">2</span>Nạp phụ đề tiếng Pháp</div>
+            <div id="drop-zone" class="drop" role="button" tabindex="0">
+              <input id="file-input" type="file" accept=".srt,.vtt,.txt,.json,.json3,.xml,.ttml,.srv1,.srv2,.srv3,.sbv,.lrc,.ass,.ssa,text/plain,text/vtt,application/json,application/x-subrip,application/xml" class="hidden" />
+              <span id="drop-zone-text">Chọn file SRT / VTT / TXT hoặc dán bản chép lời</span>
+            </div>
+            <div id="file-status-badge" class="hidden"><span id="file-status-text"></span></div>
+            <div class="sub-paste-toggle-row">
+              <span class="sub-paste-label">Hoặc dán bản chép lời:</span>
+              <button type="button" id="btn-switch-sub-mode" class="sub-paste-toggle-btn" onclick="toggleSubtitleInputMode()">Dán văn bản</button>
+            </div>
+            <div id="raw-sub-container" class="hidden">
+              <textarea id="raw-sub-textarea" rows="4" placeholder="Dán nội dung phụ đề .srt hoặc transcript YouTube vào đây..."></textarea>
+              <button type="button" class="btn g btn-sm" onclick="applyRawSubtitles()" style="margin-top:8px;font-size:13px;padding:6px 14px;min-height:36px;">Áp dụng phụ đề</button>
+            </div>
+            <div id="parse-error-alert" class="hidden"><span id="parse-error-message"></span></div>
+
+            <div id="cta-glow-container" class="cta-glow-wrapper disabled" style="margin-top:12px;">
+              <button type="button" id="btn-start-practice" class="btn w-full" disabled onclick="startPractice()">Bắt đầu luyện tập</button>
+            </div>
+          </div>
+
+          <!-- Dải hướng dẫn cài extension (tự ẩn khi app phát hiện extension đã cài) -->
+          <div id="ext-install-strip" class="ext-strip">
+            <span class="ext-strip-text">Để mở bất cứ video YouTube nào bạn thích bằng app luyện tiếng Pháp này,<br>vui lòng làm theo hướng dẫn sau:</span>
+            <button type="button" class="ext-guide-btn" onclick="openGuideScreen()">
+              <span class="ext-guide-ico">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19.439 7.85c-.049.322.059.648.289.878l1.568 1.568c.47.47.706 1.087.706 1.704s-.235 1.233-.706 1.704l-1.611 1.611a.98.98 0 0 1-.837.276c-.47-.07-.802-.48-.968-.925a2.501 2.501 0 1 0-3.214 3.214c.446.166.855.497.925.968a.979.979 0 0 1-.276.837l-1.61 1.61a2.404 2.404 0 0 1-1.705.707 2.402 2.402 0 0 1-1.704-.706l-1.568-1.568a1.026 1.026 0 0 0-.877-.29c-.493.074-.84.504-1.02.968a2.5 2.5 0 1 1-3.237-3.237c.464-.18.894-.527.967-1.02a1.026 1.026 0 0 0-.289-.877l-1.568-1.568A2.402 2.402 0 0 1 1.998 12c0-.617.236-1.234.706-1.704L4.23 8.77c.24-.24.581-.353.917-.303.515.077.877.528 1.073 1.01a2.5 2.5 0 1 0 3.259-3.259c-.482-.196-.933-.558-1.01-1.073-.05-.336.062-.676.303-.917l1.525-1.525A2.402 2.402 0 0 1 12 1.998c.617 0 1.234.236 1.704.706l1.568 1.568c.23.23.556.338.877.29.493-.074.84-.504 1.02-.968a2.5 2.5 0 1 1 3.237 3.237c-.464.18-.894.527-.967 1.02Z"/></svg>
+              </span>
+              <span class="ext-guide-label">Cài Userscript / Extension</span>
+              <svg class="ext-guide-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div id="text-input-mode" class="hidden">
+          <div class="txt-head">
+            <span class="txt-head-ico">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="1.8" width="16" height="20.4" rx="3.5" fill="#fff"/><path d="M14.5 1.8H16.5A3.5 3.5 0 0 1 20 5.3V7.5Z" fill="#fde047"/><path d="M8 10h8M8 13.5h8M8 17h5" stroke="#14b8a6" stroke-width="1.9" stroke-linecap="round"/></svg>
+            </span>
+            <div>
+              <h3 class="txt-title">Đọc báo tiếng Pháp</h3>
+              <p class="txt-sub">Luyện đọc hiểu qua các bài báo và tin tức tiếng Pháp thực tế. Tách câu thông minh, dịch song ngữ Pháp – Việt, tra từ điển Larousse và phát âm chuẩn.</p>
+            </div>
+          </div>
+
+          <div class="txt-chips">
+            <span class="txt-chip"><i style="background:rgba(34,211,238,.16)"><svg viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2.4" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 5.5 5.5"/></svg></i>Tra nghĩa nhanh</span>
+            <span class="txt-chip"><i style="background:rgba(251,191,36,.16)"><svg viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2.4" stroke-linejoin="round"><path d="M6.5 3.5h11v17l-5.5-4-5.5 4z"/></svg></i>Lưu từ vựng</span>
+            <span class="txt-chip"><i style="background:rgba(167,139,250,.18)"><svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2.3" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18"/></svg></i>Dịch song ngữ</span>
+            <span class="txt-chip"><i style="background:rgba(52,211,153,.16)"><svg viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.8 2.8L16.5 9.5"/></svg></i>Tự động lưu lịch sử</span>
+          </div>
+
+          <!-- Lối tắt các trang báo tiếng Pháp thông dụng -->
+          <div class="fr-news-wrap">
+            <div class="fr-news-head">
+              <span class="fr-news-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                Trang báo tiếng Pháp khuyên đọc
+              </span>
+              <span class="fr-news-sub">Bấm để mở trang báo, chọn bài và sao chép nội dung dán vào bên dưới</span>
+            </div>
+            <div class="fr-news-grid">
+              <a href="https://francaisfacile.rfi.fr/" target="_blank" rel="noopener" class="fr-news-item" title="Tin tức thời sự tiếng Pháp dễ hiểu, kèm audio đọc chậm">
+                <span class="fr-news-logo" style="background:#e11d48;color:#fff;">RFI</span>
+                <div class="fr-news-meta">
+                  <div class="fr-news-name">RFI Français Facile</div>
+                  <div class="fr-news-desc">Tiếng Pháp dễ hiểu & Audio</div>
+                </div>
+                <svg class="fr-news-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </a>
+
+              <a href="https://www.lemonde.fr/" target="_blank" rel="noopener" class="fr-news-item" title="Nhật báo thời sự, chính trị và văn hóa số 1 nước Pháp">
+                <span class="fr-news-logo" style="background:#1e293b;color:#facc15;border:1px solid #475569;">LM</span>
+                <div class="fr-news-meta">
+                  <div class="fr-news-name">Le Monde</div>
+                  <div class="fr-news-desc">Nhật báo số 1 nước Pháp</div>
+                </div>
+                <svg class="fr-news-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </a>
+
+              <a href="https://www.france24.com/fr/" target="_blank" rel="noopener" class="fr-news-item" title="Kênh tin tức truyền hình quốc tế tiếng Pháp 24/7">
+                <span class="fr-news-logo" style="background:#0284c7;color:#fff;">F24</span>
+                <div class="fr-news-meta">
+                  <div class="fr-news-name">France 24</div>
+                  <div class="fr-news-desc">Tin tức truyền hình quốc tế 24/7</div>
+                </div>
+                <svg class="fr-news-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </a>
+
+              <a href="https://www.lefigaro.fr/" target="_blank" rel="noopener" class="fr-news-item" title="Nhật báo lâu đời và có lượng độc giả lớn của Pháp">
+                <span class="fr-news-logo" style="background:#1e3a8a;color:#93c5fd;">FIG</span>
+                <div class="fr-news-meta">
+                  <div class="fr-news-name">Le Figaro</div>
+                  <div class="fr-news-desc">Báo chí chính luận lớn & lâu đời</div>
+                </div>
+                <svg class="fr-news-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </a>
+
+              <a href="https://apprendre.tv5monde.com/fr" target="_blank" rel="noopener" class="fr-news-item" title="Học tiếng Pháp qua phóng sự truyền hình theo cấp độ A1-B2">
+                <span class="fr-news-logo" style="background:#7c3aed;color:#fff;">TV5</span>
+                <div class="fr-news-meta">
+                  <div class="fr-news-name">TV5Monde Apprendre</div>
+                  <div class="fr-news-desc">Tin bài học tiếng Pháp A1–B2</div>
+                </div>
+                <svg class="fr-news-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </a>
+
+              <a href="https://www.courrierinternational.com/" target="_blank" rel="noopener" class="fr-news-item" title="Điểm tin và góc nhìn báo chí toàn cầu bằng tiếng Pháp">
+                <span class="fr-news-logo" style="background:#d97706;color:#fff;">CI</span>
+                <div class="fr-news-meta">
+                  <div class="fr-news-name">Courrier International</div>
+                  <div class="fr-news-desc">Góc nhìn báo chí toàn cầu</div>
+                </div>
+                <svg class="fr-news-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </a>
+            </div>
+          </div>
+
+          <!-- Khung dán bài báo tiếng Pháp trực tiếp -->
+          <div class="txt-card">
+            <div class="txt-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              <span>Nhập hoặc dán bài báo tiếng Pháp</span>
+              <em>(Dán nội dung bài viết từ các trang báo trên vào đây)</em>
+            </div>
+
+            <input id="text-shadow-title-input" type="text" placeholder="Tiêu đề bài viết (tùy chọn — nếu bỏ trống, câu đầu tiên sẽ làm tiêu đề)" />
+
+            <textarea id="text-shadow-textarea" placeholder="Dán nội dung bài báo hoặc đoạn văn bản tiếng Pháp vào đây để bắt đầu đọc..."></textarea>
+
+            <div class="txt-foot">
+              <span class="txt-count"><b id="text-wc">0</b> từ</span>
+              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                <label class="txt-file-btn" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:999px;background:#0d1530;border:1px solid #1e2d5c;color:#93c5fd;font-size:12.5px;font-weight:600;cursor:pointer;transition:all .15s;">
+                  <input type="file" id="text-file-input" accept=".txt,.docx,.md,.html,.htm" style="display:none;" onchange="handleTextFileInput(event)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  Tải file (.txt, .docx, .md)
+                </label>
+                <button type="button" id="text-clear-btn" class="txt-clear">Xóa trắng</button>
+              </div>
+            </div>
+
+            <button type="button" class="txt-cta" onclick="startTextShadowingFromPaste()">
+              <span class="txt-cta-ico">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              </span>
+              <span>Bắt đầu đọc bài viết</span>
+            </button>
+          </div>
+
+          <!-- Văn bản Bạn Đã Luyện: hàng thẻ lịch sử các bài đã đọc (vẽ bởi renderTextHistoryRow) -->
+          <div id="text-history-container"></div>
+
+          <!-- Thử đọc bài viết có sẵn: đọc từ thư mục articles/ (cùng chỗ với index.html) -->
+          <div class="art-lib">
+            <div class="art-lib-head">
+              <span class="art-lib-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M8 7h8M8 11h6"/></svg></span>
+              <h4>Thử đọc bài viết có sẵn</h4>
+              <small>bấm vào bài để đọc</small>
+            </div>
+            <div id="art-lib-grid" class="art-lib-grid"></div>
+          </div>
+        </div>
+        <!-- ==================== ĐỌC SÁCH: KHU NHẬP SÁCH + THƯ VIỆN SÁCH ==================== -->
+<!-- ===== Pane Luyện dịch Việt → Pháp (trong main-card) ===== -->
+<div id="vt-input-mode" class="hidden">
+  <div class="bk-intro">
+    <span class="bk-intro-ico" style="background:linear-gradient(135deg,#7c3aed,#2563eb);box-shadow:0 8px 24px rgba(99,102,241,.3)"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8l6 6"/><path d="M4 14l6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg></span>
+    <div><h3>Luyện dịch Việt → Pháp</h3><p>Đọc câu tiếng Việt, tự dịch sang tiếng Pháp (trong đầu hoặc gõ ra), rồi so với bản dịch sát nghĩa và bản dịch thoáng của AI để nối ý tưởng với cách diễn đạt tiếng Pháp.</p></div>
+  </div>
+  <div class="ext-strip vt-ext">
+    <span class="ext-strip-text" id="vt-ext-text">Để tự import video Youtube hoặc bài viết / bài báo tiếng Việt của riêng bạn,<br>vui lòng cài extension sau:</span>
+    <a id="vt-ext-btn" class="ext-guide-btn" href="zip-files/ShadowingStudio-VN-Importer.zip" download="ShadowingStudio-VN-Importer.zip">
+      <span class="ext-guide-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg></span>
+      <span class="ext-guide-label">Tải extension</span>
+    </a>
+    <div id="vt-ext-hint" class="vt-steps"><div class="vt-step"><span class="vt-step-n">1</span><span class="vt-step-t">Tải xong, giải nén file zip</span></div><div class="vt-step"><span class="vt-step-n">2</span><span class="vt-step-t">Mở <b>chrome://extensions</b></span></div><div class="vt-step"><span class="vt-step-n">3</span><span class="vt-step-t">Bật <b>Developer mode</b></span></div><div class="vt-step"><span class="vt-step-n">4</span><span class="vt-step-t">Chọn <b>Load unpacked</b></span></div><div class="vt-step"><span class="vt-step-n">5</span><span class="vt-step-t">Chọn thư mục vừa được giải nén</span></div></div>
+  </div>
+  <div id="vt-hist-wrap" style="display:none"><div id="vt-hist-head" class="vt-hist-head"></div><div id="vt-hist" class="vt-grid"></div></div>
+  <div class="vt-lib-head">
+    <span class="vt-lib-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2.5"/><path d="m10 8.5 5 3.5-5 3.5z"/></svg></span>
+    <h4>Thư viện video tiếng Việt</h4>
+    <small>bấm vào video để luyện dịch</small>
+  </div>
+  <div id="vt-cats" class="vt-chips"></div>
+  <div id="vt-lib" class="vt-grid"></div>
+</div>
+
+        <div id="book-input-mode" class="hidden">
+          <div class="bk-intro">
+            <span class="bk-intro-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></span>
+            <div>
+              <h3>Đọc cả một cuốn sách tiếng Pháp</h3>
+              <p>Nạp sách (EPUB, PDF, TXT, MD, HTML) và đọc trong giao diện đọc sách riêng, có mục lục, tìm kiếm, nhớ vị trí đọc. Vẫn tra nghĩa, lưu từ vựng và song ngữ như bình thường. Bản dịch tạo theo từng đợt, đọc tới đâu dịch tới đó.</p>
+            </div>
+          </div>
+
+          <div id="bk-samples-wrap">
+            <div class="bk-lib-title" style="margin:0 0 10px"><h4>Dùng thử ngay</h4><small>không cần nạp file</small></div>
+            <div id="bk-samples" class="bk-samples"></div>
+          </div>
+          <div class="bk-or" style="margin-top:18px">hoặc nạp sách của riêng bạn</div>
+
+          <div id="bk-drop" class="bk-drop" tabindex="0" role="button" aria-label="Chọn file sách">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+            <b>Kéo thả file sách vào đây, hoặc bấm để chọn file</b>
+            <span>.epub · .pdf · .txt · .md · .html · .json (file sao lưu từ app này)</span>
+          </div>
+          <input type="file" id="bk-file" accept=".epub,.pdf,.txt,.md,.markdown,.html,.htm,.json" class="hidden" />
+
+          <div class="bk-or">hoặc dán văn bản</div>
+          <div class="bk-paste-row">
+            <input id="bk-paste-title" type="text" placeholder="Tên sách (không bắt buộc)" />
+            <button type="button" class="ai-btn ai-btn-copy" onclick="bkImportPasted()">Nạp văn bản đã dán</button>
+          </div>
+          <textarea id="bk-paste-text" spellcheck="false" placeholder="Dán toàn bộ nội dung sách tiếng Pháp vào đây..."></textarea>
+
+          <div class="bk-lib-title"><h4>Thư viện sách của bạn</h4><small id="bk-lib-count"></small></div>
+          <div id="bk-lib" class="bk-lib"></div>
+          <p class="txt-note" style="margin-top:14px">Sách, vị trí đọc và bản dịch được lưu ngay trong trình duyệt này (không cần tải lên đâu cả). Nhớ dùng nút <b>sao lưu</b> trên thẻ sách để xuất file .json phòng khi xóa dữ liệu trình duyệt.</p>
+        </div>
+
+        <!-- ===== Pane Luyện tiếng Pháp với video YouTube của bạn ===== -->
+        <div id="custom-yt-input-mode" class="hidden">
+          <div class="bk-intro" style="margin-bottom: 20px;">
+            <span class="bk-intro-ico" style="background: linear-gradient(135deg, #f43f5e, #ec4899); box-shadow: 0 8px 24px rgba(244, 63, 94, .35);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="2" y="5" width="20" height="14" rx="4"/><path d="m10 9.5 5 2.5-5 2.5z" fill="#fff"/>
+              </svg>
+            </span>
+            <div>
+              <h3>Luyện tiếng Pháp với video YouTube của bạn</h3>
+              <p>Dán link bất kỳ video YouTube tiếng Pháp nào và nạp file phụ đề (hoặc dán bản chép transcript) để bắt đầu luyện Shadowing, tra từ vựng và xem phụ đề song ngữ.</p>
+            </div>
+          </div>
+          <div id="own-yt-wrap" class="oy-wrap">
+            <button type="button" id="own-yt-toggle" class="ext-guide-btn oy-toggle" aria-expanded="true" aria-controls="own-yt-panel">
+              <span class="ext-guide-ico">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="4"/><path d="m10 9.5 5 2.5-5 2.5z" fill="currentColor"/></svg>
+              </span>
+              <span class="ext-guide-label"><span class="oy-l">Luyện tiếng Pháp với video YouTube</span> <span class="oy-l">của bạn</span></span>
+              <svg class="ext-guide-arrow oy-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+
+            <div id="own-yt-panel" class="oy-panel">
+              <div class="oy-step">
+                <div class="oy-step-head"><span class="oy-n">1</span><span class="oy-step-title">Link hoặc ID video YouTube</span></div>
+                <div class="oy-row">
+                  <input id="own-yt-url" class="oy-input" type="text" inputmode="url" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Dán link YouTube hoặc ID video (11 ký tự)" />
+                  <button type="button" id="own-yt-paste" class="oy-mini" title="Dán từ bộ nhớ tạm">Dán</button>
+                </div>
+                <div id="own-yt-url-fb" class="oy-fb"></div>
+              </div>
+
+              <div class="oy-step">
+                <div class="oy-step-head"><span class="oy-n">2</span><span class="oy-step-title">Nạp phụ đề tiếng Pháp</span></div>
+                <input id="own-yt-file" type="file" accept=".srt,.vtt,.txt,.json,.json3,.xml,.ttml,.srv1,.srv2,.srv3,.sbv,.lrc,.ass,.ssa,text/plain,text/vtt,application/json,application/x-subrip,application/xml" class="oy-file-hidden" tabindex="-1" />
+                <button type="button" id="own-yt-pick" class="oy-pick">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m17 8-5-5-5 5"/><path d="M12 3v12"/></svg>
+                  <span id="own-yt-pick-label">Chọn file phụ đề từ máy</span>
+                </button>
+                <div id="own-yt-file-ok" class="oy-ok" hidden></div>
+                <div id="own-yt-file-err" class="oy-err" hidden></div>
+                <div class="oy-paste-sub-wrap" style="margin-top: 10px; margin-bottom: 10px; padding: 10px 12px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px;">
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:13px; color:#cbd5e1; font-weight:600;">Dán trực tiếp bản chép lời (Transcript) / SRT:</span>
+                    <button type="button" id="oy-toggle-paste-sub" style="font-size:12px; color:#60a5fa; font-weight:600; cursor:pointer; background:rgba(37,99,235,0.15); border:1px solid rgba(37,99,235,0.4); border-radius:6px; padding:3px 8px;">Mở ô dán</button>
+                  </div>
+                  <div id="oy-paste-sub-box" style="display:none; margin-top:8px;">
+                    <textarea id="oy-sub-textarea" rows="4" style="width:100%; border-radius:8px; background:#070d1e; border:1px solid #1e3a8a; color:#f1f5f9; padding:8px 10px; font-size:12px; font-family:monospace; resize:vertical; box-sizing:border-box;" placeholder="Dán phụ đề .srt hoặc copy bản chép lời YouTube vào đây..."></textarea>
+                    <button type="button" id="oy-apply-sub-btn" style="margin-top:6px; padding:6px 14px; background:#2563eb; color:white; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; border:none;">Áp dụng phụ đề</button>
+                  </div>
+                </div>
+
+                <a class="oy-dl" href="https://downsub.com/" target="_blank" rel="noopener noreferrer">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>
+                  <span>Chưa có phụ đề? Tải phụ đề tiếng Pháp tại <b>downsub.com</b></span>
+                </a>
+                <div class="oy-hint">Có extension: mở video YouTube tiếng Pháp rồi dùng nút Shadowing Studio để gửi captions tự động, thường có timestamp từng từ chính xác hơn. Nếu không dùng extension, tải file SRT/VTT/TXT từ video rồi chọn ở đây. SRT/VTT thường chỉ có mốc thời gian theo câu nên thời gian từng từ sẽ được ước lượng.</div>
+              </div>
+
+              <button type="button" id="own-yt-start" class="oy-start" disabled>
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg>
+                <span>Bắt đầu luyện tập</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- THƯ VIỆN VIDEO CỦA BẠN (SPEC 2.9) -->
+          <div id="oy-history-wrap" class="oy-history-wrap">
+            <div class="oy-hist-head">
+              <div class="oy-hist-title">
+                <span class="oy-hist-ico">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="5" width="20" height="14" rx="4"></rect>
+                    <path d="m10 9.5 5 2.5-5 2.5z" fill="currentColor"></path>
+                  </svg>
+                </span>
+                <span>Thư viện video của bạn</span>
+              </div>
+              <span id="oy-hist-total" class="oy-hist-total">Tổng: <strong id="oy-hist-count">0</strong> video</span>
+            </div>
+            <div id="oy-hist-grid" class="oy-hist-grid"></div>
+          </div>
+        </div>
+
+         <!-- THƯ VIỆN VIDEO (ĐỔI SANG IN HOA TOÀN BỘ VÀ TÁCH RỘNG KHÔNG GIAN BÊN DƯỚI - ITEM 4) -->
+        <div class="pt-6 pb-1 border-t border-slate-800/80 lib-wrap">
+          <div class="p-5 sm:p-7 rounded-2xl bg-gradient-to-b from-[#091129] to-[#070d1e] border border-blue-900/60 shadow-xl space-y-5">
+            
+            <div class="flex flex-col items-center text-center gap-2 lib-head">
+              <label class="block text-2xl sm:text-[27px] font-extrabold text-white tracking-wide flex items-center justify-center gap-4 uppercase">
+                <span class="lib-head-ico lib-ico-glow"><svg class="shrink-0" style="width:60px;height:60px;filter:drop-shadow(0 2px 6px rgba(0,0,0,.45))" viewBox="0 0 100 100" aria-hidden="true">
+                  <path d="M8 56 L52 40 L94 56 L94 72 L48 90 L8 72 Z" fill="#1e4e9c"/>
+                  <path d="M8 56 L52 40 L94 56 L50 74 Z" fill="#2f6bc4"/>
+                  <path d="M50 74 L94 56 L94 72 L48 90 Z" fill="#cfe0f3"/>
+                  <path d="M50 74 L94 56 L94 62 L50 80 Z" fill="#a9c3de"/>
+                  <path d="M8 56 L50 74 L48 90 L8 72 Z" fill="#245ab0"/>
+                  <path d="M20 44 L56 32 L88 44 L88 54 L52 68 L20 56 Z" fill="#b52a3c"/>
+                  <path d="M20 44 L56 32 L88 44 L52 58 Z" fill="#ef4458"/>
+                  <path d="M52 58 L88 44 L88 54 L52 68 Z" fill="#cfe0f3"/>
+                  <path d="M52 58 L88 44 L88 48 L52 62 Z" fill="#a9c3de"/>
+                  <path d="M20 44 L52 58 L52 68 L20 56 Z" fill="#d23a4d"/>
+                  <path d="M14 30 L52 14 L90 30 L90 38 L52 54 L14 38 Z" fill="#d9531b"/>
+                  <path d="M14 30 L52 14 L90 30 L52 46 Z" fill="#f7a35b"/>
+                  <path d="M52 46 L90 30 L90 38 L52 54 Z" fill="#cfe0f3"/>
+                  <path d="M52 46 L90 30 L90 33 L52 49 Z" fill="#a9c3de"/>
+                  <path d="M14 30 L52 46 L52 54 L14 38 Z" fill="#ef7a35"/>
+                </svg></span>
+                <span class="lib-title-text">THƯ VIỆN VIDEO</span>
+              </label>
+              <div class="w-full flex items-center gap-3" style="justify-content:flex-end;">
+                <span class="text-xs sm:text-sm font-mono text-slate-400">
+                  Tổng: <strong id="library-total-count" class="text-blue-300 font-bold">0</strong> video
+                </span>
+              </div>
+            </div>
+
+            <div class="search-container mt-2">
+              <div class="search-icon-box">
+                <i data-lucide="search" class="w-5 h-5 text-blue-400"></i>
+              </div>
+              <input
+                id="library-search-input"
+                type="text"
+                oninput="handleLibrarySearch(this.value)"
+                placeholder="Tìm kiếm video trong thư viện (theo tên hoặc Video ID)..."
+                class="search-input-field"
+              />
+            </div>
+
+            <div id="netflix-categories-container" class="space-y-6 pt-3">
+              <div class="text-center py-8 text-slate-400 text-xs">
+                <span class="inline-block w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin mr-2 align-middle"></span>
+                Đang nạp thư viện video...
+              </div>
+            </div>
+
+            <div id="library-cat-page" aria-live="polite"></div>
+
+          </div>
+        </div>
+
+        <div id="site-counter-footer" class="site-counter-footer"></div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MÀN HÌNH 3: TỪ VỰNG ĐÃ LƯU ==================== -->
+<!-- ===== Màn luyện dịch + cửa sổ Nhờ AI dịch ===== -->
+<div id="screen-vt" class="hidden">
+  <header class="vt-header">
+    <div class="vt-hl">
+      <button type="button" class="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-blue-950/80 hover:bg-blue-900 border border-blue-800/80 text-blue-300 hover:text-white text-xs font-semibold transition-all cursor-pointer shadow-xs shrink-0 whitespace-nowrap btn-interactive" onclick="vtClose()" title="Quay lại thư viện">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg><span class="hidden sm:inline">Thư viện</span>
+      </button>
+      <div class="h-4 w-[1px] bg-slate-800 hidden md:block"></div>
+      <div class="vt-hd-title">Luyện dịch Việt → Pháp</div>
+    </div>
+    <div class="vt-hr">
+      <button type="button" class="dc-chip2" id="vt-readall" aria-pressed="false" title="Hiện tất cả bản dịch AI của mọi câu và ẩn ô gõ — dùng khi chỉ muốn đọc lướt">Hiện hết bản dịch</button>
+      <button type="button" class="dc-btn vt-ai-btn" onclick="vtOpenAI()" title="Lấy prompt nhờ AI dịch rồi dán kết quả vào app"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>Nhờ AI dịch</button>
+      <button type="button" class="fs-theme-toggle" onclick="toggleTheme()" title="Chuyển chế độ Sáng / Tối" aria-label="Chuyển giao diện sáng tối">
+        <svg class="fs-moon-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg class="fs-sun-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </button>
+    </div>
+  </header>
+  <div class="vt-body">
+  <aside class="dc-side vt-side" id="vt-side" aria-label="Danh sách câu">
+    <div class="dc-side-head"><div class="dc-side-title">Danh sách câu</div><button type="button" class="dc-link" id="vt-side-hide" title="Ẩn danh sách câu">Ẩn</button></div>
+    <div class="dc-side-sum">
+      <div class="dc-side-big" id="vt-side-big"></div>
+      <div class="dc-side-bar" id="vt-side-bar"></div>
+      <div class="dc-side-meta" id="vt-side-meta"></div>
+    </div>
+    <div class="dc-side-grid" id="vt-side-grid"></div>
+    <div class="dc-legend"><span><i style="background:#22c55e"></i>Đã xem bản dịch</span><span><i style="background:#f59e0b"></i>Đã gõ, chưa xem</span><span><i style="background:#17213f;border:1px solid #2b3f7a"></i>Chưa làm</span></div>
+  </aside>
+  <div class="vt-main" id="vt-main">
+    <div class="sh-wrap">
+      <div class="sh-top">
+        <div><h2 class="sh-title" id="vt-title">Luyện dịch</h2><div class="sh-sub" id="vt-sub"></div></div>
+        <div class="vt-top-r">
+          <div class="dc-seg" id="vt-filter" role="group" aria-label="Lọc câu"><button type="button" data-f="all" class="on">Tất cả</button><button type="button" data-f="todo">Chưa luyện</button></div>
+        </div>
+      </div>
+      <div class="sh-progress"><i id="vt-bar"></i></div>
+      <div class="vt-nav">
+        <button type="button" class="dc-iconbtn dc-side-show" id="vt-side-show" title="Hiện danh sách câu" aria-label="Hiện danh sách câu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></button>
+        <button type="button" class="dc-iconbtn" id="vt-prev" title="Câu trước" aria-label="Câu trước"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+        <button type="button" class="dc-count" id="vt-count" aria-haspopup="dialog" aria-expanded="false" title="Chọn câu / xem tiến độ">
+          <span id="vt-count-now">Câu 1</span><small id="vt-count-total">/ 1</small>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <button type="button" class="dc-iconbtn" id="vt-next" title="Câu sau" aria-label="Câu sau"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
+        <div class="dc-pop pv-x" id="vt-pop" role="dialog" aria-label="Danh sách câu"></div>
+      </div>
+      <div class="sh-list" id="vt-list" style="margin-top:12px"></div>
+    </div>
+  </div>
+  </div>
+</div>
+<!-- Trình phát YouTube ẩn: chỉ để phát âm thanh của từng câu (đặt ngoài màn hình, không dùng display:none để YouTube vẫn phát) -->
+<div id="vt-yt-wrap" aria-hidden="true" style="position:fixed;left:-4000px;top:0;width:480px;height:270px;overflow:hidden;pointer-events:none"><div id="vt-yt"></div></div>
+<div id="vt-ai-modal" class="ai-modal-backdrop" onmousedown="if(event.target===this)vtCloseAI()">
+  <div class="ai-modal" role="dialog" aria-modal="true">
+    <div class="ai-modal-head"><div class="ai-modal-title">Nhờ AI dịch Việt → Pháp</div>
+      <button type="button" class="ai-modal-close" onclick="vtCloseAI()" title="Đóng (Esc)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+    <p class="ai-step-text" id="vt-ai-desc"></p>
+    <button type="button" class="ai-btn ai-btn-copy" onclick="vtCopyPrompt(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><span>Copy prompt</span></button>
+    <textarea id="vt-ai-text" class="ai-textarea" spellcheck="false" placeholder="Dán câu trả lời của AI vào đây (mỗi câu gồm: số thứ tự, dòng S: sát nghĩa, dòng T: thoáng)..."></textarea>
+    <div class="ai-actions"><button type="button" class="ai-btn ai-btn-primary" onclick="vtApplyAI()"><span>Áp dụng bản dịch</span></button><button type="button" class="ai-btn ai-btn-ghost" onclick="vtCloseAI()">Để sau</button></div>
+    <div id="vt-ai-status" class="ai-status"></div>
+  </div>
+</div>
+
+  <div id="screen-vocab" class="hidden">
+    <div class="vocab-wrap">
+      <div class="vocab-top">
+        <button type="button" class="vocab-btn" onclick="closeVocabScreen()"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i><span>Quay lại</span></button>
+        <h2><i data-lucide="bookmark" class="w-5 h-5" style="color:#fbbf24"></i>Từ vựng đã lưu <span class="vocab-count-pill" id="vocab-count">0</span></h2>
+        <button type="button" id="vocab-review-btn" class="vocab-btn primary" onclick="openReviewScreen(vocabSource)" title="Ôn tập từ vựng theo nguyên lý lặp lại ngắt quãng (spaced repetition)" style="background:linear-gradient(135deg,#16a34a,#0d9488)">
+          <i data-lucide="brain" class="w-3.5 h-3.5"></i><span>Ôn tập</span><span id="vocab-due-badge-1" class="vocab-due-badge" style="display:none">0</span>
+        </button>
+        <button type="button" id="vocab-practice-btn" class="vocab-btn primary" onclick="if(window.openVocabPracticeHub) window.openVocabPracticeHub(vocabSource, vocabLevelFilter)" title="Trung tâm luyện tập: Trắc nghiệm 4 đáp án, Nghe điền từ, Ghép thẻ" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 0 14px rgba(99,102,241,0.35)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><line x1="6" x2="10" y1="12" y2="12"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="15" x2="15.01" y1="13" y2="13"/><line x1="18" x2="18.01" y1="11" y2="11"/><rect width="20" height="12" x="2" y="6" rx="6"/></svg><span>Luyện tập</span>
+        </button>
+        <button type="button" class="vocab-btn primary" onclick="openVocabMeaningModal()" title="Nhờ AI điền nghĩa riêng và 3 ví dụ cho các từ chưa có"><i data-lucide="languages" class="w-3.5 h-3.5"></i><span>Điền nghĩa (AI)</span><span id="vocab-missing-badge" class="vocab-missing-badge" style="display:none">0</span></button>
+        <button type="button" class="vocab-btn primary" onclick="exportVocabCsv()" title="Xuất file CSV để nhập vào Anki / Excel"><i data-lucide="download" class="w-3.5 h-3.5"></i><span>Xuất CSV</span></button>
+        <button type="button" class="vocab-btn danger" onclick="clearAllVocab()"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i><span>Xoá tất cả</span></button>
+      </div>
+      <div class="vocab-toolbar">
+        <input id="vocab-search" class="vocab-search" type="text" placeholder="Tìm theo từ, ngữ cảnh, bản dịch, tên video..." oninput="vocabQuery = this.value; renderVocabPage()" />
+        <select id="vocab-source" class="vocab-select vocab-source" aria-label="Lọc từ vựng theo video, bài viết hoặc sách" title="Lọc theo video / bài viết / sách" onchange="vocabSource = this.value; renderVocabPage()">
+          <option value="all">Tất cả bài học</option>
+        </select>
+        <select id="vocab-level" class="vocab-select" aria-label="Lọc từ vựng theo cấp độ CEFR" title="Lọc theo cấp độ CEFR" onchange="vocabLevelFilter = this.value; renderVocabPage()">
+          <option value="all">Tất cả cấp độ</option>
+          <option value="A1">Cấp A1</option>
+          <option value="A2">Cấp A2</option>
+          <option value="A2+">Cấp A2+</option>
+          <option value="B1">Cấp B1</option>
+          <option value="B2">Cấp B2</option>
+          <option value="C1">Cấp C1</option>
+          <option value="C2">Cấp C2</option>
+        </select>
+        <select class="vocab-select" onchange="vocabSort = this.value; renderVocabPage()">
+          <option value="new">Mới nhất</option><option value="old">Cũ nhất</option><option value="az">A → Z</option>
+        </select>
+      </div>
+      <div id="vocab-list"></div>
+    </div>
+  </div>
+  <div id="vocab-toast"></div>
+
+
+  <!-- ==================== MÀN HÌNH: HƯỚNG DẪN CÀI EXTENSION ==================== -->
+  <div id="screen-guide" class="hidden">
+    
+    <div class="gd-wrap">
+      <div class="gd-topbar">
+        <button type="button" class="gd-back" onclick="closeGuideScreen()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>Về trang chủ</button>
+        <span class="gd-brand"><img src="icons/icon128.png" alt="" width="26" height="26" onerror="this.remove()" />YouTube Shadowing Studio</span>
+      </div>
+
+      <header class="gd-hero">
+        <span class="gd-aurora" aria-hidden="true"></span>
+        <h1>Hướng dẫn cài đặt <span class="gd-grad">Userscript</span></h1>
+      </header>
+
+      <ol class="gd-steps">
+        <!-- Cài đặt Userscript Tampermonkey -->
+        <li class="gd-step">
+          <span class="gd-num" style="background:linear-gradient(135deg, #10b981, #2563eb)" aria-hidden="true">★</span>
+          <div class="gd-card" style="border:1.5px solid rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.06);">
+            <h2 style="color:#6ee7b7">Cài đặt Userscript cho Tampermonkey (Khuyên dùng)</h2>
+            <p style="color:#cbd5e1; font-size:14px; margin: 8px 0 12px; line-height:1.5;">
+              Tự động thêm nút <b>"🇫🇷 Luyện Shadowing"</b> và <b>"⬇️ Tải .json3"</b> ngay trên giao diện YouTube. Bấm 1 cú click là video kèm phụ đề chuẩn word-level timestamp tự động nạp thẳng vào studio để học ngay!
+            </p>
+            <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center;">
+              <a class="gd-cta" href="userscript/french-shadowing-youtube.user.js" target="_blank" style="background: linear-gradient(135deg, #059669, #2563eb);">
+                <span class="gd-cta-ico">⚡</span>
+                <span>Cài đặt / Cập nhật Userscript v1.3.1 (1-Click)</span>
+              </a>
+              <a class="gd-cta" href="https://www.tampermonkey.net/" target="_blank" rel="noopener" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2);">
+                <span>Chưa có Tampermonkey? Tải tại đây</span>
+              </a>
+            </div>
+            <p style="color:#94a3b8; font-size:12px; margin-top:10px; line-height:1.4;">
+              💡 <i>Lưu ý:</i> Sau khi Tampermonkey mở ra và bấm <b>Install / Update</b>, hãy <b>tải lại (F5) trang YouTube</b>. Bạn sẽ thấy ngay nút nổi màu gradient <b>"🇫🇷 Luyện Shadowing"</b> ở góc dưới bên phải màn hình!
+            </p>
+          </div>
+        </li>
+      </ol>
+
+      <div class="gd-end">
+        <button type="button" class="gd-back" onclick="closeGuideScreen()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>Quay lại Shadowing Studio</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="gd-lightbox" role="dialog" aria-modal="true" aria-label="Ảnh phóng to"><img id="gd-lightbox-img" alt="" /><p>Chạm vào bất kỳ đâu để đóng</p></div>
+
+  <!-- ==================== MÀN HÌNH: ỦNG HỘ TÁC GIẢ (DONATE) ==================== -->
+  <div id="screen-donate" class="hidden">
+    <div class="dn-wrap">
+      <div class="dn-top">
+        <button type="button" class="vocab-btn" onclick="closeDonateScreen()"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i><span>Quay lại</span></button>
+      </div>
+
+      <header class="dn-hero">
+        <span class="dn-aurora" aria-hidden="true"></span>
+        <div class="dn-avatar">
+          <svg viewBox="0 0 64 64" fill="none" stroke="#fcd34d" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 25h34v12a15 15 0 0 1-15 15h-4A15 15 0 0 1 12 37z" fill="rgba(252,211,77,.16)"/><path d="M46 28.5h2.5a6.5 6.5 0 0 1 0 13H44"/><path d="M7 58h44"/></svg>
+          <img data-src="images/author.jpg" width="1080" height="1080" alt="Tác giả" onerror="this.remove()" />
+        </div>
+        <h2 class="dn-title">Mình quyết định để app <span class="dn-grad">miễn phí</span> để mọi người đều có thể dùng.</h2>
+        <p class="dn-sub">Nếu bạn thấy app hữu ích, mời mình 1 ly cà phê nhé.</p>
+      </header>
+
+      <div class="dn-panel">
+        <div class="dn-tabs" id="dn-tabs" role="tablist" aria-label="Phương thức ủng hộ" data-active="momo" onkeydown="donateTabKey(event)">
+          <span class="dn-thumb" aria-hidden="true"></span>
+          <button type="button" class="dn-tab" role="tab" id="dn-tab-momo" data-tab="momo" aria-selected="true" aria-controls="dn-pane-momo" onclick="setDonateTab('momo')"><span class="dn-mark momo" data-txt="mo"><img data-src="icons/momo_icon.png" alt="" onerror="this.parentNode.classList.add('no-img');this.remove()" /></span>MoMo</button>
+          <button type="button" class="dn-tab" role="tab" id="dn-tab-vcb" data-tab="vcb" aria-selected="false" tabindex="-1" aria-controls="dn-pane-vcb" onclick="setDonateTab('vcb')"><span class="dn-mark vcb" data-txt="VCB"><img data-src="icons/vcb_icon.png" alt="" onerror="this.parentNode.classList.add('no-img');this.remove()" /></span>Vietcombank</button>
+        </div>
+
+        <div class="dn-body">
+          <div class="dn-stage">
+            <!-- MoMo -->
+            <div class="dn-pane is-active" id="dn-pane-momo" data-pane="momo" role="tabpanel" aria-labelledby="dn-tab-momo">
+              <div class="dn-qrcol">
+                <div class="dn-scan"><i></i><i></i><i></i><i></i>
+                  <button type="button" class="dn-qr" onclick="openDonateQr(this)" title="Chạm để phóng to" aria-label="Phóng to mã QR MoMo">
+                    <img data-src="images/momo_QR.png" width="647" height="710" alt="Mã QR MoMo" onerror="this.parentNode.classList.add('is-missing')" />
+                    <span class="dn-qr-missing">Chưa tìm thấy ảnh<br><b>momo_QR.png</b></span>
+                  </button>
+                </div>
+                <a class="dn-save" href="images/momo_QR.png" download="momo_QR.png"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-4.5-4.5M12 15l4.5-4.5M4 20h16"/></svg>Lưu ảnh QR</a>
+              </div>
+              <div class="dn-info dn-info-momo">
+                <span class="dn-brand" data-txt="mo" aria-hidden="true"><img data-src="icons/momo_icon.png" alt="" onerror="this.parentNode.classList.add('no-img');this.remove()" /></span>
+                <h3 class="dn-pane-title">Donate qua MoMo</h3>
+              </div>
+            </div>
+
+            <!-- Vietcombank -->
+            <div class="dn-pane" id="dn-pane-vcb" data-pane="vcb" role="tabpanel" aria-labelledby="dn-tab-vcb">
+              <div class="dn-qrcol">
+                <div class="dn-scan"><i></i><i></i><i></i><i></i>
+                  <button type="button" class="dn-qr" onclick="openDonateQr(this)" title="Chạm để phóng to" aria-label="Phóng to mã QR Vietcombank">
+                    <img data-src="images/VCB_QR.jpg" width="372" height="539" alt="Mã QR Vietcombank" onerror="this.parentNode.classList.add('is-missing')" />
+                    <span class="dn-qr-missing">Chưa tìm thấy ảnh<br><b>VCB_QR.jpg</b></span>
+                  </button>
+                </div>
+                <a class="dn-save" href="images/VCB_QR.jpg" download="VCB_QR.jpg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-4.5-4.5M12 15l4.5-4.5M4 20h16"/></svg>Lưu ảnh QR</a>
+              </div>
+              <div class="dn-info">
+                <dl class="dn-facts">
+                  <div class="dn-fact"><dt>Số tài khoản</dt><dd class="dn-numrow"><span id="dn-acc-number">1018754996</span><button type="button" class="dn-copy" onclick="copyDonateAccount(this)" aria-live="polite"><svg class="ic-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2.5"/><path d="M5 15H4.5A1.5 1.5 0 0 1 3 13.5v-9A1.5 1.5 0 0 1 4.5 3h9A1.5 1.5 0 0 1 15 4.5V5"/></svg><svg class="ic-ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg><span class="dn-copy-text">Sao chép</span></button></dd></div>
+                  <div class="dn-fact"><dt>Chủ tài khoản</dt><dd>LONG NGOC GIANG</dd></div>
+                  <div class="dn-fact"><dt>Ngân hàng</dt><dd>Vietcombank</dd></div>
+                </dl>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="dn-lightbox" onclick="closeDonateQr()" role="dialog" aria-modal="true" aria-label="Mã QR phóng to">
+    <div class="dn-lb-box"><img id="dn-lightbox-img" alt="Mã QR" /></div>
+    <p>Chạm vào bất kỳ đâu để đóng</p>
+  </div>
+
+  <!-- ==================== ĐỌC SÁCH: MÀN HÌNH ĐỌC ==================== -->
+  <div id="bk-loading" class="bk-loading"><div class="bk-loading-box"><div class="bk-spin"></div><div id="bk-loading-text">Đang xử lý...</div></div></div>
+
+  <div id="bk-import-modal" class="ai-modal-backdrop" onmousedown="if (event.target === this) bkImportCancel()">
+    <div class="ai-modal bk-imp">
+      <div class="ai-modal-head">
+        <div class="ai-modal-title">Nhập sách</div>
+        <button type="button" class="ai-modal-close" onclick="bkImportCancel()" title="Đóng"><i data-lucide="x"></i></button>
+      </div>
+      <div class="bk-row2">
+        <div class="bk-field"><label for="bk-imp-title">Tên sách</label><input id="bk-imp-title" type="text" /></div>
+        <div class="bk-field"><label for="bk-imp-author">Tác giả</label><input id="bk-imp-author" type="text" /></div>
+      </div>
+      <div class="bk-row2">
+        <div class="bk-field" id="bk-imp-mode-wrap">
+          <label for="bk-imp-mode">Cách chia chương</label>
+          <select id="bk-imp-mode" onchange="bkImportRechunk()">
+            <option value="auto">Tự động (theo tiêu đề)</option>
+            <option value="size">Chia đều theo độ dài (~2.500 từ/phần)</option>
+          </select>
+        </div>
+      </div>
+      <div class="bk-sumline"><span id="bk-imp-sum"></span><span><button type="button" class="bk-link" onclick="bkImpAll(true)">Chọn tất cả</button><button type="button" class="bk-link" onclick="bkImpAll(false)">Bỏ chọn</button></span></div>
+      <div id="bk-imp-list" class="bk-chlist"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button type="button" class="ai-btn ai-btn-primary" onclick="bkImportConfirm()">Nhập sách và đọc ngay</button>
+        <button type="button" class="ai-btn ai-btn-ghost" onclick="bkImportCancel()">Huỷ</button>
+      </div>
+      <p class="ai-step-text" style="margin:10px 0 0;color:#64748b">Bỏ chọn những mục không cần (mục lục, bản quyền, lời khen…). Chương nào quá dài sẽ tự được chia nhỏ để đọc nhẹ hơn.</p>
+    </div>
+  </div>
+
+  <div id="bk-tr-modal" class="ai-modal-backdrop" onmousedown="if (event.target === this) bkCloseTranslate()">
+    <div class="ai-modal bk-tr">
+      <div class="ai-modal-head">
+        <div class="ai-modal-title" id="bk-tr-title">Dịch song ngữ</div>
+        <button type="button" class="ai-modal-close" onclick="bkCloseTranslate()" title="Đóng"><i data-lucide="x"></i></button>
+      </div>
+      <div class="bk-sumline"><span id="bk-tr-prog-text"></span></div>
+      <div class="bk-trmeter"><i id="bk-tr-meter"></i></div>
+      <div class="bk-row2">
+        <div class="bk-field">
+          <label for="bk-tr-from">Bắt đầu dịch từ</label>
+          <select id="bk-tr-from" onchange="bkTrRefresh()">
+            <option value="cursor">Tiếp nối phần vừa dịch</option>
+            <option value="read">Chỗ tôi đang đọc</option>
+            <option value="chapter">Đầu chương đang đọc</option>
+            <option value="start">Đầu sách</option>
+          </select>
+        </div>
+        <div class="bk-field">
+          <label for="bk-tr-size">Cỡ mỗi đợt dịch</label>
+          <select id="bk-tr-size" onchange="bkTrSizeChange()">
+            <option value="S">Nhỏ (~600 từ) – dễ cho AI</option>
+            <option value="M">Vừa (~1.100 từ) – khuyên dùng</option>
+            <option value="L">Lớn (~1.800 từ) – ít lần copy hơn</option>
+          </select>
+        </div>
+      </div>
+      <div id="bk-tr-info" class="bk-trinfo"></div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button type="button" id="bk-tr-copy" class="ai-btn ai-btn-primary" onclick="bkTrCopy(this)"><i data-lucide="copy"></i><span>Copy prompt</span></button>
+        <button type="button" class="bk-link" onclick="bkTrTogglePrev()">Xem prompt</button>
+      </div>
+      <pre id="bk-tr-prev" class="bk-prevbox"></pre>
+      <textarea id="bk-tr-text" class="ai-textarea" spellcheck="false" placeholder="Dán câu trả lời của AI vào đây (xen kẽ câu tiếng Pháp và câu tiếng Việt)..."></textarea>
+      <div class="bk-trfoot">
+        <button type="button" class="ai-btn ai-btn-primary" onclick="bkTrApply()">Áp dụng bản dịch</button>
+        <span style="font-size:.72rem;color:#64748b">Nếu AI bị cắt giữa chừng, cứ áp dụng phần đã có, đợt kế tiếp sẽ tự bắt đầu từ chỗ AI dừng.</span>
+      </div>
+      <div id="bk-tr-status" class="ai-status"></div>
+      <details class="bk-details" style="margin-top:8px">
+        <summary>Ghi chú thuật ngữ / văn phong (tự thêm vào mọi prompt)</summary>
+        <textarea id="bk-tr-gloss" class="bk-gl" spellcheck="false" onchange="bkTrSaveGloss()" placeholder="Ví dụ: Xưng hô &quot;bạn&quot;. Dịch &quot;leverage&quot; là &quot;đòn bẩy&quot;, &quot;specific knowledge&quot; là &quot;kiến thức đặc thù&quot;. Giữ nguyên tên riêng."></textarea>
+      </details>
+      <details class="bk-details">
+        <summary>Quản lý bản dịch</summary>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
+          <button type="button" class="ai-btn ai-btn-ghost" style="color:#fca5a5" onclick="bkTrClear('chapter')">Xóa bản dịch chương này</button>
+          <button type="button" class="ai-btn ai-btn-ghost" style="color:#fca5a5" onclick="bkTrClear('book')">Xóa bản dịch cả sách</button>
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <div id="screen-book" class="hidden" data-theme="night" data-font="serif">
+    <header class="bk-top">
+      <div class="bk-grp">
+        <button type="button" class="bk-ib" onclick="bkClose()" title="Về thư viện"><i data-lucide="arrow-left"></i><span class="lbl">Thư viện</span></button>
+        <button type="button" class="bk-ib" id="bk-btn-toc" onclick="bkToggleDrawer('toc')" title="Mục lục (T)"><i data-lucide="list"></i><span class="lbl">Mục lục</span></button>
+      </div>
+      <div class="bk-titlebox" onclick="bkToggleDrawer('toc')" title="Mở mục lục">
+        <div class="a" id="bk-title"></div>
+        <div class="b" id="bk-subtitle"></div>
+      </div>
+      <div class="bk-grp">
+        <button type="button" class="bk-ib" onclick="bkToggleDrawer('search')" title="Tìm trong sách (/)"><i data-lucide="search"></i></button>
+        <button type="button" class="bk-ib" onclick="openVocabScreen()" title="Từ vựng đã lưu"><i data-lucide="bookmark"></i><span class="lbl">Từ vựng</span><span class="vocab-count-badge vocab-count-pill" style="display:none">0</span></button>
+        <button type="button" class="bk-ib" id="bk-btn-bi" onclick="bkToggleBilingual()" title="Hiện / ẩn bản dịch (B)"><i data-lucide="languages"></i><span class="lbl">Song ngữ</span><span class="bk-dot"></span></button>
+        <button type="button" class="bk-ib" onclick="bkOpenTranslate()" title="Tạo / dịch tiếp bản dịch"><i data-lucide="sparkles"></i><span class="lbl">Dịch</span></button>
+        <button type="button" class="bk-ib" id="bk-btn-set" onclick="bkToggleSettings()" title="Giao diện chữ và nền"><i data-lucide="type"></i></button>
+        <button type="button" class="bk-ib" onclick="bkToggleFocus()" title="Chế độ tập trung (F)"><i data-lucide="maximize"></i></button>
+      </div>
+    </header>
+
+    <div class="bk-body">
+      <aside id="bk-drawer" aria-label="Mục lục và tìm kiếm">
+        <div class="bk-dtabs">
+          <button type="button" id="bk-tab-toc" class="on" onclick="bkToggleDrawer('toc', true)">Mục lục</button>
+          <button type="button" id="bk-tab-search" onclick="bkToggleDrawer('search', true)">Tìm kiếm</button>
+          <button type="button" class="bk-dclose" onclick="bkCloseDrawer()" title="Đóng (T)" aria-label="Đóng">✕</button>
+        </div>
+        <div id="bk-pane-toc" class="bk-dpane on"></div>
+        <div id="bk-pane-search" class="bk-dpane">
+          <div class="bk-sbox"><input id="bk-search-input" type="text" placeholder="Tìm từ, cụm từ (Anh hoặc Việt)..." oninput="bkSearchInput(this.value)" /></div>
+          <div id="bk-search-res"><div class="bk-dnote">Gõ ít nhất 2 ký tự để tìm trong toàn bộ cuốn sách.</div></div>
+        </div>
+      </aside>
+      <div id="bk-drawer-back" onclick="bkCloseDrawer()"></div>
+
+      <div class="bk-main">
+        <div id="bk-scroll" class="bk-scroll" tabindex="-1" style="outline:none" onscroll="bkOnScroll()">
+          <article id="bk-content" class="bk-content" lang="en"></article>
+        </div>
+      </div>
+
+      <div id="bk-set" role="dialog" aria-label="Giao diện đọc">
+        <div class="bk-sg">
+          <label>Nền</label>
+          <div class="bk-seg">
+            <button type="button" class="bk-theme-chip" data-theme="night" onclick="bkSetPref('theme','night')" style="background:#0b1120;color:#dfe5f1">Aa</button>
+            <button type="button" class="bk-theme-chip" data-theme="dim" onclick="bkSetPref('theme','dim')" style="background:#1a1b1f;color:#d4d4d8">Aa</button>
+            <button type="button" class="bk-theme-chip" data-theme="sepia" onclick="bkSetPref('theme','sepia')" style="background:#f3ead6;color:#4a3b2a">Aa</button>
+            <button type="button" class="bk-theme-chip" data-theme="paper" onclick="bkSetPref('theme','paper')" style="background:#fbfaf7;color:#27272a">Aa</button>
+          </div>
+        </div>
+        <div class="bk-sg">
+          <label>Phông chữ</label>
+          <div class="bk-seg">
+            <button type="button" data-font="serif" onclick="bkSetPref('font','serif')" style="font-family:'Literata',Georgia,serif">Literata</button>
+            <button type="button" data-font="georgia" onclick="bkSetPref('font','georgia')" style="font-family:Georgia,serif">Georgia</button>
+            <button type="button" data-font="sans" onclick="bkSetPref('font','sans')">Sans</button>
+          </div>
+        </div>
+        <div class="bk-sg">
+          <label>Cỡ chữ</label>
+          <div class="bk-stepper"><button type="button" onclick="bkStep('size',-1)">A−</button><span id="bk-v-size"></span><button type="button" onclick="bkStep('size',1)">A+</button></div>
+        </div>
+        <div class="bk-sg">
+          <label>Giãn dòng</label>
+          <div class="bk-stepper"><button type="button" onclick="bkStep('lh',-1)">−</button><span id="bk-v-lh"></span><button type="button" onclick="bkStep('lh',1)">+</button></div>
+        </div>
+        <div class="bk-sg">
+          <label>Độ nổi bật của chữ</label>
+          <div class="bk-stepper"><button type="button" onclick="bkStep('ct',-1)" title="Chữ dịu hơn">−</button><span id="bk-v-ct"></span><button type="button" onclick="bkStep('ct',1)" title="Chữ nổi bật hơn">+</button></div>
+        </div>
+        <div class="bk-sg">
+          <label>Độ rộng cột chữ</label>
+          <div class="bk-seg">
+            <button type="button" data-width="620" onclick="bkSetPref('width',620)">Hẹp</button>
+            <button type="button" data-width="760" onclick="bkSetPref('width',760)">Vừa</button>
+            <button type="button" data-width="940" onclick="bkSetPref('width',940)">Rộng</button>
+          </div>
+        </div>
+        <div class="bk-sg">
+          <label>Căn lề</label>
+          <div class="bk-seg">
+            <button type="button" data-align="left" onclick="bkSetPref('align','left')">Trái</button>
+            <button type="button" data-align="justify" onclick="bkSetPref('align','justify')">Đều hai bên</button>
+          </div>
+        </div>
+        <div class="bk-sg">
+          <label>Bản dịch tiếng Việt hiện</label>
+          <div class="bk-seg">
+            <button type="button" data-lay="par" onclick="bkSetPref('lay','par')">Dưới mỗi đoạn</button>
+            <button type="button" data-lay="sent" onclick="bkSetPref('lay','sent')">Dưới từng câu</button>
+          </div>
+        </div>
+        <div class="bk-sg">
+          <label class="bk-switch"><span>Gạch chân từ đã lưu</span><input type="checkbox" id="bk-chk-hl" onchange="bkSetPref('hl', this.checked)"></label>
+        </div>
+      </div>
+    </div>
+
+    <footer class="bk-bottom">
+      <button type="button" class="bk-ib" onclick="bkPrevChapter()" title="Chương trước (←)"><i data-lucide="chevron-left"></i></button>
+      <span class="bk-stat" id="bk-st-ch"></span>
+      <input id="bk-slider" class="bk-slider" type="range" min="0" max="1000" value="0" oninput="bkSliderInput(this.value)" onchange="bkSliderCommit(this.value)" aria-label="Tiến độ đọc cả cuốn sách" />
+      <span class="bk-stat" id="bk-st-pct"></span>
+      <span class="bk-stat hide-sm" id="bk-st-left"></span>
+      <button type="button" id="bk-trpill" class="bk-trpill" onclick="bkOpenTranslate()"><span>Sắp hết phần đã dịch</span><b>Dịch tiếp →</b></button>
+      <button type="button" class="bk-ib" onclick="bkNextChapter()" title="Chương sau (→)"><i data-lucide="chevron-right"></i></button>
+    </footer>
+  </div>
+
+  <!-- ==================== MÀN HÌNH 2: PHÒNG LUYỆN TẬP ==================== -->
+  <div id="screen-practice" class="hidden h-screen flex flex-col overflow-hidden bg-[#070b14]">
+    <header class="h-14 border-b border-blue-950/70 bg-[#091024] px-3 sm:px-4 flex items-center justify-between shrink-0 z-30 gap-2">
+      <!-- CỤM NÚT TRÁI -->
+      <div class="flex items-center gap-2 sm:gap-2.5 flex-nowrap shrink-0">
+        <button
+          onclick="backToInputScreen()"
+          class="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-blue-950/80 hover:bg-blue-900 border border-blue-800/80 text-blue-300 hover:text-white text-xs font-semibold transition-all cursor-pointer shadow-xs shrink-0 whitespace-nowrap btn-interactive"
+        >
+          <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+          <span id="practice-back-btn-label" class="hidden sm:inline">Luyện video khác</span>
+        </button>
+        <div class="h-4 w-[1px] bg-slate-800 hidden md:block"></div>
+        
+
+        <button type="button" class="vocab-btn primary" onclick="openVocabScreen('lesson')" title="Xem từ vựng đã lưu của bài học này">
+          <i data-lucide="bookmark" class="w-3.5 h-3.5"></i><span class="hidden sm:inline">Từ vựng</span>
+          <span class="vocab-count-badge vocab-count-pill" style="display:none">0</span>
+          <span id="vocab-due-badge-3" class="vocab-due-badge" style="display:none">0</span>
+        </button>
+        <button type="button" class="cloud-sync-btn practice-sync-btn" onclick="openCloudSyncModal()" title="Đồng bộ đám mây (Supabase)">
+          <i data-lucide="cloud" class="w-3.5 h-3.5"></i>
+          <span class="cloud-sync-dot disconnected"></span>
+        </button>
+        <button type="button" class="fs-theme-toggle practice-theme-btn" onclick="toggleFsTheme()" title="Chuyển chế độ Sáng / Tối" aria-label="Chuyển chế độ Sáng / Tối">
+          <svg class="fs-theme-icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          <svg class="fs-theme-icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+        </button>
+        <div class="h-4 w-[1px] bg-slate-800 hidden md:block"></div>
+
+        <!-- ĐỔI GIAO DIỆN LUYỆN TẬP: Mặc định / Shadowing / Chép chính tả -->
+        <div class="pv-switch" id="pv-switch">
+          <button type="button" id="pv-switch-btn" class="pv-switch-btn" aria-haspopup="menu" aria-expanded="false" onclick="pvToggleMenu(event)" title="Đổi giao diện luyện tập">
+            <span class="pv-sw-ico" id="pv-sw-ico"></span>
+            <span class="pv-sw-label"><small>Giao diện</small><b id="pv-sw-name">Mặc định</b></span>
+            <svg class="pv-sw-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="pv-menu pv-x" id="pv-menu" role="menu" aria-label="Chọn giao diện luyện tập">
+            <div class="pv-menu-title">Chọn giao diện luyện tập</div>
+            <button type="button" class="pv-opt active" data-v="default" role="menuitemradio" aria-checked="true" onclick="pvSetView('default')">
+              <span class="pv-opt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/><path d="m10 7.5 4.5 2.5-4.5 2.5z"/></svg></span>
+              <span><span class="pv-opt-name">Mặc định</span><span class="pv-opt-desc" style="display:block">Video và phụ đề karaoke, song ngữ, tra từ, thu âm so sánh giọng</span></span>
+              <svg class="pv-opt-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            </button>
+            <button type="button" class="pv-opt" data-v="shadowing" role="menuitemradio" aria-checked="false" onclick="pvSetView('shadowing')">
+              <span class="pv-opt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 10v3"/><path d="M6 6v11"/><path d="M10 3v18"/><path d="M14 8v7"/><path d="M18 5v13"/><path d="M22 10v3"/></svg></span>
+              <span><span class="pv-opt-name">Shadowing</span><span class="pv-opt-desc" style="display:block">Chỉ nghe, không hiện video: nghe mẫu rồi thu âm nhại theo từng câu</span></span>
+              <svg class="pv-opt-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            </button>
+            <button type="button" class="pv-opt" data-v="dictation" role="menuitemradio" aria-checked="false" onclick="pvSetView('dictation')">
+              <span class="pv-opt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></span>
+              <span><span class="pv-opt-name">Chép chính tả</span><span class="pv-opt-desc" style="display:block">Nghe từng câu, gõ lại, chấm điểm từng từ và theo dõi tiến độ</span></span>
+              <svg class="pv-opt-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- CỤM NÚT PHẢI: ĐIỀU CHỈNH PHỤ ĐỀ (chỉ hiện ở giao diện Mặc định) -->
+      <div id="practice-header-tools" class="flex items-center gap-1.5 sm:gap-2 flex-nowrap justify-end shrink overflow-x-auto min-w-0" style="scrollbar-width:none;-ms-overflow-style:none;">
+        
+        <!-- NÚT GỘP: CỠ CHỮ + GIÃN DÒNG PHỤ ĐỀ -->
+        <div class="fs-wrap" id="fs-wrap">
+          <button type="button" id="fs-btn" class="fs-btn" aria-haspopup="true" aria-expanded="false" onclick="toggleTextSizePanel(event)" title="Chỉnh cỡ chữ và giãn dòng phụ đề">
+            <span>Aa</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="fs-pop pv-x" id="fs-pop" role="dialog" aria-label="Chỉnh cỡ chữ và giãn dòng phụ đề">
+            <div class="fs-row">
+              <span class="fs-lbl">Cỡ chữ</span>
+              <div class="fs-grp">
+                <button type="button" onclick="changeSubtitleFontSize(-1.5)" title="Giảm cỡ chữ">A-</button>
+                <button type="button" class="fs-reset blue" onclick="resetSubtitleFontSize()" title="Đặt về cỡ chữ mặc định">Mặc định</button>
+                <button type="button" onclick="changeSubtitleFontSize(1.5)" title="Tăng cỡ chữ">A+</button>
+              </div>
+            </div>
+            <div class="fs-row">
+              <span class="fs-lbl">Giãn dòng</span>
+              <div class="fs-grp">
+                <button type="button" onclick="changeSubtitleLineHeight(-0.06)" title="Giảm giãn dòng">L-</button>
+                <button type="button" class="fs-reset amber" onclick="resetSubtitleLineHeight()" title="Đặt về giãn dòng mặc định">Mặc định</button>
+                <button type="button" onclick="changeSubtitleLineHeight(0.06)" title="Tăng giãn dòng">L+</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 0. Phiên âm IPA dưới từng chữ ở thẻ phụ đề Anh (chỉ máy tính + iPad ngang) -->
+        <button type="button" id="cs-ipa" class="cs-ipa on btn-interactive" aria-pressed="true" title="Hiện / ẩn phiên âm IPA dưới từng chữ ở thẻ phụ đề">IPA</button>
+
+        <!-- 1. Karaoke -->
+        <button
+          id="btn-toggle-karaoke"
+          onclick="toggleKaraokeMode()"
+          title="Chạy chữ Karaoke theo từng từ phát âm"
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer transition-all bg-red-600/30 text-red-200 border-red-500/60 glow-red shrink-0 whitespace-nowrap btn-interactive"
+        >
+          <i data-lucide="sparkles" class="w-3.5 h-3.5 text-red-400"></i>
+          <span>Karaoke</span>
+        </button>
+
+        <!-- 2. Song ngữ (Anh - Việt). Mặc định: TẮT -->
+        <button
+          id="btn-toggle-bilingual"
+          onclick="toggleBilingual()"
+          title="Hiện bản dịch tiếng Việt dưới mỗi câu tiếng Pháp"
+          class="btn-interactive flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer transition-all bg-slate-800 hover:bg-slate-700 text-slate-400 border-slate-700 shrink-0 whitespace-nowrap"
+        >
+          <i data-lucide="languages" class="w-3.5 h-3.5"></i>
+          <span>Song ngữ</span>
+        </button>
+        <button
+          id="btn-edit-bilingual"
+          onclick="openBilingualModal(true)"
+          title="Thay hoặc xóa bản dịch song ngữ"
+          class="icon-only-btn edit-bl-btn"
+        >
+          <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
+        </button>
+
+        <!-- 3. Tự dừng cuối câu (Mặc định: TẮT) -->
+        <button
+          id="btn-toggle-autostop"
+          onclick="toggleSentenceAutoStop()"
+          title="Tự động dừng sau mỗi câu để nhại theo (Shadowing)"
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer transition-all bg-slate-800 hover:bg-slate-700 text-slate-400 border-slate-700 shrink-0 whitespace-nowrap btn-interactive"
+        >
+          <i data-lucide="pause-circle" class="w-3.5 h-3.5"></i>
+          <span>Tự dừng</span>
+        </button>
+
+        <!-- 4. Auto scroll (Mặc định: TẮT) -->
+        <button
+          id="btn-toggle-autoscroll"
+          onclick="toggleAutoScroll()"
+          title="Tự động cuộn theo tiến trình video (Auto scroll)"
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer transition-all bg-slate-800 hover:bg-slate-700 text-slate-400 border-slate-700 shrink-0 whitespace-nowrap btn-interactive"
+        >
+          <i data-lucide="arrow-down-up" class="w-3.5 h-3.5"></i>
+          <span class="htool-scroll-txt">Auto scroll</span>
+        </button>
+
+        <!-- 5. Thêm dấu câu (cho phụ đề chưa có dấu câu, không cần song ngữ) -->
+        <button
+          id="btn-punct"
+          onclick="openPunctModal()"
+          title="Nhờ AI thêm dấu câu và chia câu ngắn cho phụ đề (không dịch)"
+          class="btn-interactive flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer transition-all bg-slate-800 hover:bg-slate-700 text-slate-400 border-slate-700 shrink-0 whitespace-nowrap"
+        >
+          <i data-lucide="case-sensitive" class="w-3.5 h-3.5"></i>
+          <span class="htool-opt-txt">Thêm dấu câu</span>
+        </button>
+
+        <!-- 6. Từ vựng khó (AI tổng hợp) — dùng cho cả video và bài đọc -->
+        <button
+          id="btn-keyvocab"
+          onclick="openKeyVocabModal()"
+          title="Nhờ AI liệt kê từ vựng, cụm từ, thành ngữ, tiếng lóng tiếng Pháp trong bài này, kèm nghĩa và 3 ví dụ tiếng Pháp"
+          class="btn-interactive flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer transition-all bg-slate-800 hover:bg-slate-700 text-slate-400 border-slate-700 shrink-0 whitespace-nowrap"
+        >
+          <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+          <span class="htool-opt-txt">Từ khó</span>
+        </button>
+
+        <!-- 7. Thi thử TCF (AI) — Mô phỏng đề thi nghe TCF Compréhension Orale từ nội dung bài -->
+        <button
+          id="btn-tcf-exam"
+          onclick="window.TcfExam && window.TcfExam.openModal()"
+          title="Mô phỏng thi nghe TCF Canada (Compréhension Orale) dựa trên nội dung bài này"
+          class="btn-interactive flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer transition-all bg-gradient-to-r from-red-600/25 to-blue-600/25 hover:from-red-600/40 hover:to-blue-600/40 text-blue-200 border-blue-500/40 shrink-0 whitespace-nowrap shadow-xs"
+        >
+          <span style="font-size:12px">🇨🇦</span>
+          <span style="font-weight:700" class="htool-opt-txt">Thi thử TCF</span>
+          <span style="font-weight:700;display:none" class="htool-opt-short">TCF</span>
+        </button>
+      </div>
+          <div id="pv-header-title" class="pv-header-title pv-x" aria-live="polite"></div>
+          <!-- Nút của giao diện Shadowing (chỉ hiện khi đang ở Shadowing) -->
+          <div id="sh-header-tools" class="sh-htools">
+            <button type="button" class="dc-chip2" id="sh-tr">Dịch nghĩa</button>
+            <button type="button" class="dc-chip2" id="sh-ipa" title="Hiện phiên âm IPA ngay dưới từng từ của câu đang mở (lần đầu bấm sẽ tải từ điển phát âm)">Phiên âm IPA</button>
+            <button type="button" class="dc-chip2" id="sh-hide" title="Ẩn toàn bộ chữ (thành dấu •) để luyện nghe; bấm lại để hiện chữ (phím H)">Ẩn chữ</button>
+          </div>
+    </header>
+
+    <div id="pv-default" class="flex-1 min-h-0 w-full p-2.5 sm:p-3.5 overflow-hidden">
+      <!-- CẤU TRÚC RESIZABLE SPLIT PANE -->
+      <div id="split-container" class="split-layout-container">
+        
+        <!-- NỬA TRÁI: VIDEO & BẢNG ĐIỀU KHIỂN ĐÃ ĐƯỢC MỞ RỘNG SPACING THÔNG THOÁNG -->
+        <div id="panel-left" class="split-panel-left space-y-3.5 pr-0 lg:pr-1.5">
+          <!-- THẺ THÔNG TIN BÀI VIẾT (HIỂN THỊ KHI ĐỌC BÁO / VĂN BẢN - body.text-mode) -->
+          <div id="article-side-panel" class="art-side-panel" style="display:none;"></div>
+
+          <div id="video-frame-wrapper" class="relative w-full aspect-video bg-black rounded-2xl overflow-hidden border border-slate-800 shadow-2xl shrink-0">
+            <div id="yt-player-container" class="w-full h-full"></div>
+            <div id="vid-fade" aria-hidden="true"></div>
+            <!-- Lớp phủ trong suốt: chuột không chạm vào iframe YouTube nên YouTube không hiện thanh timeline, tên video, nút loa/CC... Bấm vào = phát / dừng -->
+            <div id="vid-shield" onclick="togglePlay()" aria-hidden="true"></div>
+            <!-- Phụ đề đè lên video: tiếng Pháp + tiếng Việt (khi bật Song ngữ), mỗi loại tối đa 2 dòng, quá dài thì có dấu ... -->
+            <div id="vid-subs" aria-live="off"><div id="vid-vi" class="vid-line"><span></span></div></div>
+          </div>
+
+          <!-- BẢNG ĐIỀU KHIỂN: THÔNG THOÁNG, KHÔNG BỊ BÍ DÍNH -->
+          <div id="pv-ctl" class="bg-[#091024] border border-slate-800 rounded-2xl px-4 py-2.5 shadow-md shrink-0">
+            <!-- HÀNG 1: CÁC NÚT ĐIỀU KHIỂN CHÍNH (ĐỆM DƯỚI RÕ RÀNG VỚI ĐƯỜNG KẺ) -->
+            <div class="pc">
+                <!-- THANH TIMELINE (tự vẽ: thanh của YouTube đã bị lớp phủ chặn) -->
+                <div id="tl" class="tl" aria-label="Thanh thời gian video">
+                  <span class="tl-time cur" id="tl-cur">0:00</span>
+                  <div class="tl-track" id="tl-track" role="slider" aria-label="Tua video" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0">
+                    <div class="tl-rail"><div class="tl-buf" id="tl-buf"></div><div class="tl-hov" id="tl-hov"></div><div class="tl-fill" id="tl-fill"></div></div>
+                    <div class="tl-thumb" id="tl-thumb"></div>
+                    <div class="tl-tip" id="tl-tip">0:00</div>
+                  </div>
+                  <span class="tl-time" id="tl-dur">0:00</span>
+                </div>
+              <!-- MỘT HÀNG DUY NHẤT: [CC] [Thu âm] [Tốc độ] [0.5x 0.75x 0.9x 1.0x]. Không bao giờ xuống dòng: JS đo bề rộng thật rồi chọn bậc hiển thị vừa nhất (xem pcFit) -->
+              <!-- NÚT PLAY/PAUSE: dáng logo YouTube, đỏ đậm, gradient nhẹ -->
+                <button type="button" id="btn-toggle-play" onclick="togglePlay()" title="Phát / Dừng (Space)" aria-label="Phát / Dừng" class="tp-play" hidden style="display:none">
+                  <svg class="tp-body" viewBox="0 0 68 48" preserveAspectRatio="none" aria-hidden="true">
+                    <defs>
+                      <linearGradient id="tpBody" x1="0" y1="0" x2="0" y2="1"><stop class="tp-s1" offset="0"/><stop class="tp-s2" offset="1"/></linearGradient>
+                      <linearGradient id="tpEdge" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".30"/><stop offset=".45" stop-color="#fff" stop-opacity=".05"/><stop offset="1" stop-color="#000" stop-opacity=".30"/></linearGradient>
+                    </defs>
+                    <path d="M66.52 7.74c-.78-2.93-2.49-5.41-5.42-6.19C55.79.13 34 0 34 0S12.21.13 6.9 1.55C3.97 2.33 2.27 4.81 1.48 7.74C.06 13.05 0 24 0 24s.06 10.95 1.48 16.26c.78 2.93 2.49 5.41 5.42 6.19C12.21 47.87 34 48 34 48s21.79-.13 27.1-1.55c2.93-.78 4.64-3.26 5.42-6.19C67.94 34.95 68 24 68 24S67.94 13.05 66.52 7.74z" fill="url(#tpBody)"/>
+                    <path class="tp-edge" d="M66.52 7.74c-.78-2.93-2.49-5.41-5.42-6.19C55.79.13 34 0 34 0S12.21.13 6.9 1.55C3.97 2.33 2.27 4.81 1.48 7.74C.06 13.05 0 24 0 24s.06 10.95 1.48 16.26c.78 2.93 2.49 5.41 5.42 6.19C12.21 47.87 34 48 34 48s21.79-.13 27.1-1.55c2.93-.78 4.64-3.26 5.42-6.19C67.94 34.95 68 24 68 24S67.94 13.05 66.52 7.74z" fill="none" stroke-width="1" vector-effect="non-scaling-stroke"/>
+                  </svg>
+                  <svg class="tp-glyph" viewBox="0 0 24 24" aria-hidden="true">
+                    <path class="tp-ic-play" d="M9.6 6.8v10.4L18 12z" fill="#fff" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/>
+                    <g class="tp-ic-pause" fill="#fff"><rect x="7" y="6" width="3.8" height="12" rx="1.2"/><rect x="13.2" y="6" width="3.8" height="12" rx="1.2"/></g>
+                  </svg>
+                </button>
+              <div class="pc-r1">
+                <!-- NÚT CC: bật/tắt phụ đề Anh - Việt trên video + chỉnh cỡ chữ riêng cho phụ đề trên video -->
+                <div class="cc-wrap" id="cc-wrap">
+                  <button type="button" id="cc-btn" class="cc-btn" aria-haspopup="true" aria-expanded="false" title="Phụ đề trên video" aria-label="Phụ đề trên video">CC</button>
+                  <div class="cc-pop pv-x" id="cc-pop" role="dialog" aria-label="Phụ đề trên video">
+                    <button type="button" class="cc-row" id="cc-vi" role="switch" aria-checked="true"><span class="cc-lbl">Phụ đề Việt<small id="cc-vi-note"></small></span><span class="cc-sw"></span></button>
+                    <div class="cc-sep"></div>
+                    <div class="cc-row cc-size"><span class="cc-lbl">Cỡ chữ</span>
+                      <div class="cc-step"><button type="button" id="cc-dec" title="Giảm cỡ chữ phụ đề trên video" aria-label="Giảm cỡ chữ">A-</button><output id="cc-val">19</output><button type="button" id="cc-inc" title="Tăng cỡ chữ phụ đề trên video" aria-label="Tăng cỡ chữ">A+</button></div>
+                    </div>
+                    <button type="button" class="cc-hint" id="cc-hint"></button>
+                  </div>
+                </div>
+
+                <div class="pv-rec" id="pv-rec"></div>
+
+                <!-- TỐC ĐỘ PHÁT: ô hiển thị lớn (gõ số bất kỳ 0.25 - 2 rồi Enter) + 2 nút tam giác nhỏ ▼ / ▲ chỉnh từng 0.1 -->
+                <div class="rate-ctl big" title="Tốc độ phát: gõ số bất kỳ từ 0.25 đến 2 rồi bấm Enter, hoặc nhấn giữ rồi kéo lên/xuống để tăng/giảm (↑/↓ chỉnh từng 0.1)">
+                  <span class="rate-input-wrap">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg>
+                    <input id="rate-input" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" maxlength="5" value="1.0" aria-label="Tốc độ phát" onfocus="this.select()" onkeydown="rateInputKey(event)" onblur="commitRateInput()">
+                    <span class="rate-input-x">x</span>
+                  </span>
+                </div>
+
+                <div class="dc-seg pv-speeds" id="pv-speeds" role="group" aria-label="Chọn nhanh tốc độ phát">
+                  <button type="button" data-sp="0.5" title="Tốc độ 0.5x">0.5<i>x</i></button>
+                  <button type="button" data-sp="0.75" title="Tốc độ 0.75x">0.75<i>x</i></button>
+                  <button type="button" data-sp="0.9" title="Tốc độ 0.9x">0.9<i>x</i></button>
+                  <button type="button" data-sp="1" title="Tốc độ gốc 1.0x">1.0<i>x</i></button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- THẺ PHỤ ĐỀ CÂU HIỆN TẠI: chữ Anh + IPA dưới từng chữ (chỉ hiện ở màn hình rộng). Dùng <section> để không làm lệch các selector div:nth-of-type của cột này -->
+          <section id="cs-card" class="cs-card empty" aria-label="Phụ đề tiếng Pháp của câu hiện tại">
+            <div id="cs-text" class="cs-text" data-idx="-1"></div>
+            <div class="cs-nav">
+              <button type="button" class="dc-btn" id="cs-prev" title="Câu trước"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="m15 18-6-6 6-6"/></svg>Câu trước</button>
+              <div class="cs-nav-r">
+                <button type="button" class="cs-auto" id="cs-auto" role="switch" aria-checked="false" title="Bật: hết câu thì video tự dừng, không nhảy sang câu mới"><span>Tự dừng</span><span class="sw"></span></button>
+                <button type="button" class="dc-btn" id="cs-next" title="Câu sau">Câu sau<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="m9 18 6-6-6-6"/></svg></button>
+              </div>
+            </div>
+            <!-- Hàng chỉnh thời gian bắt đầu / kết thúc của câu hiện tại (dùng chung dữ liệu với Shadowing + Chép chính tả) -->
+            <div class="cs-ts"><div class="ts-ctl" id="cs-ts"></div></div>
+          </section>
+
+          <!-- THÔNG TIN VIDEO: avatar kênh + tiêu đề (1 hàng) + tên kênh · lượt xem -->
+          <div id="vid-info" class="vid-info empty shrink-0" aria-label="Thông tin video">
+            <div class="vi-text">
+              <div class="vi-title" id="vi-title"></div>
+              <div class="vi-meta" id="vi-meta"></div>
+            </div>
+          </div>
+
+          <div id="video-stats-footer" class="site-counter-footer"></div>
+        </div>
+
+        <!-- THANH CHIA RANH GIỚI -->
+        <div id="split-resizer" class="split-resizer" title="Kéo để chỉnh tỷ lệ hai bên (30% - 70%)"></div>
+
+        <!-- NỬA PHẢI: KHU VỰC PHỤ ĐỀ -->
+        <div id="panel-right" class="split-panel-right bg-[#0a1124] border border-blue-950/70 rounded-2xl overflow-hidden shadow-2xl relative pl-0 lg:pl-1">
+          <div class="sub-panel-hd hd" id="sub-panel-hd">
+            <div class="sub-panel-tabs seg" id="sub-panel-tabs">
+              <button type="button" id="tab-sub-sentences" class="on" onclick="switchRightPanelTab('sentences')">Danh sách câu</button>
+              <button type="button" id="tab-sub-keyvocab" onclick="switchRightPanelTab('keyvocab')">Từ khó</button>
+            </div>
+            <span id="sub-panel-count" class="sub-panel-count"></span>
+          </div>
+          <!-- Vùng cuộn phụ đề -->
+          <div
+            id="subtitles-scroll-container"
+            class="flex-1 overflow-y-auto p-4 select-text relative"
+            onmouseenter="handleSubContainerMouseEnter()"
+            onmouseleave="handleSubContainerMouseLeave()"
+          ></div>
+
+          <!-- Ô TÌM KIẾM PHỤ ĐỀ -->
+          <div id="sub-search-bar" class="p-3.5 border-t border-slate-800/80 bg-[#0c152e] shrink-0">
+            <div class="search-row">
+              <div class="search-row-field">
+                <span class="sub-search-icon-box">
+                  <i data-lucide="search"></i>
+                </span>
+                <input
+                  id="sub-search-input"
+                  type="text"
+                  oninput="handleSearch(this.value)"
+                  placeholder="Tìm kiếm câu thoại hoặc từ vựng..."
+                  class="w-full pl-11 pr-4 py-2.5 bg-[#060b18] border border-slate-800 rounded-xl text-[19px] text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:bg-[#070f24] transition-all leading-normal"
+                />
+              </div>
+              <button
+                id="btn-copy-transcript"
+                type="button"
+                onclick="copyTranscript()"
+                title="Copy toàn bộ phụ đề đang hiển thị (nếu bật Song ngữ thì copy cả tiếng Pháp lẫn tiếng Việt xen kẽ)"
+                aria-label="Copy phụ đề"
+                class="icon-only-btn share-btn copy-btn"
+              >
+                <svg class="cp-ic cp-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:20px;height:20px"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                <svg class="cp-ic cp-done" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:20px;height:20px"><path d="M20 6 9 17l-5-5"/></svg>
+              </button>
+              <button
+                id="btn-share"
+                type="button"
+                onclick="shareCurrentVideo()"
+                title="Chia sẻ video này (link ngắn + file dữ liệu)"
+                class="icon-only-btn share-btn"
+              >
+                <i data-lucide="share-2" class="w-5 h-5"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- KHUNG TỪ KHÓ TRONG BÀI (MOCKUP HARD) -->
+          <div id="keyvocab-panel-container" class="keyvocab-panel-wrap" style="display:none"></div>
+
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ==================== GIAO DIỆN: CHÉP CHÍNH TẢ (DICTATION) ==================== -->
+    <div id="pv-dictation" class="pv-view pv-x" role="region" aria-label="Chép chính tả">
+      <aside class="dc-side" id="dc-side" aria-label="Danh sách câu">
+        <div class="dc-side-head"><div class="dc-side-title">Danh sách câu</div><button type="button" class="dc-link" id="dc-side-hide" title="Ẩn danh sách câu">Ẩn</button></div>
+        <div class="dc-side-sum">
+          <div class="dc-side-big" id="dc-side-big"></div>
+          <div class="dc-side-bar" id="dc-side-bar"></div>
+          <div class="dc-side-meta" id="dc-side-meta"></div>
+        </div>
+        <div class="dc-side-grid" id="dc-side-grid"></div>
+        <div class="dc-legend"><span><i style="background:#22c55e"></i>Hoàn hảo</span><span><i style="background:#f59e0b"></i>Gần đúng</span><span><i style="background:#ef4444"></i>Cần luyện</span><span><i style="background:#17213f;border:1px solid #2b3f7a"></i>Chưa làm</span></div>
+      </aside>
+      <div class="dc-scroll" id="dc-scroll">
+      <div class="dc-wrap">
+
+        <div class="dc-top">
+          <div class="dc-nav">
+            <button type="button" class="dc-iconbtn dc-side-show" id="dc-side-show" title="Hiện danh sách câu" aria-label="Hiện danh sách câu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></button>
+            <button type="button" class="dc-iconbtn" id="dc-prev" title="Câu trước" aria-label="Câu trước"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+            <button type="button" class="dc-count" id="dc-count" aria-haspopup="dialog" aria-expanded="false" title="Chọn câu / xem tiến độ">
+              <span id="dc-count-now">Câu 1</span><small id="dc-count-total">/ 1</small>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+            <button type="button" class="dc-iconbtn" id="dc-next" title="Câu sau" aria-label="Câu sau"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
+            <span class="dc-meta"><span id="dc-tts-tag" class="dc-tag pv-x" title="Bài văn bản không có âm thanh gốc nên app dùng giọng đọc của trình duyệt">Giọng đọc máy</span></span>
+            <div class="dc-pop pv-x" id="dc-pop" role="dialog" aria-label="Danh sách câu"></div>
+          </div>
+          <div class="ts-ctl" id="dc-ts"></div>
+        </div>
+
+        <div id="dc-body" style="display:flex;flex-direction:column;gap:14px">
+
+          <!-- Hàng công cụ: mức gợi ý + tốc độ nghe (trái), timestamp câu (phải) -->
+          <div class="dc-toolrow">
+            <div class="dc-tl">
+              <div class="dc-seg" id="dc-level" role="group" aria-label="Mức gợi ý">
+                <button type="button" data-l="hard" title="Không có gợi ý, chỉ nghe và gõ">Nghe thuần</button>
+                <button type="button" data-l="easy" title="Hiện số chữ của mỗi từ (ẩn hết chữ cái), tự mở từ khi bạn gõ đúng. Bấm vào từ để nghe từ đó, từ đang đọc được tô sáng">Có gợi ý</button>
+              </div>
+              <span class="ts-lbl">Tốc độ:</span>
+              <span class="rate-ctl"><button type="button" class="rate-step" data-rstep="-1" title="Giảm tốc độ 0.1" aria-label="Giảm tốc độ 0.1"><svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M6 9h12l-6 8z"/></svg></button><label class="sh-rate" title="Tốc độ nghe: gõ số bất kỳ từ 0.25 đến 2 rồi bấm Enter, hoặc nhấn giữ rồi kéo lên/xuống để tăng/giảm (↑/↓ chỉnh từng 0.1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg><input id="dc-rate" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" maxlength="5" value="1.0" aria-label="Tốc độ nghe"><span>x</span></label><button type="button" class="rate-step" data-rstep="1" title="Tăng tốc độ 0.1" aria-label="Tăng tốc độ 0.1"><svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M6 15h12l-6-8z"/></svg></button><button type="button" class="ts-step ts-reset" id="dc-rate-reset" title="Đưa tốc độ về 1.0x" aria-label="Đặt lại tốc độ về 1.0x"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></button></span>
+              <div class="dc-seg" id="dc-speeds" role="group" aria-label="Chọn nhanh tốc độ nghe">
+                <button type="button" data-sp="0.5" title="Nghe chậm 0.5x">0.5x</button>
+                <button type="button" data-sp="0.75" title="Nghe chậm 0.75x">0.75x</button>
+                <button type="button" data-sp="0.9" title="Nghe chậm 0.9x">0.9x</button>
+                <button type="button" data-sp="1" title="Tốc độ gốc 1.0x">1.0x</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Nghe -->
+          <div class="dc-card dc-player" id="dc-player">
+            <button type="button" class="dc-play" id="dc-play" title="Nghe câu này" aria-label="Nghe câu này">
+              <svg class="i-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.6v12.8a1 1 0 0 0 1.5.86l10.6-6.4a1 1 0 0 0 0-1.72L9.5 4.74A1 1 0 0 0 8 5.6z"/></svg>
+              <svg class="i-pause" viewBox="0 0 24 24" fill="currentColor"><rect x="6.5" y="5" width="4" height="14" rx="1.2"/><rect x="13.5" y="5" width="4" height="14" rx="1.2"/></svg>
+            </button>
+            <!-- Nút Phát lại: nghe lại câu từ đầu (nhỏ hơn nút Play đỏ, chỉnh cỡ ở .dc-replay) -->
+            <button type="button" class="dc-replay" id="dc-replay" title="Nghe lại từ đầu" aria-label="Nghe lại từ đầu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></button>
+            <div class="dc-mid">
+              <div class="dc-wave" id="dc-wave" title="Bấm để nghe từ vị trí này · Kéo để chọn đoạn rồi bấm Loop"></div>
+              <div class="dc-sel" id="dc-sel" aria-hidden="true"><i class="dc-h l"></i><i class="dc-h r"></i></div>
+              <div class="dc-timeline"><span id="dc-t-cur">0:00</span><span id="dc-t-dur">0:00</span></div>
+            </div>
+          </div>
+
+          <!-- Gõ -->
+          <div class="dc-card" id="dc-type">
+            <div class="dc-hint" id="dc-hint"></div>
+            <textarea id="dc-input" class="dc-input" rows="3" placeholder="Gõ những gì bạn nghe được…" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" aria-label="Nhập câu bạn nghe được"></textarea>
+            <!-- Hàng phím ký tự đặc biệt tiếng Pháp -->
+            <div id="dc-accents-bar" class="dc-accents-bar" role="toolbar" aria-label="Ký tự đặc biệt tiếng Pháp">
+              <button type="button" class="dc-acc-btn" data-char="é">é</button>
+              <button type="button" class="dc-acc-btn" data-char="è">è</button>
+              <button type="button" class="dc-acc-btn" data-char="ê">ê</button>
+              <button type="button" class="dc-acc-btn" data-char="ë">ë</button>
+              <button type="button" class="dc-acc-btn" data-char="à">à</button>
+              <button type="button" class="dc-acc-btn" data-char="â">â</button>
+              <button type="button" class="dc-acc-btn" data-char="ù">ù</button>
+              <button type="button" class="dc-acc-btn" data-char="û">û</button>
+              <button type="button" class="dc-acc-btn" data-char="ô">ô</button>
+              <button type="button" class="dc-acc-btn" data-char="î">î</button>
+              <button type="button" class="dc-acc-btn" data-char="ï">ï</button>
+              <button type="button" class="dc-acc-btn" data-char="ç">ç</button>
+              <button type="button" class="dc-acc-btn" data-char="œ">œ</button>
+              <button type="button" class="dc-acc-btn" data-char="æ">æ</button>
+              <button type="button" class="dc-acc-btn dc-acc-shift" id="dc-acc-shift" title="Chuyển chữ hoa / thường" aria-pressed="false">⇧</button>
+            </div>
+            <div class="dc-foot">
+              <div class="dc-keys"><span><kbd>Enter</kbd>kiểm tra</span><span><kbd>Tab</kbd>Phát/dừng</span></div>
+              <div class="dc-actions">
+                <button type="button" class="dc-btn" id="dc-hintword" title="Điền sẵn từ tiếp theo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>Gợi ý từ</button>
+                <button type="button" class="dc-btn" id="dc-clear">Xóa</button>
+                <button type="button" class="dc-btn" id="dc-listen-again" title="Nghe lại câu này từ đầu (Tab)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:15px;height:15px"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Nghe lại</button>
+                <button type="button" class="dc-btn primary" id="dc-check">Kiểm tra</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Kết quả -->
+          <div class="dc-card dc-result pv-x" id="dc-result">
+            <div class="dc-res-head">
+              <div class="dc-ring" id="dc-ring"><span id="dc-ring-txt">0%</span></div>
+              <div>
+                <div class="dc-verdict" id="dc-verdict"></div>
+                <div class="dc-sub" id="dc-sub"></div>
+              </div>
+            </div>
+            <div class="dc-diff" id="dc-diff"></div>
+            <div class="dc-legend" id="dc-res-legend" style="margin-top:10px"></div>
+            <div class="dc-trans pv-x" id="dc-trans"><b>Dịch nghĩa</b><span id="dc-trans-txt"></span></div>
+            <div class="dc-res-foot" id="dc-res-foot">
+              <div class="dc-actions">
+                <button type="button" class="dc-btn" id="dc-retry">Gõ lại câu này</button>
+                <button type="button" class="dc-btn" id="dc-res-replay">Nghe lại</button>
+              </div>
+              <div class="dc-actions">
+                <button type="button" class="dc-btn primary" id="dc-next2">Câu tiếp theo <kbd style="font:700 10px 'JetBrains Mono',monospace;opacity:.8;border:1px solid rgba(255,255,255,.35);border-radius:5px;padding:0 5px">Enter</kbd></button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tổng kết -->
+        <div class="dc-card pv-x" id="dc-summary"></div>
+        <!-- Công tắc "Có gợi ý" (chỉ hiện trên điện thoại, thay cho 2 nút Nghe thuần / Có gợi ý): bật = Có gợi ý, tắt = Nghe thuần -->
+        <div class="dc-hintsw" id="dc-hintsw"><span class="dc-hintsw-lbl">Có gợi ý</span><button type="button" class="dc-switch" id="dc-hintsw-btn" role="switch" aria-checked="false" aria-label="Có gợi ý" title="Bật: có gợi ý · Tắt: nghe thuần"><i></i></button></div>
+      </div>
+      </div>
+    </div>
+
+    <!-- ==================== GIAO DIỆN: SHADOWING (CHỈ NGHE, KHÔNG HIỆN VIDEO) ==================== -->
+    <div id="pv-shadowing" class="pv-view pv-x" role="region" aria-label="Shadowing">
+      <div class="sh-wrap">
+        <div class="sh-top">
+          <div>
+            <h2 class="sh-title">Luyện shadowing toàn bài</h2>
+            <div class="sh-sub" id="sh-sub"></div>
+          </div>
+          <div class="sh-tools">
+            <div class="dc-seg" id="sh-filter" role="group" aria-label="Lọc câu">
+              <button type="button" data-f="all" class="on">Tất cả</button>
+              <button type="button" data-f="todo">Chưa luyện</button>
+            </div>
+          </div>
+        </div>
+        <div class="sh-progress"><i id="sh-bar"></i></div>
+        <div class="sh-list" id="sh-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/01-main.js?v=57d93eae"></script>
+
+  <script src="js/02-pv-helper.js?v=d2adcc44"></script>
+  <script id="pv-script" src="js/03-practice-engine.js?v=17b3ae55"></script>
+<script src="js/04-vt-helper.js?v=b8dba445"></script>
+<script id="vt-script" src="js/05-translate-engine.js?v=6b41522a"></script>
+<!-- ============ ĐÁNH DẤU NHẸ TỪ / CỤM / CÂU ĐÃ LƯU (chỉ tính các mục lưu từ chính video / bài viết đang mở) ============ -->
+<link rel="stylesheet" href="css/17-mobile-tweaks.css?v=9552bb4c" id="mobile-tweaks">
+<link rel="stylesheet" href="css/18-controls-layout.css?v=aa8f810b" id="pv-ctl-layout">
+<link rel="stylesheet" href="css/19-vs-style.css?v=c06662a5" id="vs-style">
+<link rel="stylesheet" href="css/20-mobile-polish.css?v=351b36ca" id="mobile-polish">
+<script id="vs-script" src="js/06-audio-sync.js?v=54cc415a"></script>
+
+<script id="vp-script" src="js/07-timeline-cc.js?v=6fcd1152"></script>
+<script src="js/08-responsive-height.js?v=74736662"></script>
+<script id="kb-fix" src="js/09-keyboard-fix.js?v=773ef580"></script>
+<script id="own-yt-script" src="js/10-own-video.js?v=5fbca9ea"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-sync.js?v=20261023f"></script>
+<script src="vocab-practice.js?v=20261023f"></script>
+<script src="tcf-exam.js?v=20261023f"></script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+
+  /* Điện thoại / iPad: hiển thị thẻ hướng dẫn cài extension/userscript gọn gàng */
+  @media (hover: none) and (pointer: coarse), (max-width: 640px) {
+    #ext-install-strip { width: 100% !important; padding: 12px 14px !important; margin-bottom: 16px !important; }
+    #ext-install-strip .ext-strip-text { font-size: 13px !important; line-height: 1.4 !important; }
+    #ext-install-strip .ext-guide-btn { width: 100% !important; justify-content: center !important; }
+    #main-card:has(#video-input-mode:not(.hidden)) > #video-input-mode { margin-bottom: 0; }
+    #main-card:has(#video-input-mode:not(.hidden)) > .lib-wrap { padding-top: 0; border-top: 0; margin-top: 0; }
+  }
+
+  /* Chỉ điện thoại: thẻ THƯ VIỆN VIDEO sát mép màn hình, bỏ thẻ bọc ngoài */
+  @media (max-width: 640px), (hover: none) and (pointer: coarse) and (max-height: 500px) {
+    #screen-input:has(#video-input-mode:not(.hidden)) { padding-left: 4px; padding-right: 4px; }
+    #main-card:has(#video-input-mode:not(.hidden)) { background: transparent; border-color: transparent; box-shadow: none; padding: 0; border-radius: 0; }
+    #main-card:has(#video-input-mode:not(.hidden)) > .lib-wrap > div,
+    html[data-shadowing-extension="1"] #main-card:has(#video-input-mode:not(.hidden)) > .lib-wrap > div {
+      padding: 12px 6px !important; border-radius: 14px;
+      background: linear-gradient(to bottom, #091129, #070d1e) !important;
+      border: 1px solid rgba(30, 58, 138, .6) !important;
+    }
+
+    /* Giao diện Mặc định: bỏ thẻ riêng bọc phụ đề để chữ rộng ra */
+    body:not(.text-mode) .sub-textmode-container { padding: 0 !important; border: 0 !important; background: transparent !important; border-radius: 0 !important; }
+    body:not(.text-mode) #subtitles-scroll-container { padding: 8px 10px calc(70px + env(safe-area-inset-bottom, 16px)) !important; }
+  }

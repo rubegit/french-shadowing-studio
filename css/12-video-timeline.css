@@ -1,0 +1,123 @@
+
+/* ==================== THANH TIMELINE DƯỚI VIDEO ==================== */
+.tl { display: flex; align-items: center; gap: 12px; flex: 1 0 100%; width: 100%; padding: 0 2px; margin-bottom: -2px; user-select: none; -webkit-user-select: none; }
+.tl-time { flex: none; min-width: 36px; font: 600 11.5px/1 "Plus Jakarta Sans", system-ui, sans-serif; font-variant-numeric: tabular-nums; letter-spacing: .01em; color: #6f7fa3; }
+.tl-time.cur { text-align: right; color: #c3cde3; }
+.tl-track { position: relative; flex: 1; min-width: 0; height: 26px; cursor: pointer; touch-action: none; -webkit-tap-highlight-color: transparent; outline: none; }
+.tl-rail { position: absolute; left: 0; right: 0; top: 50%; height: 2px; margin-top: -1px; border-radius: 99px; background: rgba(148, 163, 184, .17); overflow: hidden; transition: height .14s ease, margin-top .14s ease; }
+.tl-track:hover .tl-rail, .tl-track.drag .tl-rail { height: 3px; margin-top: -1.5px; }
+.tl-buf, .tl-hov, .tl-fill { position: absolute; inset: 0; transform-origin: 0 50%; transform: scaleX(0); will-change: transform; }
+.tl-buf { background: rgba(148, 163, 184, .2); }
+.tl-hov { background: rgba(226, 232, 240, .16); opacity: 0; transition: opacity .12s; }
+.tl-track.hot .tl-hov { opacity: 1; }
+.tl-fill { background: #b3303d; }
+.tl-thumb { position: absolute; top: 50%; left: 0; width: 13px; height: 13px; margin: -6.5px 0 0 -6.5px; border-radius: 50%; background: #f5f7fc; box-shadow: 0 0 0 3px rgba(179, 48, 61, .38), 0 2px 6px rgba(0, 0, 0, .55); transform: scale(0); transition: transform .14s ease; pointer-events: none; will-change: left; }
+.tl-track:hover .tl-thumb, .tl-track.drag .tl-thumb { transform: scale(1); }
+.tl-track.drag .tl-thumb { transform: scale(1.18); }
+.tl-tip { position: absolute; bottom: calc(100% - 3px); left: 0; z-index: 5; padding: 5px 8px; border-radius: 8px; background: rgba(7, 11, 22, .97); border: 1px solid #1f2e57; box-shadow: 0 8px 22px rgba(0, 0, 0, .5); color: #e8edf9; font: 700 11.5px/1 "Plus Jakarta Sans", system-ui, sans-serif; font-variant-numeric: tabular-nums; white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity .12s; will-change: transform; }
+.tl-track.hot .tl-tip { opacity: 1; }
+@media (hover: none) and (pointer: coarse) {
+  .tl-track { height: 34px; }
+  .tl-thumb { transform: scale(.85); }
+  .tl-rail { height: 2.5px; margin-top: -1.25px; }
+  .tl-tip { bottom: calc(100% - 8px); }
+}
+body.text-mode #tl, body.text-mode #vid-info { display: none !important; }
+@media (max-width: 1023px) and (min-height: 501px), (orientation: portrait) and (max-width: 1100px) {
+  /* Dòng nút dính dưới video phải nằm trên video 1 chút để mốc thời gian (tooltip) không bị video che */
+  body:not(.text-mode) #panel-left > div:nth-of-type(2) > div:first-child { z-index: 16; }
+  body:not(.text-mode) #panel-left > #vid-info { order: 8; margin-top: 8px; padding: 12px 16px; }
+}
+
+/* ==================== NÚT CC (phụ đề trên video) ==================== */
+.cc-wrap { position: relative; display: inline-flex; flex: none; }
+.cc-btn { position: relative; display: inline-flex; align-items: center; justify-content: center; height: var(--rate-h, 41px); min-width: var(--rate-h, 41px); padding: 0 12px; border-radius: 11px; background: #060b18; border: 1px solid #1e293b; color: #6f7fa3; font: 800 12.5px/1 "Plus Jakarta Sans", system-ui, sans-serif; letter-spacing: .06em; cursor: pointer; transition: border-color .15s, color .15s, background .15s; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.cc-btn:hover { border-color: #334155; color: #e2e8f0; }
+.cc-btn.on { color: #e2e8f0; }
+.cc-btn.on::after { content: ""; position: absolute; left: 50%; bottom: calc(var(--rate-h, 41px) * .2); width: 14px; height: 2px; margin-left: -7px; border-radius: 2px; background: #e0606b; }
+.cc-btn[aria-expanded="true"] { border-color: #3b82f6; color: #fff; box-shadow: 0 0 0 2px rgba(59, 130, 246, .22); }
+.cc-pop { position: fixed; z-index: 300; width: 268px; max-width: calc(100vw - 16px); padding: 8px; border-radius: 14px; background: #0b1328; border: 1px solid #1f2e57; box-shadow: 0 20px 56px rgba(0, 0, 0, .6); display: flex; flex-direction: column; gap: 2px; animation: pvPop .14s ease both; }
+.cc-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; width: 100%; padding: 9px 10px; border: 0; border-radius: 9px; background: transparent; color: #d7deef; font: 600 13.5px/1.2 "Plus Jakarta Sans", system-ui, sans-serif; text-align: left; cursor: pointer; transition: background .12s; -webkit-tap-highlight-color: transparent; }
+button.cc-row:hover:not(:disabled) { background: #131f42; }
+button.cc-row:disabled { cursor: default; opacity: .5; }
+.cc-lbl small { display: block; margin-top: 3px; font-size: 11px; font-weight: 500; color: #6f7fa3; }
+.cc-lbl small:empty { display: none; }
+.cc-sw { position: relative; flex: none; width: 34px; height: 20px; border-radius: 99px; background: #1e293b; transition: background .16s; }
+.cc-sw::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #8d9cc0; transition: transform .16s, background .16s; }
+.cc-row[aria-checked="true"] .cc-sw { background: #b3303d; }
+.cc-row[aria-checked="true"] .cc-sw::after { transform: translateX(14px); background: #fff; }
+.cc-sep { height: 1px; margin: 4px 8px; background: #17234a; }
+.cc-size { cursor: default; }
+.cc-step { display: inline-flex; align-items: center; background: #0f172a; border: 1px solid #334155; border-radius: 9px; padding: 2px; }
+.cc-step button { min-width: 36px; padding: 5px 8px; border: 0; border-radius: 7px; background: transparent; color: #cbd5e1; font: 700 13px/1 "Plus Jakarta Sans", system-ui, sans-serif; cursor: pointer; transition: background .12s, color .12s; touch-action: manipulation; }
+.cc-step button:hover { background: #1e293b; color: #fff; }
+.cc-step output { min-width: 34px; text-align: center; color: #e2e8f0; font: 700 12.5px/1 "Plus Jakarta Sans", system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+.cc-hint { display: block; width: 100%; padding: 4px 10px 6px; border: 0; background: transparent; text-align: left; font: 500 11.5px/1.3 "Plus Jakarta Sans", system-ui, sans-serif; color: #6f7fa3; cursor: default; }
+.cc-hint.act { color: #7cb0ff; font-weight: 600; cursor: pointer; }
+.cc-hint.act:hover { color: #a9ccff; text-decoration: underline; }
+@media (max-width: 480px) {
+  #panel-left .tp-play { width: 60px; }
+  .cc-btn { min-width: 0; padding: 0 9px; }
+}
+
+/* ==================== MÀU Ô TỐC ĐỘ + NÚT CC: xanh navy dịu, cùng tông với các nút bên cạnh (không còn đen xì) ==================== */
+.rate-ctl.big, .cc-btn { background: linear-gradient(180deg, #19244a 0%, #131c3b 100%); border-color: #2a3a66; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .04); }
+.rate-ctl.big:hover, .cc-btn:hover { border-color: #3a4d82; }
+.rate-ctl.big .rate-step { color: #93a5cc; }
+.rate-ctl.big .rate-step:hover { background: #24356a; color: #fff; }
+.rate-ctl.big .rate-input-wrap { color: #93a5cc; }
+.rate-ctl.big #rate-input { color: #e8eefc; }
+.rate-ctl.big .rate-input-x { color: #a9b8d6; }
+.cc-btn { color: #a9b8d6; }
+.cc-btn.on { color: #eef3ff; }
+/* Điện thoại (dọc + ngang) và máy tính bảng quay dọc: ẩn hẳn nút CC. Máy tính bảng quay ngang + máy tính vẫn hiện. (class cc-off do JS trong vp-script gắn) */
+html.cc-off .cc-wrap, html.cc-off .cc-pop { display: none !important; }
+
+/* ==================== THÔNG TIN VIDEO (tiêu đề + kênh + lượt xem) ==================== */
+.vid-info { display: flex; align-items: center; min-width: 0; padding: 14px 22px; border-radius: 14px; background: #091024; border: 1px solid #1e293b; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, .3); }
+.vid-info.empty { display: none; }
+.vi-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+/* Thông tin phụ khi đang luyện: chữ xám xanh dịu, không tranh sự chú ý với video và phụ đề */
+.vi-title { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; font: 600 14px/1.35 "Plus Jakarta Sans", system-ui, sans-serif; letter-spacing: -.003em; color: #566383; }
+.vi-meta { display: flex; align-items: center; gap: 7px; min-width: 0; font: 500 12px/1.3 "Plus Jakarta Sans", system-ui, sans-serif; color: #444f6e; white-space: nowrap; }
+.vi-meta:empty { display: none; }
+.vi-meta .vi-ch { min-width: 0; overflow: hidden; text-overflow: ellipsis; color: #4d5a7a; font-weight: 600; }
+.vi-meta .vi-views { flex: none; }
+.vi-meta .vi-dot { flex: none; width: 3px; height: 3px; border-radius: 50%; background: #333f5e; font-size: 0; }
+/* Dòng "lượt xem · người học" của trang: nền trong suốt, nhỏ gọn dưới thẻ thông tin */
+#panel-left > #video-stats-footer { background: transparent; padding: 0 8px; order: 1; margin-top: 8px; }
+#panel-left > #vid-info { order: 2; }
+/* Cột video không bao giờ cuộn ngang trên máy tính */
+@media (min-width: 1024px) { #panel-left { overflow-x: hidden; } }
+
+/* ==================== NÚT "PHIÊN ÂM IPA" Ở SHADOWING: sáng màu xanh lá (đồng bộ với màu chữ IPA) ==================== */
+#sh-ipa.on { background: rgba(34, 197, 94, .16); border-color: rgba(74, 222, 128, .55); color: #4ade80; }
+#sh-ipa.on:hover { border-color: rgba(74, 222, 128, .85); color: #86efac; }
+
+/* ==================== CHÉP CHÍNH TẢ: CHỌN ĐOẠN TRÊN DẢI SÓNG ĐỂ LOOP (kiểu Final Cut Pro, màu xanh lá) ==================== */
+.dc-mid { position: relative; }
+.dc-wave { touch-action: none !important; user-select: none; -webkit-user-select: none; }
+.dc-sel { position: absolute; top: -3px; left: 0; width: 0; height: 42px; box-sizing: border-box; display: none; pointer-events: none; z-index: 2;
+  border: 2px solid #22c55e; border-radius: 7px; background: rgba(34, 197, 94, .22); box-shadow: 0 0 0 1px rgba(0, 0, 0, .35), 0 0 12px rgba(34, 197, 94, .35); }
+.dc-sel.on { display: block; }
+.dc-sel.looping { background: rgba(34, 197, 94, .32); animation: dcSelPulse 1.6s ease-in-out infinite; }
+@keyframes dcSelPulse { 0%, 100% { box-shadow: 0 0 0 1px rgba(0,0,0,.35), 0 0 8px rgba(34,197,94,.35); } 50% { box-shadow: 0 0 0 1px rgba(0,0,0,.35), 0 0 18px rgba(34,197,94,.8); } }
+.dc-sel .dc-h { position: absolute; top: -2px; bottom: -2px; width: 7px; background: #22c55e; }
+.dc-sel .dc-h.l { left: -2px; border-radius: 7px 0 0 7px; }
+.dc-sel .dc-h.r { right: -2px; border-radius: 0 7px 7px 0; }
+.dc-sel .dc-h::after { content: ""; position: absolute; left: 50%; top: 50%; width: 2px; height: 12px; margin: -6px 0 0 -1px; border-radius: 2px; background: rgba(6, 40, 20, .75); }
+/* In / Out: đoạn chỉ có điểm In thì kéo dài tới cuối timeline, chỉ có điểm Out thì bắt đầu từ đầu timeline */
+.dc-sel.no-in { border-left-color: transparent; border-top-left-radius: 0; border-bottom-left-radius: 0; }
+.dc-sel.no-in .dc-h.l { display: none; }
+.dc-sel.no-out { border-right-color: transparent; border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.dc-sel.no-out .dc-h.r { display: none; }
+.dc-loop-pop { position: fixed; z-index: 10001; display: none; transform: translate(-50%, -100%); margin-top: -6px; }
+.dc-loop-pop.on { display: block; }
+.dc-loop-pop button { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font: 700 13px/1.2 "Plus Jakarta Sans", system-ui, sans-serif; color: #fff; white-space: nowrap; cursor: pointer;
+  background: linear-gradient(135deg, #059669, #0d9488); border: 1px solid rgba(110, 231, 183, .5); border-radius: 9999px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .5), 0 0 15px rgba(16, 185, 129, .5); transition: transform .15s ease, box-shadow .15s ease; }
+.dc-loop-pop button:hover { transform: scale(1.05); box-shadow: 0 10px 28px rgba(0, 0, 0, .6), 0 0 20px rgba(20, 184, 166, .7); }
+.dc-loop-pop button svg { width: 16px; height: 16px; }
+.dc-loop-pop.stop button { background: linear-gradient(135deg, #15803d, #22c55e); border-color: rgba(134, 239, 172, .6); box-shadow: 0 8px 24px rgba(0, 0, 0, .5), 0 0 15px rgba(34, 197, 94, .5); }
+.dc-loop-pop::after { content: ""; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 6px solid transparent; border-top-color: #0d9488; }
+.dc-loop-pop.stop::after { border-top-color: #22c55e; }

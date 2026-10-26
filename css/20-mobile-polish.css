@@ -1,0 +1,206 @@
+
+/* ===== Desktop: ô tốc độ + các nút kề nó (▼ 1.0x ▲ ↺) căn sang phải trong giao diện Shadowing ===== */
+@media (min-width: 561px) {
+  #sh-list .sh-progrow .rate-ctl { margin-left: auto; }
+}
+
+/* ===== iPad mini / tablet dọc (700px trở lên): "Thời gian" + tốc độ luôn nằm 1 hàng, các ô co nhỏ lại khi thiếu chỗ ===== */
+@media (min-width: 700px) {
+  #sh-list .sh-progrow { flex-wrap: nowrap; gap: 10px; }
+  #sh-list .sh-progrow .ts-ctl { flex: 0 1 auto; min-width: 0; gap: 4px; }
+  #sh-list .sh-progrow .rate-ctl { flex: none; gap: 4px; }
+  #sh-list .sh-progrow .ts-in { flex: 0 1 auto; min-width: 54px; }
+  #sh-list .sh-progrow .ts-step,
+  #sh-list .sh-progrow .rate-step { flex: none; }
+}
+@media (min-width: 700px) and (max-width: 1100px) and (hover: none) and (pointer: coarse) {
+  #sh-list .sh-progrow .ts-step,
+  #sh-list .sh-progrow .rate-step { width: 34px; height: 34px; }
+  #sh-list .sh-progrow .ts-in { width: 80px; padding: 4px 2px; }
+  #sh-list .sh-progrow .sh-rate { padding: 3px 9px 3px 8px; }
+  #sh-list .sh-progrow .sh-rate input { width: 42px; }
+}
+
+/* ===== Điện thoại dọc: gọn, thẳng hàng, không cắt số ===== */
+@media (max-width: 560px) {
+  /* --- SHADOWING ---
+     Câu đang mở là 1 hàng flex-wrap (.sh-head và .sh-progrow dùng display:contents để các phần tử con xếp chung 1 lưới):
+       hàng 1: [số] [Play đỏ] [▼ tốc độ ▲] ........ [X]
+       tiếp theo: chữ câu / bản dịch / thời gian / thanh loop / thu âm / điều hướng */
+  #sh-list .sh-row.active { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 12px 8px; }
+  #sh-list .sh-row.active > .sh-head,
+  #sh-list .sh-row.active > .sh-progrow { display: contents; }
+  #sh-list .sh-row.active .sh-num.on { order: 1; align-self: center; }
+  #sh-list .sh-row.active #sh-play { order: 2; }
+  #sh-list .sh-row.active .sh-progrow > .rate-ctl { order: 3; flex: 0 1 auto; min-width: 0; margin: 0 0 0 4px; gap: 4px; }
+  #sh-list .sh-row.active .sh-collapse { order: 4; margin-left: auto; }
+  #sh-list .sh-row.active .sh-head .sh-text { order: 5; flex: 1 1 100%; }
+  #sh-list .sh-row.active > .sh-vi { order: 6; flex: 1 1 100%; }
+  #sh-list .sh-row.active .sh-progrow > .ts-ctl { order: 7; }
+  #sh-list .sh-row.active > .sh-loopbar { order: 8; flex: 1 1 100%; }
+  #sh-list .sh-row.active > #sh-recbox { order: 9; flex: 1 1 100%; min-width: 0; }
+  #sh-list .sh-row.active > .sh-nav { order: 10; flex: 1 1 100%; }
+
+  /* Tốc độ: nhỏ gọn cạnh nút Play (bỏ icon đồng hồ + nút reset vì đã có nút 1.0x ở thanh chọn nhanh bên dưới) */
+  #sh-list .sh-progrow .rate-step { width: 34px; height: 34px; }
+  #sh-list .sh-progrow .sh-rate { height: 34px; box-sizing: border-box; justify-content: center; padding: 0 8px; border-radius: 10px; }
+  #sh-list .sh-progrow .sh-rate svg { display: none; }
+  #sh-list .sh-progrow .sh-rate input { width: 42px; font-size: 16px; padding: 0; }
+  #sh-list .sh-progrow .rate-ctl .ts-reset { display: none; }
+
+  /* Thời gian: chữ "Thời gian:" 1 hàng riêng, bên dưới là 1 hàng duy nhất [⏪ giờ ⏩] – [⏪ giờ ⏩] [↺], các nút nhỏ */
+  #sh-list .sh-progrow .ts-ctl { flex: 1 1 100%; display: grid; grid-template-columns: 30px minmax(0, 1fr) 30px 8px 30px minmax(0, 1fr) 30px 30px; gap: 4px; align-items: center; width: 100%; max-width: 100%; }
+  #sh-list .sh-progrow .ts-lbl { grid-column: 1 / -1; margin: 0 0 -2px; }
+  #sh-list .sh-progrow .ts-sep { display: block; text-align: center; }
+  #sh-list .sh-progrow .ts-ctl .ts-step { width: 30px; height: 34px; margin: 0; border-radius: 8px; }
+  #sh-list .sh-progrow .ts-ctl .ts-step svg { width: 13px; height: 13px; }
+  #sh-list .sh-progrow .ts-ctl .ts-reset { grid-column: auto; grid-row: auto; margin: 0; }
+  #sh-list .sh-progrow .ts-in { width: 100%; min-width: 0; height: 34px; padding: 0; font-size: 16px; letter-spacing: -.02em; }
+  /* Chọn nhanh tốc độ: thanh phân đoạn full-width, 4 nút bằng nhau */
+  #sh-list .sh-speeds { flex: 1 1 100%; margin-left: 0; }
+  #sh-list .sh-speeds button { flex: 1 1 0; }
+
+  /* --- CHÉP CHÍNH TẢ --- */
+  #pv-dictation .dc-top .dc-nav { flex: 1 1 100%; }
+  #pv-dictation .dc-count { flex: 1 1 auto; justify-content: center; font-size: 18px; }
+  /* Thời gian: 1 hàng, ô nhập co giãn đều thay vì cố định 62px (bị cắt số lẻ) */
+  #pv-dictation #dc-ts { flex: 1 1 100%; justify-content: space-between; gap: 4px; }
+  #pv-dictation #dc-ts .ts-step { width: 30px; height: 36px; }
+  #pv-dictation #dc-ts .ts-in { flex: 1 1 0; width: auto; min-width: 0; max-width: 92px; height: 36px; padding: 0 2px; font-size: 16px; }
+  #pv-dictation #dc-ts .ts-sep { flex: none; }
+  /* Công cụ: Nghe thuần / Có gợi ý chiếm cả hàng; tốc độ + chọn nhanh cùng 1 hàng khi đủ chỗ */
+  #pv-dictation .dc-toolrow { width: 100%; }
+  #pv-dictation .dc-tl { display: flex; flex-wrap: wrap; gap: 8px; width: 100%; }
+  #pv-dictation #dc-level { flex: 1 1 100%; }
+  #pv-dictation #dc-level button { flex: 1 1 0; }
+  #pv-dictation .dc-tl .rate-ctl { flex: 0 0 auto; }
+  #pv-dictation .dc-tl .sh-rate svg { display: none; }
+  #pv-dictation #dc-rate-reset { display: none; }           /* đã có nút 1.0x ở bên cạnh */
+  #pv-dictation #dc-speeds { flex: 1 1 176px; }
+  #pv-dictation #dc-speeds button { flex: 1 1 0; padding-left: 4px; padding-right: 4px; }
+  /* Nút hành động: 3 nút trên chia đều 1 hàng, nút Kiểm tra xuống hàng riêng to nhất */
+  #pv-dictation #dc-type .dc-actions { display: flex; flex-wrap: wrap; gap: 8px; width: 100%; margin-left: 0; }
+  #pv-dictation #dc-type .dc-actions .dc-btn { flex: 1 1 0; min-height: 42px; padding: 8px 6px; font-size: 13px; }
+  #pv-dictation #dc-type .dc-actions #dc-check { flex: 1 1 100% !important; width: 100% !important; min-height: 46px; margin-top: 2px; font-size: 14.5px; }
+}
+@media (max-width: 560px) {
+  /* Thanh chọn nhanh tốc độ: nằm TRÊN nút thu âm; sửa lỗi ô highlight/chữ bị lệch xuống (do min-height 38px của màn cảm ứng tràn khỏi khung 38px) */
+  #sh-list .sh-recrow > .sh-speeds { order: -1; }
+  #sh-list .sh-speeds { height: auto; padding: 3px; align-items: center; }
+  #sh-list .sh-speeds button { min-height: 0; height: 34px; padding: 0 4px; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
+  /* Số thời gian + tốc độ cạnh nút Play: ít quan trọng nên mờ hơn và chữ nhỏ hơn (chạm vào ô để gõ thì tự to 16px để iOS không phóng to trang) */
+  #sh-list .sh-progrow .ts-in { font-size: 13px; color: #7d8db0; letter-spacing: 0; }
+  #sh-list .sh-progrow .ts-in.mod { color: #b79a4e; }
+  #sh-list .sh-progrow .sh-rate input { font-size: 13px; color: #7d8db0; }
+  #sh-list .sh-progrow .sh-rate span { font-size: 13px; color: #5b6c95; }
+  #sh-list .sh-progrow .ts-in:focus, #sh-list .sh-progrow .sh-rate input:focus { font-size: 16px; color: #e2e8f0; }
+}
+@media (max-width: 560px) {
+  /* Ô tốc độ cạnh nút Play: số căn giữa ô, chữ "x" đặt riêng bên phải (trước đây số bị dồn về bên phải) */
+  #sh-list .sh-progrow .sh-rate { position: relative; padding: 0; width: 64px; }
+  #sh-list .sh-progrow .sh-rate input { width: 100%; height: 100%; text-align: center; padding: 0 10px 0 0; }
+  #sh-list .sh-progrow .sh-rate span { position: absolute; right: 9px; top: 50%; transform: translateY(-50%); pointer-events: none; line-height: 1; }
+}
+@media (max-width: 560px) {
+  /* --- CHÉP CHÍNH TẢ: "Thời gian" + tốc độ giống giao diện Shadowing (nhỏ gọn, 1 hàng, số mờ) --- */
+  #pv-dictation #dc-ts { flex: 1 1 100%; display: grid; grid-template-columns: 30px minmax(0, 1fr) 30px 8px 30px minmax(0, 1fr) 30px 30px; gap: 4px; align-items: center; width: 100%; max-width: 100%; }
+  #pv-dictation #dc-ts .ts-lbl { display: block; grid-column: 1 / -1; margin: 0 0 -2px; }
+  #pv-dictation #dc-ts .ts-sep { display: block; text-align: center; }
+  #pv-dictation #dc-ts .ts-step { width: 30px; height: 34px; margin: 0; border-radius: 8px; }
+  #pv-dictation #dc-ts .ts-step svg { width: 13px; height: 13px; }
+  #pv-dictation #dc-ts .ts-reset { margin: 0; }
+  #pv-dictation #dc-ts .ts-in { flex: none; width: 100%; max-width: none; min-width: 0; height: 34px; padding: 0; font-size: 13px; color: #7d8db0; letter-spacing: 0; }
+  #pv-dictation #dc-ts .ts-in.mod { color: #b79a4e; }
+  #pv-dictation #dc-ts .ts-in:focus { font-size: 16px; color: #e2e8f0; }
+
+  #pv-dictation .dc-tl .rate-ctl { gap: 4px; }
+  #pv-dictation .dc-tl .rate-step { width: 34px; height: 34px; }
+  #pv-dictation .dc-tl .sh-rate { position: relative; width: 64px; height: 34px; box-sizing: border-box; padding: 0; justify-content: center; border-radius: 10px; }
+  #pv-dictation .dc-tl .sh-rate input { width: 100%; height: 100%; padding: 0 10px 0 0; text-align: center; font-size: 13px; color: #7d8db0; }
+  #pv-dictation .dc-tl .sh-rate input:focus { font-size: 16px; color: #e2e8f0; }
+  #pv-dictation .dc-tl .sh-rate span { position: absolute; right: 9px; top: 50%; transform: translateY(-50%); pointer-events: none; line-height: 1; font-size: 13px; color: #5b6c95; }
+}
+/* Công tắc Có gợi ý: ẩn trên máy tính / iPad */
+.dc-hintsw { display: none; }
+@media (max-width: 560px) {
+  /* --- Điện thoại: mọi thứ thuộc "Thời gian" xuống dưới cùng giao diện --- */
+  /* Shadowing: sau cụm Câu trước / Câu sau */
+  #sh-list .sh-row.active .sh-progrow > .ts-ctl { order: 11; margin-top: 2px; }
+
+  /* Chép chính tả: dc-top và dc-body "mở" ra để các khối xếp chung trong .dc-wrap rồi sắp lại thứ tự */
+  #pv-dictation .dc-top { display: contents; }
+  #pv-dictation #dc-body:not(.pv-x) { display: contents !important; }
+  #pv-dictation .dc-top > .dc-nav { order: 1; }
+  #pv-dictation #dc-body > .dc-toolrow { order: 2; }
+  #pv-dictation #dc-body > #dc-player { order: 3; }
+  #pv-dictation #dc-body > #dc-type { order: 4; }
+  #pv-dictation #dc-body > #dc-result { order: 5; }
+  #pv-dictation #dc-summary { order: 6; }
+  #pv-dictation #dc-ts { order: 20; margin: 4px 0 0; }
+  #pv-dictation .dc-hintsw { order: 21; }
+
+  /* Bỏ 2 nút Nghe thuần / Có gợi ý, thay bằng công tắc ở dưới cùng */
+  #pv-dictation #dc-level { display: none; }
+  #pv-dictation .dc-hintsw { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; border-radius: 12px; background: #0a1124; border: 1px solid #17224a; }
+  #pv-dictation #dc-body.pv-x ~ .dc-hintsw { display: none; }
+  .dc-hintsw-lbl { font-size: 13.5px; font-weight: 700; color: #b6c4e0; }
+  .dc-switch { position: relative; flex: none; width: 46px; height: 28px; padding: 0; border-radius: 999px; border: 1px solid #28407a; background: #0d1630; cursor: pointer; transition: background .18s, border-color .18s; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+  .dc-switch i { position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #7d8db0; transition: transform .18s, background .18s; }
+  .dc-switch.on { background: #2563eb; border-color: #2563eb; }
+  .dc-switch.on i { transform: translateX(18px); background: #fff; }
+}
+@media (max-width: 560px) {
+  /* --- Hàng nút chọn nhanh tốc độ (0.25x → 1.0x) xuống dưới cùng, ngay trên hàng "Thời gian" --- */
+  /* Shadowing: thứ tự ... thu âm → Câu trước/sau → tốc độ → thời gian */
+  #sh-list .sh-row.active > #sh-recbox,
+  #sh-list .sh-row.active #sh-recbox > .sh-recrow { display: contents; }
+  #sh-list .sh-row.active .sh-recbtn { order: 9; }
+  #sh-list .sh-row.active .sh-speeds { order: 11; flex: 1 1 100%; margin: 0; }
+  #sh-list .sh-row.active .sh-progrow > .ts-ctl { order: 12; }
+
+  /* Chép chính tả: ▼ 1.0x ▲ ở trên, thanh 0.25x–1.0x xuống ngay trên "Thời gian" */
+  #pv-dictation .dc-toolrow,
+  #pv-dictation .dc-tl { display: contents; }
+  #pv-dictation .dc-tl > .rate-ctl { order: 2; align-self: flex-start; }
+  #pv-dictation #dc-speeds { order: 19; flex: none; width: 100%; }
+  #pv-dictation #dc-ts { order: 20; margin: 0; }
+}
+/* Bàn phím (điện thoại / iPad): khoảng trống thêm ở cuối trang bằng đúng chiều cao bàn phím, để vẫn cuộn tới nút Kiểm tra khi giao diện không co lại */
+@media (max-width: 1023px), (hover: none) and (pointer: coarse) {
+  #pv-dictation .dc-wrap { padding-bottom: calc(70px + var(--kb, 0px)); }
+  .sh-wrap { padding-bottom: calc(100px + var(--kb, 0px)); }
+}
+@media (max-width: 560px) {
+  /* Nút tốc độ ▼ 1.0x ▲ xuống chung 1 hàng với thanh 0.25x → 1.0x (ngay trên "Thời gian") */
+  /* Shadowing */
+  #sh-list .sh-row.active .sh-progrow > .rate-ctl { order: 11; flex: none; margin: 0; }
+  #sh-list .sh-row.active .sh-speeds { order: 11; flex: 1 1 0; min-width: 0; }
+  #sh-list .sh-row.active .sh-speeds button { padding: 0 2px; }
+  /* Chép chính tả */
+  #pv-dictation .dc-tl { display: flex; flex-wrap: nowrap; align-items: center; gap: 8px; width: 100%; order: 19; }
+  #pv-dictation .dc-tl > .rate-ctl { order: 0; flex: none; align-self: center; }
+  #pv-dictation #dc-speeds { order: 0; flex: 1 1 0; min-width: 0; width: auto; }
+  #pv-dictation #dc-speeds button { padding-left: 2px; padding-right: 2px; }
+}
+@media (max-width: 380px) {
+  #pv-dictation #dc-speeds button { font-size: 11px; }
+  #sh-list .sh-row.active .sh-speeds button { font-size: 11px; }
+}
+@media (max-width: 560px) {
+  /* Shadowing: nút ▼ 1.0x ▲ trở lại hàng đầu, cạnh nút Play/Pause; thanh 0.25x–1.0x ở dưới, ngay trên "Thời gian" */
+  #sh-list .sh-row.active .sh-progrow > .rate-ctl { order: 3; flex: 0 1 auto; min-width: 0; margin: 0 0 0 4px; }
+  #sh-list .sh-row.active .sh-speeds { order: 11; flex: 1 1 100%; min-width: 0; }
+  #sh-list .sh-row.active .sh-speeds button { padding: 0 4px; }
+}
+/* Điện thoại / iPad dọc: dòng "lượt xem · người học" xuống sau thẻ phụ đề, ngay trên thẻ tên video */
+@media (max-width: 1023px) and (min-height: 501px), (orientation: portrait) and (max-width: 1100px) {
+  body:not(.text-mode) #panel-left > #video-stats-footer { order: 7; margin-top: 8px; }
+}
+@media (max-width: 360px) {
+  #sh-list .sh-row.active #sh-play { width: 44px; height: 44px; }
+  #sh-list .sh-progrow .rate-step { width: 30px; height: 30px; }
+  #sh-list .sh-progrow .sh-rate { height: 30px; padding: 0 6px; }
+  #sh-list .sh-progrow .sh-rate input { width: 38px; }
+  #sh-list .sh-row.active .sh-num.on { min-width: 28px; }
+  #sh-list .sh-row.active .sh-collapse { width: 34px; height: 34px; }
+}

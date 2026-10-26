@@ -1,0 +1,18 @@
+
+/* Bật IPA: tô sáng (rê chuột / karaoke / từ vựng đã lưu) và bôi đen chỉ áp dụng cho chữ tiếng Pháp, không lan xuống dòng IPA.
+   Khoảng trắng giữa các từ là khối cao đúng 1 dòng chữ nên vạch bôi đen giữa 2 từ cũng không kéo dài xuống IPA. */
+.ipa-sp { display: inline-block; vertical-align: top; width: .27em; height: 1lh; overflow: hidden; white-space: pre; }
+.cs-w[data-ipa], .sh-w[data-ipa] { position: relative; isolation: isolate; }
+.cs-w[data-ipa]::before, .sh-w[data-ipa]::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1lh; border-radius: 6px; background: transparent; z-index: -1; pointer-events: none; transition: background .08s; }
+.cs-w[data-ipa]:hover, .cs-w[data-ipa].cs-cur, .sh-w[data-ipa]:hover, .sh-w[data-ipa].cur,
+.sh-w[data-ipa].vs-w, .sh-w[data-ipa].vs-w:hover, .sh-w[data-ipa].vs-w.cur { background: none; background-color: transparent; box-shadow: none; }
+.cs-w[data-ipa]:hover::before { background: rgba(148, 163, 184, .18); }
+.cs-w[data-ipa].cs-cur::before { background: rgba(96, 165, 250, .30); }
+.sh-w[data-ipa]:hover::before { background: rgba(148, 163, 184, .14); }
+.sh-w[data-ipa].cur::before { background: rgba(96, 165, 250, .28); }
+.sh-w[data-ipa].vs-w::before { background: var(--vs-bg); border-radius: 0; }
+.sh-w[data-ipa].vs-w.vs-first::before { border-top-left-radius: .3em; border-bottom-left-radius: .3em; }
+.sh-w[data-ipa].vs-w.vs-last::before { border-top-right-radius: .3em; border-bottom-right-radius: .3em; }
+.sh-w[data-ipa].vs-w.vs-cont::before { right: -.3em; }
+.sh-w[data-ipa].vs-w:hover::before { background: rgba(148, 163, 184, .3); }
+.sh-w[data-ipa].vs-w.cur::before { background: #2f5f9e; }

@@ -1,0 +1,99 @@
+
+    /* =====================================================================
+       PLAYLIST + TRANG RIÊNG CỦA TỪNG THỂ LOẠI
+       - Thẻ playlist cùng kích thước/nhịp 3.5 thẻ/hàng với thẻ video.
+       - Nhận diện: viền xanh dương, dải số video bên phải ảnh bìa, 2 lớp thẻ xếp chồng phía sau.
+       - Rê chuột / focus: glow XANH DƯƠNG (cùng màu với thẻ video), nút "Mở playlist" xanh dương.
+       ===================================================================== */
+    .row-title-link { cursor: pointer; display: inline-flex; align-items: center; gap: .4rem; border-radius: .4rem; transition: color .18s; }
+    h4.row-title-link:hover, h4.row-title-link:focus-visible { color: #bfdbfe; }
+    .row-title-link .rt-arrow { display: inline-flex; opacity: 0; transform: translateX(-4px); transition: opacity .18s, transform .18s; color: #93c5fd; flex: none; }
+    .row-title-link:hover .rt-arrow, .row-title-link:focus-visible .rt-arrow { opacity: 1; transform: none; }
+    @media (hover: none) { .row-title-link .rt-arrow { opacity: .7; transform: none; } }
+    .row-more-btn svg { display: block; }
+    .row-head-txt { display: flex; align-items: center; gap: .75rem; min-width: 0; }
+    .row-head-txt > span { white-space: nowrap; flex: none; }
+    .row-title-toggle { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    .row-title-toggle .rt-chev { display: inline-flex; flex: none; color: #93c5fd; opacity: .8; transition: transform .22s ease, opacity .18s; }
+    .row-title-toggle:hover .rt-chev, .row-title-toggle:focus-visible .rt-chev { opacity: 1; }
+    .netflix-row-wrapper.is-expanded .row-title-toggle .rt-chev { transform: rotate(180deg); }
+
+    .pl-chip, .cat-chip { padding: .125rem .625rem; border-radius: 9999px; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: .75rem; font-weight: 600; white-space: nowrap; }
+    .pl-chip { background: rgba(30,58,138,.45); border: 1px solid rgba(96,165,250,.45); color: #bfdbfe; }
+    .cat-chip { background: rgba(30,41,59,.9); border: 1px solid #334155; color: #cbd5e1; }
+
+    .pl-deck { position: relative; flex: 0 0 calc((100% - 3.75rem) / 3.5); min-width: 220px; max-width: 460px; display: flex; }
+    @media (max-width: 640px) { .pl-deck { flex: 0 0 calc((100% - 1.25rem) / 1.3); } }
+    .pl-deck::before, .pl-deck::after { content: ""; position: absolute; left: 14px; right: 14px; bottom: -7px; height: 40%; border-radius: 0 0 1rem 1rem; background: #0a1233; border: 1px solid rgba(30,64,175,.4); z-index: 0; transition: transform .22s ease, opacity .22s ease, border-color .22s ease; }
+    .pl-deck::after { left: 28px; right: 28px; bottom: -14px; background: #070d24; border-color: rgba(30,64,175,.25); }
+    .pl-deck:hover::before { transform: translateY(2px); border-color: rgba(59,130,246,.45); }
+    .pl-deck:hover::after { transform: translateY(4px); border-color: rgba(59,130,246,.3); }
+    .pl-deck.is-empty::before, .pl-deck.is-empty::after { display: none; }
+
+    .yt-card.pl-card { flex: 1 1 auto; z-index: 1; min-width: 0; max-width: none; background: linear-gradient(180deg, #0a1432 0%, #080f24 60%); }
+    .yt-card.pl-card:hover { border-color: rgba(59,130,246,.75); background: linear-gradient(180deg, #0c1a4a 0%, #0a1233 70%); box-shadow: 0 8px 24px -2px rgba(37,99,235,.45), 0 0 14px rgba(59,130,246,.35); }
+    .yt-card.pl-card:focus-visible { outline: 2px solid #60a5fa; outline-offset: 3px; border-radius: 1rem; }
+
+    .pl-thumb { background: linear-gradient(135deg, #172554, #0b1330); }
+    .pl-thumb > img { position: absolute; inset: 0; }
+    .pl-side { position: absolute; top: 0; right: 0; bottom: 0; width: 34%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; background: linear-gradient(180deg, rgba(14,26,66,.80), rgba(8,13,34,.92)); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-left: 1px solid rgba(147,197,253,.28); color: #bfdbfe; }
+    .pl-side svg { margin-bottom: 4px; color: #57ACFF; }
+    .pl-count { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 1.55rem; font-weight: 700; line-height: 1; color: #fff; letter-spacing: -.03em; }
+    .pl-count-unit { font-size: .7rem; font-weight: 600; color: #57ACFF; }
+    .pl-hover { position: absolute; top: 0; bottom: 0; left: 0; right: 34%; display: flex; align-items: center; justify-content: center; background: rgba(6,10,28,.5); opacity: 0; transition: opacity .2s ease; }
+    .pl-card:hover .pl-hover, .pl-card:focus-visible .pl-hover { opacity: 1; }
+    .pl-open { display: inline-flex; align-items: center; gap: 6px; padding: 6px 13px 6px 10px; border-radius: 9999px; background: #2563eb; color: #fff; font-size: .78rem; font-weight: 700; box-shadow: 0 4px 14px rgba(37,99,235,.6); transform: scale(.94); transition: transform .2s ease; }
+    .pl-card:hover .pl-open, .pl-card:focus-visible .pl-open { transform: none; }
+    @media (hover: none) { .pl-hover { display: none; } }
+    .pl-avatar { border: 0 !important; background: none !important; box-shadow: none !important; overflow: visible !important; }
+    .pl-avatar svg { width: 36px; height: 36px; filter: drop-shadow(0 2px 5px rgba(0,0,0,.45)); }
+    .pl-kind { display: flex; align-items: center; gap: .35rem; font-size: .775rem; font-weight: 700; color: #57ACFF; }
+    .pl-dur { display: flex; align-items: center; gap: .35rem; font-size: .75rem; color: #94a3b8; }
+
+    .yt-card.pl-card.is-empty { cursor: default; border-style: dashed; border-color: rgba(30,64,175,.4); background: #080f24; opacity: .82; }
+    .yt-card.pl-card.is-empty:hover { transform: none; box-shadow: none; background: #080f24; border-color: rgba(30,64,175,.4); }
+    .pl-card.is-empty .pl-thumb { background: repeating-linear-gradient(135deg, rgba(59,130,246,.07) 0 10px, transparent 10px 20px), #0a1030; border-style: dashed; border-color: rgba(96,165,250,.25); box-shadow: none; }
+    .pl-empty-msg { position: absolute; top: 0; bottom: 0; left: 0; right: 34%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; color: #57ACFF; font-size: .8rem; font-weight: 700; padding: 0 8px; }
+    .pl-empty-msg small { font-size: .7rem; font-weight: 500; color: #64748b; }
+    .pl-card.is-empty .pl-side { background: rgba(8,11,32,.6); backdrop-filter: none; -webkit-backdrop-filter: none; }
+    .pl-card.is-empty .pl-count { color: #64748b; }
+
+    /* ---- Trang riêng của thể loại: nằm ngay trong khung THƯ VIỆN VIDEO, thay cho danh sách hàng ---- */
+    #library-cat-page { display: none; }
+    .lib-wrap.cat-open #library-cat-page { display: block; margin-top: 0 !important; }
+    .lib-wrap.cat-open .lib-head,
+    .lib-wrap.cat-open .search-container,
+    .lib-wrap.cat-open #netflix-categories-container { display: none !important; }
+
+    .lib-page-top { display: flex; align-items: center; margin-bottom: .35rem; }
+    .lib-back-btn { display: inline-flex; align-items: center; gap: 4px; padding: 6px 14px 6px 10px; border-radius: 9999px; font-size: 12.5px; font-weight: 700; letter-spacing: .01em; color: #94a3b8; background: rgba(15,23,42,.6); border: 1px solid rgba(71,85,105,.55); transition: color .18s, border-color .18s, background-color .18s; white-space: nowrap; cursor: pointer; }
+    .lib-back-btn:hover { color: #bfdbfe; border-color: rgba(59,130,246,.7); background: rgba(30,64,175,.22); }
+    .lib-back-btn svg { margin-right: 2px; }
+
+    .cat-hero { display: flex; flex-direction: column; align-items: center; gap: .9rem; text-align: center; padding: .25rem 0 .75rem; }
+    .cat-hero-main { display: flex; align-items: center; justify-content: center; gap: 1.1rem; max-width: 46rem; }
+    .cat-hero-ico { width: 56px; height: 56px; }
+    .cat-hero-main h1 { min-width: 0; max-width: 100%; margin: 0; }
+    .cat-title { overflow-wrap: anywhere; word-break: break-word; font-size: 1.45rem; font-weight: 800; line-height: 1.28; letter-spacing: .03em; background: linear-gradient(180deg, #fff 35%, #b9d0f5 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
+    @media (min-width: 640px) { .cat-title { font-size: 1.75rem; } }
+    .cat-stats { display: flex; flex-wrap: wrap; justify-content: center; gap: .5rem; }
+    @media (max-width: 560px) { .cat-hero-main { flex-direction: column; gap: .7rem; } }
+    .hero-rule { height: 1px; margin: .5rem 0 1.25rem; background: linear-gradient(90deg, transparent, rgba(59,130,246,.35), transparent); }
+
+    .lib-cat-rows { display: flex; flex-direction: column; gap: 1.9rem; }
+    .lib-cat-rows .netflix-row-wrapper { scroll-margin-top: 1.25rem; margin: 0; }
+    .lib-cat-rows .netflix-row-wrapper.flat .netflix-scroll-row { padding-top: .25rem; }
+
+    /* Mở từ thẻ playlist ở trang chủ: vòng sáng xanh dương chạy 1 lần quanh playlist được chọn */
+    .lib-cat-rows .netflix-row-wrapper.is-focus::before { content: ""; position: absolute; inset: -12px -14px; border-radius: 1.2rem; border: 1px solid rgba(96,165,250,.65); box-shadow: 0 0 0 4px rgba(59,130,246,.12), 0 0 34px rgba(59,130,246,.3); pointer-events: none; animation: plFocus 2.6s ease forwards; }
+    #library-cat-page .netflix-row-wrapper.is-expanded .yt-card, #library-cat-page .netflix-row-wrapper.is-expanded .article-card { animation: none; }   /* trang riêng: thẻ hiện luôn, không trượt */
+    @keyframes plFocus { 0% { opacity: 0; } 12% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; } }
+    .lib-cat-rows .netflix-row-wrapper.is-focus .cat-row-ico { animation: icoPop .7s ease .15s both; }
+    @keyframes icoPop { 0% { transform: scale(1); } 40% { transform: scale(1.18); } 100% { transform: scale(1); } }
+
+    .empty-row { display: flex; align-items: center; gap: .9rem; margin: .25rem .35rem .5rem; padding: 1.1rem 1.25rem; border: 1px dashed rgba(129,140,248,.35); border-radius: 1rem; background: repeating-linear-gradient(135deg, rgba(99,102,241,.06) 0 10px, transparent 10px 20px); color: #a5b4fc; }
+    .empty-row b { display: block; font-size: .85rem; color: #c7d2fe; }
+    .empty-row span { display: block; font-size: .78rem; color: #64748b; margin-top: 1px; }
+    .empty-row svg { flex: none; }
+    @media (prefers-reduced-motion: reduce) { .lib-cat-rows .netflix-row-wrapper.is-focus::before, .lib-cat-rows .netflix-row-wrapper.is-focus .cat-row-ico { animation: none; } }
+  

@@ -1,0 +1,44 @@
+
+  /* Luồng nhập video tiếng Pháp luôn hiện trên desktop và thiết bị cảm ứng; extension vẫn là đường nhập captions tự động. */
+  .oy-wrap { margin: 0 auto 22px; width: 100%; max-width: 560px; }
+  .oy-wrap[hidden], .oy-panel[hidden], .oy-ok[hidden], .oy-err[hidden] { display: none !important; }
+  .oy-toggle { display: flex; width: 100%; justify-content: center; padding: 12px 16px 12px 11px; font-size: 15px; line-height: 1.3; text-align: left; min-height: 52px; -webkit-tap-highlight-color: transparent; }
+  .oy-toggle .ext-guide-label { flex: 0 1 auto; }
+  /* Nút tĩnh: bỏ nhấp nháy, glow và mọi hiệu ứng hover/chuyển động của .ext-guide-btn */
+  .oy-toggle, .oy-toggle:hover, .oy-toggle:focus-visible, .oy-toggle:active { animation: none !important; box-shadow: none !important; transform: none !important; filter: none !important; transition: none !important; }
+  .oy-toggle .ext-guide-ico, .oy-toggle:hover .ext-guide-ico { transform: none !important; transition: none !important; }
+  .oy-toggle .ext-guide-label { text-align: center; text-wrap: balance; }
+  .oy-l { display: inline-block; }   /* chỉ được xuống dòng giữa 2 cụm, không bao giờ tách lẻ 1 chữ */
+  .oy-chev { transition: none !important; }
+  .oy-toggle[aria-expanded="true"] .oy-chev { transform: rotate(180deg); }
+  .oy-toggle:hover .ext-guide-arrow { transform: none; }
+  .oy-toggle[aria-expanded="true"]:hover .oy-chev { transform: rotate(180deg); }
+  .oy-panel { margin-top: 12px; padding: 14px; border-radius: 16px; background: rgba(30,41,99,.32); border: 1px solid rgba(96,165,250,.22); display: flex; flex-direction: column; gap: 16px; text-align: left; }
+  .oy-step { display: flex; flex-direction: column; gap: 9px; }
+  .oy-step-head { display: flex; align-items: center; gap: 10px; }
+  .oy-n { width: 24px; height: 24px; border-radius: 999px; flex: none; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; color: #fff; background: linear-gradient(135deg, #f43f5e, #7c3aed); }
+  .oy-step-title { color: #fff; font-weight: 700; font-size: 15px; }
+  .oy-row { display: flex; gap: 8px; }
+  .oy-input { flex: 1 1 auto; min-width: 0; height: 48px; padding: 0 14px; border-radius: 12px; font-size: 16px; /* >=16px để iOS không tự phóng to */ color: #fff; background: #070b14; border: 1px solid rgba(96,165,250,.3); outline: none; font-family: inherit; }
+  .oy-input::placeholder { color: #64748b; }
+  .oy-input:focus { border-color: #60a5fa; box-shadow: 0 0 0 3px rgba(96,165,250,.2); }
+  .oy-mini { flex: none; height: 48px; padding: 0 16px; border-radius: 12px; font-weight: 700; font-size: 14px; color: #bfdbfe; background: rgba(37,99,235,.18); border: 1px solid rgba(96,165,250,.3); cursor: pointer; }
+  .oy-mini:active { background: rgba(37,99,235,.35); }
+  .oy-fb { font-size: 13px; min-height: 0; color: #94a3b8; }
+  .oy-fb:empty { display: none; }
+  .oy-fb .ok { color: #34d399; } .oy-fb .bad { color: #f87171; }
+  .oy-file-hidden { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+  .oy-pick { display: flex; align-items: center; justify-content: center; gap: 9px; width: 100%; min-height: 52px; padding: 10px 14px; border-radius: 12px; font-weight: 700; font-size: 15px; color: #fff; cursor: pointer; background: #070b14; border: 1.5px dashed rgba(96,165,250,.55); -webkit-tap-highlight-color: transparent; }
+  .oy-pick svg { width: 20px; height: 20px; flex: none; }
+  .oy-pick:active { background: #0b1634; }
+  .oy-ok { padding: 9px 12px; border-radius: 10px; font-size: 13.5px; line-height: 1.45; color: #6ee7b7; background: rgba(16,185,129,.12); border: 1px solid rgba(52,211,153,.3); word-break: break-word; }
+  .oy-err { padding: 9px 12px; border-radius: 10px; font-size: 13.5px; line-height: 1.45; color: #fca5a5; background: rgba(239,68,68,.12); border: 1px solid rgba(248,113,113,.3); word-break: break-word; }
+  .oy-dl { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 11px 12px; border-radius: 12px; font-size: 14px; line-height: 1.35; text-align: center; color: #bfdbfe !important; text-decoration: none !important; background: rgba(37,99,235,.14); border: 1px solid rgba(96,165,250,.3); -webkit-tap-highlight-color: transparent; }
+  .oy-dl svg { width: 18px; height: 18px; flex: none; }
+  .oy-dl b { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
+  .oy-dl:active { background: rgba(37,99,235,.3); }
+  .oy-hint { font-size: 12.5px; line-height: 1.5; color: #94a3b8; }
+  .oy-start { display: flex; align-items: center; justify-content: center; gap: 9px; width: 100%; min-height: 54px; border-radius: 14px; font-size: 16px; font-weight: 800; color: #fff; cursor: pointer; border: 1px solid rgba(255,255,255,.22); background: linear-gradient(110deg, #e11d48, #f43f5e 30%, #7c3aed 65%, #2563eb); box-shadow: 0 6px 22px rgba(244,63,94,.35), inset 0 1px 0 rgba(255,255,255,.35); -webkit-tap-highlight-color: transparent; }
+  .oy-start svg { width: 18px; height: 18px; }
+  .oy-start:active:not(:disabled) { transform: scale(.98); }
+  .oy-start:disabled { opacity: .4; cursor: not-allowed; box-shadow: none; filter: grayscale(.4); }
