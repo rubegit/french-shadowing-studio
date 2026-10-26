@@ -228,9 +228,16 @@
   },
   {
    "kind": "extract",
-   "replacement": "<script src=\"js/01-main.js?v=57d93eae\"></script>",
+   "replacement": "<script src=\"js/01-core.js?v=986deb71\"></script>\n<script src=\"js/01b-catalog.js?v=b64e6cd7\"></script>\n<script src=\"js/01c-subtitles.js?v=93e57ff1\"></script>\n<script src=\"js/01d-player.js?v=1af8f3e6\"></script>\n<script src=\"js/01e-translate-ai.js?v=e73081b1\"></script>\n<script src=\"js/01f-lookup.js?v=ddf9abe2\"></script>\n<script src=\"js/01g-vocab-list.js?v=18c49bbb\"></script>\n<script src=\"js/01h-ebook.js?v=7f53c681\"></script>",
    "files": [
-    "js/01-main.js"
+    "js/01-core.js",
+    "js/01b-catalog.js",
+    "js/01c-subtitles.js",
+    "js/01d-player.js",
+    "js/01e-translate-ai.js",
+    "js/01f-lookup.js",
+    "js/01g-vocab-list.js",
+    "js/01h-ebook.js"
    ],
    "pieces": [
     {
