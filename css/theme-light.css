@@ -2309,18 +2309,24 @@ html[data-ui="light"] #pv-shadowing .sh-wrap {
   }
 
   html[data-ui="light"] #split-container {
-    grid-template-columns: 1fr !important;
-    gap: 16px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0 !important;
     height: auto !important;
   }
 
-  html[data-ui="light"] #panel-left,
+  html[data-ui="light"] #panel-left {
+    display: contents !important;
+  }
+
+  html[data-ui="light"] #pv-ctl {
+    background: var(--fs-surface) !important;
+    border-color: var(--fs-line) !important;
+  }
+
   html[data-ui="light"] #panel-right {
     height: auto !important;
     overflow: visible !important;
-  }
-
-  html[data-ui="light"] #panel-right {
     min-height: 480px !important;
   }
 
@@ -4317,7 +4323,7 @@ html[data-ui="light"] body.text-mode #panel-left > #pv-ctl,
 html[data-ui="light"] body.text-mode #panel-left > #cs-card,
 html[data-ui="light"] body.text-mode #panel-left > #vid-info,
 html[data-ui="light"] body.text-mode #panel-left > #video-stats-footer,
-html[data-ui="light"] body.text-mode #panel-left > div:not(#article-side-panel) {
+html[data-ui="light"] body.text-mode #panel-left > :not(#article-side-panel) {
   display: none !important;
 }
 

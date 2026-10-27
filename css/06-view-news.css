@@ -73,7 +73,7 @@
       #screen-practice header::-webkit-scrollbar { display: none; }
       #screen-practice header > div { flex-wrap: nowrap; row-gap: 0; }
       #screen-practice header > div:last-child { justify-content: flex-start; }
-      #panel-left > div:nth-of-type(2), #panel-left > div:nth-of-type(3) { zoom: 1; }
+      #panel-left > #pv-ctl, #panel-left > #vid-info { zoom: 1; }
       #subtitles-scroll-container { padding: 10px 12px calc(70px + env(safe-area-inset-bottom, 16px)) !important; }
     }
 
@@ -84,8 +84,7 @@
         display: flex; flex-direction: column; gap: 0; overflow-y: auto; overflow-x: hidden;
         padding-bottom: env(safe-area-inset-bottom, 0px);
       }
-      body:not(.text-mode) #panel-left,
-      body:not(.text-mode) #panel-left > div:nth-of-type(2) { display: contents; }
+      body:not(.text-mode) #panel-left { display: contents; }
       body:not(.text-mode) #panel-left > * { flex-shrink: 0; }
       /* Iframe YouTube dễ bị hiện đen trên Android khi nằm trong khối có transform 3D / overflow+bo góc / sticky */
       #screen-practice, #panel-left, #yt-player-container {
@@ -95,16 +94,13 @@
       body:not(.text-mode) #video-frame-wrapper { overflow: visible; }
       #video-frame-wrapper iframe { border-radius: 14px; background: #000; }
 
-      body:not(.text-mode) #cs-card {
-        order: 0; margin: 0 0 8px 0; flex-shrink: 0;
-      }
       body:not(.text-mode) #video-frame-wrapper {
         order: 1; position: sticky; top: 0; z-index: 15;
         width: calc(var(--vid-h) * 1.7778); max-width: 100%; margin: 0 auto; height: var(--vid-h);
         aspect-ratio: auto; border-radius: 14px;
       }
-      /* Hàng nút Phát / Dừng / ±5s: dính ngay dưới video, luôn bấm được khi cuộn */
-      body:not(.text-mode) #panel-left > div:nth-of-type(2) > div:first-child {
+      /* Hàng nút điều khiển: dính ngay dưới video, luôn bấm được khi cuộn */
+      body:not(.text-mode) #pv-ctl {
         order: 2; position: sticky; top: var(--vid-h); z-index: 14; flex-shrink: 0;
         background: #070b14; padding: 8px 0 8px; margin: 0; justify-content: center;
       }
@@ -114,14 +110,12 @@
         order: 3; flex: 0 0 auto; width: 100% !important; height: calc(var(--sub-avail, max(180px, calc(100dvh - var(--vid-h) - 150px))) + var(--sub-search-h, 76px) + 3px);
         min-height: 0;
       }
-      /* Tự dừng cuối câu + Tốc độ phát, Ghi âm, ... nằm dưới phụ đề (vuốt xuống để dùng) */
-      body:not(.text-mode) #panel-left > div:nth-of-type(2) > div:nth-child(2) {
-        order: 4; margin-top: 12px; padding: 14px; background: #091024; border: 1px solid #1e293b; border-radius: 16px;
-        grid-template-columns: minmax(0, 1fr); gap: 14px;
+      /* Thẻ câu hiện tại + Thông tin video nằm dưới phụ đề (vuốt xuống để dùng) */
+      body:not(.text-mode) #cs-card {
+        order: 4; margin: 12px 0 0 0; flex-shrink: 0;
       }
-      body:not(.text-mode) #panel-left > div:nth-of-type(3) { order: 5; margin-top: 12px; }
-      body:not(.text-mode) #panel-left > div:nth-of-type(4) { order: 6; margin-top: 12px; }
-      body:not(.text-mode) #video-stats-footer { order: 7; margin-top: 8px; }
+      body:not(.text-mode) #vid-info { order: 5; margin-top: 12px; }
+      body:not(.text-mode) #video-stats-footer { order: 6; margin-top: 8px; }
       body:not(.text-mode) .split-resizer { display: none; }
     }
 
@@ -132,8 +126,7 @@
       .split-layout-container { flex-direction: row; gap: 8px; }
       .split-panel-left { width: 48%; flex-shrink: 0; height: 100%; overflow-y: auto; }
       .split-panel-right { width: 52%; flex-shrink: 0; height: 100%; min-height: 0; }
-      #panel-left > div:nth-of-type(2) { padding: 10px; }
-      #panel-left > div:nth-of-type(2) > div:first-child { padding-bottom: 0; }
+      #panel-left > #pv-ctl { padding: 10px; }
       #subtitles-scroll-container { padding: 10px; }
       body.text-mode .split-panel-left { display: none !important; }
       body.text-mode .split-panel-right { width: 100% !important; }

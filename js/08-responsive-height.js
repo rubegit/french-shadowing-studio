@@ -14,7 +14,7 @@
     if (!mq.matches || document.body.classList.contains('text-mode') || !sc.clientHeight) { clear(); return; }
     const a = document.activeElement;
     if (a && a.id === 'sub-search-input') return;   // đang gõ tìm kiếm (bàn phím ảo làm đổi chiều cao màn hình): giữ nguyên bố cục
-    const ctl = document.querySelector('#panel-left > div:nth-of-type(2) > div:first-child');
+    const ctl = document.getElementById('pv-ctl');
     let ctlH = 56;
     if (ctl && ctl.offsetHeight) {
       const ctlStyle = window.getComputedStyle(ctl);
@@ -45,7 +45,7 @@
     if (bar) ro.observe(bar);
     const cs = document.getElementById('cs-card');
     if (cs) ro.observe(cs);
-    const ctl = document.querySelector('#panel-left > div:nth-of-type(2) > div:first-child');
+    const ctl = document.getElementById('pv-ctl');
     if (ctl) ro.observe(ctl);
   }
   new MutationObserver(schedule).observe(document.body, { attributes: true, attributeFilter: ['class'] });
