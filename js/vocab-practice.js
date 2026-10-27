@@ -1235,12 +1235,20 @@
       updateItemSrs(q.item?.id, 'again');
     }
 
+    // Tự động phát âm từ tiếng Pháp đúng khi người dùng chọn đáp án
+    const wordToPronounce = q.frenchWord || q.targetWordInCtx;
+    if (wordToPronounce) {
+      setTimeout(() => {
+        speakFrench(wordToPronounce);
+      }, 120);
+    }
+
     updateStatsBar();
 
     setTimeout(() => {
       state.currentIndex++;
       renderQuizQuestion();
-    }, 1150);
+    }, 1650);
   }
 
   // ==================== CLOZE MODE ENGINE (M2 + M4) ====================
