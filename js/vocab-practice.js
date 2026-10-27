@@ -128,8 +128,8 @@
   // Global Hub State
   const state = {
     isOpen: false,
-    currentMode: 'quiz', // 'quiz' | 'cloze' | 'match'
-    m3SubMode: 'match',  // 'match' | 'flashcard'
+    currentMode: 'quiz', // 'quiz' | 'cloze' | 'match' | 'flashcard'
+    m3SubMode: 'match',  // 'match' | 'flashcard' (giữ tương thích)
     scope: 'all',
     level: 'all',        // CEFR level filter: 'all' | 'A1' | 'A2' | 'A2+' | 'B1' | 'B2' | 'C1' | 'C2'
     onlyDue: false,      // SRS filter: only due items
@@ -628,7 +628,11 @@
               <span class="vph-tab-label-short">🎧 Điền từ</span>
             </button>
             <button type="button" class="vph-tab-btn" data-mode="match">
-              <span class="vph-tab-label-full">🃏 Ghép thẻ &amp; Flashcard</span>
+              <span class="vph-tab-label-full">🃏 Ghép thẻ nhanh</span>
+              <span class="vph-tab-label-short">🃏 Ghép thẻ</span>
+            </button>
+            <button type="button" class="vph-tab-btn" data-mode="flashcard">
+              <span class="vph-tab-label-full">🎴 Flashcard 3D (SRS)</span>
               <span class="vph-tab-label-short">🎴 Flashcard</span>
             </button>
           </div>
@@ -781,7 +785,7 @@
         const currentQ = state.questions[state.currentIndex];
         if (currentQ) speakFrench(currentQ.sentence);
       }
-    } else if (state.currentMode === 'match' && state.m3SubMode === 'flashcard') {
+    } else if (state.currentMode === 'flashcard' || (state.currentMode === 'match' && state.m3SubMode === 'flashcard')) {
       if (e.key === ' ' && document.activeElement?.tagName !== 'INPUT') {
         e.preventDefault();
         toggleFlashcardFlip();
@@ -958,11 +962,9 @@
       updateStatsBar();
       renderClozeQuestion();
     } else if (state.currentMode === 'match') {
-      if (state.m3SubMode === 'match') {
-        startMatchGame(items);
-      } else {
-        startFlashcards(items);
-      }
+      startMatchGame(items);
+    } else if (state.currentMode === 'flashcard') {
+      startFlashcards(items);
     }
   }
 
@@ -1528,11 +1530,6 @@
     if (!body) return;
 
     body.innerHTML = `
-      <div class="vph-subnav-bar">
-        <button type="button" class="vph-subnav-btn active" id="vph-sub-match">🧩 Ghép thẻ nhanh</button>
-        <button type="button" class="vph-subnav-btn" id="vph-sub-fc">🎴 Flashcard 3D (SRS)</button>
-      </div>
-
       <div class="vph-match-container">
         <div class="vph-match-meta">
           <span>Chạm vào cặp tương ứng <b>(Pháp ↔ Việt)</b> để ghép</span>
@@ -1548,16 +1545,6 @@
         </div>
       </div>
     `;
-
-    document.getElementById('vph-sub-match')?.addEventListener('click', () => {
-      state.m3SubMode = 'match';
-      startMatchGame(getScopedVocabList(state.scope, state.onlyDue));
-    });
-
-    document.getElementById('vph-sub-fc')?.addEventListener('click', () => {
-      state.m3SubMode = 'flashcard';
-      startFlashcards(getScopedVocabList(state.scope, state.onlyDue));
-    });
 
     document.querySelectorAll('.vph-match-card').forEach(cardEl => {
       cardEl.addEventListener('click', () => handleMatchCardClick(cardEl));
@@ -1693,14 +1680,14 @@
     });
 
     document.getElementById('vph-match-fc-btn')?.addEventListener('click', () => {
-      state.m3SubMode = 'flashcard';
-      startFlashcards(getScopedVocabList(state.scope, state.onlyDue));
+      switchMode('flashcard');
     });
   }
 
   // ==================== 3D FLASHCARD ENGINE (M3 + M4) ====================
   function startFlashcards(scopedItems) {
     stopMatchTimer();
+    state.currentMode = 'flashcard';
     state.m3SubMode = 'flashcard';
     const sourceList = scopedItems.length > 0 ? scopedItems : CURATED_FALLBACK_VOCAB;
     state.questions = [...sourceList].sort((a, b) => (getSrs(a).due - getSrs(b).due) || (Math.random() - 0.5));
@@ -1739,11 +1726,6 @@
     }
 
     body.innerHTML = `
-      <div class="vph-subnav-bar">
-        <button type="button" class="vph-subnav-btn" id="vph-sub-match">🧩 Ghép thẻ nhanh</button>
-        <button type="button" class="vph-subnav-btn active" id="vph-sub-fc">🎴 Flashcard 3D (SRS)</button>
-      </div>
-
       <div class="vph-flashcard-container">
         <div style="font-size:12px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.04em">
           ${qNum} · Chạm vào thẻ hoặc ấn Space để lật
@@ -1815,16 +1797,6 @@
         </div>
       </div>
     `;
-
-    document.getElementById('vph-sub-match')?.addEventListener('click', () => {
-      state.m3SubMode = 'match';
-      startMatchGame(getScopedVocabList(state.scope, state.onlyDue));
-    });
-
-    document.getElementById('vph-sub-fc')?.addEventListener('click', () => {
-      state.m3SubMode = 'flashcard';
-      startFlashcards(getScopedVocabList(state.scope, state.onlyDue));
-    });
 
     document.getElementById('vph-fc-wrapper')?.addEventListener('click', (e) => {
       if (e.target.closest('#vph-fc-audio-btn, #vph-fc-video-audio-btn')) return;
@@ -1915,7 +1887,8 @@
 
     let modeName = 'Trắc nghiệm phản xạ';
     if (state.currentMode === 'cloze') modeName = 'Luyện Nghe & Điền từ';
-    else if (state.currentMode === 'match') modeName = state.m3SubMode === 'match' ? 'Ghép thẻ nhanh' : 'Flashcard 3D (SRS)';
+    else if (state.currentMode === 'match') modeName = 'Ghép thẻ nhanh';
+    else if (state.currentMode === 'flashcard') modeName = 'Flashcard 3D (SRS)';
 
     body.innerHTML = `
       <div class="vph-done-card">
@@ -1956,13 +1929,22 @@
   }
 
   // Public API
-  function openVocabPracticeHub(scope, level) {
+  function openVocabPracticeHub(scope, level, initialMode) {
     const backdrop = ensureModalElement();
     state.isOpen = true;
     state.scope = scope || 'all';
     if (level) state.level = level;
+    if (initialMode && ['quiz', 'cloze', 'match', 'flashcard'].includes(initialMode)) {
+      state.currentMode = initialMode;
+    }
     updateScopeOptions();
     backdrop.classList.add('open');
+
+    // Cập nhật trạng thái active cho tab hiện tại
+    document.querySelectorAll('.vph-tab-btn').forEach(b => {
+      b.classList.toggle('active', b.getAttribute('data-mode') === state.currentMode);
+    });
+
     startSession();
   }
 

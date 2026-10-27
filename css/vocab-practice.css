@@ -1263,7 +1263,12 @@
   margin-bottom: 4px;
 }
 
-/* ---------- Responsive / Mobile Tweaks (iPhone & Small Viewports) ---------- */
+/* ---------- Responsive / Tablet & Mobile Tweaks ---------- */
+@media (max-width: 900px) and (min-width: 641px) {
+  .vph-tab-label-full { display: none !important; }
+  .vph-tab-label-short { display: inline !important; }
+}
+
 @media (max-width: 640px) {
   .vph-backdrop {
     padding: 0;
