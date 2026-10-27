@@ -105,15 +105,17 @@
         background: #070b14; padding: 8px 0 8px; margin: 0; justify-content: center;
       }
 
+      /* Thẻ câu hiện tại: hiển thị ngay trên ô transcript */
+      body:not(.text-mode) #cs-card {
+        order: 3; margin: 8px 0; flex-shrink: 0;
+      }
+
       body:not(.text-mode) #panel-right {
         /* Phần phụ đề vừa khít phần màn hình còn lại (--sub-avail do JS đo ở cuối file); ô tìm kiếm cộng thêm bên dưới nên nằm ngoài màn hình, cuộn xuống mới thấy */
-        order: 3; flex: 0 0 auto; width: 100% !important; height: calc(var(--sub-avail, max(180px, calc(100dvh - var(--vid-h) - 150px))) + var(--sub-search-h, 76px) + 3px);
+        order: 4; flex: 0 0 auto; width: 100% !important; height: calc(var(--sub-avail, max(180px, calc(100dvh - var(--vid-h) - 150px))) + var(--sub-search-h, 76px) + 3px);
         min-height: 0;
       }
-      /* Thẻ câu hiện tại + Thông tin video nằm dưới phụ đề (vuốt xuống để dùng) */
-      body:not(.text-mode) #cs-card {
-        order: 4; margin: 12px 0 0 0; flex-shrink: 0;
-      }
+      /* Thông tin video nằm dưới phụ đề (vuốt xuống để dùng) */
       body:not(.text-mode) #vid-info { order: 5; margin-top: 12px; }
       body:not(.text-mode) #video-stats-footer { order: 6; margin-top: 8px; }
       body:not(.text-mode) .split-resizer { display: none; }
