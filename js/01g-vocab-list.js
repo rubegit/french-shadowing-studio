@@ -673,12 +673,78 @@
       }
       // (c) Video thuộc thư viện có sẵn -> nạp phụ đề từ thư viện
       pendingSeekTime = Math.max(0, (x.t || 0) - 0.3);
-      const ok = await selectCategoryVideo(x.videoId, x.videoTitle);
-      if (ok) return;
-      // (d) Không còn phụ đề -> đành mở YouTube
-      pendingSeekTime = null;
-      showVocabToast('App không còn phụ đề của video này nên mở tạm trên YouTube', false);
-      window.open(`https://www.youtube.com/watch?v=${encodeURIComponent(x.videoId)}&t=${Math.max(0, Math.floor((x.t || 0) - 2))}s`, '_blank');
+      try {
+        const ok = await selectCategoryVideo(x.videoId, x.videoTitle);
+        if (ok) return;
+      } catch (catErr) {
+        console.warn('Không tải được video từ thư viện:', catErr);
+      }
+
+      // (d) Video YouTube người dùng tự luyện (chưa/không còn lưu trọn bộ phụ đề trên máy):
+      // Tuyệt đối KHÔNG mở tab YouTube ngoài! Mở ngay trong player của app, dựng phụ đề từ các câu từ vựng đã lưu.
+      const allMatchingVocab = getVocab().filter((v) => v.videoId === x.videoId && v.en);
+      const mapByTime = new Map();
+      allMatchingVocab.forEach((v) => {
+        const tKey = Math.round((v.t || 0) * 2) / 2;
+        if (!mapByTime.has(tKey)) {
+          mapByTime.set(tKey, {
+            startTime: Math.max(0, (v.t || 0) - 0.5),
+            endTime: (v.t || 0) + 5,
+            text: v.en,
+            vi: v.vi || ''
+          });
+        } else {
+          const cur = mapByTime.get(tKey);
+          if (!cur.vi && v.vi) cur.vi = v.vi;
+        }
+      });
+      if (mapByTime.size === 0 && x.en) {
+        mapByTime.set(0, {
+          startTime: Math.max(0, (x.t || 0) - 0.5),
+          endTime: (x.t || 0) + 5,
+          text: x.en,
+          vi: x.vi || ''
+        });
+      }
+      const builtSentences = Array.from(mapByTime.values()).sort((a, b) => a.startTime - b.startTime);
+      for (let i = 0; i < builtSentences.length - 1; i++) {
+        if (builtSentences[i].endTime > builtSentences[i + 1].startTime) {
+          builtSentences[i].endTime = Math.max(builtSentences[i].startTime + 1, builtSentences[i + 1].startTime - 0.1);
+        }
+      }
+
+      currentVideoId = x.videoId;
+      currentVideoTitle = x.videoTitle || `Video ${x.videoId}`;
+      sentences = builtSentences;
+      subtitleFormat = 'srt';
+      if (inputUrl) inputUrl.value = `https://www.youtube.com/watch?v=${currentVideoId}`;
+      pendingSeekTime = Math.max(0, (x.t || 0) - 0.2);
+
+      saveToLocalHistory({
+        videoId: currentVideoId,
+        title: currentVideoTitle,
+        format: subtitleFormat,
+        sentences: sentences
+      });
+
+      document.getElementById('screen-vocab').classList.add('hidden');
+      document.getElementById('screen-input').classList.add('hidden');
+      document.getElementById('screen-practice').classList.remove('hidden');
+      if (window.pvReset) pvReset();
+
+      currentSentenceIndex = getSentenceIndexForTime(pendingSeekTime);
+      isTextMode = false;
+      document.body.classList.remove('text-mode');
+      resetPlaybackTrackingState();
+      initYouTubePlayer();
+      renderSubtitleList();
+      const scrollBox0 = document.getElementById('subtitles-scroll-container');
+      if (scrollBox0) scrollBox0.scrollTop = 0;
+      updateActiveSentenceDisplay();
+      if (window.lucide && window.lucide.createIcons) { window.lucide.createIcons(); }
+      ensurePageFocus();
+      trackAndShowVideoStats(currentVideoId);
+      showVocabToast(`Đang mở video trong app với phụ đề câu từ vựng · ${formatTime(x.t || 0)}`, true);
     }
 
 
@@ -757,7 +823,7 @@
       const yt = x.videoId ? `https://www.youtube.com/watch?v=${encodeURIComponent(x.videoId)}&t=${Math.max(0, Math.floor((x.t || 0) - 2))}s` : '';
       const src = x.bookId ? `<a href="#" title="Mở lại đúng câu này trong sách" onclick="openVocabVideo('${x.id}'); return false;">📖 ${escHtml(x.videoTitle || 'Sách')}</a>`
         : x.srcUrl ? `<a href="${escHtml(x.srcUrl)}" target="_blank" rel="noopener" title="Mở trang web gốc">🌐 ${escHtml(x.videoTitle || x.srcUrl)}</a>`
-        : x.videoId ? `<a href="${yt}" title="Mở lại đúng câu này trong Shadowing Studio" onclick="openVocabVideo('${x.id}'); return false;">▶ ${escHtml(x.videoTitle || x.videoId)} · ${formatTime(x.t || 0)}</a>` : '<span></span>';
+        : x.videoId ? `<a href="javascript:void(0)" title="Mở lại đúng câu này trong Shadowing Studio" onclick="openVocabVideo('${x.id}'); return false;">▶ ${escHtml(x.videoTitle || x.videoId)} · ${formatTime(x.t || 0)}</a>` : '<span></span>';
 
       let wordViBlock;
       if (vocabEditIds.has(x.id)) {
