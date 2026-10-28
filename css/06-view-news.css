@@ -130,8 +130,6 @@
       .split-panel-right { width: 52%; flex-shrink: 0; height: 100%; min-height: 0; }
       #panel-left > #pv-ctl { padding: 10px; }
       #subtitles-scroll-container { padding: 10px; }
-      body.text-mode .split-panel-left { display: none !important; }
-      body.text-mode .split-panel-right { width: 100% !important; }
     }
   
     /* ---- Sửa khoảng trống lớn: <body> có min-height:100vh (tính cả lúc thanh địa chỉ/thanh dưới của trình duyệt đang hiện)

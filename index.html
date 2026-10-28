@@ -28,7 +28,7 @@
       // Khởi tạo Theme giao diện mới (Spec 2026: Mint Pastel, mặc định bật data-ui="light")
       try {
         var uiMode = localStorage.getItem('fss_ui_mode');
-        if (uiMode !== 'legacy') {
+        if (uiMode !== 'legacy' && !/[?&]legacy=1/.test(location.search)) {
           document.documentElement.setAttribute('data-ui', 'light');
         }
         var savedTheme = localStorage.getItem('fss_ui_theme');
@@ -541,55 +541,61 @@
             </div>
             <div class="fr-news-grid">
               <a href="https://francaisfacile.rfi.fr/" target="_blank" rel="noopener" class="fr-news-item" title="Tin tức thời sự tiếng Pháp dễ hiểu, kèm audio đọc chậm">
-                <span class="fr-news-logo" style="background:#e11d48;color:#fff;">RFI</span>
+                <span class="fr-news-logo" style="background:#C0392B;color:#fff;">RFI</span>
                 <div class="fr-news-meta">
                   <div class="fr-news-name">RFI Français Facile</div>
                   <div class="fr-news-desc">Tiếng Pháp dễ hiểu & Audio</div>
+                  <span class="fr-news-link">Mở trang gốc ↗</span>
                 </div>
                 <svg class="fr-news-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
               </a>
 
               <a href="https://www.lemonde.fr/" target="_blank" rel="noopener" class="fr-news-item" title="Nhật báo thời sự, chính trị và văn hóa số 1 nước Pháp">
-                <span class="fr-news-logo" style="background:#1e293b;color:#facc15;border:1px solid #475569;">LM</span>
+                <span class="fr-news-logo" style="background:#1A1A1A;color:#fff;">LM</span>
                 <div class="fr-news-meta">
                   <div class="fr-news-name">Le Monde</div>
                   <div class="fr-news-desc">Nhật báo số 1 nước Pháp</div>
+                  <span class="fr-news-link">Mở trang gốc ↗</span>
                 </div>
                 <svg class="fr-news-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
               </a>
 
               <a href="https://www.france24.com/fr/" target="_blank" rel="noopener" class="fr-news-item" title="Kênh tin tức truyền hình quốc tế tiếng Pháp 24/7">
-                <span class="fr-news-logo" style="background:#0284c7;color:#fff;">F24</span>
+                <span class="fr-news-logo" style="background:#1B75B8;color:#fff;">F24</span>
                 <div class="fr-news-meta">
                   <div class="fr-news-name">France 24</div>
                   <div class="fr-news-desc">Tin tức truyền hình quốc tế 24/7</div>
+                  <span class="fr-news-link">Mở trang gốc ↗</span>
                 </div>
                 <svg class="fr-news-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
               </a>
 
               <a href="https://www.lefigaro.fr/" target="_blank" rel="noopener" class="fr-news-item" title="Nhật báo lâu đời và có lượng độc giả lớn của Pháp">
-                <span class="fr-news-logo" style="background:#1e3a8a;color:#93c5fd;">FIG</span>
+                <span class="fr-news-logo" style="background:#1F3A66;color:#fff;">LF</span>
                 <div class="fr-news-meta">
                   <div class="fr-news-name">Le Figaro</div>
                   <div class="fr-news-desc">Báo chí chính luận lớn & lâu đời</div>
+                  <span class="fr-news-link">Mở trang gốc ↗</span>
                 </div>
                 <svg class="fr-news-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
               </a>
 
               <a href="https://apprendre.tv5monde.com/fr" target="_blank" rel="noopener" class="fr-news-item" title="Học tiếng Pháp qua phóng sự truyền hình theo cấp độ A1-B2">
-                <span class="fr-news-logo" style="background:#7c3aed;color:#fff;">TV5</span>
+                <span class="fr-news-logo" style="background:#6B3FA0;color:#fff;">TV5</span>
                 <div class="fr-news-meta">
                   <div class="fr-news-name">TV5Monde Apprendre</div>
                   <div class="fr-news-desc">Tin bài học tiếng Pháp A1–B2</div>
+                  <span class="fr-news-link">Mở trang gốc ↗</span>
                 </div>
                 <svg class="fr-news-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
               </a>
 
               <a href="https://www.courrierinternational.com/" target="_blank" rel="noopener" class="fr-news-item" title="Điểm tin và góc nhìn báo chí toàn cầu bằng tiếng Pháp">
-                <span class="fr-news-logo" style="background:#d97706;color:#fff;">CI</span>
+                <span class="fr-news-logo" style="background:#B4531A;color:#fff;">CI</span>
                 <div class="fr-news-meta">
                   <div class="fr-news-name">Courrier International</div>
                   <div class="fr-news-desc">Góc nhìn báo chí toàn cầu</div>
+                  <span class="fr-news-link">Mở trang gốc ↗</span>
                 </div>
                 <svg class="fr-news-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
               </a>
@@ -1388,9 +1394,6 @@
         
         <!-- NỬA TRÁI: VIDEO & BẢNG ĐIỀU KHIỂN ĐÃ ĐƯỢC MỞ RỘNG SPACING THÔNG THOÁNG -->
         <div id="panel-left" class="split-panel-left space-y-3.5 pr-0 lg:pr-1.5">
-          <!-- THẺ THÔNG TIN BÀI VIẾT (HIỂN THỊ KHI ĐỌC BÁO / VĂN BẢN - body.text-mode) -->
-          <aside id="article-side-panel" class="art-side-panel" style="display:none;"></aside>
-
           <div id="video-frame-wrapper" class="relative w-full aspect-video bg-black rounded-2xl overflow-hidden border border-slate-800 shadow-2xl shrink-0">
             <div id="yt-player-container" class="w-full h-full"></div>
             <div id="vid-fade" aria-hidden="true"></div>
@@ -1552,6 +1555,9 @@
           <div id="keyvocab-panel-container" class="keyvocab-panel-wrap" style="display:none"></div>
 
         </div>
+
+        <!-- THẺ THÔNG TIN BÀI VIẾT (HIỂN THỊ KHI ĐỌC BÁO / VĂN BẢN - body.text-mode) -->
+        <aside id="article-side-panel" class="art-side-panel" style="display:none;"></aside>
 
       </div>
     </div>

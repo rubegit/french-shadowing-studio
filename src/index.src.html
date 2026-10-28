@@ -28,7 +28,7 @@
       // Khởi tạo Theme giao diện mới (Spec 2026: Mint Pastel, mặc định bật data-ui="light")
       try {
         var uiMode = localStorage.getItem('fss_ui_mode');
-        if (uiMode !== 'legacy') {
+        if (uiMode !== 'legacy' && !/[?&]legacy=1/.test(location.search)) {
           document.documentElement.setAttribute('data-ui', 'light');
         }
         var savedTheme = localStorage.getItem('fss_ui_theme');
