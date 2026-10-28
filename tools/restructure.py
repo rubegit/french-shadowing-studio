@@ -45,12 +45,25 @@ def cmd_scan(_):
         print(f"{b['n']:>3}  {b['kind']:<7} {line_of(t, b['start']):>10} {b['body'].count(chr(10)) + 1:>9}  {ref:<34} {first}")
     print('\nrefs > 0: có chỗ khác nhắc tới id này (JS/CSS/HTML). Công cụ giữ id trên thẻ thay thế; KHÔNG gộp khối đó với khối khác.')
 
+def update_cache_busters(t):
+    def repl(m):
+        attr, path, old_v = m.group(1), m.group(2), m.group(3)
+        p = P(path)
+        if p.exists():
+            new_v = sha(p.read_text(encoding='utf-8'))[:8]
+            return f'{attr}="{path}?v={new_v}"'
+        return m.group(0)
+    return re.sub(r'(src|href)="((?:js|css)/[^"?]+)\?v=([^"]*)"', repl, t)
+
 def build():
-    t = SRC.read_text(encoding='utf-8'); man = json.loads(MAN.read_text(encoding='utf-8'))
+    src_text = update_cache_busters(SRC.read_text(encoding='utf-8'))
+    SRC.write_text(src_text, encoding='utf-8')
+    t = src_text; man = json.loads(MAN.read_text(encoding='utf-8'))
     for e in man['entries']:
         if e['kind'] == 'include' and e['replacement'] in t:
             p = P(e['file'])
             if p.exists(): t = t.replace(e['replacement'], p.read_text(encoding='utf-8'))
+    t = update_cache_busters(t)
     OUT.write_text(t, encoding='utf-8'); return t
 
 def cmd_extract(a):
