@@ -19,7 +19,7 @@
 
     // Token này có kết thúc một câu không? (xét viết tắt Mr./Dr., chữ cái đầu J., dấu ba chấm "..." không ngắt câu)
     function aicEndsSentence(tok, next) {
-      const t = String(tok).replace(/["'\u201d\u2019)\]*_]+$/, '');
+      const t = String(tok).replace(/["'\u201d\u2019\u00bb\u00ab)\]*_]+$/, '');
       if (!/[.?!\u2026]$/.test(t)) return false;
       if (/(\.\.|\u2026)$/.test(t)) return false;
       if (/[?!]$/.test(t)) return true;
@@ -765,13 +765,26 @@
         let cur = [];
         toks.forEach((t, k) => {
           cur.push(t);
-          if (aicEndsSentence(t, toks[k + 1])) { segs.push({ lang, text: cur.join(' ') }); cur = []; }
+          const next = toks[k + 1];
+          // Nếu từ tiếp theo là dấu đóng ngoặc/ngoặc kép hoặc dấu phẩy liên kết (» , ; :): không ngắt câu tại đây
+          if (next && /^[»"'”’)\]},;:]+$/.test(next)) return;
+          if (aicEndsSentence(t, next)) { segs.push({ lang, text: cur.join(' ') }); cur = []; }
         });
         if (cur.length) segs.push({ lang, text: cur.join(' ') });   // hết dòng / hết phần Anh mà chưa có dấu kết câu: vẫn là một đoạn
       };
       let prevPureEn = false;   // dòng ngay trước là dòng thuần tiếng Pháp (định dạng xen kẽ Anh / Việt)
       lines.forEach((line) => {
-        const toks = line.split(/\s+/);
+        let toks = line.split(/\s+/);
+        // Gộp các dấu đóng ngoặc/ngoặc kép đứng tách rời (vd: "mot ." + "»") vào từ đứng trước
+        const mergedToks = [];
+        toks.forEach((t) => {
+          if (mergedToks.length && /^[»"'”’)\]]+$/.test(t)) {
+            mergedToks[mergedToks.length - 1] += ' ' + t;
+          } else {
+            mergedToks.push(t);
+          }
+        });
+        toks = mergedToks;
         const n = toks.length;
         const f = toks.map((t) => { const nm = aicNorm(t); return { viU: AIC_VI_UNIQUE.test(t), has: !!nm, inV: vocab.has(nm) }; });
         const pre = [0];
@@ -845,11 +858,22 @@
       };
       const segs = [];
       lines.forEach((line) => {
-        const toks = line.split(/\s+/);
+        let toks = line.split(/\s+/);
+        const mergedToks = [];
+        toks.forEach((t) => {
+          if (mergedToks.length && /^[»"'”’)\]]+$/.test(t)) {
+            mergedToks[mergedToks.length - 1] += ' ' + t;
+          } else {
+            mergedToks.push(t);
+          }
+        });
+        toks = mergedToks;
         let cur = [];
         toks.forEach((t, k) => {
           cur.push(t);
-          if (aicEndsSentence(t, toks[k + 1])) { segs.push(classify(cur.join(' '))); cur = []; }
+          const next = toks[k + 1];
+          if (next && /^[»"'”’)\]},;:]+$/.test(next)) return;
+          if (aicEndsSentence(t, next)) { segs.push(classify(cur.join(' '))); cur = []; }
         });
         if (cur.length) segs.push(classify(cur.join(' ')));
       });
