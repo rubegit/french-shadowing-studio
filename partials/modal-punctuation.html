@@ -6,11 +6,11 @@
           <i data-lucide="x"></i>
         </button>
       </div>
-      <p class="ai-step-text">Copy prompt sau và gửi AI. AI sẽ thêm dấu câu và chia câu ngắn gọn (không dịch), sau đó paste kết quả của nó vào đây:</p>
+      <p class="ai-step-text">Bấm "Copy prompt" và gửi cho AI (ChatGPT/Claude...). AI sẽ thêm dấu câu, viết hoa và ngắt dòng theo đơn vị phát ngôn tự nhiên (không dịch, giữ nguyên khẩu ngữ), sau đó dán kết quả của AI vào ô bên dưới rồi bấm "Áp dụng":</p>
       <button type="button" class="ai-btn ai-btn-copy" onclick="aiCopy('punct-player', this)">
         <i data-lucide="copy"></i><span>Copy prompt</span>
       </button>
-      <textarea id="pc-textarea" class="ai-textarea" spellcheck="false" placeholder="Dán văn bản tiếng Pháp đã có dấu câu của AI vào đây..."></textarea>
+      <textarea id="pc-textarea" class="ai-textarea" spellcheck="false" placeholder="Dán câu trả lời của AI vào đây (có thể dán nguyên cả codebox hoặc toàn bộ phản hồi)..."></textarea>
       <div class="ai-actions">
         <button type="button" class="ai-btn ai-btn-primary" onclick="aiApply('punct-player')">
           <i data-lucide="check"></i><span>Áp dụng</span>

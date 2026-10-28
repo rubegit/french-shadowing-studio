@@ -442,13 +442,16 @@
     // các cụm 8-18 từ cho dễ luyện) -> ngoài ranh giới ở . ? ! còn có ranh giới ở cuối mỗi dòng.
     function applyPunctuationFromAi(sents, aiText, opts) {
       const lineChunks = !!(opts && opts.lineChunks);
+      let textToParse = aiText;
+      const cbMatch = String(aiText || '').match(/```[a-z]*\s*\n([\s\S]*?)\n```/i);
+      if (cbMatch) textToParse = cbMatch[1];
       let tokens = [];
       if (lineChunks) {
-        aicCleanRaw(aiText).split('\n').forEach((line) => {
+        aicCleanRaw(textToParse).split('\n').forEach((line) => {
           const lt = aicTokenize(line, 0);
           if (lt.length) { lt[lt.length - 1].lineEnd = true; tokens = tokens.concat(lt); }
         });
-      } else tokens = aicTokenize(aiText, 0);
+      } else tokens = aicTokenize(textToParse, 0);
       let u = 0, sentEnds = 0, gcount = 0;
       const unitGrp = [];
       tokens.forEach((t, k) => {
@@ -878,9 +881,12 @@
 
     function applyBilingualFromAi(sents, aiText, opts) {
       const lineChunks = !!(opts && opts.lineChunks);
+      let textToParse = aiText;
+      const cbMatch = String(aiText || '').match(/```[a-z]*\s*\n([\s\S]*?)\n```/i);
+      if (cbMatch) textToParse = cbMatch[1];
       const flat = aicFlatten(sents);
       const vocab = new Set(flat.map((f) => f.norm).filter(Boolean));
-      const units = aicParseBilingual(aiText, vocab, lineChunks);
+      const units = aicParseBilingual(textToParse, vocab, lineChunks);
       if (!units.length) return { ok: false, error: 'Không nhận ra được các cặp câu tiếng Pháp – tiếng Việt trong câu trả lời. Hãy kiểm tra lại nội dung đã dán.' };
       let tokens = [];
       const unitVi = [], unitGrp = [], unitFrenchWords = [];

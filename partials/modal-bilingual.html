@@ -6,14 +6,14 @@
           <i data-lucide="x"></i>
         </button>
       </div>
-      <p id="bl-desc" class="ai-step-text">Chưa có bản dịch tiếng Việt. Copy prompt sau và gửi AI, sau đó paste bản dịch của nó vào đây:</p>
+      <p id="bl-desc" class="ai-step-text">Bấm "Copy prompt" và gửi cho AI (ChatGPT/Claude...). AI sẽ thêm dấu câu, tách câu và dịch xen kẽ Pháp–Việt (kèm bảng sửa lỗi nếu có), sau đó dán kết quả của AI vào ô bên dưới rồi bấm "Áp dụng":</p>
       <div class="ai-copy-row">
         <button type="button" class="ai-btn ai-btn-copy" onclick="aiCopy('trans-player', this)">
           <i data-lucide="copy"></i><span>Copy prompt</span>
         </button>
         <span class="ai-open-links"><a class="ai-btn ai-open-link" href="https://gemini.google.com/app" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="gmg-bl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4285f4"/><stop offset=".55" stop-color="#9b72cb"/><stop offset="1" stop-color="#d96570"/></linearGradient></defs><path fill="url(#gmg-bl)" d="M12 0C12 6.63 6.63 12 0 12c6.63 0 12 5.37 12 12 0-6.63 5.37-12 12-12-6.63 0-12-5.37-12-12z"/></svg><span>Mở Gemini</span></a><a class="ai-btn ai-open-link" href="https://claude.ai/" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><g fill="#d97757"><rect x="10.8" y="1" width="2.4" height="22" rx="1.2"/><rect x="10.8" y="1" width="2.4" height="22" rx="1.2" transform="rotate(45 12 12)"/><rect x="10.8" y="1" width="2.4" height="22" rx="1.2" transform="rotate(90 12 12)"/><rect x="10.8" y="1" width="2.4" height="22" rx="1.2" transform="rotate(135 12 12)"/></g></svg><span>Mở Claude</span></a></span>
       </div>
-      <textarea id="bl-textarea" class="ai-textarea" spellcheck="false" placeholder="Dán bản dịch của AI (xen kẽ câu tiếng Pháp và câu tiếng Việt) vào đây..."></textarea>
+      <textarea id="bl-textarea" class="ai-textarea" spellcheck="false" placeholder="Dán câu trả lời của AI vào đây (có thể dán nguyên cả codebox hoặc toàn bộ phản hồi xen kẽ Pháp - Việt)..."></textarea>
       <div class="ai-actions">
         <button type="button" class="ai-btn ai-btn-primary" onclick="aiApply('trans-player')">
           <i data-lucide="check"></i><span>Áp dụng &amp; bật Song ngữ</span>
