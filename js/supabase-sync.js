@@ -7,6 +7,7 @@
 
   var CONFIG_KEY = 'fss_supabase_config';
   var LAST_SYNC_KEY = 'fss_last_sync_time';
+  var LAST_SERVER_TIME_KEY = 'fss_last_server_updated_at';
   var VOCAB_STORAGE_KEY = 'shadowing_saved_vocab_v1';
   var HISTORY_STORAGE_KEY = 'shadowing_master_user_history';
   var PROGRESS_STORAGE_KEY = 'shadowing_dictation_progress_v1';
@@ -139,9 +140,12 @@
     });
   }
 
-  function recordLastSync() {
+  function recordLastSync(serverIso) {
     var nowStr = new Date().toLocaleTimeString('vi-VN') + ' ' + new Date().toLocaleDateString('vi-VN');
-    try { localStorage.setItem(LAST_SYNC_KEY, nowStr); } catch (e) {}
+    try {
+      localStorage.setItem(LAST_SYNC_KEY, nowStr);
+      if (serverIso) localStorage.setItem(LAST_SERVER_TIME_KEY, serverIso);
+    } catch (e) {}
   }
 
   // =========================================================================
@@ -372,6 +376,32 @@
   // 3. ĐỒNG BỘ TOÀN DIỆN (FULL SYNC ENGINE)
   // =========================================================================
 
+
+  async function applySmartMerge(row) {
+    var localVocab = getLocalVocab();
+    var localHistory = getLocalHistory();
+    var localProgress = getLocalProgress();
+
+    var cloudVocab = Array.isArray(row.vocab) ? row.vocab : [];
+    var vRes = mergeVocabLists(localVocab, cloudVocab);
+    saveLocalVocabSilently(vRes.merged);
+
+    var cloudHistory = Array.isArray(row.history) ? row.history : [];
+    var hRes = mergeHistoryLists(localHistory, cloudHistory);
+    saveLocalHistorySilently(hRes.merged);
+
+    var cloudProgress = (row.progress && typeof row.progress === 'object') ? row.progress : {};
+    var pRes = mergeProgressObjs(localProgress, cloudProgress);
+    saveLocalProgressSilently(pRes.merged);
+
+    if (vRes.hasLocalNew || hRes.hasLocalNew || pRes.hasLocalNew) {
+      await pushAllDataToCloud(vRes.merged, hRes.merged, pRes.merged);
+    } else {
+      updateSyncStatus('synced', 'Đã đồng bộ ' + vRes.merged.filter(function(v){ return !v._deleted; }).length + ' từ, ' + hRes.merged.filter(function(h){ return !h._deleted; }).length + ' video');
+      recordLastSync(row.updated_at);
+    }
+  }
+
   // Kéo toàn bộ dữ liệu từ Cloud (Pull All)
   async function pullAllDataFromCloud() {
     if (!client || !currentUser || isFullSyncing) return;
@@ -410,28 +440,23 @@
           updateSyncStatus('synced', 'Đồng bộ hoàn tất');
         }
       } else {
-        // Gộp Từ vựng
-        var cloudVocab = Array.isArray(row.vocab) ? row.vocab : [];
-        var vRes = mergeVocabLists(localVocab, cloudVocab);
-        saveLocalVocabSilently(vRes.merged);
+        // Kiểm tra xem Cloud có cập nhật mới từ thiết bị khác và có sự lệch dữ liệu không
+        var lastServerTime = localStorage.getItem(LAST_SERVER_TIME_KEY);
+        var isServerNewer = row.updated_at && (!lastServerTime || new Date(row.updated_at).getTime() > new Date(lastServerTime).getTime() + 5000);
+        
+        var cloudV = Array.isArray(row.vocab) ? row.vocab : [];
+        var cloudH = Array.isArray(row.history) ? row.history : [];
+        var cVLen = cloudV.filter(function(v){ return !v._deleted; }).length;
+        var lVLen = localVocab.filter(function(v){ return !v._deleted; }).length;
 
-        // Gộp Lịch sử video
-        var cloudHistory = Array.isArray(row.history) ? row.history : [];
-        var hRes = mergeHistoryLists(localHistory, cloudHistory);
-        saveLocalHistorySilently(hRes.merged);
-
-        // Gộp Tiến độ học
-        var cloudProgress = (row.progress && typeof row.progress === 'object') ? row.progress : {};
-        var pRes = mergeProgressObjs(localProgress, cloudProgress);
-        saveLocalProgressSilently(pRes.merged);
-
-        // Nếu máy có dữ liệu mới hơn thì đẩy ngược lên để cập nhật Cloud
-        if (vRes.hasLocalNew || hRes.hasLocalNew || pRes.hasLocalNew) {
-          await pushAllDataToCloud(vRes.merged, hRes.merged, pRes.merged);
-        } else {
-          updateSyncStatus('synced', 'Đã đồng bộ ' + vRes.merged.length + ' từ, ' + hRes.merged.length + ' video');
-          recordLastSync();
+        // Nếu Cloud có bản cập nhật mới hơn mốc lần trước và số lượng từ lệch nhau -> hỏi người dùng
+        if (isServerNewer && cVLen !== lVLen && lastServerTime) {
+          isFullSyncing = false;
+          promptSyncConflict(row);
+          return;
         }
+
+        await applySmartMerge(row);
       }
     } catch (err) {
       console.error('[Supabase] Lỗi đồng bộ dữ liệu:', err);
@@ -514,7 +539,160 @@
   // 4. GIAO DIỆN MODAL CLOUD SYNC
   // =========================================================================
 
-  window.openCloudSyncModal = function () {
+
+  // =========================================================================
+  // 3b. CÁC HÀM XỬ LÝ ĐỒNG BỘ NÂNG CAO (GHI ĐÈ / TÙY CHỌN NGUỒN)
+  // =========================================================================
+
+  // Ghi đè toàn bộ dữ liệu Cloud bằng dữ liệu Máy này (Force Push)
+  window.fssForcePushLocalToCloud = async function () {
+    if (!client || !currentUser) {
+      alert('Vui lòng đăng nhập trước khi thực hiện!');
+      return;
+    }
+    var localVocab = getLocalVocab().filter(function(v) { return !v._deleted; });
+    var localHist = getLocalHistory().filter(function(h) { return !h._deleted; });
+    var msg = 'Bạn có chắc chắn muốn lấy dữ liệu TRÊN MÁY NÀY (' + localVocab.length + ' từ, ' + localHist.length + ' video) để GHI ĐÈ HOÀN TOÀN lên Đám mây?\n\nLưu ý: Mọi dữ liệu trên Cloud sẽ được thay thế chính xác bằng dữ liệu của máy này.';
+    if (!confirm(msg)) return;
+
+    updateSyncStatus('syncing', 'Đang ghi đè dữ liệu lên Cloud…');
+    try {
+      await pushAllDataToCloud(getLocalVocab(), getLocalHistory(), getLocalProgress());
+      alert('✓ Đã ghi đè dữ liệu máy này lên Cloud thành công!');
+      if (typeof showVocabToast === 'function') showVocabToast('Đã ghi đè Cloud thành công', true);
+    } catch (err) {
+      alert('Lỗi khi đẩy dữ liệu: ' + (err.message || err));
+    }
+  };
+
+  // Thay thế toàn bộ dữ liệu Máy này bằng dữ liệu trên Cloud (Force Pull)
+  window.fssForcePullCloudToLocal = async function () {
+    if (!client || !currentUser) {
+      alert('Vui lòng đăng nhập trước khi thực hiện!');
+      return;
+    }
+    updateSyncStatus('syncing', 'Đang tải dữ liệu từ Cloud…');
+    try {
+      var res = await client
+        .from(TABLE_NAME)
+        .select('vocab, history, progress, updated_at')
+        .eq('user_id', currentUser.id)
+        .maybeSingle();
+
+      if (res.error) {
+        alert('Lỗi tải từ Cloud: ' + res.error.message);
+        updateSyncStatus('error', 'Lỗi tải dữ liệu');
+        return;
+      }
+      var row = res.data;
+      if (!row) {
+        alert('Trên Cloud chưa có dữ liệu nào của bạn!');
+        return;
+      }
+      var cloudVocab = Array.isArray(row.vocab) ? row.vocab : [];
+      var cloudHist = Array.isArray(row.history) ? row.history : [];
+      var cloudProg = (row.progress && typeof row.progress === 'object') ? row.progress : {};
+
+      var msg = 'Bạn có chắc muốn LẤY DỮ LIỆU TỪ CLOUD (' + cloudVocab.filter(function(v){ return !v._deleted; }).length + ' từ, ' + cloudHist.filter(function(h){ return !h._deleted; }).length + ' video) ĐÈ LÊN MÁY NÀY?\n\nLưu ý: Dữ liệu chưa đồng bộ trên máy này sẽ bị thay thế bằng Cloud.';
+      if (!confirm(msg)) {
+        updateSyncStatus('synced', 'Đã hủy thao tác');
+        return;
+      }
+
+      saveLocalVocabSilently(cloudVocab);
+      saveLocalHistorySilently(cloudHist);
+      saveLocalProgressSilently(cloudProg);
+      recordLastSync(row.updated_at);
+      updateSyncStatus('synced', 'Đã thay thế máy bằng Cloud');
+      renderModalContent();
+      alert('✓ Đã cập nhật máy này theo đúng dữ liệu Cloud!');
+      if (typeof showVocabToast === 'function') showVocabToast('Đã tải dữ liệu từ Cloud về máy', true);
+    } catch (err) {
+      alert('Lỗi kết nối: ' + (err.message || err));
+      updateSyncStatus('error', 'Lỗi kết nối');
+    }
+  };
+
+  // Hiển thị Banner/Popup khi phát hiện dữ liệu Cloud có cập nhật mới hơn từ thiết bị khác
+  function promptSyncConflict(cloudRow) {
+    var existingModal = document.getElementById('fss-conflict-dialog');
+    if (existingModal) existingModal.remove();
+
+    var cloudVocab = Array.isArray(cloudRow.vocab) ? cloudRow.vocab : [];
+    var cloudHist = Array.isArray(cloudRow.history) ? cloudRow.history : [];
+    var cVCount = cloudVocab.filter(function(v){ return !v._deleted; }).length;
+    var cHCount = cloudHist.filter(function(h){ return !h._deleted; }).length;
+
+    var lVCount = getLocalVocab().filter(function(v){ return !v._deleted; }).length;
+    var lHCount = getLocalHistory().filter(function(h){ return !h._deleted; }).length;
+
+    var timeStr = cloudRow.updated_at ? new Date(cloudRow.updated_at).toLocaleTimeString('vi-VN') + ' ' + new Date(cloudRow.updated_at).toLocaleDateString('vi-VN') : 'gần đây';
+
+    var modal = document.createElement('div');
+    modal.id = 'fss-conflict-dialog';
+    modal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xs p-4 animate-in fade-in duration-150';
+    modal.innerHTML = [
+      '<div class="bg-[#0b1329] border border-amber-500/50 rounded-2xl w-full max-w-md p-5 shadow-2xl text-slate-200 space-y-4">',
+      '  <div class="flex items-start gap-3">',
+      '    <div class="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 shrink-0">',
+      '      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>',
+      '    </div>',
+      '    <div>',
+      '      <h3 class="text-sm font-bold text-white">Phát hiện dữ liệu mới trên Cloud</h3>',
+      '      <p class="text-xs text-slate-400 mt-0.5">Dữ liệu trên máy và Cloud có sự khác biệt (cập nhật lúc ' + timeStr + '):</p>',
+      '    </div>',
+      '  </div>',
+      '  <div class="grid grid-cols-2 gap-2 text-xs">',
+      '    <div class="p-2.5 rounded-lg bg-[#070e22] border border-blue-950">',
+      '      <div class="text-[11px] font-semibold text-slate-400">Trên máy này:</div>',
+      '      <div class="text-blue-300 font-bold mt-1">' + lVCount + ' từ &bull; ' + lHCount + ' video</div>',
+      '    </div>',
+      '    <div class="p-2.5 rounded-lg bg-[#070e22] border border-amber-950/60">',
+      '      <div class="text-[11px] font-semibold text-amber-400">Trên Cloud:</div>',
+      '      <div class="text-amber-300 font-bold mt-1">' + cVCount + ' từ &bull; ' + cHCount + ' video</div>',
+      '    </div>',
+      '  </div>',
+      '  <p class="text-[11px] text-slate-300">Chọn cách bạn muốn đồng bộ:</p>',
+      '  <div class="space-y-2">',
+      '    <button type="button" id="btn-sync-smart-merge" class="w-full py-2 px-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold flex items-center justify-between cursor-pointer transition-all">',
+      '      <span>1. Gộp thông minh (Khuyên dùng)</span>',
+      '      <span class="text-[10px] text-blue-200">Gộp cả hai</span>',
+      '    </button>',
+      '    <button type="button" id="btn-sync-use-cloud" class="w-full py-2 px-3 rounded-lg bg-[#111e40] hover:bg-blue-900/60 border border-blue-800/60 text-slate-200 text-xs font-medium flex items-center justify-between cursor-pointer transition-all">',
+      '      <span>2. Dùng dữ liệu trên Cloud</span>',
+      '      <span class="text-[10px] text-slate-400">Đè lên máy này</span>',
+      '    </button>',
+      '    <button type="button" id="btn-sync-use-local" class="w-full py-2 px-3 rounded-lg bg-[#111e40] hover:bg-blue-900/60 border border-blue-800/60 text-slate-200 text-xs font-medium flex items-center justify-between cursor-pointer transition-all">',
+      '      <span>3. Dùng dữ liệu Máy này</span>',
+      '      <span class="text-[10px] text-slate-400">Đè lên Cloud</span>',
+      '    </button>',
+      '  </div>',
+      '</div>'
+    ].join('\n');
+
+    document.body.appendChild(modal);
+
+    document.getElementById('btn-sync-smart-merge').onclick = function() {
+      modal.remove();
+      applySmartMerge(cloudRow);
+    };
+    document.getElementById('btn-sync-use-cloud').onclick = function() {
+      modal.remove();
+      saveLocalVocabSilently(cloudVocab);
+      saveLocalHistorySilently(cloudHist);
+      saveLocalProgressSilently(cloudRow.progress || {});
+      recordLastSync(cloudRow.updated_at);
+      updateSyncStatus('synced', 'Đã nhận dữ liệu từ Cloud');
+      renderModalContent();
+      if (typeof showVocabToast === 'function') showVocabToast('Đã cập nhật theo Cloud thành công', true);
+    };
+    document.getElementById('btn-sync-use-local').onclick = function() {
+      modal.remove();
+      pushAllDataToCloud(getLocalVocab(), getLocalHistory(), getLocalProgress());
+    };
+  }
+
+    window.openCloudSyncModal = function () {
     var modal = document.getElementById('fss-cloud-modal');
     if (!modal) {
       createModalDOM();
@@ -728,10 +906,26 @@
         '    <p class="font-semibold flex items-center gap-1"><i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> Tự động hóa hoàn toàn:</p>',
         '    <p class="mt-1 text-slate-300">Import video trên máy tính bằng userscript hoặc lưu từ vựng mới $\\rightarrow$ Toàn bộ dữ liệu tự động đẩy lên Supabase. Điện thoại mở lên sẽ tự động có video và từ vựng để học ngay!</p>',
         '  </div>',
+        '  <div class="pt-1 border-t border-blue-950/60 space-y-2">',
+        '    <div class="text-[11px] font-semibold text-slate-400 flex items-center gap-1">',
+        '      <i data-lucide="settings-2" class="w-3.5 h-3.5 text-blue-400"></i>',
+        '      <span>Tùy chọn đồng bộ nâng cao:</span>',
+        '    </div>',
+        '    <div class="grid grid-cols-2 gap-2">',
+        '      <button type="button" onclick="window.fssForcePushLocalToCloud()" title="Lấy dữ liệu trên máy này ghi đè hoàn toàn lên Cloud" class="p-2 rounded-lg bg-blue-950/60 hover:bg-blue-900 border border-blue-800 text-blue-300 hover:text-white font-semibold text-[11px] flex items-center justify-center gap-1.5 transition-all cursor-pointer">',
+        '        <i data-lucide="upload-cloud" class="w-3.5 h-3.5"></i>',
+        '        <span>Lấy Máy đè lên Cloud</span>',
+        '      </button>',
+        '      <button type="button" onclick="window.fssForcePullCloudToLocal()" title="Tải dữ liệu từ Cloud về ghi đè máy này" class="p-2 rounded-lg bg-blue-950/60 hover:bg-blue-900 border border-blue-800 text-blue-300 hover:text-white font-semibold text-[11px] flex items-center justify-center gap-1.5 transition-all cursor-pointer">',
+        '        <i data-lucide="download-cloud" class="w-3.5 h-3.5"></i>',
+        '        <span>Lấy Cloud đè lên Máy</span>',
+        '      </button>',
+        '    </div>',
+        '  </div>',
         '  <div class="pt-2 flex justify-between items-center">',
         '    <button type="button" onclick="window.fssManualSync()" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold flex items-center gap-1.5 transition-all cursor-pointer">',
         '      <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>',
-        '      <span>Đồng bộ ngay bây giờ</span>',
+        '      <span>Đồng bộ 2 chiều ngay</span>',
         '    </button>',
         '    <button type="button" onclick="window.fssSignOut()" class="text-xs text-slate-400 hover:text-red-400 underline cursor-pointer">Đăng xuất</button>',
         '  </div>',
