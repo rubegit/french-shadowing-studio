@@ -148,6 +148,7 @@
   // 1. QUẢN LÝ DỮ LIỆU CỤC BỘ (LOCAL STORAGE HELPERS)
   // =========================================================================
 
+  // Đọc raw vocab (bao gồm tombstone _deleted) để đồng bộ lên Cloud đúng
   function getLocalVocab() {
     try {
       var d = JSON.parse(localStorage.getItem(VOCAB_STORAGE_KEY) || '[]');
@@ -157,6 +158,7 @@
 
   function saveLocalVocabSilently(list) {
     try {
+      // Giữ nguyên tombstone trong list (đã merge); UI sẽ lọc qua getVocab()
       localStorage.setItem(VOCAB_STORAGE_KEY, JSON.stringify(list));
       if (typeof updateVocabBadges === 'function') updateVocabBadges();
       var scr = document.getElementById('screen-vocab');
@@ -176,6 +178,7 @@
 
   function saveLocalHistorySilently(list) {
     try {
+      // Giữ nguyên tombstone trong list; getLocalHistory() sẽ lọc cho UI
       localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(list));
       if (typeof renderHistorySection === 'function') renderHistorySection();
       return true;
@@ -200,82 +203,144 @@
   // 2. THUẬT TOÁN GỘP DỮ LIỆU THÔNG MINH (INTELLIGENT MERGE)
   // =========================================================================
 
-  // Gộp Từ vựng
+  // Gộp Từ vựng - hỗ trợ soft-delete (tombstone _deleted/_deletedAt)
   function mergeVocabLists(localList, cloudList) {
+    var TOMBSTONE_TTL = 30 * 24 * 60 * 60 * 1000;
+    var now = Date.now();
     var map = new Map();
     var keyOf = function (it) {
       if (it && it.id) return 'id:' + it.id;
       return 'txt:' + String(it.videoId || '') + '|' + String(it.text || '').toLowerCase().trim();
     };
 
+    // Nạp local (bao gồm tombstone)
     localList.forEach(function (it) {
       if (it && (it.id || it.text)) map.set(keyOf(it), Object.assign({}, it));
     });
 
+    // Gộp cloud vào map
     var hasCloudNew = false;
     cloudList.forEach(function (cIt) {
       if (!cIt || (!cIt.id && !cIt.text)) return;
       var k = keyOf(cIt);
       if (!map.has(k)) {
         map.set(k, cIt);
-        hasCloudNew = true;
+        if (!cIt._deleted) hasCloudNew = true;
       } else {
         var lIt = map.get(k);
-        var merged = Object.assign({}, lIt, cIt);
-        if (lIt.wordVi && !cIt.wordVi) merged.wordVi = lIt.wordVi;
-        if (lIt.srs && (!cIt.srs || (lIt.srs.lastReview || 0) > (cIt.srs.lastReview || 0))) {
-          merged.srs = lIt.srs;
+        // Tombstone thắng nếu _deletedAt mới hơn
+        var lDel = lIt._deleted ? (lIt._deletedAt || 0) : 0;
+        var cDel = cIt._deleted ? (cIt._deletedAt || 0) : 0;
+        if (cDel > lDel) {
+          // Cloud đã xóa sau local → áp dụng tombstone
+          map.set(k, { id: cIt.id || lIt.id, text: cIt.text || lIt.text, _deleted: true, _deletedAt: cDel });
+        } else if (lDel > cDel) {
+          // Local đã xóa sau cloud → giữ tombstone local (đã có trong map)
+        } else {
+          // Không có tombstone: merge bình thường
+          var merged = Object.assign({}, lIt, cIt);
+          if (lIt.wordVi && !cIt.wordVi) merged.wordVi = lIt.wordVi;
+          if (lIt.srs && (!cIt.srs || (lIt.srs.lastReview || 0) > (cIt.srs.lastReview || 0))) {
+            merged.srs = lIt.srs;
+          }
+          if (!cIt._deleted && lIt._deleted) {
+            // Không nên xảy ra nếu logic đúng, nhưng local tombstone thắng
+          } else {
+            map.set(k, merged);
+            if (!lIt._deleted && cIt._deleted === undefined && merged._deleted === undefined) {
+              // Bình thường
+            }
+          }
         }
-        map.set(k, merged);
       }
     });
 
-    var result = Array.from(map.values());
+    // Dọn tombstone hết TTL
+    var result = [];
+    map.forEach(function(v) {
+      if (v._deleted && v._deletedAt && (now - v._deletedAt) >= TOMBSTONE_TTL) return;
+      result.push(v);
+    });
     result.sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
+
+    var cloudActiveCount = cloudList.filter(function(v) { return !v._deleted; }).length;
+    var localActiveCount = localList.filter(function(v) { return !v._deleted; }).length;
+    var mergedActiveCount = result.filter(function(v) { return !v._deleted; }).length;
 
     return {
       merged: result,
       hasCloudNew: hasCloudNew,
-      hasLocalNew: result.length > cloudList.length
+      hasLocalNew: mergedActiveCount > cloudActiveCount || result.length > cloudList.length
     };
   }
 
-  // Gộp Lịch sử video & bài đọc
+
+  // Gộp Lịch sử video & bài đọc - hỗ trợ soft-delete (tombstone _deleted/_deletedAt)
   function mergeHistoryLists(localHist, cloudHist) {
+    var TOMBSTONE_TTL = 30 * 24 * 60 * 60 * 1000;
+    var now = Date.now();
     var map = new Map();
 
+    // Nạp local (bao gồm tombstone)
     localHist.forEach(function (h) {
       if (h && h.videoId) map.set(h.videoId, Object.assign({}, h));
     });
 
+    // Gộp cloud vào map
     var hasCloudNew = false;
     cloudHist.forEach(function (cH) {
       if (!cH || !cH.videoId) return;
       if (!map.has(cH.videoId)) {
         map.set(cH.videoId, cH);
-        hasCloudNew = true;
+        if (!cH._deleted) hasCloudNew = true;
       } else {
         var lH = map.get(cH.videoId);
-        var merged = Object.assign({}, lH, cH);
-        // Ưu tiên bản ghi có phụ đề đầy đủ (sentences)
-        if (lH.sentences && lH.sentences.length && (!cH.sentences || !cH.sentences.length)) {
-          merged.sentences = lH.sentences;
+        // Tombstone thắng nếu _deletedAt mới hơn
+        var lDel = lH._deleted ? (lH._deletedAt || 0) : 0;
+        var cDel = cH._deleted ? (cH._deletedAt || 0) : 0;
+        if (cDel > lDel) {
+          // Cloud đã xóa sau local → áp dụng tombstone
+          map.set(cH.videoId, { videoId: cH.videoId, _deleted: true, _deletedAt: cDel });
+        } else if (lDel > cDel) {
+          // Local đã xóa sau cloud → giữ tombstone local (đã có trong map)
+        } else if (!lH._deleted && !cH._deleted) {
+          // Không có tombstone: merge bình thường
+          var merged = Object.assign({}, lH, cH);
+          // Ưu tiên bản ghi có phụ đề đầy đủ (sentences)
+          if (lH.sentences && lH.sentences.length && (!cH.sentences || !cH.sentences.length)) {
+            merged.sentences = lH.sentences;
+          }
+          if (lH.userTrans && !cH.userTrans) merged.userTrans = lH.userTrans;
+          map.set(cH.videoId, merged);
         }
-        if (lH.userTrans && !cH.userTrans) merged.userTrans = lH.userTrans;
-        map.set(cH.videoId, merged);
+        // Nếu lH._deleted && !cH._deleted với lDel === cDel === 0: local tombstone thắng (user vừa xóa)
       }
     });
 
-    var result = Array.from(map.values());
-    result.sort(function (a, b) { return (b.updatedAt || 0) - (a.updatedAt || 0); });
-    if (result.length > 30) result = result.slice(0, 30);
+    // Dọn tombstone hết TTL và giới hạn 30 video active
+    var tombstones = [];
+    var actives = [];
+    map.forEach(function(v) {
+      if (v._deleted) {
+        if (v._deletedAt && (now - v._deletedAt) < TOMBSTONE_TTL) tombstones.push(v);
+      } else {
+        actives.push(v);
+      }
+    });
+    actives.sort(function (a, b) { return (b.updatedAt || 0) - (a.updatedAt || 0); });
+    if (actives.length > 30) actives = actives.slice(0, 30);
+    var result = actives.concat(tombstones);
+
+    var cloudActiveCount = cloudHist.filter(function(h) { return !h._deleted; }).length;
+    var mergedActiveCount = actives.length;
 
     return {
       merged: result,
       hasCloudNew: hasCloudNew,
-      hasLocalNew: result.length > cloudHist.length
+      hasLocalNew: mergedActiveCount > cloudActiveCount || result.length > cloudHist.length
     };
   }
+
 
   // Gộp Tiến độ chép chính tả
   function mergeProgressObjs(localProg, cloudProg) {
@@ -431,6 +496,7 @@
     if (historySyncTimer) clearTimeout(historySyncTimer);
     updateSyncStatus('syncing', 'Sẵn sàng đồng bộ…');
     historySyncTimer = setTimeout(function () {
+      // list đã là raw (bao gồm tombstone) từ removeHistoryItem
       pushAllDataToCloud(getLocalVocab(), list, getLocalProgress());
     }, 2000);
   }

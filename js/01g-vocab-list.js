@@ -130,25 +130,72 @@
       }
     ];
 
-    function getVocab() {
+    // Thời gian giữ tombstone: 30 ngày (ms). Sau đó tự dọn để tránh bloat.
+    var VOCAB_TOMBSTONE_TTL = 30 * 24 * 60 * 60 * 1000;
+
+    // Đọc toàn bộ raw (bao gồm tombstone _deleted) từ localStorage
+    function getRawVocab() {
       try {
         const raw = localStorage.getItem(VOCAB_KEY);
         if (!raw) {
           localStorage.setItem(VOCAB_KEY, JSON.stringify(DEFAULT_VOCAB_SAMPLES));
-          return DEFAULT_VOCAB_SAMPLES;
+          return DEFAULT_VOCAB_SAMPLES.slice();
         }
         const d = JSON.parse(raw);
         return Array.isArray(d) ? d : [];
       } catch (e) {
-        return DEFAULT_VOCAB_SAMPLES;
+        return DEFAULT_VOCAB_SAMPLES.slice();
       }
     }
+
+    // getVocab() trả về danh sách sạch (không có tombstone) cho UI
+    function getVocab() {
+      return getRawVocab().filter(function(v) { return !v._deleted; });
+    }
+
     function setVocab(list) {
       try {
-        const merged = mergeDuplicateVocab(list);
-        localStorage.setItem(VOCAB_KEY, JSON.stringify(merged));
+        // Gộp: giữ lại tombstone từ raw (để sync đúng), cộng thêm list mới
+        const raw = getRawVocab();
+        const tombstones = raw.filter(function(v) { return v._deleted; });
+        // Tombstone IDs để tránh phục hồi mục đã xóa
+        const tombIds = new Set(tombstones.map(function(v) { return v.id; }));
+        const activeList = list.filter(function(v) { return !tombIds.has(v.id); });
+        const merged = mergeDuplicateVocab(activeList);
+        // Dọn tombstone hết TTL
+        const now = Date.now();
+        const validTombs = tombstones.filter(function(v) {
+          return v._deletedAt && (now - v._deletedAt) < VOCAB_TOMBSTONE_TTL;
+        });
+        const fullList = merged.concat(validTombs);
+        localStorage.setItem(VOCAB_KEY, JSON.stringify(fullList));
         if (window.FSS_SUPABASE && typeof window.FSS_SUPABASE.syncVocabDebounced === 'function') {
-          window.FSS_SUPABASE.syncVocabDebounced(merged);
+          window.FSS_SUPABASE.syncVocabDebounced(fullList);
+        }
+        return true;
+      } catch (e) { return false; }
+    }
+
+    // Đánh tombstone cho một từ theo id (dùng cho deleteVocab và deleteSavedFromToast)
+    function markVocabDeleted(id) {
+      try {
+        const raw = getRawVocab();
+        const now = Date.now();
+        let found = false;
+        const updated = raw.map(function(v) {
+          if (v.id !== id) return v;
+          found = true;
+          return Object.assign({}, v, { _deleted: true, _deletedAt: now });
+        });
+        if (!found) return false;
+        // Dọn tombstone hết TTL
+        const validList = updated.filter(function(v) {
+          if (!v._deleted) return true;
+          return v._deletedAt && (now - v._deletedAt) < VOCAB_TOMBSTONE_TTL;
+        });
+        localStorage.setItem(VOCAB_KEY, JSON.stringify(validList));
+        if (window.FSS_SUPABASE && typeof window.FSS_SUPABASE.syncVocabDebounced === 'function') {
+          window.FSS_SUPABASE.syncVocabDebounced(validList);
         }
         return true;
       } catch (e) { return false; }
@@ -515,10 +562,10 @@
     }
     // Nút "Xóa" trên popup vừa lưu: bỏ từ vừa lưu nhầm (cập nhật luôn số đếm, gạch chân / highlight từ đã lưu và trang Từ vựng nếu đang mở)
     function deleteSavedFromToast(id) {
-      const all = getVocab();
+      const all = getRawVocab();
       const it = all.find((v) => v.id === id);
-      if (!it) { showVocabToast('Từ này không còn trong danh sách', false); return; }
-      if (!setVocab(all.filter((v) => v.id !== id))) { showVocabToast('Không xóa được: bộ nhớ trình duyệt bị lỗi', false); return; }
+      if (!it || it._deleted) { showVocabToast('Từ này không còn trong danh sách', false); return; }
+      if (!markVocabDeleted(id)) { showVocabToast('Không xóa được: bộ nhớ trình duyệt bị lỗi', false); return; }
       updateVocabBadges();
       try { if (bkActive()) bkMarkSaved(); } catch (e) {}
       const vscr = document.getElementById('screen-vocab');
@@ -1913,7 +1960,7 @@
       window.open(`https://www.google.com/search?udm=50&q=${encodeURIComponent(q)}`, '_blank');   // udm=50: Google AI Mode
     }
     function deleteVocab(id) {
-      setVocab(getVocab().filter((v) => v.id !== id));
+      markVocabDeleted(id);
       updateVocabBadges();
       renderVocabPage();
     }

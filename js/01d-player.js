@@ -39,13 +39,18 @@
     let sharedNoSaveId = '';   // videoId đang xem từ link chia sẻ (không tự ghi đè lịch sử của người xem)
     let isTextMode = false;    // đang ở chế độ luyện shadowing với văn bản thuần (không có video)
 
-    function getLocalHistory() {
+    // Đọc raw history (bao gồm tombstone _deleted) từ localStorage
+    function getRawHistory() {
       try {
         const data = localStorage.getItem(STORAGE_KEY);
         return data ? JSON.parse(data) : [];
       } catch (e) {
         return [];
       }
+    }
+    // getLocalHistory() trả về danh sách sạch (không có tombstone) cho UI
+    function getLocalHistory() {
+      return getRawHistory().filter(function(h) { return !h._deleted; });
     }
 
     function saveToLocalHistory(item) {
@@ -100,11 +105,27 @@
     function removeHistoryItem(videoId, e) {
       if (e) e.stopPropagation();
       try {
-        let history = getLocalHistory().filter(h => h.videoId !== videoId);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+        // Đánh tombstone thay vì xóa cứng để sync đúng sang máy khác
+        const raw = getRawHistory();
+        const now = Date.now();
+        const HIST_TOMBSTONE_TTL = 30 * 24 * 60 * 60 * 1000;
+        let found = false;
+        const updated = raw.map(function(h) {
+          if (h.videoId !== videoId) return h;
+          found = true;
+          // Giữ lại thẻ gọn (không có sentences) để tiết kiệm dung lượng
+          return { videoId: h.videoId, _deleted: true, _deletedAt: now };
+        });
+        if (!found) { renderHistorySection(); return; }
+        // Dọn tombstone hết TTL
+        const validList = updated.filter(function(h) {
+          if (!h._deleted) return true;
+          return h._deletedAt && (now - h._deletedAt) < HIST_TOMBSTONE_TTL;
+        });
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(validList));
         renderHistorySection();
         if (window.FSS_SUPABASE && typeof window.FSS_SUPABASE.syncHistoryDebounced === 'function') {
-          window.FSS_SUPABASE.syncHistoryDebounced(history);
+          window.FSS_SUPABASE.syncHistoryDebounced(validList);
         }
       } catch (e) {}
     }
