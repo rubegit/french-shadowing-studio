@@ -690,8 +690,8 @@
     // TAB 3: TRẠNG THÁI ĐỒNG BỘ
     else {
       var lastSyncStr = localStorage.getItem(LAST_SYNC_KEY) || 'Chưa đồng bộ lần nào';
-      var localVocabCount = getLocalVocab().length;
-      var localHistCount = getLocalHistory().length;
+      var localVocabCount = getLocalVocab().filter(function(v) { return !v._deleted; }).length;
+      var localHistCount = getLocalHistory().filter(function(h) { return !h._deleted; }).length;
       var localProgCount = Object.keys(getLocalProgress()).length;
 
       contentHtml = [
