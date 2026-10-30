@@ -210,7 +210,7 @@
 <link rel="stylesheet" href="css/12-video-timeline.css?v=f5eef356" id="vp-style">
 <link rel="stylesheet" href="css/13-default-controls.css?v=12e6e602" id="pv-ctl-style">
 
-  <link rel="stylesheet" href="css/14-subtitle-card.css?v=1902ce9e" id="cs-style">
+  <link rel="stylesheet" href="css/14-subtitle-card.css?v=9bb884ff" id="cs-style">
 <link rel="stylesheet" href="css/15-ipa-highlight.css?v=5b8c6b2b" id="ipa-hl-style">
 <link rel="stylesheet" href="css/16-own-video.css?v=211e741b" id="own-yt-style">
   <!-- Redesign Theme: Mint Pastel & Dark Mode (Spec 2026) -->
@@ -1690,7 +1690,33 @@
               <button type="button" id="tab-sub-sentences" class="on" onclick="switchRightPanelTab('sentences')">Danh sách câu</button>
               <button type="button" id="tab-sub-keyvocab" onclick="switchRightPanelTab('keyvocab')">Từ khó</button>
             </div>
-            <span id="sub-panel-count" class="sub-panel-count"></span>
+            <div class="sub-panel-right-tools" id="sub-panel-right-tools">
+              <span id="sub-panel-count" class="sub-panel-count"></span>
+              <!-- Ô TÌM KIẾM MỞ RỘNG (EXPANDABLE SEARCH) -->
+              <div class="sub-search-expandable" id="sub-search-expandable">
+                <input
+                  id="sub-search-input"
+                  type="text"
+                  oninput="handleSearch(this.value)"
+                  placeholder="Tìm câu hoặc từ..."
+                  autocomplete="off"
+                  spellcheck="false"
+                  class="sub-search-expand-input"
+                  aria-label="Tìm kiếm câu thoại hoặc từ vựng"
+                />
+                <button
+                  type="button"
+                  id="sub-search-toggle-btn"
+                  class="sub-search-toggle-btn"
+                  onclick="toggleSubSearchExpand(event)"
+                  title="Tìm kiếm câu thoại hoặc từ vựng"
+                  aria-label="Tìm kiếm"
+                >
+                  <svg class="search-ic-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                  <svg class="search-ic-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;display:none"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                </button>
+              </div>
+            </div>
           </div>
           <!-- Vùng cuộn phụ đề -->
           <div
@@ -1700,8 +1726,8 @@
             onmouseleave="handleSubContainerMouseLeave()"
           ></div>
 
-          <!-- Ô TÌM KIẾM PHỤ ĐỀ -->
-          <div id="sub-search-bar" class="p-3.5 border-t border-slate-800/80 bg-[#0c152e] shrink-0">
+          <!-- Ô TÌM KIẾM PHỤ ĐỀ (Đã chuyển lên header dạng kính lúp mở rộng) -->
+          <div id="sub-search-bar" class="p-3.5 border-t border-slate-800/80 bg-[#0c152e] shrink-0" style="display:none !important;">
             <div class="search-row">
               <div class="search-row-field">
                 <span class="sub-search-icon-box">
@@ -1910,7 +1936,7 @@
 <script src="js/01h-ebook.js?v=cb54eb78"></script>
 
   <script src="js/02-pv-helper.js?v=d2adcc44"></script>
-  <script id="pv-script" src="js/03-practice-engine.js?v=00c4fc4e"></script>
+  <script id="pv-script" src="js/03-practice-engine.js?v=dbbceda4"></script>
 <script src="js/04-vt-helper.js?v=b8dba445"></script>
 <script id="vt-script" src="js/05-translate-engine.js?v=6b41522a"></script>
 <!-- ============ ĐÁNH DẤU NHẸ TỪ / CỤM / CÂU ĐÃ LƯU (chỉ tính các mục lưu từ chính video / bài viết đang mở) ============ -->

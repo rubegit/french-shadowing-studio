@@ -11,6 +11,20 @@
     border-radius: 9999px !important;
   }
 
+  /* Triệt tiêu khoảng trắng rỗng của bảng Từ khó khi đang ở tab Danh sách câu */
+  #keyvocab-panel-container[style*="display:none"],
+  #keyvocab-panel-container[style*="display: none"],
+  html[data-ui="light"] #keyvocab-panel-container[style*="display:none"],
+  html[data-ui="light"] #keyvocab-panel-container[style*="display: none"] {
+    display: none !important;
+  }
+
+  /* Ẩn hoàn toàn thanh tìm kiếm cũ ở đáy cột phải */
+  #sub-search-bar,
+  html[data-ui="light"] #sub-search-bar {
+    display: none !important;
+  }
+
   @media (max-width: 768px) {
     /* ==================== HEADER MOBILE: 4 NÚT & MENU SANDWICH 3 SỌC ==================== */
     #screen-practice > header {
@@ -312,6 +326,168 @@
   }
   html[data-ui="light"] #screen-practice header .vocab-btn {
     border-radius: 12px !important;
+  }
+
+  /* ==================== HEADER DANH SÁCH CÂU & Ô TÌM KIẾM SỔ NGANG ==================== */
+  .sub-panel-hd {
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 10px 14px 8px !important;
+    border-bottom: 1px solid #131d3d !important;
+    background: #0a1126 !important;
+    flex-shrink: 0 !important;
+    gap: 8px !important;
+  }
+  html[data-ui="light"] .sub-panel-hd {
+    background: var(--fs-surface, #ffffff) !important;
+    border-bottom-color: var(--fs-line, #e2e8f0) !important;
+    padding: 12px 16px 10px !important;
+  }
+
+  .sub-panel-tabs {
+    position: relative !important;
+    z-index: 10 !important;
+    flex-shrink: 0 !important;
+  }
+
+  .sub-panel-right-tools {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    justify-content: flex-end !important;
+    position: relative !important;
+    flex-shrink: 0 !important;
+  }
+
+  .sub-panel-count {
+    font-size: 12.5px !important;
+    font-weight: 700 !important;
+    color: #7d8db0 !important;
+    white-space: nowrap !important;
+    transition: opacity .18s ease, width .18s ease !important;
+  }
+  html[data-ui="light"] .sub-panel-count {
+    color: #64748b !important;
+  }
+
+  .sub-search-expandable {
+    position: relative !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+  }
+
+  .sub-search-expand-input {
+    width: 0 !important;
+    max-width: 0 !important;
+    opacity: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    outline: none !important;
+    background: transparent !important;
+    pointer-events: none !important;
+    transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1), max-width 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.18s ease, padding 0.18s ease !important;
+    font-size: 12.5px !important;
+    color: #e2e8f0 !important;
+    box-sizing: border-box !important;
+  }
+
+  .sub-search-expandable.open .sub-search-expand-input {
+    width: 175px !important;
+    max-width: calc(100vw - 230px) !important;
+    opacity: 1 !important;
+    padding: 5px 32px 5px 12px !important;
+    background: #060b18 !important;
+    border: 1px solid #3b82f6 !important;
+    border-radius: 9999px !important;
+    pointer-events: auto !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25) !important;
+  }
+
+  html[data-ui="light"] .sub-search-expandable.open .sub-search-expand-input {
+    background: #f8fafc !important;
+    border-color: #3b82f6 !important;
+    color: #0f172a !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
+  }
+
+  .sub-panel-right-tools:has(.sub-search-expandable.open) .sub-panel-count {
+    opacity: 0 !important;
+    width: 0 !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .sub-search-toggle-btn {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    border-radius: 50% !important;
+    border: 1px solid #1e293b !important;
+    background: #0d1630 !important;
+    color: #9fb0cf !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    padding: 0 !important;
+    transition: all .15s ease !important;
+    flex-shrink: 0 !important;
+  }
+
+  .sub-search-expandable.open .sub-search-toggle-btn {
+    position: absolute !important;
+    right: 2px !important;
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    border: none !important;
+    background: transparent !important;
+    color: #94a3b8 !important;
+  }
+
+  .sub-search-toggle-btn:hover {
+    background: #182859 !important;
+    border-color: #3b82f6 !important;
+    color: #ffffff !important;
+  }
+
+  html[data-ui="light"] .sub-search-toggle-btn {
+    background: #ffffff !important;
+    border-color: #cbd5e1 !important;
+    color: #475569 !important;
+  }
+  html[data-ui="light"] .sub-search-toggle-btn:hover {
+    background: #f1f5f9 !important;
+    border-color: #3b82f6 !important;
+    color: #1d4ed8 !important;
+  }
+  html[data-ui="light"] .sub-search-expandable.open .sub-search-toggle-btn {
+    background: transparent !important;
+    border-color: transparent !important;
+    color: #64748b !important;
+  }
+
+  /* Nới rộng chiều cao danh sách câu tối đa trên mobile */
+  @media (max-width: 768px) {
+    html[data-ui="light"] #panel-right,
+    #panel-right {
+      min-height: 0 !important;
+      height: auto !important;
+      flex: 1 1 auto !important;
+      display: flex !important;
+      flex-direction: column !important;
+    }
+    html[data-ui="light"] #subtitles-scroll-container,
+    #subtitles-scroll-container {
+      max-height: 65vh !important;
+      min-height: 260px !important;
+      padding-bottom: 24px !important;
+      flex: 1 1 auto !important;
+    }
   }
 
   @media (max-width: 340px) {

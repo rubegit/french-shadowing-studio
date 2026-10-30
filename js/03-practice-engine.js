@@ -106,6 +106,44 @@
         }
     };
 
+    window.toggleSubSearchExpand = function (e) {
+        if (e) e.stopPropagation();
+        const wrap = $('sub-search-expandable');
+        const inp = $('sub-search-input');
+        const btn = $('sub-search-toggle-btn');
+        if (!wrap || !inp) return;
+        const isOpen = wrap.classList.toggle('open');
+        const icOpen = btn ? btn.querySelector('.search-ic-open') : null;
+        const icClose = btn ? btn.querySelector('.search-ic-close') : null;
+        if (isOpen) {
+            if (icOpen) icOpen.style.display = 'none';
+            if (icClose) icClose.style.display = 'block';
+            inp.focus();
+        } else {
+            if (icOpen) icOpen.style.display = 'block';
+            if (icClose) icClose.style.display = 'none';
+            if (inp.value) {
+                inp.value = '';
+                if (typeof handleSearch === 'function') handleSearch('');
+            }
+        }
+    };
+    window.closeSubSearchExpand = function () {
+        const wrap = $('sub-search-expandable');
+        const inp = $('sub-search-input');
+        const btn = $('sub-search-toggle-btn');
+        if (!wrap || !wrap.classList.contains('open')) return;
+        wrap.classList.remove('open');
+        const icOpen = btn ? btn.querySelector('.search-ic-open') : null;
+        const icClose = btn ? btn.querySelector('.search-ic-close') : null;
+        if (icOpen) icOpen.style.display = 'block';
+        if (icClose) icClose.style.display = 'none';
+        if (inp && inp.value) {
+            inp.value = '';
+            if (typeof handleSearch === 'function') handleSearch('');
+        }
+    };
+
     window.pvToggleMenu = function (e) {
         if (e) e.stopPropagation();
         const open = !menuOpen();
@@ -132,6 +170,11 @@
     const pvOutside = (e) => {
         if (menuOpen() && !$('pv-switch').contains(e.target) && !$('pv-menu').contains(e.target)) closeMenu();
         if (window.practiceMobileMenuOpen && window.practiceMobileMenuOpen() && !$('practice-mobile-menu-wrap').contains(e.target) && !$('practice-sandwich-menu').contains(e.target)) window.closePracticeMobileMenu();
+        const wrap = $('sub-search-expandable');
+        if (wrap && wrap.classList.contains('open') && !wrap.contains(e.target)) {
+            const inp = $('sub-search-input');
+            if (inp && !inp.value.trim()) window.closeSubSearchExpand();
+        }
         const pop = $('dc-pop');
         if (pop && !pop.classList.contains('pv-x') && !pop.contains(e.target) && !$('dc-count').contains(e.target)) closePop();
     };
@@ -139,6 +182,8 @@
     document.addEventListener('touchstart', pvOutside, { passive: true });   // iOS Safari: chạm vào vùng trống không sinh mousedown
     document.addEventListener('keydown', (e) => {
         if (e.key !== 'Escape') return;
+        const wrap = $('sub-search-expandable');
+        if (wrap && wrap.classList.contains('open')) { window.closeSubSearchExpand(); e.stopPropagation(); return; }
         if (window.practiceMobileMenuOpen && window.practiceMobileMenuOpen()) { window.closePracticeMobileMenu(); e.stopPropagation(); return; }
         if (menuOpen()) { closeMenu(); e.stopPropagation(); return; }
         const pop = $('dc-pop');
