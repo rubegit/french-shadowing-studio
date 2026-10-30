@@ -1199,3 +1199,65 @@
       return (m && ROW_GLOW_COLORS[m[1]]) || '#60a5fa';
     }
 
+
+
+// ==================== MOBILE HAMBURGER MENU ====================
+function toggleMobileMenu() {
+  const drawer = document.getElementById('mobile-nav-drawer');
+  const btn = document.getElementById('btn-mobile-menu');
+  if (!drawer) return;
+  const isOpening = drawer.classList.contains('hidden');
+  if (isOpening) {
+    drawer.classList.remove('hidden');
+    document.body.classList.add('mobile-nav-open');
+    if (btn) {
+      btn.setAttribute('aria-expanded', 'true');
+      btn.querySelector('.icon-menu-bars')?.classList.add('hidden');
+      btn.querySelector('.icon-menu-close')?.classList.remove('hidden');
+    }
+    // Cập nhật trạng thái active cho item trong mobile drawer
+    updateMobileMenuActiveItem();
+    if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+  } else {
+    closeMobileMenu();
+  }
+}
+
+function closeMobileMenu() {
+  const drawer = document.getElementById('mobile-nav-drawer');
+  const btn = document.getElementById('btn-mobile-menu');
+  if (!drawer) return;
+  drawer.classList.add('hidden');
+  document.body.classList.remove('mobile-nav-open');
+  if (btn) {
+    btn.setAttribute('aria-expanded', 'false');
+    btn.querySelector('.icon-menu-bars')?.classList.remove('hidden');
+    btn.querySelector('.icon-menu-close')?.classList.add('hidden');
+  }
+}
+
+function selectMobileMode(mode) {
+  closeMobileMenu();
+  if (typeof setInputMode === 'function') {
+    setInputMode(mode);
+  }
+}
+
+function updateMobileMenuActiveItem() {
+  const drawer = document.getElementById('mobile-nav-drawer');
+  if (!drawer) return;
+  const activeTab = document.querySelector('.text-mode-toggle button.active');
+  const activeMode = activeTab ? activeTab.id.replace('mode-tab-', '') : 'video';
+  drawer.querySelectorAll('.mobile-nav-item').forEach(item => {
+    if (item.getAttribute('data-mode') === activeMode) {
+      item.classList.add('active');
+    } else {
+      item.classList.remove('active');
+    }
+  });
+}
+
+// Lắng nghe phím ESC để đóng mobile menu
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape') closeMobileMenu();
+});

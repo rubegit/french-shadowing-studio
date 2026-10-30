@@ -9893,3 +9893,280 @@ html:not([data-ui="light"]) .fs-theme-toggle {
   display: none !important;
 }
 
+
+
+/* ==========================================================================
+   HAMBURGER BUTTON & MOBILE NAVIGATION DRAWER (< 900px)
+   ========================================================================== */
+
+/* Nút Hamburger: mặc định ẩn trên Desktop */
+.mobile-menu-btn {
+  display: none !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 42px !important;
+  min-width: 42px !important;
+  height: 42px !important;
+  padding: 0 !important;
+  border-radius: 12px !important;
+  background: var(--fs-surface, #ffffff) !important;
+  border: 1px solid var(--fs-line, rgba(0,0,0,0.1)) !important;
+  color: var(--fs-ink, #0f172a) !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+html[data-ui="light"][data-theme="dark"] .mobile-menu-btn,
+html.dark .mobile-menu-btn {
+  background: #111e38 !important;
+  border-color: rgba(59, 130, 246, 0.3) !important;
+  color: #f1f5f9 !important;
+}
+
+.mobile-menu-btn:hover {
+  background: var(--fs-hover, rgba(0,0,0,0.05)) !important;
+}
+
+/* Drawer Backdrop */
+.mobile-nav-drawer {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 99999 !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.mobile-nav-drawer.hidden {
+  display: none !important;
+}
+
+.mobile-nav-backdrop {
+  position: absolute !important;
+  inset: 0 !important;
+  background: rgba(3, 7, 18, 0.65) !important;
+  backdrop-filter: blur(4px) !important;
+  -webkit-backdrop-filter: blur(4px) !important;
+}
+
+/* Drawer Card trượt từ đỉnh xuống ngay dưới Header */
+.mobile-nav-card {
+  position: relative !important;
+  z-index: 2 !important;
+  margin: 70px 14px 14px 14px !important;
+  padding: 16px !important;
+  border-radius: 20px !important;
+  background: var(--fs-surface, #ffffff) !important;
+  border: 1px solid var(--fs-line, rgba(0,0,0,0.1)) !important;
+  box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.3) !important;
+  max-height: calc(100vh - 90px) !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+html[data-ui="light"][data-theme="dark"] .mobile-nav-card,
+html.dark .mobile-nav-card {
+  background: #0b1329 !important;
+  border-color: rgba(30, 58, 138, 0.6) !important;
+}
+
+.mobile-nav-section-title {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  color: var(--fs-muted, #64748b) !important;
+  margin-bottom: 10px !important;
+  padding-left: 4px !important;
+}
+
+/* Danh sách các chế độ học */
+.mobile-nav-grid {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+}
+
+.mobile-nav-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  width: 100% !important;
+  padding: 10px 12px !important;
+  border-radius: 12px !important;
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  text-align: left !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+}
+
+.mobile-nav-item:hover {
+  background: var(--fs-hover, rgba(0,0,0,0.04)) !important;
+}
+
+html[data-ui="light"][data-theme="dark"] .mobile-nav-item:hover,
+html.dark .mobile-nav-item:hover {
+  background: rgba(30, 58, 138, 0.3) !important;
+}
+
+.mobile-nav-item.active {
+  background: var(--fs-sub-bg, #E1F5EC) !important;
+  border-color: var(--fs-accent, #10b981) !important;
+}
+
+html[data-ui="light"][data-theme="dark"] .mobile-nav-item.active,
+html.dark .mobile-nav-item.active {
+  background: #112820 !important;
+  border-color: #059669 !important;
+}
+
+.mobile-nav-item-icon {
+  width: 38px !important;
+  height: 38px !important;
+  border-radius: 10px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+}
+
+.mobile-nav-item-text {
+  flex: 1 !important;
+  min-width: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.mobile-nav-item-text .title {
+  font-size: 13.5px !important;
+  font-weight: 700 !important;
+  color: var(--fs-ink, #0f172a) !important;
+}
+
+html[data-ui="light"][data-theme="dark"] .mobile-nav-item-text .title,
+html.dark .mobile-nav-item-text .title {
+  color: #f8fafc !important;
+}
+
+.mobile-nav-item-text .desc {
+  font-size: 11px !important;
+  color: var(--fs-muted, #64748b) !important;
+  margin-top: 1px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.mobile-nav-indicator {
+  width: 8px !important;
+  height: 8px !important;
+  border-radius: 999px !important;
+  background: transparent !important;
+}
+
+.mobile-nav-item.active .mobile-nav-indicator {
+  background: #10b981 !important;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.6) !important;
+}
+
+.mobile-nav-divider {
+  height: 1px !important;
+  background: var(--fs-line, rgba(0,0,0,0.08)) !important;
+  margin: 12px 0 !important;
+}
+
+html[data-ui="light"][data-theme="dark"] .mobile-nav-divider,
+html.dark .mobile-nav-divider {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Các action buttons bên dưới menu */
+.mobile-nav-actions {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+}
+
+.mobile-nav-action-btn {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 10px 14px !important;
+  border-radius: 12px !important;
+  background: var(--fs-card, rgba(0,0,0,0.02)) !important;
+  border: 1px solid var(--fs-line, rgba(0,0,0,0.08)) !important;
+  color: var(--fs-ink, #0f172a) !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+}
+
+html[data-ui="light"][data-theme="dark"] .mobile-nav-action-btn,
+html.dark .mobile-nav-action-btn {
+  background: #0e172e !important;
+  border-color: rgba(30, 58, 138, 0.5) !important;
+  color: #f1f5f9 !important;
+}
+
+.mobile-nav-action-btn:hover {
+  background: var(--fs-hover, rgba(0,0,0,0.05)) !important;
+}
+
+/* ==========================================================================
+   BREAKPOINTS: TỰ ĐỘNG BẬT MENU 3 SỌC TRÊN TABLET & MOBILE (<= 900px)
+   ========================================================================== */
+@media (max-width: 900px) {
+  /* Hiện nút 3 sọc */
+  .mobile-menu-btn {
+    display: inline-flex !important;
+  }
+
+  /* Ẩn thanh tabs ngang ở giữa header */
+  .home-top-row .mode-tabs-wrap {
+    display: none !important;
+  }
+
+  /* Rút gọn padding header */
+  html[data-ui="light"] .home-top-row.fs-header,
+  .home-top-row.fs-header {
+    padding: 10px 14px !important;
+    gap: 10px !important;
+    flex-wrap: nowrap !important;
+  }
+
+  /* Ẩn text dài của nút Từ vựng và Cloud trên màn hình nhỏ, chỉ giữ lại icon & badge */
+  .home-top-row .vocab-btn span:not(.vocab-count-badge),
+  .home-top-row .cloud-sync-btn #cloud-sync-status-text {
+    display: none !important;
+  }
+
+  .home-top-row .vocab-btn,
+  .home-top-row .cloud-sync-btn {
+    width: 42px !important;
+    min-width: 42px !important;
+    max-width: 42px !important;
+    padding: 0 !important;
+    justify-content: center !important;
+    border-radius: 12px !important;
+    position: relative !important;
+  }
+
+  /* Đặt badge đếm nổi ở góc nút */
+  .home-top-row .vocab-btn .vocab-count-badge {
+    position: absolute !important;
+    top: -4px !important;
+    right: -4px !important;
+    font-size: 10px !important;
+    padding: 1px 5px !important;
+  }
+
+  .home-top-row .cloud-sync-btn .cloud-sync-dot {
+    position: absolute !important;
+    top: 6px !important;
+    right: 6px !important;
+  }
+
+  /* Khóa cuộn body khi mở mobile menu drawer */
+  body.mobile-nav-open {
+    overflow: hidden !important;
+  }
+}
