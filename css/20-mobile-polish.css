@@ -204,3 +204,27 @@
   #sh-list .sh-row.active .sh-num.on { min-width: 28px; }
   #sh-list .sh-row.active .sh-collapse { width: 34px; height: 34px; }
 }
+
+/* ==================== ĐỒNG BỘ 2 SECTION CỠ CHỮ & GIÃN DÒNG (M17.1) ==================== */
+#cs-text,
+html[data-ui="light"] #cs-text {
+  font-size: var(--cs-font-size, 20px) !important;
+  line-height: var(--cs-line-height, 1.4) !important;
+}
+
+@media (max-width: 768px) {
+  #cs-text,
+  html[data-ui="light"] #cs-text {
+    font-size: var(--cs-font-size, 16px) !important;
+    line-height: var(--cs-line-height, 1.35) !important;
+  }
+}
+
+.sub-textmode-container,
+.sub-textmode-container .sentence-text-line,
+html[data-ui="light"] .sub-textmode-container,
+html[data-ui="light"] .sub-textmode-container .sentence-text-line {
+  font-size: var(--sub-font-size, 15px) !important;
+  line-height: var(--sub-textmode-line-height, 1.45) !important;
+}
+
