@@ -508,113 +508,188 @@
       return rowContainer;
     }
 
-    // Làm mới RIÊNG hàng "Video Bạn Đã Luyện Gần Đây" mà không đụng tới phần còn lại của thư viện (nhẹ, dùng khi
-    // lịch sử đổi hoặc khi quay lại trang chủ). Chạy được cả khi thư viện chưa nạp xong.
-    function renderRecentHistoryRow() {
-      const container = document.getElementById('netflix-categories-container');
-      if (!container) return;
-      const old = container.querySelector(':scope > .netflix-row-wrapper[data-recent="1"]');
-      const fresh = buildRecentHistoryWrapper();
-      if (fresh) {   // chữ ký nội dung hàng: giống hệt lần trước thì giữ nguyên DOM cũ (không dựng lại, không đo lại)
-        fresh.dataset.sig = Array.from(fresh.querySelectorAll('.yt-card')).map((c) => c.id + '|' + ((c.querySelector('.yt-video-title') || {}).textContent || '')).join('~') + '#' + librarySearchKeyword;
-        if (old && old.dataset.sig === fresh.dataset.sig) return;
-      }
-      if (old && fresh) old.replaceWith(fresh);
-      else if (old) old.remove();
-      else if (fresh) container.prepend(fresh);
-      else return;   // không có gì đổi
-      if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
-      const home = document.getElementById('screen-input');
-      if (home && home.classList.contains('hidden')) { homeNavDirty = true; return; }   // đang ẩn: không ép trình duyệt tính layout cho trang đang ẩn; làm sau khi hiện
-      if (typeof refreshHomeNav === 'function') refreshHomeNav();
+    // Biến trạng thái quản lý hiển thị video thư viện
+    let currentVideoViewMode = localStorage.getItem('video_view_mode') || 'grid-2';
+    let currentVideoSort = localStorage.getItem('video_sort_order') || 'recent';
+    let currentVideoPage = 1;
+
+    function setVideoViewMode(mode) {
+      if (mode !== 'grid-2' && mode !== 'grid-3' && mode !== 'list') return;
+      currentVideoViewMode = mode;
+      try { localStorage.setItem('video_view_mode', mode); } catch (_) {}
+      renderNetflixCategories();
     }
+    window.setVideoViewMode = setVideoViewMode;
+
+    function changeVideoSort(val) {
+      currentVideoSort = val || 'recent';
+      try { localStorage.setItem('video_sort_order', currentVideoSort); } catch (_) {}
+      currentVideoPage = 1;
+      renderNetflixCategories();
+    }
+    window.changeVideoSort = changeVideoSort;
+
+    function changeVideoPage(delta) {
+      currentVideoPage += delta;
+      renderNetflixCategories();
+    }
+    window.changeVideoPage = changeVideoPage;
+
+    function buildVideoListItemHTML(item) {
+      const meta = Object.assign({}, item.meta || {}, (typeof videoMetadataMap !== 'undefined' ? videoMetadataMap[item.videoId] : {}) || {});
+      const title = escHtml(item.title || meta.title || item.videoId);
+      const durationStr = item.duration > 0 ? formatDurationLabel(item.duration) : (meta.duration || '');
+      const channelTitle = escHtml(meta.channelTitle || 'Video bạn đã luyện');
+      const viewsStr = meta.viewCount ? formatViews(meta.viewCount) : (item.sentences && item.sentences.length ? `${item.sentences.length} câu phụ đề` : '');
+      const thumbUrl = `https://img.youtube.com/vi/${item.videoId}/mqdefault.jpg`;
+      const timeStr = item.updatedAt ? new Date(item.updatedAt).toLocaleDateString('vi-VN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+      
+      return `
+        <div class="video-list-item btn-interactive" onclick="loadFromHistory('${item.videoId}')">
+          <div class="video-list-thumb">
+            <img src="${thumbUrl}" alt="thumbnail" loading="lazy" decoding="async" onerror="this.src='https://img.youtube.com/vi/${item.videoId}/0.jpg'" />
+            <span class="yt-duration-badge ${durationStr ? '' : 'hidden'}">${durationStr || '--:--'}</span>
+          </div>
+          <div class="video-list-details">
+            <div class="flex items-start justify-between gap-2">
+              <h4 class="video-list-title" title="${title}">${title}</h4>
+              <button type="button" class="video-list-remove" title="Xóa khỏi lịch sử" onclick="removeHistoryItem('${item.videoId}', event)">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
+            </div>
+            <div class="video-list-channel">
+              <i data-lucide="tv" class="w-3.5 h-3.5 text-slate-400"></i>
+              <span>${channelTitle}</span>
+            </div>
+            <div class="video-list-meta">
+              ${viewsStr ? `<span><i data-lucide="subtitles" class="w-3 h-3 inline mr-1 text-blue-400"></i>${viewsStr}</span>` : ''}
+              ${timeStr ? `<span><i data-lucide="clock" class="w-3 h-3 inline mr-1 text-slate-500"></i>${timeStr}</span>` : ''}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderRecentHistoryRow() {
+      renderNetflixCategories();
+    }
+    window.renderRecentHistoryRow = renderRecentHistoryRow;
 
     function renderNetflixCategories() {
       renderTextHistoryRow();
       const container = document.getElementById('netflix-categories-container');
       const totalCountEl = document.getElementById('library-total-count');
-      if (!container || !categoryStructure) return;
+      const paginationBar = document.getElementById('video-pagination-bar');
+      const paginationInfo = document.getElementById('video-pagination-info');
+      const pageNumEl = document.getElementById('video-page-num');
+      const btnPrev = document.getElementById('btn-page-prev');
+      const btnNext = document.getElementById('btn-page-next');
+      const sortSelect = document.getElementById('video-sort-select');
 
-      container.innerHTML = '';
-      homeLazyRows = new Map();
-      let totalVideos = 0;
-      Object.keys(categoryStructure).forEach(catKey => {
-        totalVideos += Object.keys(categoryStructure[catKey] || {}).length;
-      });
-      if (totalCountEl) totalCountEl.textContent = totalVideos;
+      if (!container) return;
 
-      let renderedAnyCategory = false;
-      const frag = document.createDocumentFragment();
-
-      const recentWrapper = buildRecentHistoryWrapper();
-      if (recentWrapper) { renderedAnyCategory = true; frag.appendChild(recentWrapper); }
-
-      let catIndex = 0;
-      Object.keys(categoryStructure).forEach(catKey => {
-        const videosObj = categoryStructure[catKey] || {};
-        const videoEntries = Object.entries(videosObj);
-        // Playlist chỉ hiện khi KHÔNG đang tìm kiếm (đang tìm thì hiện thẳng các video khớp như trước)
-        const plAll = (catKey === 'Article' || librarySearchKeyword) ? [] : (categoryPlaylists[catKey] || []);
-        if (videoEntries.length === 0 && !plAll.length) return;
-
-        const filteredEntries = videoEntries.filter(([vid, catTitle]) => {
-          const detail = videoMetadataMap[vid] || {};
-          const title = detail.title || catTitle || '';
-          const channel = detail.channelTitle || '';
-          if (!librarySearchKeyword) return true;
-          return title.toLowerCase().includes(librarySearchKeyword) ||
-                 channel.toLowerCase().includes(librarySearchKeyword) ||
-                 vid.toLowerCase().includes(librarySearchKeyword);
-        });
-        if (filteredEntries.length === 0 && !plAll.length) return;
-
-        renderedAnyCategory = true;
-
-        const meta = getCategoryMeta(catKey) || {
-          label: catKey.replace(/_/g, ' ').toUpperCase(),
-          iconKey: 'layers_pro',
-          color: 'text-blue-400'
-        };
-
-        const rowContainer = document.createElement('div');
-        rowContainer.className = 'netflix-row-wrapper relative flex flex-col gap-3 my-2';
-        const rowId = `netflix-row-${catKey}`;
-
-        // Hàng bài viết (chỉ chữ, không ảnh) luôn dựng luôn vì rất nhẹ; các hàng video từ hàng thứ HOME_EAGER_ROWS + 1 trở đi để tải lười.
-        const eager = catKey === 'Article' || catIndex < HOME_EAGER_ROWS;
-        catIndex++;
-        // Mỗi hàng = các thẻ playlist (nếu có) rồi tới các video chưa thuộc playlist nào
-        const inPl = new Set();
-        plAll.forEach((p) => p.videos.forEach((id) => inPl.add(id)));
-        const rowEntries = plAll.map((p) => ['', p.title, p]).concat(plAll.length ? filteredEntries.filter(([vid]) => !inPl.has(vid)) : filteredEntries);
-        const cardsHTML = eager ? buildCategoryCardsHTML(catKey, rowEntries) : homeSkeletonCardsHTML(rowEntries.length);
-        if (!eager) {
-          rowContainer.dataset.lazy = '1';
-          homeLazyRows.set(rowId, { catKey, entries: rowEntries, filling: false, filled: false });
+      // Đồng bộ các nút view mode
+      ['grid-2', 'grid-3', 'list'].forEach(m => {
+        const btn = document.getElementById(`btn-view-${m}`);
+        if (btn) {
+          if (m === currentVideoViewMode) {
+            btn.classList.add('active', 'bg-blue-600', 'text-white');
+            btn.classList.remove('text-slate-400');
+          } else {
+            btn.classList.remove('active', 'bg-blue-600', 'text-white');
+            btn.classList.add('text-slate-400');
+          }
         }
-
-        const rowLabel = categoryLabelOverrides[catKey] ? escHtml(categoryLabelOverrides[catKey]) : meta.label;   // ưu tiên tên khai báo trong category.json
-        const rowOpts = (catKey === 'Article') ? {} : { pageCat: catKey, extraChip: plAll.length ? `<span class="pl-chip">${plAll.length} playlist</span>` : '' };
-        rowContainer.innerHTML = buildNetflixRowHTML(rowId, meta.iconKey, meta.color, rowLabel, `${filteredEntries.length}`, cardsHTML, '', rowOpts);
-        frag.appendChild(rowContainer);
       });
 
-      container.appendChild(frag);
-
-      if (!renderedAnyCategory) {
-        container.innerHTML = `
-          <div class="text-center py-10 text-slate-400 text-xs sm:text-sm">
-            Không tìm thấy video nào khớp với từ khóa "<strong>${librarySearchKeyword}</strong>".
-          </div>
-        `;
+      // Đồng bộ select sắp xếp
+      if (sortSelect) {
+        sortSelect.value = currentVideoSort;
       }
 
-      if (typeof refreshHomeNav === 'function') refreshHomeNav();   // cập nhật thanh điều hướng (liệt kê đủ mọi hàng, kể cả hàng chưa tải) + nút "Xem thêm"
+      // Lấy toàn bộ video lịch sử (loại bỏ bài văn bản và item đã xóa mềm)
+      const allVideos = (typeof getLocalHistory === 'function' ? getLocalHistory() : []).filter(h => h && !h.isText && !h._deleted);
+
+      // Cập nhật số đếm
+      if (totalCountEl) totalCountEl.textContent = allVideos.length;
+
+      // Lọc theo từ khóa tìm kiếm nếu có
+      const filtered = allVideos.filter(item => {
+        if (!librarySearchKeyword) return true;
+        const kw = librarySearchKeyword.toLowerCase();
+        const title = (item.title || '').toLowerCase();
+        const vid = (item.videoId || '').toLowerCase();
+        const meta = Object.assign({}, item.meta || {}, (typeof videoMetadataMap !== 'undefined' ? videoMetadataMap[item.videoId] : {}) || {});
+        const channel = (meta.channelTitle || '').toLowerCase();
+        return title.includes(kw) || vid.includes(kw) || channel.includes(kw);
+      });
+
+      // Sắp xếp video
+      const sorted = [...filtered];
+      if (currentVideoSort === 'oldest') {
+        sorted.sort((a, b) => (a.updatedAt || 0) - (b.updatedAt || 0));
+      } else if (currentVideoSort === 'title_asc') {
+        sorted.sort((a, b) => (a.title || '').localeCompare(b.title || '', 'vi', { sensitivity: 'base' }));
+      } else if (currentVideoSort === 'title_desc') {
+        sorted.sort((a, b) => (b.title || '').localeCompare(a.title || '', 'vi', { sensitivity: 'base' }));
+      } else { // 'recent'
+        sorted.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+      }
+
+      // Khi danh sách rỗng
+      if (sorted.length === 0) {
+        if (librarySearchKeyword) {
+          container.innerHTML = `
+            <div class="text-center py-12 text-slate-400 text-xs sm:text-sm bg-slate-900/30 rounded-xl border border-dashed border-slate-800 p-6">
+              Không tìm thấy video nào khớp với từ khóa "<strong>${escHtml(librarySearchKeyword)}</strong>".
+            </div>
+          `;
+        } else {
+          container.innerHTML = `
+            <div class="text-center py-12 text-slate-400 text-xs sm:text-sm bg-slate-900/30 rounded-xl border border-dashed border-slate-800 p-6">
+              <i data-lucide="video" class="w-8 h-8 text-blue-400/60 mx-auto mb-2"></i>
+              <p class="font-medium text-slate-300">Chưa có video nào trong lịch sử luyện tập.</p>
+              <p class="text-[11px] text-slate-500 mt-1">Hãy dán link YouTube ở khung phía trên để bắt đầu học nhé!</p>
+            </div>
+          `;
+        }
+        if (paginationBar) paginationBar.classList.add('hidden');
+        if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+        return;
+      }
+
+      // Render theo từng chế độ xem
+      if (currentVideoViewMode === 'list') {
+        const pageSize = 20;
+        const totalPages = Math.ceil(sorted.length / pageSize) || 1;
+        if (currentVideoPage > totalPages) currentVideoPage = totalPages;
+        if (currentVideoPage < 1) currentVideoPage = 1;
+
+        const startIdx = (currentVideoPage - 1) * pageSize;
+        const endIdx = Math.min(startIdx + pageSize, sorted.length);
+        const pageItems = sorted.slice(startIdx, endIdx);
+
+        const listCardsHTML = pageItems.map(item => buildVideoListItemHTML(item)).join('');
+        container.innerHTML = `<div class="video-list-container">${listCardsHTML}</div>`;
+
+        if (paginationBar) {
+          paginationBar.classList.remove('hidden');
+          if (paginationInfo) paginationInfo.textContent = `Đang hiển thị ${startIdx + 1} - ${endIdx} trong tổng ${sorted.length} video (Trang ${currentVideoPage}/${totalPages})`;
+          if (pageNumEl) pageNumEl.textContent = `${currentVideoPage} / ${totalPages}`;
+          if (btnPrev) btnPrev.disabled = currentVideoPage <= 1;
+          if (btnNext) btnNext.disabled = currentVideoPage >= totalPages;
+        }
+      } else {
+        // Grid 2 hoặc Grid 3 cột
+        if (paginationBar) paginationBar.classList.add('hidden');
+        const gridClass = currentVideoViewMode === 'grid-3' ? 'video-vertical-grid grid-cols-3' : 'video-vertical-grid grid-cols-2';
+        const cardsHTML = recentHistoryCardsHTML(sorted, 'hist-');
+        container.innerHTML = `<div class="${gridClass}">${cardsHTML}</div>`;
+      }
 
       if (window.lucide && window.lucide.createIcons) {
         window.lucide.createIcons();
       }
-      homeScheduleFill();
     }
 
     // Dựng thẻ thật cho một hàng đang là khung chờ. Thẻ đầu (vừa đủ lấp khung nhìn) dựng ngay, phần còn lại dựng dần
