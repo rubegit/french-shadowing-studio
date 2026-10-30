@@ -401,15 +401,16 @@
     .fs-btn[aria-expanded="true"] { border-color: #3b82f6; color: #fff; box-shadow: 0 0 0 3px rgba(59, 130, 246, .22); }
     .fs-btn svg { width: 12px; height: 12px; transition: transform .15s; }
     .fs-btn[aria-expanded="true"] svg { transform: rotate(180deg); }
-    .fs-pop { position: absolute; top: calc(100% + 9px); right: 0; z-index: 90; width: 292px; max-width: calc(100vw - 20px); padding: 12px; border-radius: 14px; background: #0b1328; border: 1px solid #1f2e57; box-shadow: 0 20px 56px rgba(0, 0, 0, .6); display: flex; flex-direction: column; gap: 12px; animation: pvPop .14s ease both; }
+    .fs-pop { position: absolute; top: calc(100% + 9px); right: 0; z-index: 90; width: 292px; max-width: calc(100vw - 20px); padding: 14px 16px; border-radius: 16px; background: #0c142b; border: 1px solid rgba(59, 130, 246, 0.25); box-shadow: 0 20px 56px rgba(0, 0, 0, .75); display: flex; flex-direction: column; gap: 12px; animation: pvPop .14s ease both; }
     .fs-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-    .fs-lbl { font-size: 12px; font-weight: 700; color: #94a3b8; white-space: nowrap; }
-    .fs-grp { display: inline-flex; align-items: center; background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 2px; }
-    .fs-grp button { padding: 4px 10px; font-size: 13px; font-weight: 700; color: #cbd5e1; background: transparent; border: 0; border-radius: 6px; cursor: pointer; transition: all .15s; }
-    .fs-grp button:hover { color: #fff; background: #1e293b; }
-    .fs-grp button.fs-reset { font-size: 12px; font-weight: 600; border-radius: 0; border-left: 1px solid #1e293b; border-right: 1px solid #1e293b; }
-    .fs-grp button.fs-reset.blue { color: #60a5fa; }
-    .fs-grp button.fs-reset.amber { color: #fbbf24; }
+    .fs-lbl { font-size: 13px; font-weight: 700; color: #cbd5e1; white-space: nowrap; }
+    .fs-grp { display: inline-flex; align-items: center; background: #070c1a; border: 1px solid #1e293b; border-radius: 10px; padding: 3px; }
+    .fs-grp button { padding: 5px 12px; font-size: 13px; font-weight: 700; color: #f1f5f9; background: #131d3d; border: 0; border-radius: 7px; cursor: pointer; transition: all .15s; }
+    .fs-grp button:hover { color: #fff; background: #2563eb; }
+    .fs-grp button.fs-reset { font-size: 12px; font-weight: 600; border-radius: 0; background: transparent; border-left: 1px solid #1e293b; border-right: 1px solid #1e293b; color: #94a3b8; }
+    .fs-grp button.fs-reset:hover { background: #1e293b; color: #fff; }
+    .fs-grp button.fs-reset.blue { color: #93c5fd; }
+    .fs-grp button.fs-reset.amber { color: #fcd34d; }
 
     /* ============ RESPONSIVE HEADER TOOLS ============ */
     #practice-header-tools {

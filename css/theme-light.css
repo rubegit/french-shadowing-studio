@@ -2117,9 +2117,9 @@ html[data-ui="light"] #cs-text {
 
 @media (max-width: 768px) {
   html[data-ui="light"] #cs-text {
-    font-size: 15px !important;
-    line-height: 1.35 !important;
-    padding: 2px 0 4px !important;
+    font-size: calc(var(--sub-font-size, 15px) * 0.95) !important;
+    line-height: var(--sub-textmode-line-height, 1.35) !important;
+    padding: 2px 0 2px !important;
   }
 }
 
@@ -2152,7 +2152,7 @@ html[data-ui="light"] #cs-card .cs-nav {
     grid-template-columns: 1fr auto 1fr !important;
     align-items: center !important;
     gap: 6px !important;
-    margin-top: 2px !important;
+    margin-top: 5px !important;
     padding-top: 2px !important;
     border-top: none !important;
   }
@@ -3061,26 +3061,54 @@ html[data-ui="light"] .fs-btn {
 }
 
 html[data-ui="light"] .fs-pop {
-  background-color: var(--fs-surface) !important;
-  border: 1px solid var(--fs-line) !important;
-  border-radius: var(--fs-radius-panel) !important;
-  box-shadow: var(--fs-shadow-lg) !important;
-  color: var(--fs-ink) !important;
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.12) !important;
+  color: #0f172a !important;
+  padding: 14px 16px !important;
 }
 
 html[data-ui="light"] .fs-row .fs-lbl {
-  color: var(--fs-muted) !important;
+  color: #334155 !important;
+  font-weight: 700 !important;
+  font-size: 13px !important;
+}
+
+html[data-ui="light"] .fs-grp {
+  background: #f1f5f9 !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 10px !important;
+  padding: 3px !important;
 }
 
 html[data-ui="light"] .fs-grp button {
-  background-color: var(--fs-bg) !important;
-  border: 1px solid var(--fs-border) !important;
-  color: var(--fs-ink) !important;
-  border-radius: 8px !important;
+  background: #ffffff !important;
+  border: none !important;
+  color: #0f172a !important;
+  border-radius: 7px !important;
+  font-weight: 700 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+  transition: all 0.15s ease !important;
 }
 
 html[data-ui="light"] .fs-grp button:hover {
-  background-color: var(--fs-hover) !important;
+  background: #2563eb !important;
+  color: #ffffff !important;
+}
+
+html[data-ui="light"] .fs-grp button.fs-reset {
+  background: transparent !important;
+  box-shadow: none !important;
+  border-left: 1px solid #cbd5e1 !important;
+  border-right: 1px solid #cbd5e1 !important;
+  border-radius: 0 !important;
+  color: #475569 !important;
+}
+
+html[data-ui="light"] .fs-grp button.fs-reset:hover {
+  background: #e2e8f0 !important;
+  color: #0f172a !important;
 }
 
 /* --- 3. CONTROL PANEL (#pv-ctl) & TIMELINE (#tl) --- */
