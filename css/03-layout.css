@@ -619,6 +619,22 @@
     }
     .sentence-text-line {
       margin-bottom: var(--sub-textmode-gap) !important;
+      padding: 4px 6px;
+      border-radius: 8px;
+    }
+    @media (max-width: 768px) {
+      .sub-textmode-container {
+        padding: 6px 8px !important;
+      }
+      .sentence-text-line {
+        margin-bottom: 4px !important;
+        padding: 3px 6px !important;
+      }
+      .sub-textmode-trans.sub-vi-line {
+        margin-top: 2px !important;
+        padding-left: 2px !important;
+        font-size: 0.9em !important;
+      }
     }
     /* Đoạn AI chia nhỏ cùng một câu: tắt Song ngữ thì nối liền như một câu; bật Song ngữ thì mỗi đoạn một dòng kèm bản dịch riêng */
     #subtitles-scroll-container:not(.sub-show-vi) .sentence-text-line.sg-m { display: inline !important; margin: 0 !important; }

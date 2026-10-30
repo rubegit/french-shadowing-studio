@@ -402,7 +402,14 @@
             const bs = tsBase(i);
             if (a) a.classList.toggle('mod', Math.abs(t.s - bs.s) > 0.0005);
             if (b) b.classList.toggle('mod', Math.abs(t.e - bs.e) > 0.0005);
-            const rb = ctl.querySelector('[data-ts="reset"]'); if (rb) rb.disabled = !TS.map[i];
+            const rb = ctl.querySelector('[data-ts="reset"]');
+            if (rb) {
+                const hasMod = !!TS.map[i];
+                rb.classList.toggle('has-mod', hasMod);
+                // Giữ nút luôn tương tác được để người dùng có thể bấm reset/replay mốc gốc bất kỳ lúc nào
+                rb.disabled = false;
+                rb.style.opacity = hasMod ? '1' : '0.6';
+            }
         });
     }
     function tsAfter(i, old) {
@@ -438,7 +445,14 @@
     function tsReset() {
         const i = tsIdx(); if (i < 0 || !sentences[i]) return;
         tsSync();
-        if (!TS.map[i]) return;
+        if (!TS.map[i]) {
+            // Dù chưa có map override, phát lại câu từ mốc gốc để người dùng nghe lại
+            if (view === 'default' && !isTextMode) {
+                try { seekToTime(tsBase(i).s, i, true, null, false); } catch (e) {}
+            }
+            toast('Thời gian câu đang ở mốc gốc');
+            return;
+        }
         const t0 = tsGet(i); delete TS.map[i]; tsSave(); tsAfter(i, { s: t0.s, e: t0.e });
         toast('Đã đưa thời gian về mốc gốc');
     }
