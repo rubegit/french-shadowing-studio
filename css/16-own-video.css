@@ -38,7 +38,37 @@
   .oy-dl b { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
   .oy-dl:active { background: rgba(37,99,235,.3); }
   .oy-hint { font-size: 12.5px; line-height: 1.5; color: #94a3b8; }
-  .oy-start { display: flex; align-items: center; justify-content: center; gap: 9px; width: 100%; min-height: 54px; border-radius: 14px; font-size: 16px; font-weight: 800; color: #fff; cursor: pointer; border: 1px solid rgba(255,255,255,.22); background: linear-gradient(110deg, #e11d48, #f43f5e 30%, #7c3aed 65%, #2563eb); box-shadow: 0 6px 22px rgba(244,63,94,.35), inset 0 1px 0 rgba(255,255,255,.35); -webkit-tap-highlight-color: transparent; }
+  .oy-start {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    width: 100%;
+    min-height: 52px;
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #ffffff;
+    cursor: pointer;
+    border: 1px solid rgba(96, 165, 250, 0.4);
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    box-shadow: 0 4px 18px rgba(37, 99, 235, 0.35);
+    -webkit-tap-highlight-color: transparent;
+    transition: all 0.2s ease;
+  }
   .oy-start svg { width: 18px; height: 18px; }
+  .oy-start:not(:disabled):hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 22px rgba(37, 99, 235, 0.45);
+  }
   .oy-start:active:not(:disabled) { transform: scale(.98); }
-  .oy-start:disabled { opacity: .4; cursor: not-allowed; box-shadow: none; filter: grayscale(.4); }
+  .oy-start:disabled {
+    background: #0d1527;
+    border: 1px solid #1e293b;
+    color: #64748b;
+    opacity: 0.6;
+    cursor: not-allowed;
+    box-shadow: none;
+    filter: none;
+  }

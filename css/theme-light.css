@@ -1482,22 +1482,23 @@ html[data-ui="light"] #oy-apply-sub-btn {
 
 /* --- 5. NÚT BẮT ĐẦU LUYỆN TẬP --- */
 html[data-ui="light"] .oy-start {
-  background: linear-gradient(110deg, #0d9488, #059669 35%, #2563eb 70%, #7c3aed) !important;
+  background: #2563eb !important;
   color: #ffffff !important;
-  border: none !important;
-  border-radius: 16px !important;
+  border: 1px solid rgba(37, 99, 235, 0.2) !important;
+  border-radius: 14px !important;
   font-family: var(--fs-font-sans) !important;
-  font-weight: 800 !important;
-  font-size: 16px !important;
-  letter-spacing: 0.02em !important;
-  box-shadow: 0 6px 20px rgba(13, 148, 136, 0.35) !important;
+  font-weight: 700 !important;
+  font-size: 15px !important;
+  letter-spacing: 0.01em !important;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25) !important;
   transition: all 0.2s ease !important;
 }
 
 html[data-ui="light"] .oy-start:not(:disabled):hover {
-  filter: brightness(1.05) !important;
-  transform: translateY(-2px) !important;
-  box-shadow: 0 8px 24px rgba(13, 148, 136, 0.45) !important;
+  background: #1d4ed8 !important;
+  filter: none !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.35) !important;
 }
 
 html[data-ui="light"] .oy-start:not(:disabled):active {
@@ -1505,10 +1506,13 @@ html[data-ui="light"] .oy-start:not(:disabled):active {
 }
 
 html[data-ui="light"] .oy-start:disabled {
-  opacity: 0.45 !important;
+  background: #e2e8f0 !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #94a3b8 !important;
+  opacity: 0.7 !important;
   cursor: not-allowed !important;
   box-shadow: none !important;
-  filter: grayscale(0.5) !important;
+  filter: none !important;
 }
 
 /* --- 6. KHỐI THƯ VIỆN VIDEO CỦA BẠN (SPEC 2.9) --- */
