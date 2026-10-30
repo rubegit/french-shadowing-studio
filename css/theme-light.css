@@ -10120,16 +10120,16 @@ html.dark .mobile-nav-action-btn {
     display: inline-flex !important;
   }
 
-  /* Ẩn thanh tabs ngang ở giữa header */
+  /* Thanh tabs hiển thị cuộn ngang mượt mà ở hàng dưới */
   .home-top-row .mode-tabs-wrap {
-    display: none !important;
+    display: flex !important;
   }
 
   /* Rút gọn padding header */
   html[data-ui="light"] .home-top-row.fs-header,
   .home-top-row.fs-header {
-    padding: 10px 14px !important;
-    gap: 10px !important;
+    padding: 0 !important;
+    gap: 0 !important;
     flex-wrap: nowrap !important;
   }
 
@@ -10751,4 +10751,117 @@ html[data-ui="light"] .page-nav-btn:hover:not(:disabled) {
 .oy-paste-sub-wrap {
   margin-top: 14px !important;
   margin-bottom: 14px !important;
+}
+
+
+/* ============================================================
+   TWO-TIER HEADER LAYOUT: LOGO ROW & NAVIGATION MENU ROW (M7)
+   ============================================================ */
+
+/* Khung tổng Header chứa 2 hàng */
+.home-top-row.fs-header,
+html[data-ui="light"] .home-top-row.fs-header {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  justify-content: flex-start !important;
+  padding: 0 !important;
+  gap: 0 !important;
+  width: 100% !important;
+  background: #091024 !important;
+  border-bottom: 1px solid rgba(30, 58, 138, 0.45) !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 50 !important;
+}
+
+html[data-ui="light"] .home-top-row.fs-header {
+  background: var(--fs-surface, #ffffff) !important;
+  border-bottom: 1px solid var(--fs-line, #e2e8f0) !important;
+}
+
+/* Hàng 1: Logo thương hiệu bên trái, cụm tiện ích bên phải */
+.fs-header-brand-row {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+  padding: 12px 28px !important;
+  border-bottom: 1px solid rgba(30, 58, 138, 0.3) !important;
+  box-sizing: border-box !important;
+  gap: 16px !important;
+}
+
+html[data-ui="light"] .fs-header-brand-row {
+  border-bottom: 1px solid var(--fs-line, #e2e8f0) !important;
+  background: var(--fs-surface, #ffffff) !important;
+}
+
+/* Hàng 2: Menu các chế độ học (Navigation Bar) */
+.fs-header-nav-row {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  padding: 6px 16px !important;
+  background: rgba(6, 11, 24, 0.65) !important;
+  backdrop-filter: blur(8px) !important;
+  box-sizing: border-box !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  scrollbar-width: none !important;
+}
+
+.fs-header-nav-row::-webkit-scrollbar {
+  display: none !important;
+}
+
+html[data-ui="light"] .fs-header-nav-row {
+  background: #f8fafc !important;
+  border-bottom: 1px solid var(--fs-line, #e2e8f0) !important;
+}
+
+.fs-header-nav-row .mode-tabs-wrap {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: auto !important;
+  max-width: 100% !important;
+  margin: 0 auto !important;
+}
+
+.fs-header-nav-row .text-mode-toggle {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+.fs-header-nav-row .text-mode-toggle button {
+  padding: 8px 14px !important;
+  font-size: 13px !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+}
+
+/* Tối ưu responsive cho Mobile & Tablet */
+@media (max-width: 900px) {
+  .fs-header-brand-row {
+    padding: 10px 14px !important;
+  }
+  
+  .fs-header-brand-row .fs-brand-title {
+    font-size: 15px !important;
+  }
+
+  .fs-header-nav-row {
+    justify-content: flex-start !important;
+    padding: 6px 10px !important;
+  }
+
+  .fs-header-nav-row .mode-tabs-wrap {
+    justify-content: flex-start !important;
+    margin: 0 !important;
+  }
 }
