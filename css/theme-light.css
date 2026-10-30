@@ -10133,13 +10133,29 @@ html.dark .mobile-nav-action-btn {
     flex-wrap: nowrap !important;
   }
 
-  /* Ẩn text dài của nút Từ vựng và Cloud trên màn hình nhỏ, chỉ giữ lại icon & badge */
-  .home-top-row .vocab-btn span:not(.vocab-count-badge),
+  /* Giữ nguyên nút Từ vựng đã lưu hiển thị đầy đủ text và badge như cũ */
+  .home-top-row .vocab-btn {
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    padding: 0 14px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    border-radius: var(--fs-radius-pill, 999px) !important;
+  }
+
+  .home-top-row .vocab-btn span:not(.vocab-count-badge) {
+    display: inline !important;
+    font-size: 12.5px !important;
+    white-space: nowrap !important;
+  }
+
+  /* Nút Cloud Sync thu gọn icon + chấm trạng thái để nhường chỗ rộng rãi cho Từ vựng */
   .home-top-row .cloud-sync-btn #cloud-sync-status-text {
     display: none !important;
   }
 
-  .home-top-row .vocab-btn,
   .home-top-row .cloud-sync-btn {
     width: 42px !important;
     min-width: 42px !important;
@@ -10148,15 +10164,6 @@ html.dark .mobile-nav-action-btn {
     justify-content: center !important;
     border-radius: 12px !important;
     position: relative !important;
-  }
-
-  /* Đặt badge đếm nổi ở góc nút */
-  .home-top-row .vocab-btn .vocab-count-badge {
-    position: absolute !important;
-    top: -4px !important;
-    right: -4px !important;
-    font-size: 10px !important;
-    padding: 1px 5px !important;
   }
 
   .home-top-row .cloud-sync-btn .cloud-sync-dot {
