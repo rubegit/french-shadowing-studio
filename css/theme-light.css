@@ -10177,3 +10177,123 @@ html.dark .mobile-nav-action-btn {
     overflow: hidden !important;
   }
 }
+
+
+/* ==========================================================================
+   MODULE M4.2: TỐI ƯU MAIN CARD & HÀNG DANH MỤC VIDEO (MOBILE & TABLET)
+   ========================================================================== */
+
+/* Tránh tràn ngang toàn trang */
+html, body, #screen-input {
+  max-width: 100vw !important;
+  overflow-x: hidden !important;
+}
+
+@media (max-width: 900px) {
+  /* Tối ưu khoảng đệm nội dung chính (.wrap) trên Mobile/Tablet */
+  .wrap,
+  html[data-ui="light"] .wrap {
+    padding: 16px 12px 32px 12px !important;
+    gap: 18px !important;
+  }
+
+  /* Main card bo góc và đệm thoáng hơn */
+  #main-card {
+    padding: 18px 14px !important;
+    border-radius: 18px !important;
+    margin-bottom: 12px !important;
+  }
+
+  /* Ô nhập Link YouTube và Nút Dán */
+  #main-card .in {
+    display: flex !important;
+    align-items: center !important;
+    width: 100% !important;
+    gap: 8px !important;
+  }
+
+  #main-card #input-youtube-url {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    height: 44px !important;
+    font-size: 13.5px !important;
+    padding: 0 14px !important;
+    border-radius: 12px !important;
+  }
+
+  #main-card #btn-paste-url {
+    flex: 0 0 auto !important;
+    height: 44px !important;
+    padding: 0 16px !important;
+    border-radius: 12px !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    min-width: 60px !important;
+  }
+
+  /* Khung Dropzone chọn file / dán transcript */
+  #drop-zone {
+    padding: 18px 12px !important;
+    border-radius: 14px !important;
+    font-size: 12.5px !important;
+    text-align: center !important;
+  }
+
+  /* Nút Bắt đầu luyện tập to rõ dễ bấm trên điện thoại */
+  #btn-start-practice {
+    min-height: 48px !important;
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    border-radius: 14px !important;
+  }
+
+  /* Ẩn các nút mũi tên tròn điều hướng trên mobile để tránh che nội dung video */
+  .netflix-nav-btn {
+    display: none !important;
+  }
+
+  /* Tối ưu hàng cuộn Netflix Card */
+  .netflix-scroll-row {
+    display: flex !important;
+    gap: 12px !important;
+    padding: 4px 4px 14px 4px !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scroll-snap-type: x mandatory !important;
+    scrollbar-width: none !important;
+  }
+
+  .netflix-scroll-row::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  /* Thẻ video (.yt-card) trên mobile: vừa vặn tỉ lệ 82vw để lộ mép thẻ tiếp theo */
+  .netflix-scroll-row .yt-card {
+    flex: 0 0 82vw !important;
+    max-width: 320px !important;
+    min-width: 260px !important;
+    scroll-snap-align: start !important;
+    border-radius: 16px !important;
+    padding: 10px !important;
+  }
+
+  .netflix-scroll-row .yt-video-title {
+    font-size: 13px !important;
+    line-height: 1.35 !important;
+    -webkit-line-clamp: 2 !important;
+  }
+
+  /* Tiêu đề từng hàng danh mục */
+  .netflix-row-wrapper > .row-head h4,
+  .netflix-row-wrapper .row-title-toggle {
+    font-size: 15px !important;
+  }
+}
+
+@media (min-width: 601px) and (max-width: 900px) {
+  /* Riêng Tablet / iPad: hiển thị 2.3 thẻ video mỗi hàng */
+  .netflix-scroll-row .yt-card {
+    flex: 0 0 calc((100% - 24px) / 2.3) !important;
+    max-width: 380px !important;
+  }
+}
