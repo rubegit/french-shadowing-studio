@@ -195,7 +195,7 @@
   
   <link rel="stylesheet" href="css/02-base.css?v=ca84d219">
 
-  <link rel="stylesheet" href="css/03-layout.css?v=2b21ce51">
+  <link rel="stylesheet" href="css/03-layout.css?v=6c51eff0">
   <link rel="stylesheet" href="css/04-view-reader.css?v=9972a115">
 
   <link rel="stylesheet" href="css/05-view-catalog.css?v=86f8be75" id="playlist-page-style">
@@ -210,7 +210,7 @@
 <link rel="stylesheet" href="css/12-video-timeline.css?v=f5eef356" id="vp-style">
 <link rel="stylesheet" href="css/13-default-controls.css?v=12e6e602" id="pv-ctl-style">
 
-  <link rel="stylesheet" href="css/14-subtitle-card.css?v=b4608a6f" id="cs-style">
+  <link rel="stylesheet" href="css/14-subtitle-card.css?v=1902ce9e" id="cs-style">
 <link rel="stylesheet" href="css/15-ipa-highlight.css?v=5b8c6b2b" id="ipa-hl-style">
 <link rel="stylesheet" href="css/16-own-video.css?v=211e741b" id="own-yt-style">
   <!-- Redesign Theme: Mint Pastel & Dark Mode (Spec 2026) -->
@@ -1503,6 +1503,78 @@
             <button type="button" class="dc-chip2" id="sh-ipa" title="Hiện phiên âm IPA ngay dưới từng từ của câu đang mở (lần đầu bấm sẽ tải từ điển phát âm)">Phiên âm IPA</button>
             <button type="button" class="dc-chip2" id="sh-hide" title="Ẩn toàn bộ chữ (thành dấu •) để luyện nghe; bấm lại để hiện chữ (phím H)">Ẩn chữ</button>
           </div>
+
+          <!-- NÚT MENU SANDWICH 3 SỌC (Chỉ hiện trên mobile) -->
+          <div class="practice-mobile-menu-wrap" id="practice-mobile-menu-wrap">
+            <button
+              type="button"
+              id="practice-sandwich-btn"
+              class="practice-sandwich-btn"
+              aria-haspopup="true"
+              aria-expanded="false"
+              onclick="togglePracticeMobileMenu(event)"
+              title="Menu chức năng khác"
+              aria-label="Menu chức năng khác"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+            </button>
+            <div class="practice-sandwich-menu pv-x" id="practice-sandwich-menu" role="menu" aria-label="Menu chức năng trên mobile">
+              <div class="psm-title">Chức năng & Tiện ích</div>
+              <div class="psm-section">
+                <button type="button" class="psm-item" onclick="openCloudSyncModal(); closePracticeMobileMenu();">
+                  <i data-lucide="cloud" class="w-4 h-4 text-sky-400"></i>
+                  <span>Đồng bộ đám mây</span>
+                  <span class="cloud-sync-dot disconnected ml-auto"></span>
+                </button>
+                <button type="button" class="psm-item" onclick="toggleFsTheme(); closePracticeMobileMenu();">
+                  <svg class="fs-theme-icon-moon w-4 h-4 text-amber-300" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+                  <span>Chuyển chế độ Sáng / Tối</span>
+                </button>
+                <button type="button" class="psm-item" onclick="closePracticeMobileMenu(); toggleTextSizePanel(event);">
+                  <span class="font-bold text-xs bg-slate-800 text-slate-200 px-1.5 py-0.5 rounded border border-slate-700">Aa</span>
+                  <span>Cỡ chữ & Giãn dòng</span>
+                </button>
+              </div>
+              <div class="psm-sep"></div>
+              <div class="psm-section">
+                <button type="button" class="psm-item" id="psm-btn-karaoke" onclick="toggleKaraokeMode(); updatePracticeMobileMenuBadges();">
+                  <i data-lucide="sparkles" class="w-4 h-4 text-red-400"></i>
+                  <span>Chạy chữ Karaoke</span>
+                  <span class="psm-badge" id="psm-badge-karaoke">TẮT</span>
+                </button>
+                <button type="button" class="psm-item" id="psm-btn-bilingual" onclick="toggleBilingual(); updatePracticeMobileMenuBadges();">
+                  <i data-lucide="languages" class="w-4 h-4 text-emerald-400"></i>
+                  <span>Dịch Song ngữ</span>
+                  <span class="psm-badge" id="psm-badge-bilingual">TẮT</span>
+                </button>
+                <button type="button" class="psm-item" id="psm-btn-autostop" onclick="toggleSentenceAutoStop(); updatePracticeMobileMenuBadges();">
+                  <i data-lucide="pause-circle" class="w-4 h-4 text-indigo-400"></i>
+                  <span>Tự dừng sau mỗi câu</span>
+                  <span class="psm-badge" id="psm-badge-autostop">TẮT</span>
+                </button>
+                <button type="button" class="psm-item" id="psm-btn-autoscroll" onclick="toggleAutoScroll(); updatePracticeMobileMenuBadges();">
+                  <i data-lucide="arrow-down-up" class="w-4 h-4 text-blue-400"></i>
+                  <span>Tự động cuộn (Auto scroll)</span>
+                  <span class="psm-badge" id="psm-badge-autoscroll">TẮT</span>
+                </button>
+              </div>
+              <div class="psm-sep"></div>
+              <div class="psm-section">
+                <button type="button" class="psm-item" onclick="closePracticeMobileMenu(); openPunctModal();">
+                  <i data-lucide="case-sensitive" class="w-4 h-4 text-yellow-400"></i>
+                  <span>Thêm dấu câu AI</span>
+                </button>
+                <button type="button" class="psm-item" onclick="closePracticeMobileMenu(); openKeyVocabModal();">
+                  <i data-lucide="sparkles" class="w-4 h-4 text-amber-400"></i>
+                  <span>Từ vựng khó (AI)</span>
+                </button>
+                <button type="button" class="psm-item" onclick="closePracticeMobileMenu(); window.TcfExam && window.TcfExam.openModal();">
+                  <span>🇨🇦</span>
+                  <span class="font-semibold text-blue-300">Thi thử nghe TCF</span>
+                </button>
+              </div>
+            </div>
+          </div>
     </header>
 
     <div id="pv-default" class="flex-1 min-h-0 w-full p-2.5 sm:p-3.5 overflow-hidden">
@@ -1838,7 +1910,7 @@
 <script src="js/01h-ebook.js?v=cb54eb78"></script>
 
   <script src="js/02-pv-helper.js?v=d2adcc44"></script>
-  <script id="pv-script" src="js/03-practice-engine.js?v=b81a57ab"></script>
+  <script id="pv-script" src="js/03-practice-engine.js?v=00c4fc4e"></script>
 <script src="js/04-vt-helper.js?v=b8dba445"></script>
 <script id="vt-script" src="js/05-translate-engine.js?v=6b41522a"></script>
 <!-- ============ ĐÁNH DẤU NHẸ TỪ / CỤM / CÂU ĐÃ LƯU (chỉ tính các mục lưu từ chính video / bài viết đang mở) ============ -->

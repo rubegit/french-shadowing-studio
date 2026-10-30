@@ -2,7 +2,115 @@
   /* ==================== THẺ PHỤ ĐỀ CÂU HIỆN TẠI (giao diện Mặc định) ==================== */
   body:not(.text-mode) #cs-card { display: block; }
   #cs-card.empty { display: none !important; }
+
+  /* Đồng bộ bo góc nút Từ vựng cho toàn trang */
+  .vocab-btn {
+    border-radius: 12px !important;
+  }
+  .vocab-count-badge, .vocab-due-badge {
+    border-radius: 9999px !important;
+  }
+
   @media (max-width: 768px) {
+    /* ==================== HEADER MOBILE: 4 NÚT & MENU SANDWICH 3 SỌC ==================== */
+    #screen-practice > header {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      padding: 6px 10px !important;
+      height: 52px !important;
+      min-height: 52px !important;
+      gap: 6px !important;
+      overflow: visible !important;
+    }
+    /* Ẩn các nút không cần thiết trên mobile header */
+    #screen-practice header .practice-sync-btn,
+    #screen-practice header .practice-theme-btn,
+    #screen-practice header .md\:block,
+    #practice-header-tools,
+    #sh-header-tools {
+      display: none !important;
+    }
+    /* Cụm nút trái: nút back + Từ vựng + Giao diện */
+    #screen-practice header > div:first-child {
+      display: flex !important;
+      align-items: center !important;
+      gap: 6px !important;
+      flex: 1 1 auto !important;
+      min-width: 0 !important;
+      overflow: visible !important;
+    }
+    #screen-practice header button[onclick="backToInputScreen()"] {
+      height: 36px !important;
+      min-width: 36px !important;
+      padding: 0 8px !important;
+      border-radius: 12px !important;
+      flex-shrink: 0 !important;
+    }
+    #screen-practice header .vocab-btn {
+      height: 36px !important;
+      padding: 0 10px !important;
+      border-radius: 12px !important;
+      flex-shrink: 0 !important;
+      font-size: 12px !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 5px !important;
+    }
+    #screen-practice header .pv-switch {
+      flex-shrink: 0 !important;
+    }
+    #screen-practice header .pv-switch-btn {
+      height: 36px !important;
+      padding: 2px 9px !important;
+      border-radius: 12px !important;
+      flex-shrink: 0 !important;
+      gap: 6px !important;
+    }
+    #screen-practice header .pv-sw-ico {
+      width: 22px !important;
+      height: 22px !important;
+    }
+    #screen-practice header .pv-sw-label small {
+      font-size: 9px !important;
+      line-height: 1 !important;
+    }
+    #screen-practice header .pv-sw-label b {
+      font-size: 11.5px !important;
+      line-height: 1.1 !important;
+    }
+    #screen-practice header .pv-sw-caret {
+      width: 13px !important;
+      height: 13px !important;
+    }
+    /* Cụm nút phải: Nút Menu sandwich 3 sọc */
+    .practice-mobile-menu-wrap {
+      display: inline-flex !important;
+      position: relative !important;
+      flex-shrink: 0 !important;
+    }
+    .practice-sandwich-btn {
+      display: inline-flex !important;
+      width: 36px !important;
+      height: 36px !important;
+      border-radius: 12px !important;
+      align-items: center !important;
+      justify-content: center !important;
+      background: #0d1630 !important;
+      border: 1px solid #1e2c52 !important;
+      color: #9fb0cf !important;
+      cursor: pointer !important;
+      padding: 0 !important;
+      transition: all .15s ease !important;
+    }
+    .practice-sandwich-btn:hover,
+    .practice-sandwich-btn[aria-expanded="true"] {
+      background: #182859 !important;
+      border-color: #3b82f6 !important;
+      color: #ffffff !important;
+    }
+
+    /* Thẻ câu hiện tại */
     .cs-card { padding: 8px 10px 6px; border-radius: 12px; margin-top: 2px; }
     .cs-text { font-size: calc(var(--sub-font-size, 15px) * 0.95) !important; line-height: var(--sub-textmode-line-height, 1.35) !important; padding: 2px 0 2px; }
     .cs-nav {
@@ -82,6 +190,130 @@
       flex: 0 0 auto;
     }
   }
+
+  /* Ẩn Menu sandwich trên Desktop */
+  @media (min-width: 769px) {
+    .practice-mobile-menu-wrap {
+      display: none !important;
+    }
+  }
+
+  /* Popup Dropdown của Menu Sandwich */
+  .practice-sandwich-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 260px;
+    max-width: calc(100vw - 20px);
+    background: #0a1126;
+    border: 1px solid #1e293b;
+    border-radius: 16px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65);
+    padding: 8px;
+    z-index: 500;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .practice-sandwich-menu.pv-x {
+    display: none !important;
+  }
+  .psm-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: #64748b;
+    padding: 6px 10px 4px;
+  }
+  .psm-section {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .psm-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: 10px;
+    border: none;
+    background: transparent;
+    color: #cbd5e1;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+    transition: background .12s, color .12s;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .psm-item:hover, .psm-item:active {
+    background: #141f3d;
+    color: #ffffff;
+  }
+  .psm-sep {
+    height: 1px;
+    background: #15203d;
+    margin: 4px 6px;
+  }
+  .psm-badge {
+    margin-left: auto;
+    font-size: 10.5px;
+    font-weight: 800;
+    padding: 2px 7px;
+    border-radius: 9999px;
+    background: #16203a;
+    color: #64748b;
+  }
+  .psm-badge.on {
+    background: rgba(34, 197, 94, .18);
+    color: #4ade80;
+  }
+
+  /* Tương thích Light Mode cho Menu Sandwich */
+  html[data-ui="light"] .practice-sandwich-btn {
+    background: var(--fs-surface, #ffffff) !important;
+    border-color: var(--fs-line, #cbd5e1) !important;
+    color: var(--fs-ink, #0f172a) !important;
+  }
+  html[data-ui="light"] .practice-sandwich-btn:hover,
+  html[data-ui="light"] .practice-sandwich-btn[aria-expanded="true"] {
+    background: var(--fs-hover, #f1f5f9) !important;
+    border-color: var(--fs-primary, #3b82f6) !important;
+    color: var(--fs-primary, #1d4ed8) !important;
+  }
+  html[data-ui="light"] .practice-sandwich-menu {
+    background: #ffffff !important;
+    border-color: #cbd5e1 !important;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.14) !important;
+  }
+  html[data-ui="light"] .psm-title {
+    color: #94a3b8 !important;
+  }
+  html[data-ui="light"] .psm-item {
+    color: #1e293b !important;
+  }
+  html[data-ui="light"] .psm-item:hover,
+  html[data-ui="light"] .psm-item:active {
+    background: #f1f5f9 !important;
+    color: #0f172a !important;
+  }
+  html[data-ui="light"] .psm-sep {
+    background: #e2e8f0 !important;
+  }
+  html[data-ui="light"] .psm-badge {
+    background: #f1f5f9 !important;
+    color: #64748b !important;
+  }
+  html[data-ui="light"] .psm-badge.on {
+    background: #dcfce7 !important;
+    color: #15803d !important;
+  }
+  html[data-ui="light"] #screen-practice header .vocab-btn {
+    border-radius: 12px !important;
+  }
+
   @media (max-width: 340px) {
     .cs-ts .ts-lbl { font-size: 10px !important; margin-right: 2px !important; }
     .cs-ts .ts-in { width: 46px !important; font-size: 10px !important; }

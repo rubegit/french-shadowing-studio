@@ -53,6 +53,59 @@
         pop.classList.add('pv-fixed');
         pop.style.top = top + 'px'; pop.style.left = left + 'px'; pop.style.right = 'auto';
     };
+    window.practiceMobileMenuOpen = function () {
+        const m = $('practice-sandwich-menu');
+        return m && !m.classList.contains('pv-x');
+    };
+    window.closePracticeMobileMenu = function () {
+        const m = $('practice-sandwich-menu');
+        const btn = $('practice-sandwich-btn');
+        if (m) m.classList.add('pv-x');
+        if (btn) btn.setAttribute('aria-expanded', 'false');
+    };
+    window.updatePracticeMobileMenuBadges = function () {
+        const bk = $('psm-badge-karaoke');
+        if (bk) {
+            const on = (typeof isKaraokeMode !== 'undefined' && isKaraokeMode) || document.body.classList.contains('karaoke-mode') || ($('btn-toggle-karaoke') && $('btn-toggle-karaoke').classList.contains('active'));
+            bk.textContent = on ? 'BẬT' : 'TẮT';
+            bk.classList.toggle('on', !!on);
+        }
+        const bb = $('psm-badge-bilingual');
+        if (bb) {
+            const on = document.body.classList.contains('bilingual-mode') || (typeof isBilingualMode !== 'undefined' && isBilingualMode);
+            bb.textContent = on ? 'BẬT' : 'TẮT';
+            bb.classList.toggle('on', !!on);
+        }
+        const ba = $('psm-badge-autostop');
+        if (ba) {
+            const on = (typeof isSentenceAutoStop !== 'undefined' && isSentenceAutoStop) || ($('btn-toggle-autostop') && $('btn-toggle-autostop').classList.contains('active'));
+            ba.textContent = on ? 'BẬT' : 'TẮT';
+            ba.classList.toggle('on', !!on);
+        }
+        const bs = $('psm-badge-autoscroll');
+        if (bs) {
+            const on = (typeof isAutoScroll !== 'undefined' && isAutoScroll) || ($('btn-toggle-autoscroll') && $('btn-toggle-autoscroll').classList.contains('active'));
+            bs.textContent = on ? 'BẬT' : 'TẮT';
+            bs.classList.toggle('on', !!on);
+        }
+    };
+    window.togglePracticeMobileMenu = function (e) {
+        if (e) e.stopPropagation();
+        const open = !window.practiceMobileMenuOpen();
+        const m = $('practice-sandwich-menu');
+        const btn = $('practice-sandwich-btn');
+        if (!m || !btn) return;
+        m.classList.toggle('pv-x', !open);
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        if (open) {
+            window.updatePracticeMobileMenuBadges();
+            if (window.lucide && typeof lucide.createIcons === 'function') {
+                try { lucide.createIcons(); } catch (err) {}
+            }
+            window.pvPlaceFloating(m, btn, 'right');
+        }
+    };
+
     window.pvToggleMenu = function (e) {
         if (e) e.stopPropagation();
         const open = !menuOpen();
@@ -61,11 +114,24 @@
         if (open) window.pvPlaceFloating($('pv-menu'), $('pv-switch-btn'), 'left');
     };
     // Đang mở menu mà xoay màn hình / vuốt header -> đóng lại cho khỏi lệch chỗ
-    window.addEventListener('resize', () => { if (menuOpen()) closeMenu(); });
-    window.addEventListener('orientationchange', () => { if (menuOpen()) closeMenu(); });
-    (function () { const h = document.querySelector('#screen-practice header'); if (h) h.addEventListener('scroll', () => { if (menuOpen()) closeMenu(); }, { passive: true }); })();
+    window.addEventListener('resize', () => {
+        if (menuOpen()) closeMenu();
+        if (window.practiceMobileMenuOpen && window.practiceMobileMenuOpen()) window.closePracticeMobileMenu();
+    });
+    window.addEventListener('orientationchange', () => {
+        if (menuOpen()) closeMenu();
+        if (window.practiceMobileMenuOpen && window.practiceMobileMenuOpen()) window.closePracticeMobileMenu();
+    });
+    (function () {
+        const h = document.querySelector('#screen-practice header');
+        if (h) h.addEventListener('scroll', () => {
+            if (menuOpen()) closeMenu();
+            if (window.practiceMobileMenuOpen && window.practiceMobileMenuOpen()) window.closePracticeMobileMenu();
+        }, { passive: true });
+    })();
     const pvOutside = (e) => {
         if (menuOpen() && !$('pv-switch').contains(e.target) && !$('pv-menu').contains(e.target)) closeMenu();
+        if (window.practiceMobileMenuOpen && window.practiceMobileMenuOpen() && !$('practice-mobile-menu-wrap').contains(e.target) && !$('practice-sandwich-menu').contains(e.target)) window.closePracticeMobileMenu();
         const pop = $('dc-pop');
         if (pop && !pop.classList.contains('pv-x') && !pop.contains(e.target) && !$('dc-count').contains(e.target)) closePop();
     };
@@ -73,6 +139,7 @@
     document.addEventListener('touchstart', pvOutside, { passive: true });   // iOS Safari: chạm vào vùng trống không sinh mousedown
     document.addEventListener('keydown', (e) => {
         if (e.key !== 'Escape') return;
+        if (window.practiceMobileMenuOpen && window.practiceMobileMenuOpen()) { window.closePracticeMobileMenu(); e.stopPropagation(); return; }
         if (menuOpen()) { closeMenu(); e.stopPropagation(); return; }
         const pop = $('dc-pop');
         if (pop && !pop.classList.contains('pv-x')) { closePop(); e.stopPropagation(); }

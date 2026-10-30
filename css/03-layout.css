@@ -1039,7 +1039,7 @@
     .vocab-top-header h2 { font-size: 1.45rem; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 10px; margin: 0; }
     .vocab-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .vocab-count-pill { font-size: 12px; font-weight: 800; padding: 1px 9px; border-radius: 9999px; background: rgba(245, 158, 11, 0.2); color: #fcd34d; }
-    .vocab-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 7px 13px; border-radius: 10px; font-size: 12px; font-weight: 700; color: #cbd5e1; background: #1e293b; border: 1px solid #334155; cursor: pointer; transition: all .15s; white-space: nowrap; }
+    .vocab-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 7px 13px; border-radius: 12px; font-size: 12px; font-weight: 700; color: #cbd5e1; background: #1e293b; border: 1px solid #334155; cursor: pointer; transition: all .15s; white-space: nowrap; }
     .vocab-btn:hover { background: #334155; color: #fff; }
     .vocab-btn.primary { background: rgba(30, 58, 138, .5); border-color: #1e40af; color: #bfdbfe; }
     .vocab-btn.primary:hover { background: rgba(37, 99, 235, .6); color: #fff; }
