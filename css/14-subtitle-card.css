@@ -22,10 +22,71 @@
     .cs-auto .sw { width: 28px; height: 16px; }
     .cs-auto .sw::after { width: 12px; height: 12px; top: 1px; left: 1px; }
     .cs-auto[aria-checked="true"] .sw::after { transform: translateX(12px); }
-    .cs-ts { margin-top: 2px; padding-top: 2px; border-top: none !important; }
-    .cs-ts .ts-ctl { gap: 3px; row-gap: 3px; }
-    .cs-ts .ts-step { width: 26px; height: 26px; border-radius: 6px; }
-    .cs-ts .ts-in { width: 56px; padding: 2px 2px; font-size: 11px; border-radius: 6px; }
+    .cs-ts {
+      display: flex !important;
+      justify-content: center !important;
+      align-items: center !important;
+      width: 100% !important;
+      margin-top: 2px;
+      padding-top: 2px;
+      border-top: none !important;
+    }
+    .cs-ts .ts-ctl {
+      display: inline-flex !important;
+      flex-wrap: nowrap !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 3px;
+      width: auto !important;
+      max-width: 100%;
+      margin: 0 auto;
+    }
+    .cs-ts .ts-lbl {
+      display: inline-block !important;
+      flex: 0 0 auto !important;
+      width: auto !important;
+      margin: 0 4px 0 0 !important;
+      font-size: 11.5px !important;
+      line-height: 1 !important;
+      color: #7d8db0;
+      white-space: nowrap !important;
+    }
+    html[data-ui="light"] .cs-ts .ts-lbl {
+      color: #52607a !important;
+    }
+    .cs-ts .ts-step {
+      width: 24px;
+      height: 24px;
+      min-width: 24px;
+      padding: 0;
+      border-radius: 6px;
+      flex: 0 0 auto;
+    }
+    .cs-ts .ts-step svg { width: 12px; height: 12px; }
+    .cs-ts .ts-in {
+      width: 52px;
+      padding: 2px 2px;
+      font-size: 11px;
+      border-radius: 6px;
+      flex: 0 0 auto;
+      text-align: center;
+    }
+    .cs-ts .ts-sep {
+      display: inline-block !important;
+      margin: 0 1px;
+      font-size: 11px;
+      flex: 0 0 auto;
+    }
+    .cs-ts .ts-reset {
+      margin-left: 2px;
+      flex: 0 0 auto;
+    }
+  }
+  @media (max-width: 340px) {
+    .cs-ts .ts-lbl { font-size: 10px !important; margin-right: 2px !important; }
+    .cs-ts .ts-in { width: 46px !important; font-size: 10px !important; }
+    .cs-ts .ts-step { width: 22px !important; height: 22px !important; min-width: 22px !important; }
+    .cs-ts .ts-ctl { gap: 2px !important; }
   }
   .cs-card { position: relative; flex: none; min-width: 0; padding: 18px 22px 14px; border-radius: 16px; background: #091024; border: 1px solid #1e293b; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, .3); }
   .cs-text { min-width: 0; text-align: center; font-size: calc(var(--sub-font-size, 19px) * 1.15); line-height: 1.5; font-weight: 600; color: #f1f5f9; user-select: text; -webkit-user-select: text; overflow-wrap: anywhere; }
@@ -55,22 +116,12 @@
   .cs-auto[aria-checked="true"] .sw::after { transform: translateX(14px); background: #cfdcff; }
   .cs-nav .dc-btn:disabled { opacity: .35; cursor: default; color: #b6c4e0; border-color: #1e2c52; background: #0d1630; }
   /* Hàng Thời gian (bắt đầu – kết thúc) dưới hàng Câu trước / Câu sau: nhỏ, chìm, tự co theo bề rộng của thẻ */
-  .cs-ts { container-type: inline-size; display: flex; justify-content: center; margin-top: 10px; padding-top: 10px; border-top: 1px solid #131d3d; }
+  .cs-ts { display: flex; justify-content: center; align-items: center; margin-top: 10px; padding-top: 10px; border-top: 1px solid #131d3d; }
+  .cs-ts .ts-ctl { display: inline-flex; align-items: center; justify-content: center; flex-wrap: nowrap; gap: 4px; max-width: 100%; }
+  .cs-ts .ts-lbl { font-size: 12px; font-weight: 700; color: #7d8db0; margin-right: 3px; white-space: nowrap; flex: 0 0 auto; }
+  html[data-ui="light"] .cs-ts .ts-lbl { color: #52607a !important; }
   .cs-ts .ts-in { color: #7d8db0; }          /* cùng độ sáng với chữ "Tự dừng" */
   .cs-ts .ts-in.mod { color: #a8935a; }      /* ô đã chỉnh: ngả vàng nhưng vẫn chìm như chữ "Tự dừng" */
-  .cs-ts .ts-ctl { flex-wrap: wrap; justify-content: center; row-gap: 6px; max-width: 100%; }
-  @container (max-width: 440px) {
-    .cs-ts .ts-ctl { gap: 4px; }
-    .cs-ts .ts-in { width: 64px; padding: 4px 2px; }
-  }
-  @container (max-width: 380px) {
-    .cs-ts .ts-lbl { display: none; }
-  }
-  @container (max-width: 310px) {
-    .cs-ts .ts-step { width: 28px; height: 28px; }
-    .cs-ts .ts-in { width: 58px; }
-    .cs-ts .ts-sep { display: none; }
-  }
   /* Thẻ đổi 1 <-> 2 dòng thì chỉ đẩy phần bên dưới, không kéo phần bên trên (tắt scroll anchoring của trình duyệt) */
   #panel-left, #panel-left > * { overflow-anchor: none; }
   /* Popup "Dừng loop" ngay trên chữ đang loop (dùng chung kiểu .dc-loop-pop của giao diện Chép chính tả) */
@@ -80,4 +131,3 @@
   #loop-stop-pop .lsp-delay b { min-width: 24px; text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
   #loop-stop-pop .lsp-step { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; cursor: pointer; user-select: none; }
   #loop-stop-pop .lsp-step:hover { background: rgba(148, 163, 184, .3); }
-  
