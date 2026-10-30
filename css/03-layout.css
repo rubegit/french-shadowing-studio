@@ -1238,24 +1238,36 @@
         display: flex;
         align-items: center;
         gap: 6px;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
         width: 100%;
         padding-top: 8px;
         border-top: 1px dashed rgba(255, 255, 255, 0.08);
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+      }
+      .vocab-card-tools::-webkit-scrollbar {
+        display: none;
       }
       .vocab-card-tools .vocab-mini {
         flex: 1 1 auto;
         text-align: center;
         justify-content: center;
-        padding: 7px 10px;
-        font-size: 11.5px;
+        padding: 5px 8px;
+        font-size: 11px;
+        min-height: 32px;
         border-radius: 8px;
         white-space: nowrap;
       }
       .vocab-card-tools .vocab-mini.del {
-        flex: 0 0 36px;
-        padding: 7px 0;
-        text-align: center;
+        flex: 0 0 32px;
+        width: 32px;
+        height: 32px;
+        min-height: 32px;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
       }
     }
     .vocab-mini { padding: 5px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; color: #94a3b8; background: #0f172a; border: 1px solid #1e293b; cursor: pointer; }

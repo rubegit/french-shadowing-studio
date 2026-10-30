@@ -6964,20 +6964,33 @@ html[data-ui="light"] .vocab-level-badge {
 html[data-ui="light"] .vocab-card-tools {
   display: flex !important;
   align-items: center !important;
-  gap: 8px !important;
-  flex-wrap: wrap !important;
+  gap: 6px !important;
+  flex-wrap: nowrap !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  scrollbar-width: none !important;
+}
+
+html[data-ui="light"] .vocab-card-tools::-webkit-scrollbar {
+  display: none !important;
 }
 
 html[data-ui="light"] .vocab-mini {
-  padding: 7px 14px !important;
-  border-radius: var(--fs-radius-full) !important;
-  font-size: 12.5px !important;
+  padding: 5px 10px !important;
+  min-height: 32px !important;
+  border-radius: 8px !important;
+  font-size: 11.5px !important;
   font-weight: 700 !important;
   color: var(--fs-ink) !important;
   background: var(--fs-surface-subtle) !important;
   border: 1px solid var(--fs-line) !important;
   cursor: pointer !important;
   transition: all 0.15s ease !important;
+  white-space: nowrap !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex: 1 1 auto !important;
 }
 
 html[data-ui="light"] .vocab-mini:hover {
@@ -6989,17 +7002,22 @@ html[data-ui="light"] .vocab-mini:hover {
 html[data-ui="light"] .vocab-mini.del {
   width: 32px !important;
   height: 32px !important;
+  min-height: 32px !important;
   padding: 0 !important;
-  display: flex !important;
+  display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  border-radius: 50% !important;
+  border-radius: 8px !important;
+  flex: 0 0 32px !important;
+  color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.08) !important;
+  border-color: rgba(239, 68, 68, 0.25) !important;
 }
 
 html[data-ui="light"] .vocab-mini.del:hover {
-  background: var(--fs-danger-bg) !important;
-  border-color: var(--fs-danger) !important;
-  color: var(--fs-danger) !important;
+  background: var(--fs-danger-bg, rgba(239, 68, 68, 0.18)) !important;
+  border-color: var(--fs-danger, #ef4444) !important;
+  color: #dc2626 !important;
 }
 
 /* Khung ngữ cảnh câu ví dụ (.vocab-ctx) */
