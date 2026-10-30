@@ -9899,9 +9899,9 @@ html:not([data-ui="light"]) .fs-theme-toggle {
    HAMBURGER BUTTON & MOBILE NAVIGATION DRAWER (< 900px)
    ========================================================================== */
 
-/* Nút Hamburger: mặc định ẩn trên Desktop */
+/* Nút Hamburger / Menu ☰: luôn hiển thị trên mọi thiết bị */
 .mobile-menu-btn {
-  display: none !important;
+  display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
   width: 42px !important;
@@ -10814,24 +10814,17 @@ html[data-ui="light"] .fs-header-brand-row {
   border-radius: 7px !important;
 }
 
-/* Hàng 2: Menu các chế độ học (bên trái) và Cụm tiện ích người dùng (bên phải) */
+/* Hàng 2: Cụm tiện ích người dùng (Từ vựng, Cloud Sync, Theme, Menu ☰) */
 .fs-header-nav-row {
   display: flex !important;
   align-items: center !important;
-  justify-content: space-between !important;
+  justify-content: flex-end !important;
   width: 100% !important;
-  padding: 6px 20px !important;
-  gap: 12px !important;
+  padding: 6px 24px !important;
   background: rgba(6, 11, 24, 0.65) !important;
   backdrop-filter: blur(8px) !important;
   box-sizing: border-box !important;
-  overflow-x: auto !important;
-  -webkit-overflow-scrolling: touch !important;
-  scrollbar-width: none !important;
-}
-
-.fs-header-nav-row::-webkit-scrollbar {
-  display: none !important;
+  border-bottom: 1px solid rgba(30, 58, 138, 0.3) !important;
 }
 
 html[data-ui="light"] .fs-header-nav-row {
@@ -10839,34 +10832,13 @@ html[data-ui="light"] .fs-header-nav-row {
   border-bottom: 1px solid var(--fs-line, #e2e8f0) !important;
 }
 
-.fs-header-nav-row .mode-tabs-wrap {
-  display: flex !important;
-  align-items: center !important;
-  flex: 0 0 auto !important;
-  margin: 0 !important;
-}
-
-.fs-header-nav-row .text-mode-toggle {
-  display: inline-flex !important;
-  flex-direction: row !important;
-  flex-wrap: nowrap !important;
-  align-items: center !important;
-  gap: 6px !important;
-}
-
-.fs-header-nav-row .text-mode-toggle button {
-  padding: 7px 13px !important;
-  font-size: 12.5px !important;
-  white-space: nowrap !important;
-  flex-shrink: 0 !important;
-}
-
 .fs-header-nav-row .fs-header-right {
   display: flex !important;
   align-items: center !important;
-  flex: 0 0 auto !important;
-  gap: 8px !important;
-  margin-left: auto !important;
+  justify-content: flex-end !important;
+  gap: 10px !important;
+  width: 100% !important;
+  flex-wrap: nowrap !important;
 }
 
 /* Tối ưu responsive cho Mobile & Tablet */
@@ -10880,13 +10852,51 @@ html[data-ui="light"] .fs-header-nav-row {
   }
 
   .fs-header-nav-row {
-    justify-content: space-between !important;
     padding: 6px 10px !important;
-    gap: 8px !important;
   }
 
-  .fs-header-nav-row .mode-tabs-wrap {
-    justify-content: flex-start !important;
-    margin: 0 !important;
+  .fs-header-nav-row .fs-header-right {
+    gap: 6px !important;
+    justify-content: flex-end !important;
   }
+}
+
+/* ============================================================
+   THU NHỎ TIÊU ĐỀ HERO XUỐNG CỠ 14PT VÀ TÁCH KHOẢNG CÁCH Ô EXTENSION
+   ============================================================ */
+.home-title,
+html[data-ui="light"] .home-title,
+html[data-ui="light"][data-theme="dark"] .home-title {
+  font-size: 14pt !important;
+  line-height: 1.35 !important;
+  font-weight: 700 !important;
+  margin: 0 0 4px 0 !important;
+  letter-spacing: normal !important;
+}
+
+@media (max-width: 900px) {
+  .home-title,
+  html[data-ui="light"] .home-title {
+    font-size: 14pt !important;
+  }
+}
+
+.home-sub,
+html[data-ui="light"] .home-sub,
+html[data-ui="light"][data-theme="dark"] .home-sub {
+  font-size: 13.5px !important;
+  line-height: 1.4 !important;
+  margin: 0 0 10px 0 !important;
+  color: var(--fs-muted, #94a3b8) !important;
+}
+
+.home-hero-text {
+  margin-bottom: 12px !important;
+}
+
+/* Khoảng cách ô cài extension tách khỏi ô trên */
+#ext-install-strip.ext-strip,
+.ext-strip {
+  margin-top: 22px !important;
+  margin-bottom: 18px !important;
 }
