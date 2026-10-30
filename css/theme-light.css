@@ -10591,3 +10591,164 @@ html[data-ui="light"] .page-nav-btn:hover:not(:disabled) {
   color: #0f172a;
   border-color: #94a3b8;
 }
+
+
+/* ============================================================
+   GLOBAL SPACING REFINEMENTS: INPUTS, BUTTONS & TOOLBARS (M6)
+   ============================================================ */
+
+/* 1. Header Right Navigation & Actions */
+.fs-header-right {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+/* 2. Main Input URL & Paste Button */
+.in,
+#main-card .in {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  margin-bottom: 14px !important;
+}
+
+#input-youtube-url,
+#main-card #input-youtube-url {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  border-radius: 12px !important;
+}
+
+#btn-paste-url,
+#main-card #btn-paste-url {
+  flex: 0 0 auto !important;
+  min-width: 68px !important;
+  height: 44px !important;
+  padding: 0 16px !important;
+  border-radius: 12px !important;
+}
+
+/* 3. Subtitle Dropzone & Action Buttons */
+.sub-paste-toggle-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  margin-top: 14px !important;
+  margin-bottom: 8px !important;
+}
+
+.sub-paste-toggle-btn {
+  padding: 5px 12px !important;
+  border-radius: 8px !important;
+}
+
+#raw-sub-container textarea {
+  border-radius: 12px !important;
+  margin-bottom: 4px !important;
+}
+
+#cta-glow-container {
+  margin-top: 20px !important;
+}
+
+/* 4. Video Library Catalog Toolbar */
+.video-catalog-toolbar {
+  gap: 14px !important;
+}
+
+.view-mode-toggle-group {
+  gap: 5px !important;
+  padding: 4px !important;
+}
+
+.view-mode-btn {
+  padding: 6px 10px !important;
+  border-radius: 8px !important;
+}
+
+.video-sort-select {
+  padding: 7px 14px !important;
+  border-radius: 10px !important;
+}
+
+/* 5. Practice Header Tools & Subtitle Bar */
+#practice-header-tools {
+  gap: 10px !important;
+}
+
+#practice-header-tools .edit-bl-btn {
+  margin-left: 2px !important;
+  padding: 7px 9px !important;
+  border-radius: 8px !important;
+}
+
+/* Thanh điều khiển tốc độ (#pv-ctl .pv-speeds) */
+#pv-ctl .pv-speeds {
+  gap: 3px !important;
+  padding: 3px !important;
+}
+
+#pv-ctl .pv-speeds button {
+  padding: 0 8px !important;
+  border-radius: 6px !important;
+}
+
+/* Ô tìm kiếm phụ đề và các nút chia sẻ, copy (#sub-search-bar .search-row) */
+.search-row,
+#sub-search-bar .search-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+}
+
+.share-btn {
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 12px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* 6. Vocab Screen: Top Actions & Toolbar Filters */
+.vocab-top {
+  gap: 12px !important;
+  margin-bottom: 20px !important;
+}
+
+.vocab-top .vocab-btn {
+  padding: 8px 14px !important;
+  border-radius: 10px !important;
+  margin: 0 !important;
+}
+
+.vocab-toolbar {
+  gap: 12px !important;
+  margin-bottom: 22px !important;
+}
+
+.vocab-toolbar .vocab-search {
+  padding: 10px 16px !important;
+  border-radius: 12px !important;
+}
+
+.vocab-toolbar .vocab-select {
+  padding: 9px 14px !important;
+  border-radius: 10px !important;
+}
+
+/* 7. Own YouTube Input Mode (.oy-row & steps) */
+.oy-row {
+  gap: 12px !important;
+}
+
+.oy-mini {
+  padding: 0 18px !important;
+  border-radius: 12px !important;
+}
+
+.oy-paste-sub-wrap {
+  margin-top: 14px !important;
+  margin-bottom: 14px !important;
+}
