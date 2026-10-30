@@ -6740,6 +6740,7 @@ html[data-ui="light"] .vocab-wrap {
 html[data-ui="light"] .vocab-top {
   display: flex !important;
   align-items: center !important;
+  justify-content: space-between !important;
   flex-wrap: wrap !important;
   gap: 12px !important;
   margin-bottom: 24px !important;
@@ -6747,7 +6748,13 @@ html[data-ui="light"] .vocab-top {
   border-bottom: 1px solid var(--fs-line) !important;
 }
 
-html[data-ui="light"] .vocab-top h2 {
+html[data-ui="light"] .vocab-top-header {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+}
+
+html[data-ui="light"] .vocab-top-header h2 {
   color: var(--fs-ink) !important;
   font-size: 24px !important;
   font-weight: 800 !important;
@@ -6755,7 +6762,14 @@ html[data-ui="light"] .vocab-top h2 {
   display: flex !important;
   align-items: center !important;
   gap: 10px !important;
-  margin: 0 auto 0 0 !important;
+  margin: 0 !important;
+}
+
+html[data-ui="light"] .vocab-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  flex-wrap: wrap !important;
 }
 
 html[data-ui="light"] .vocab-count-pill {
@@ -10721,10 +10735,78 @@ html[data-ui="light"] .page-nav-btn:hover:not(:disabled) {
   margin-bottom: 20px !important;
 }
 
+.vocab-top-header {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+}
+
+.vocab-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  flex-wrap: wrap !important;
+}
+
 .vocab-top .vocab-btn {
   padding: 8px 14px !important;
   border-radius: 10px !important;
   margin: 0 !important;
+}
+
+@media (max-width: 639px) {
+  .vocab-top,
+  html[data-ui="light"] .vocab-top {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 14px !important;
+    padding-bottom: 16px !important;
+    margin-bottom: 18px !important;
+  }
+
+  .vocab-top-header,
+  html[data-ui="light"] .vocab-top-header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    width: 100% !important;
+    gap: 12px !important;
+  }
+
+  .vocab-top-header h2,
+  html[data-ui="light"] .vocab-top-header h2 {
+    font-size: 18px !important;
+    font-weight: 800 !important;
+    gap: 8px !important;
+    margin: 0 !important;
+  }
+
+  .vocab-back-btn,
+  html[data-ui="light"] .vocab-back-btn {
+    min-height: 40px !important;
+    padding: 8px 12px !important;
+    font-size: 13px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .vocab-actions,
+  html[data-ui="light"] .vocab-actions {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  .vocab-actions .vocab-btn,
+  html[data-ui="light"] .vocab-actions .vocab-btn {
+    width: 100% !important;
+    justify-content: center !important;
+    min-height: 44px !important;
+    padding: 8px 6px !important;
+    font-size: 12.5px !important;
+    border-radius: 12px !important;
+    box-sizing: border-box !important;
+  }
 }
 
 .vocab-toolbar {

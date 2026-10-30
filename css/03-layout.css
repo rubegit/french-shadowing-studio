@@ -1018,14 +1018,25 @@
     #screen-vocab.hidden { display: none !important; }
     #screen-vocab { min-height: 100vh; padding: 20px 16px 56px; background: #070b14; }
     .vocab-wrap { max-width: 900px; margin: 0 auto; }
-    .vocab-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
-    .vocab-top h2 { flex: 1; min-width: 200px; font-size: 1.5rem; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 10px; }
+    .vocab-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+    .vocab-top-header { display: flex; align-items: center; gap: 12px; }
+    .vocab-top-header h2 { font-size: 1.45rem; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 10px; margin: 0; }
+    .vocab-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .vocab-count-pill { font-size: 12px; font-weight: 800; padding: 1px 9px; border-radius: 9999px; background: rgba(245, 158, 11, 0.2); color: #fcd34d; }
-    .vocab-btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 13px; border-radius: 10px; font-size: 12px; font-weight: 700; color: #cbd5e1; background: #1e293b; border: 1px solid #334155; cursor: pointer; transition: all .15s; white-space: nowrap; }
+    .vocab-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 7px 13px; border-radius: 10px; font-size: 12px; font-weight: 700; color: #cbd5e1; background: #1e293b; border: 1px solid #334155; cursor: pointer; transition: all .15s; white-space: nowrap; }
     .vocab-btn:hover { background: #334155; color: #fff; }
     .vocab-btn.primary { background: rgba(30, 58, 138, .5); border-color: #1e40af; color: #bfdbfe; }
     .vocab-btn.primary:hover { background: rgba(37, 99, 235, .6); color: #fff; }
     .vocab-btn.danger:hover { background: #7f1d1d; border-color: #b91c1c; }
+
+    @media (max-width: 639px) {
+      .vocab-top { flex-direction: column; align-items: stretch; gap: 14px; margin-bottom: 16px; }
+      .vocab-top-header { width: 100%; justify-content: flex-start; gap: 10px; }
+      .vocab-top-header h2 { font-size: 1.15rem; gap: 8px; }
+      .vocab-back-btn { padding: 7px 12px; min-height: 38px; flex-shrink: 0; }
+      .vocab-actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; width: 100%; }
+      .vocab-actions .vocab-btn { width: 100%; min-height: 44px; padding: 8px 6px; font-size: 12.5px; border-radius: 12px; justify-content: center; }
+    }
 
     /* ==================== HÀNG NÚT TRÊN CÙNG TRANG CHỦ (đối xứng 2 bên) ==================== */
     .home-top-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }

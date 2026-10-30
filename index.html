@@ -195,7 +195,7 @@
   
   <link rel="stylesheet" href="css/02-base.css?v=ca84d219">
 
-  <link rel="stylesheet" href="css/03-layout.css?v=aba0c8bb">
+  <link rel="stylesheet" href="css/03-layout.css?v=d1e5d2c4">
   <link rel="stylesheet" href="css/04-view-reader.css?v=9972a115">
 
   <link rel="stylesheet" href="css/05-view-catalog.css?v=86f8be75" id="playlist-page-style">
@@ -214,7 +214,7 @@
 <link rel="stylesheet" href="css/15-ipa-highlight.css?v=5b8c6b2b" id="ipa-hl-style">
 <link rel="stylesheet" href="css/16-own-video.css?v=211e741b" id="own-yt-style">
   <!-- Redesign Theme: Mint Pastel & Dark Mode (Spec 2026) -->
-  <link rel="stylesheet" href="css/theme-light.css?v=9a8d0146">
+  <link rel="stylesheet" href="css/theme-light.css?v=a20e4bc3">
 </head>
 <body class="bg-[#070b14] text-slate-100 min-h-screen flex flex-col antialiased selection:bg-red-600/40 selection:text-white" onclick="ensurePageFocus()">
 
@@ -1036,14 +1036,18 @@
   <div id="screen-vocab" class="hidden">
     <div class="vocab-wrap">
       <div class="vocab-top">
-        <button type="button" class="vocab-btn" onclick="closeVocabScreen()"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i><span>Quay lại</span></button>
-        <h2><i data-lucide="bookmark" class="w-5 h-5" style="color:#fbbf24"></i>Từ vựng đã lưu <span class="vocab-count-pill" id="vocab-count">0</span></h2>
-        <button type="button" id="vocab-practice-btn" class="vocab-btn primary" onclick="if(window.openVocabPracticeHub) window.openVocabPracticeHub(vocabSource, vocabLevelFilter)" title="Trung tâm luyện tập: Trắc nghiệm 4 đáp án, Nghe điền từ, Ghép thẻ nhanh, Flashcard 3D" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 0 14px rgba(99,102,241,0.35)">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><line x1="6" x2="10" y1="12" y2="12"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="15" x2="15.01" y1="13" y2="13"/><line x1="18" x2="18.01" y1="11" y2="11"/><rect width="20" height="12" x="2" y="6" rx="6"/></svg><span>Luyện tập</span><span id="vocab-due-badge-1" class="vocab-due-badge" style="display:none">0</span>
-        </button>
-        <button type="button" class="vocab-btn primary" onclick="openVocabMeaningModal()" title="Nhờ AI điền nghĩa riêng và 3 ví dụ cho các từ chưa có"><i data-lucide="languages" class="w-3.5 h-3.5"></i><span>Điền nghĩa (AI)</span><span id="vocab-missing-badge" class="vocab-missing-badge" style="display:none">0</span></button>
-        <button type="button" class="vocab-btn primary" onclick="exportVocabCsv()" title="Xuất file CSV để nhập vào Anki / Excel"><i data-lucide="download" class="w-3.5 h-3.5"></i><span>Xuất CSV</span></button>
-        <button type="button" class="vocab-btn danger" onclick="clearAllVocab()"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i><span>Xoá tất cả</span></button>
+        <div class="vocab-top-header">
+          <button type="button" class="vocab-btn vocab-back-btn" onclick="closeVocabScreen()"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i><span>Quay lại</span></button>
+          <h2><i data-lucide="bookmark" class="w-5 h-5" style="color:#fbbf24"></i>Từ vựng đã lưu <span class="vocab-count-pill" id="vocab-count">0</span></h2>
+        </div>
+        <div class="vocab-actions">
+          <button type="button" id="vocab-practice-btn" class="vocab-btn primary" onclick="if(window.openVocabPracticeHub) window.openVocabPracticeHub(vocabSource, vocabLevelFilter)" title="Trung tâm luyện tập: Trắc nghiệm 4 đáp án, Nghe điền từ, Ghép thẻ nhanh, Flashcard 3D" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 0 14px rgba(99,102,241,0.35)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><line x1="6" x2="10" y1="12" y2="12"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="15" x2="15.01" y1="13" y2="13"/><line x1="18" x2="18.01" y1="11" y2="11"/><rect width="20" height="12" x="2" y="6" rx="6"/></svg><span>Luyện tập</span><span id="vocab-due-badge-1" class="vocab-due-badge" style="display:none">0</span>
+          </button>
+          <button type="button" class="vocab-btn primary" onclick="openVocabMeaningModal()" title="Nhờ AI điền nghĩa riêng và 3 ví dụ cho các từ chưa có"><i data-lucide="languages" class="w-3.5 h-3.5"></i><span>Điền nghĩa (AI)</span><span id="vocab-missing-badge" class="vocab-missing-badge" style="display:none">0</span></button>
+          <button type="button" class="vocab-btn primary" onclick="exportVocabCsv()" title="Xuất file CSV để nhập vào Anki / Excel"><i data-lucide="download" class="w-3.5 h-3.5"></i><span>Xuất CSV</span></button>
+          <button type="button" class="vocab-btn danger" onclick="clearAllVocab()"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i><span>Xoá tất cả</span></button>
+        </div>
       </div>
       <div class="vocab-toolbar">
         <input id="vocab-search" class="vocab-search" type="text" placeholder="Tìm theo từ, ngữ cảnh, bản dịch, tên video..." oninput="vocabQuery = this.value; renderVocabPage()" />
