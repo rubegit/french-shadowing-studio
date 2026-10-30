@@ -65,20 +65,43 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
           </button>
           <div class="fs-pop pv-x" id="fs-pop" role="dialog" aria-label="Chỉnh cỡ chữ và giãn dòng phụ đề">
+            <!-- PHẦN 1: CÂU HIỆN TẠI -->
+            <div class="fs-sec-title">Câu hiện tại</div>
             <div class="fs-row">
               <span class="fs-lbl">Cỡ chữ</span>
               <div class="fs-grp">
-                <button type="button" onclick="changeSubtitleFontSize(-1.5)" title="Giảm cỡ chữ">A-</button>
-                <button type="button" class="fs-reset blue" onclick="resetSubtitleFontSize()" title="Đặt về cỡ chữ mặc định">Mặc định</button>
-                <button type="button" onclick="changeSubtitleFontSize(1.5)" title="Tăng cỡ chữ">A+</button>
+                <button type="button" onclick="changeCurrentSentenceFontSize(-1.5)" title="Giảm cỡ chữ câu hiện tại">A-</button>
+                <button type="button" class="fs-reset blue" onclick="resetCurrentSentenceFontSize()" title="Đặt về cỡ chữ mặc định">Mặc định</button>
+                <button type="button" onclick="changeCurrentSentenceFontSize(1.5)" title="Tăng cỡ chữ câu hiện tại">A+</button>
               </div>
             </div>
             <div class="fs-row">
               <span class="fs-lbl">Giãn dòng</span>
               <div class="fs-grp">
-                <button type="button" onclick="changeSubtitleLineHeight(-0.06)" title="Giảm giãn dòng">L-</button>
+                <button type="button" onclick="changeCurrentSentenceLineHeight(-0.06)" title="Giảm giãn dòng câu hiện tại">L-</button>
+                <button type="button" class="fs-reset amber" onclick="resetCurrentSentenceLineHeight()" title="Đặt về giãn dòng mặc định">Mặc định</button>
+                <button type="button" onclick="changeCurrentSentenceLineHeight(0.06)" title="Tăng giãn dòng câu hiện tại">L+</button>
+              </div>
+            </div>
+
+            <div class="fs-sec-sep"></div>
+
+            <!-- PHẦN 2: DANH SÁCH CÂU -->
+            <div class="fs-sec-title">Danh sách câu</div>
+            <div class="fs-row">
+              <span class="fs-lbl">Cỡ chữ</span>
+              <div class="fs-grp">
+                <button type="button" onclick="changeSubtitleFontSize(-1.5)" title="Giảm cỡ chữ danh sách câu">A-</button>
+                <button type="button" class="fs-reset blue" onclick="resetSubtitleFontSize()" title="Đặt về cỡ chữ mặc định">Mặc định</button>
+                <button type="button" onclick="changeSubtitleFontSize(1.5)" title="Tăng cỡ chữ danh sách câu">A+</button>
+              </div>
+            </div>
+            <div class="fs-row">
+              <span class="fs-lbl">Giãn dòng</span>
+              <div class="fs-grp">
+                <button type="button" onclick="changeSubtitleLineHeight(-0.06)" title="Giảm giãn dòng danh sách câu">L-</button>
                 <button type="button" class="fs-reset amber" onclick="resetSubtitleLineHeight()" title="Đặt về giãn dòng mặc định">Mặc định</button>
-                <button type="button" onclick="changeSubtitleLineHeight(0.06)" title="Tăng giãn dòng">L+</button>
+                <button type="button" onclick="changeSubtitleLineHeight(0.06)" title="Tăng giãn dòng danh sách câu">L+</button>
               </div>
             </div>
           </div>

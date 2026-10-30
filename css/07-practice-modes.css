@@ -22,7 +22,7 @@
     /* Nút "Giao diện" là nút quan trọng: luôn hiện chữ ở mọi kích thước màn hình (header tự vuốt ngang nếu thiếu chỗ) */
     @media (max-width: 639px) { .pv-switch-btn { padding-right: 10px; gap: 7px; flex: none; } }
 
-    .pv-menu { position: absolute; top: calc(100% + 9px); left: 0; z-index: 90; width: 326px; max-width: calc(100vw - 20px); padding: 6px; border-radius: 15px; background: #0b1328; border: 1px solid #1f2e57; box-shadow: 0 20px 56px rgba(0, 0, 0, .6); animation: pvPop .14s ease both; }
+    .pv-menu { position: absolute; top: calc(100% + 9px); left: auto; right: 0; z-index: 90; width: 326px; max-width: calc(100vw - 20px); padding: 6px; border-radius: 15px; background: #0b1328; border: 1px solid #1f2e57; box-shadow: 0 20px 56px rgba(0, 0, 0, .6); animation: pvPop .14s ease both; }
     @keyframes pvPop { from { opacity: 0; transform: translateY(-4px) scale(.98); } to { opacity: 1; transform: none; } }
     .pv-menu-title { font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: #64748b; font-weight: 800; padding: 7px 10px 5px; }
     .pv-opt { display: flex; align-items: flex-start; gap: 11px; width: 100%; text-align: left; padding: 9px 10px; border-radius: 11px; border: 1px solid transparent; background: transparent; color: #cbd5e1; cursor: pointer; transition: background .12s; }

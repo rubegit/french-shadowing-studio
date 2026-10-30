@@ -201,7 +201,7 @@
   <link rel="stylesheet" href="css/05-view-catalog.css?v=86f8be75" id="playlist-page-style">
 
   <link rel="stylesheet" href="css/06-view-news.css?v=88e8c2b2">
-  <link rel="stylesheet" href="css/07-practice-modes.css?v=556421d7" id="pv-style">
+  <link rel="stylesheet" href="css/07-practice-modes.css?v=388fbd7e" id="pv-style">
 
 <link rel="stylesheet" href="css/08-speed-control.css?v=c5ea6d87" id="df-style">
 <link rel="stylesheet" href="css/09-text-mode-fix.css?v=fbf827a0" id="txt-mode-fix">
@@ -210,7 +210,7 @@
 <link rel="stylesheet" href="css/12-video-timeline.css?v=f5eef356" id="vp-style">
 <link rel="stylesheet" href="css/13-default-controls.css?v=12e6e602" id="pv-ctl-style">
 
-  <link rel="stylesheet" href="css/14-subtitle-card.css?v=9bb884ff" id="cs-style">
+  <link rel="stylesheet" href="css/14-subtitle-card.css?v=9ef3fef1" id="cs-style">
 <link rel="stylesheet" href="css/15-ipa-highlight.css?v=5b8c6b2b" id="ipa-hl-style">
 <link rel="stylesheet" href="css/16-own-video.css?v=211e741b" id="own-yt-style">
   <!-- Redesign Theme: Mint Pastel & Dark Mode (Spec 2026) -->
@@ -1386,20 +1386,43 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
           </button>
           <div class="fs-pop pv-x" id="fs-pop" role="dialog" aria-label="Chỉnh cỡ chữ và giãn dòng phụ đề">
+            <!-- PHẦN 1: CÂU HIỆN TẠI -->
+            <div class="fs-sec-title">Câu hiện tại</div>
             <div class="fs-row">
               <span class="fs-lbl">Cỡ chữ</span>
               <div class="fs-grp">
-                <button type="button" onclick="changeSubtitleFontSize(-1.5)" title="Giảm cỡ chữ">A-</button>
-                <button type="button" class="fs-reset blue" onclick="resetSubtitleFontSize()" title="Đặt về cỡ chữ mặc định">Mặc định</button>
-                <button type="button" onclick="changeSubtitleFontSize(1.5)" title="Tăng cỡ chữ">A+</button>
+                <button type="button" onclick="changeCurrentSentenceFontSize(-1.5)" title="Giảm cỡ chữ câu hiện tại">A-</button>
+                <button type="button" class="fs-reset blue" onclick="resetCurrentSentenceFontSize()" title="Đặt về cỡ chữ mặc định">Mặc định</button>
+                <button type="button" onclick="changeCurrentSentenceFontSize(1.5)" title="Tăng cỡ chữ câu hiện tại">A+</button>
               </div>
             </div>
             <div class="fs-row">
               <span class="fs-lbl">Giãn dòng</span>
               <div class="fs-grp">
-                <button type="button" onclick="changeSubtitleLineHeight(-0.06)" title="Giảm giãn dòng">L-</button>
+                <button type="button" onclick="changeCurrentSentenceLineHeight(-0.06)" title="Giảm giãn dòng câu hiện tại">L-</button>
+                <button type="button" class="fs-reset amber" onclick="resetCurrentSentenceLineHeight()" title="Đặt về giãn dòng mặc định">Mặc định</button>
+                <button type="button" onclick="changeCurrentSentenceLineHeight(0.06)" title="Tăng giãn dòng câu hiện tại">L+</button>
+              </div>
+            </div>
+
+            <div class="fs-sec-sep"></div>
+
+            <!-- PHẦN 2: DANH SÁCH CÂU -->
+            <div class="fs-sec-title">Danh sách câu</div>
+            <div class="fs-row">
+              <span class="fs-lbl">Cỡ chữ</span>
+              <div class="fs-grp">
+                <button type="button" onclick="changeSubtitleFontSize(-1.5)" title="Giảm cỡ chữ danh sách câu">A-</button>
+                <button type="button" class="fs-reset blue" onclick="resetSubtitleFontSize()" title="Đặt về cỡ chữ mặc định">Mặc định</button>
+                <button type="button" onclick="changeSubtitleFontSize(1.5)" title="Tăng cỡ chữ danh sách câu">A+</button>
+              </div>
+            </div>
+            <div class="fs-row">
+              <span class="fs-lbl">Giãn dòng</span>
+              <div class="fs-grp">
+                <button type="button" onclick="changeSubtitleLineHeight(-0.06)" title="Giảm giãn dòng danh sách câu">L-</button>
                 <button type="button" class="fs-reset amber" onclick="resetSubtitleLineHeight()" title="Đặt về giãn dòng mặc định">Mặc định</button>
-                <button type="button" onclick="changeSubtitleLineHeight(0.06)" title="Tăng giãn dòng">L+</button>
+                <button type="button" onclick="changeSubtitleLineHeight(0.06)" title="Tăng giãn dòng danh sách câu">L+</button>
               </div>
             </div>
           </div>
@@ -1936,8 +1959,8 @@
 <script src="js/01h-ebook.js?v=cb54eb78"></script>
 
   <script src="js/02-pv-helper.js?v=d2adcc44"></script>
-  <script id="pv-script" src="js/03-practice-engine.js?v=dbbceda4"></script>
-<script src="js/04-vt-helper.js?v=b8dba445"></script>
+  <script id="pv-script" src="js/03-practice-engine.js?v=4320d635"></script>
+<script src="js/04-vt-helper.js?v=3d49b6ed"></script>
 <script id="vt-script" src="js/05-translate-engine.js?v=6b41522a"></script>
 <!-- ============ ĐÁNH DẤU NHẸ TỪ / CỤM / CÂU ĐÃ LƯU (chỉ tính các mục lưu từ chính video / bài viết đang mở) ============ -->
 <link rel="stylesheet" href="css/17-mobile-tweaks.css?v=9552bb4c" id="mobile-tweaks">

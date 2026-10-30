@@ -149,7 +149,7 @@
         const open = !menuOpen();
         $('pv-menu').classList.toggle('pv-x', !open);
         $('pv-switch-btn').setAttribute('aria-expanded', open ? 'true' : 'false');
-        if (open) window.pvPlaceFloating($('pv-menu'), $('pv-switch-btn'), 'left');
+        if (open) window.pvPlaceFloating($('pv-menu'), $('pv-switch-btn'), 'right');
     };
     // Đang mở menu mà xoay màn hình / vuốt header -> đóng lại cho khỏi lệch chỗ
     window.addEventListener('resize', () => {
