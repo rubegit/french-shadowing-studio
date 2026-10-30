@@ -228,3 +228,33 @@ html[data-ui="light"] .sub-textmode-container .sentence-text-line {
   line-height: var(--sub-textmode-line-height, 1.45) !important;
 }
 
+/* ==================== SỬA LỖI CHE KHUẤT 4 LỰA CHỌN TRẮC NGHIỆM (M18) ==================== */
+.vph-body {
+  min-height: 0 !important;
+  flex: 1 1 auto !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+.vph-quiz-container {
+  min-height: 0 !important;
+  flex: 1 1 auto !important;
+  justify-content: flex-start !important;
+}
+
+@media (max-width: 768px) {
+  .vph-options-grid,
+  html[data-ui="light"] .vph-options-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 6px !important;
+    margin-top: 4px !important;
+  }
+  .vph-option-btn,
+  html[data-ui="light"] .vph-option-btn {
+    padding: 8px 10px !important;
+    min-height: 44px !important;
+    font-size: 13px !important;
+  }
+}
+
+

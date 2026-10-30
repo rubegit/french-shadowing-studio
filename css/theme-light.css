@@ -7572,11 +7572,16 @@ html[data-ui="light"] .vph-score-box {
   font-size: 14px !important;
 }
 
-/* Thân modal (Mục 2, padding 24x28, cuộn khi dài) */
+/* Thân modal (Mục 2, padding 20x24, cuộn khi dài) */
 html[data-ui="light"] .vph-body {
-  padding: 24px 28px !important;
+  padding: 20px 24px 24px !important;
   background: var(--fs-surface) !important;
   overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
 }
 
 /* --------------------------------------------------------------------------
@@ -7585,7 +7590,10 @@ html[data-ui="light"] .vph-body {
 html[data-ui="light"] .vph-quiz-container {
   display: flex !important;
   flex-direction: column !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
   gap: 16px !important;
+  justify-content: flex-start !important;
 }
 
 html[data-ui="light"] .vph-quiz-meta {
@@ -8383,22 +8391,57 @@ html[data-ui="light"] .vph-secondary-btn {
 /* Responsive (Mục 9) */
 @media (max-width: 700px) {
   html[data-ui="light"] .vph-modal {
-    border-radius: 16px !important;
-    max-height: 98vh !important;
+    width: 100vw !important;
+    height: 100% !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    border-radius: 0 !important;
+    border: none !important;
+    margin: 0 !important;
+    padding-bottom: env(safe-area-inset-bottom, 10px) !important;
   }
   html[data-ui="light"] .vph-header,
   html[data-ui="light"] .vph-tabs-bar,
-  html[data-ui="light"] .vph-mastery-strip,
-  html[data-ui="light"] .vph-stats-strip,
+  html[data-ui="light"] .vph-stats-strip {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+  html[data-ui="light"] .vph-mastery-strip {
+    display: none !important;
+  }
   html[data-ui="light"] .vph-body {
-    padding-left: 16px !important;
-    padding-right: 16px !important;
+    padding: 8px 10px max(16px, env(safe-area-inset-bottom, 16px)) !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+  }
+  html[data-ui="light"] .vph-quiz-container {
+    gap: 8px !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    justify-content: flex-start !important;
+    padding-bottom: 8px !important;
+  }
+  html[data-ui="light"] .vph-question-card {
+    padding: 8px 10px !important;
+    gap: 3px !important;
+    border-radius: 12px !important;
   }
   html[data-ui="light"] .vph-options-grid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 5px !important;
+    margin-top: 3px !important;
+  }
+  html[data-ui="light"] .vph-option-btn {
+    padding: 7px 8px !important;
+    min-height: 44px !important;
+    border-radius: 10px !important;
+    gap: 6px !important;
+    font-size: 12.5px !important;
+    align-items: center !important;
   }
   html[data-ui="light"] .vph-match-grid {
     grid-template-columns: repeat(2, 1fr) !important;
+    gap: 5px !important;
   }
   html[data-ui="light"] #vph-scope-label {
     width: 100% !important;
