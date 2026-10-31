@@ -4018,6 +4018,60 @@ html[data-ui="light"] .dc-result {
   color: var(--fs-ink) !important;
 }
 
+/* Vòng tròn điểm số (.dc-ring) ở Light mode */
+html[data-ui="light"]:not(.dark) .dc-ring,
+html:not(.dark) .dc-ring {
+  background: conic-gradient(var(--c) calc(var(--p) * 1%), var(--fs-line, #E2E8F0) 0) !important;
+}
+
+html[data-ui="light"]:not(.dark) .dc-ring::before,
+html:not(.dark) .dc-ring::before {
+  background: var(--fs-surface, #FFFFFF) !important;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+}
+
+html[data-ui="light"]:not(.dark) .dc-ring span,
+html:not(.dark) .dc-ring span {
+  color: var(--fs-ink, #14213D) !important;
+  font-weight: 800 !important;
+}
+
+html[data-ui="light"]:not(.dark) .dc-ring.reveal,
+html:not(.dark) .dc-ring.reveal {
+  background: var(--fs-surface-subtle, #EDF6F1) !important;
+}
+
+html[data-ui="light"]:not(.dark) .dc-ring.reveal svg,
+html:not(.dark) .dc-ring.reveal svg {
+  color: var(--fs-muted, #4A566B) !important;
+}
+
+html[data-ui="light"]:not(.dark) .dc-sub,
+html:not(.dark) .dc-sub {
+  color: var(--fs-muted, #4A566B) !important;
+}
+
+/* Đảm bảo chế độ Dark giữ màu tối chuẩn xác cho .dc-ring */
+html[data-ui="light"][data-theme="dark"] .dc-ring,
+html.dark .dc-ring {
+  background: conic-gradient(var(--c) calc(var(--p) * 1%), #17224a 0) !important;
+}
+
+html[data-ui="light"][data-theme="dark"] .dc-ring::before,
+html.dark .dc-ring::before {
+  background: #16221E !important;
+}
+
+html[data-ui="light"][data-theme="dark"] .dc-ring span,
+html.dark .dc-ring span {
+  color: #E8F3EE !important;
+}
+
+html[data-ui="light"][data-theme="dark"] .dc-sub,
+html.dark .dc-sub {
+  color: #8a9bb8 !important;
+}
+
 html[data-ui="light"] .dc-verdict {
   color: var(--fs-ink) !important;
   font-size: 18px !important;
