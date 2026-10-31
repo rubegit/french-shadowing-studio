@@ -92,14 +92,20 @@
     .dc-pop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); gap: 6px; max-height: 270px; overflow-y: auto; padding: 3px; }
     .dc-chip { height: 34px; border-radius: 9px; font-size: 12px; font-weight: 700; border: 1px solid #1e2c52; background: #0d1630; color: #9fb0cf; cursor: pointer; transition: all .12s; }
     .dc-chip:hover { border-color: #3b5bb5; color: #fff; }
-    .dc-chip.perfect { background: rgba(34, 197, 94, .16); border-color: rgba(34, 197, 94, .5); color: #86efac; }
-    .dc-chip.partial { background: rgba(245, 158, 11, .15); border-color: rgba(245, 158, 11, .5); color: #fcd34d; }
-    .dc-chip.poor { background: rgba(239, 68, 68, .15); border-color: rgba(239, 68, 68, .5); color: #fca5a5; }
+    .dc-chip.perfect { background: rgba(34, 197, 94, .18); border-color: rgba(34, 197, 94, .55); color: #86efac; }
+    .dc-chip.partial { background: rgba(245, 158, 11, .18); border-color: rgba(245, 158, 11, .55); color: #fcd34d; }
+    .dc-chip.poor { background: rgba(239, 68, 68, .18); border-color: rgba(239, 68, 68, .55); color: #fca5a5; }
+    .dc-chip.todo { background: #0d1630; border-color: #1e2c52; color: #9fb0cf; }
     .dc-chip.revealed { background: rgba(100, 116, 139, .18); border-color: rgba(100, 116, 139, .5); color: #cbd5e1; }
-    .dc-chip.cur { outline: 2px solid #60a5fa; outline-offset: 1px; color: #fff; }
+    .dc-chip.cur { outline: 2px solid #38bdf8; outline-offset: 1.5px; color: #fff; }
     .dc-pop-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
     .dc-legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 11.5px; color: #7d8db0; font-weight: 600; }
-    .dc-legend i { display: inline-block; width: 9px; height: 9px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+    .dc-legend i, .dc-leg-dot { display: inline-block; width: 9px; height: 9px; border-radius: 9999px; margin-right: 5px; vertical-align: -1px; }
+    .dc-leg-item { display: inline-flex; align-items: center; }
+    .dc-leg-item.perfect .dc-leg-dot { background: #22c55e; }
+    .dc-leg-item.partial .dc-leg-dot { background: #f59e0b; }
+    .dc-leg-item.poor .dc-leg-dot { background: #ef4444; }
+    .dc-leg-item.todo .dc-leg-dot { background: #17213f; border: 1px solid #2b3f7a; }
     .dc-link { background: none; border: 0; color: #7aa2ff; font-weight: 700; cursor: pointer; font-size: 12px; padding: 2px 4px; }
     .dc-link:hover { color: #fff; }
     .dc-link.danger { color: #f87171; }

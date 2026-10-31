@@ -202,7 +202,7 @@
   <link rel="stylesheet" href="css/05-view-catalog.css?v=86f8be75" id="playlist-page-style">
 
   <link rel="stylesheet" href="css/06-view-news.css?v=88e8c2b2">
-  <link rel="stylesheet" href="css/07-practice-modes.css?v=9334417a" id="pv-style">
+  <link rel="stylesheet" href="css/07-practice-modes.css?v=a8ee35b5" id="pv-style">
 
 <link rel="stylesheet" href="css/08-speed-control.css?v=c5ea6d87" id="df-style">
 <link rel="stylesheet" href="css/09-text-mode-fix.css?v=fbf827a0" id="txt-mode-fix">
@@ -215,7 +215,7 @@
 <link rel="stylesheet" href="css/15-ipa-highlight.css?v=5b8c6b2b" id="ipa-hl-style">
 <link rel="stylesheet" href="css/16-own-video.css?v=211e741b" id="own-yt-style">
   <!-- Redesign Theme: Mint Pastel & Dark Mode (Spec 2026) -->
-  <link rel="stylesheet" href="css/theme-light.css?v=cbb61e03">
+  <link rel="stylesheet" href="css/theme-light.css?v=75e82988">
 </head>
 <body class="bg-[#070b14] text-slate-100 min-h-screen flex flex-col antialiased selection:bg-red-600/40 selection:text-white" onclick="ensurePageFocus()">
 
@@ -1830,7 +1830,12 @@
           <div class="dc-side-meta" id="dc-side-meta"></div>
         </div>
         <div class="dc-side-grid" id="dc-side-grid"></div>
-        <div class="dc-legend"><span><i style="background:#22c55e"></i>Hoàn hảo</span><span><i style="background:#f59e0b"></i>Gần đúng</span><span><i style="background:#ef4444"></i>Cần luyện</span><span><i style="background:#17213f;border:1px solid #2b3f7a"></i>Chưa làm</span></div>
+        <div class="dc-legend">
+          <span class="dc-leg-item perfect"><i class="dc-leg-dot"></i>Hoàn hảo</span>
+          <span class="dc-leg-item partial"><i class="dc-leg-dot"></i>Gần đúng</span>
+          <span class="dc-leg-item poor"><i class="dc-leg-dot"></i>Cần luyện</span>
+          <span class="dc-leg-item todo"><i class="dc-leg-dot"></i>Chưa làm</span>
+        </div>
       </aside>
       <div class="dc-scroll" id="dc-scroll">
       <div class="dc-wrap">

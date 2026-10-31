@@ -3987,7 +3987,6 @@ html[data-ui="light"] #dc-check {
 html[data-ui="light"] #dc-hint,
 html[data-ui="light"] #dc-clear,
 html[data-ui="light"] #dc-replay,
-html[data-ui="light"] #dc-trans,
 html[data-ui="light"] #dc-next {
   background: var(--fs-surface) !important;
   border: 1px solid var(--fs-border) !important;
@@ -4008,6 +4007,122 @@ html[data-ui="light"] .dc-w.err {
   color: var(--fs-stat-fail-ink) !important;
   text-decoration: underline wavy var(--fs-stat-fail-ink) !important;
   font-weight: 700 !important;
+}
+
+/* Thẻ kết quả chép chính tả (.dc-result) & đối soát (.dc-diff) */
+html[data-ui="light"] .dc-result {
+  background-color: var(--fs-surface) !important;
+  border: 1px solid var(--fs-line) !important;
+  border-radius: 18px !important;
+  box-shadow: var(--fs-shadow-sm) !important;
+  color: var(--fs-ink) !important;
+}
+
+html[data-ui="light"] .dc-verdict {
+  color: var(--fs-ink) !important;
+  font-size: 18px !important;
+  font-weight: 800 !important;
+}
+
+html[data-ui="light"] .dc-result.perfect .dc-verdict {
+  color: #15803d !important;
+}
+
+html[data-ui="light"] .dc-res-meta {
+  color: var(--fs-muted) !important;
+}
+
+html[data-ui="light"] .dc-diff {
+  background: var(--fs-surface-subtle) !important;
+  border: 1px solid var(--fs-line) !important;
+  color: var(--fs-ink) !important;
+  box-shadow: none !important;
+}
+
+html[data-ui="light"] .dc-result.perfect .dc-diff {
+  border-color: #86efac !important;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.12) !important;
+}
+
+/* Chữ trong kết quả đối soát */
+html[data-ui="light"] .dc-d.ok {
+  color: #15803d !important;
+  font-weight: 700 !important;
+}
+
+html[data-ui="light"] .dc-d.plain {
+  color: var(--fs-ink) !important;
+}
+
+html[data-ui="light"] .dc-d.miss {
+  color: #b91c1c !important;
+  background: rgba(239, 68, 68, 0.12) !important;
+  box-shadow: inset 0 -2px 0 #ef4444 !important;
+}
+
+html[data-ui="light"] .dc-d.wrong {
+  color: #b91c1c !important;
+  background: rgba(239, 68, 68, 0.15) !important;
+  box-shadow: inset 0 -2px 0 #ef4444 !important;
+}
+
+html[data-ui="light"] .dc-d.close {
+  color: #b45309 !important;
+  background: rgba(245, 158, 11, 0.15) !important;
+  box-shadow: inset 0 -2px 0 #f59e0b !important;
+}
+
+html[data-ui="light"] .dc-d.extra {
+  color: var(--fs-muted) !important;
+  text-decoration-color: #ef4444 !important;
+}
+
+html[data-ui="light"] .dc-d .dc-typed {
+  color: #b91c1c !important;
+}
+
+html[data-ui="light"] .dc-d.close .dc-typed {
+  color: #b45309 !important;
+}
+
+/* Từ vựng đã lưu trong khung dc-diff */
+html[data-ui="light"] .dc-d.vs-w {
+  background-color: transparent !important;
+}
+
+html[data-ui="light"] .dc-d.vs-w.ok,
+html[data-ui="light"] .dc-d.vs-w.plain {
+  background-color: rgba(245, 158, 11, 0.12) !important;
+  text-decoration: underline dotted #f59e0b !important;
+  text-underline-offset: 4px !important;
+}
+
+/* DỊCH NGHĨA trong kết quả chép chính tả */
+html[data-ui="light"] .dc-trans {
+  background: transparent !important;
+  border: none !important;
+  color: var(--fs-ink) !important;
+  font-style: italic !important;
+  padding: 4px 0 !important;
+  margin-top: 12px !important;
+}
+
+html[data-ui="light"] .dc-trans b {
+  color: var(--fs-muted) !important;
+  font-style: normal !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: .08em !important;
+}
+
+html[data-ui="light"] .dc-trans span {
+  color: var(--fs-ink) !important;
+}
+
+/* Tiêu đề video trên header khi ở chế độ chép chính tả */
+html[data-ui="light"] .pv-header-title {
+  color: var(--fs-ink) !important;
+  font-weight: 600 !important;
 }
 
 /* --- 8. KEY VOCAB MODAL & HIGHLIGHT BADGES --- */
@@ -6011,7 +6126,7 @@ html[data-ui="light"] .dc-side-grid button {
   border-radius: var(--fs-radius-sm) !important;
   border: 1px solid var(--fs-line) !important;
   background: var(--fs-surface-subtle) !important;
-  color: var(--fs-ink) !important;
+  color: var(--fs-muted) !important;
   font-weight: 700 !important;
   font-size: 12.5px !important;
   cursor: pointer !important;
@@ -6020,30 +6135,48 @@ html[data-ui="light"] .dc-side-grid button {
 
 html[data-ui="light"] .dc-side-grid button:hover {
   border-color: var(--fs-primary) !important;
-  background: var(--fs-surface) !important;
+  color: var(--fs-ink) !important;
 }
 
-html[data-ui="light"] .dc-side-grid button.curr,
-html[data-ui="light"] .dc-side-grid button.cur {
-  outline: 2px solid var(--fs-primary) !important;
-  outline-offset: 1px !important;
-  background: var(--fs-tint) !important;
-  color: var(--fs-accent-text) !important;
+/* 4 Trạng thái câu chép chính tả trên thanh danh sách */
+html[data-ui="light"] .dc-side-grid button.perfect,
+html[data-ui="light"] .dc-side-grid button.done {
+  background: #dcfce7 !important;
+  border-color: #86efac !important;
+  color: #15803d !important;
   font-weight: 800 !important;
 }
 
-html[data-ui="light"] .dc-side-grid button.done {
-  background: var(--fs-success-bg) !important;
-  border-color: var(--fs-success) !important;
-  color: var(--fs-success) !important;
-}
-
+html[data-ui="light"] .dc-side-grid button.partial,
 html[data-ui="light"] .dc-side-grid button.typed {
-  background: var(--fs-warning-bg) !important;
-  border-color: var(--fs-warning) !important;
-  color: var(--fs-warning) !important;
+  background: #fef3c7 !important;
+  border-color: #fde68a !important;
+  color: #b45309 !important;
+  font-weight: 800 !important;
 }
 
+html[data-ui="light"] .dc-side-grid button.poor {
+  background: #fee2e2 !important;
+  border-color: #fca5a5 !important;
+  color: #b91c1c !important;
+  font-weight: 800 !important;
+}
+
+html[data-ui="light"] .dc-side-grid button.todo {
+  background: var(--fs-surface-subtle) !important;
+  border-color: var(--fs-line) !important;
+  color: var(--fs-muted) !important;
+}
+
+/* Câu đang chọn */
+html[data-ui="light"] .dc-side-grid button.curr,
+html[data-ui="light"] .dc-side-grid button.cur {
+  outline: 2px solid var(--fs-primary) !important;
+  outline-offset: 1.5px !important;
+  box-shadow: 0 0 0 1px var(--fs-surface) !important;
+}
+
+/* Chú thích trạng thái (Legend) */
 html[data-ui="light"] .dc-legend {
   display: flex !important;
   flex-direction: column !important;
@@ -6060,12 +6193,34 @@ html[data-ui="light"] .dc-legend span {
   gap: 8px !important;
 }
 
-html[data-ui="light"] .dc-legend i {
+html[data-ui="light"] .dc-legend i,
+html[data-ui="light"] .dc-leg-dot {
   width: 10px !important;
   height: 10px !important;
   border-radius: 50% !important;
   display: inline-block !important;
   flex-shrink: 0 !important;
+}
+
+html[data-ui="light"] .dc-leg-item.perfect .dc-leg-dot,
+html[data-ui="light"] .dc-legend span:nth-child(1) i {
+  background: #22c55e !important;
+}
+
+html[data-ui="light"] .dc-leg-item.partial .dc-leg-dot,
+html[data-ui="light"] .dc-legend span:nth-child(2) i {
+  background: #f59e0b !important;
+}
+
+html[data-ui="light"] .dc-leg-item.poor .dc-leg-dot,
+html[data-ui="light"] .dc-legend span:nth-child(3) i {
+  background: #ef4444 !important;
+}
+
+html[data-ui="light"] .dc-leg-item.todo .dc-leg-dot,
+html[data-ui="light"] .dc-legend span:nth-child(4) i {
+  background: #f1f5f9 !important;
+  border: 1.5px solid #94a3b8 !important;
 }
 
 /* Cột phải (8fr): Thẻ làm bài chính (#vt-main) */
