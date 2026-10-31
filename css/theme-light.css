@@ -3410,43 +3410,62 @@ html[data-ui="light"] .sub-word-unit {
   color: var(--fs-ink) !important;
   font-family: var(--fs-font-sans) !important;
   font-weight: 600 !important;
-  transition: background-color 0.12s ease, color 0.12s ease !important;
-  border-radius: 6px !important;
+  transition: none !important; /* Zero Repaint Jank */
+  border-radius: 4px !important;
   padding: 1px 3px !important;
 }
 
-/* 1. Trạng thái Đang đọc (Active Karaoke word) */
-html[data-ui="light"] .sub-word-unit.karaoke-word-active,
-html[data-ui="light"] .karaoke-word-active {
-  background-color: var(--fs-primary) !important;
-  color: var(--fs-on-primary) !important;
+/* 1. L3: Trạng thái Đang đọc (Active Karaoke word) - Pill Mint Pastel */
+html[data-ui="light"] .sub-word-unit.karaoke-word-active:not(.vs-w),
+html[data-ui="light"] .karaoke-word-active:not(.vs-w) {
+  background-color: #E1F5EC !important;
+  color: #0B5A3C !important;
+  -webkit-text-fill-color: #0B5A3C !important;
   font-weight: 700 !important;
   padding: 2px 7px !important;
-  border-radius: var(--fs-radius-pos) !important;
-  box-shadow: 0 2px 8px rgba(168, 230, 207, 0.45) !important;
+  border-radius: 6px !important;
+  box-shadow: 0 0 0 1.5px rgba(11, 90, 60, 0.28) !important;
+  transition: none !important;
+}
+
+html[data-ui="light"][data-theme="dark"] .sub-word-unit.karaoke-word-active:not(.vs-w),
+html[data-ui="light"][data-theme="dark"] .karaoke-word-active:not(.vs-w),
+html.dark .sub-word-unit.karaoke-word-active:not(.vs-w),
+html.dark .karaoke-word-active:not(.vs-w) {
+  background-color: #1D3A30 !important;
+  color: #A8E6CF !important;
+  -webkit-text-fill-color: #A8E6CF !important;
+  font-weight: 700 !important;
+  padding: 2px 7px !important;
+  border-radius: 6px !important;
+  box-shadow: 0 0 0 1.5px rgba(168, 230, 207, 0.45) !important;
+  transition: none !important;
 }
 
 /* 2. Trạng thái Hover từ */
 @media (hover: hover) and (pointer: fine) {
   html[data-ui="light"] .sub-word-unit.word-hover:hover:not(.karaoke-word-active) {
     background-color: var(--fs-hover) !important;
-    border-radius: 6px !important;
+    border-radius: 4px !important;
   }
 }
 
-/* 3. Trạng thái Từ đã lưu (.vs-w / .vocab-saved-word) */
-html[data-ui="light"] {
-  --vs-color: #fde047;
-  --vs-opacity: 0.45;
-  --vs-bg: #fef08a !important;
-}
-
+/* 3. L1: Trạng thái Từ đã lưu (.vs-w) - Kênh gạch chân chấm hổ phách độc quyền */
 html[data-ui="light"] .vs-w,
 html[data-ui="light"] .sub-word-unit.vs-w,
 html[data-ui="light"] .sh-w.vs-w,
 html[data-ui="light"] .cs-w.vs-w,
 html[data-ui="light"] .dc-d.vs-w,
-html[data-ui="light"] .vocab-saved-word,
+html[data-ui="light"] .vocab-saved-word {
+  background-color: rgba(245, 158, 11, 0.12) !important;
+  color: #14213D !important;
+  -webkit-text-fill-color: #14213D !important;
+  border-radius: 4px !important;
+  text-decoration: underline dotted 2px #B45309 !important;
+  text-underline-offset: 4px !important;
+  text-shadow: none !important;
+}
+
 html[data-ui="light"][data-theme="dark"] .vs-w,
 html[data-ui="light"][data-theme="dark"] .sub-word-unit.vs-w,
 html[data-ui="light"][data-theme="dark"] .sh-w.vs-w,
@@ -3459,13 +3478,13 @@ html.dark .sh-w.vs-w,
 html.dark .cs-w.vs-w,
 html.dark .dc-d.vs-w,
 html.dark .vocab-saved-word {
-  background-color: #fef08a !important;
-  color: #0f172a !important;
+  background-color: rgba(245, 158, 11, 0.18) !important;
+  color: #E8F3EE !important;
+  -webkit-text-fill-color: #E8F3EE !important;
   border-radius: 4px !important;
-  text-decoration: underline dotted 2px #d97706 !important;
+  text-decoration: underline dotted 2px #FBBF24 !important;
   text-underline-offset: 4px !important;
   text-shadow: none !important;
-  -webkit-text-fill-color: #0f172a !important;
 }
 
 html[data-ui="light"] .vs-w.vs-first,
@@ -3482,61 +3501,71 @@ html[data-ui="light"] .sh-w.vs-w.vs-last {
   border-bottom-right-radius: 4px !important;
 }
 
-html[data-ui="light"] #subtitles-scroll-container .sub-word-unit.vs-w {
-  box-shadow: 0 0 0 .12rem #fef08a !important;
-  color: #0f172a !important;
-  -webkit-text-fill-color: #0f172a !important;
-}
-
-html[data-ui="light"] #subtitles-scroll-container .sub-word-unit.vs-w.vs-cont {
-  box-shadow: 0 0 0 .12rem #fef08a, calc(.3em + var(--sub-ws, 0em)) 0 0 0 #fef08a !important;
-}
-
-/* Đảm bảo tuyệt đối: Dù ở trạng thái .past hay .cur, chữ trên nền vàng highlight không bị đè thành màu trắng */
-html[data-ui="light"] .sh-w.vs-w.past,
-html[data-ui="light"] .sh-w.vs-w.cur,
+/* Chữ đã đọc qua (.past) giữ màu mực chuẩn, không mất gạch chân từ vựng */
 html[data-ui="light"] .sub-word-unit.vs-w.past,
-html[data-ui="light"] .sub-word-unit.vs-w.cur,
-html[data-ui="light"][data-theme="dark"] .sh-w.vs-w.past,
-html[data-ui="light"][data-theme="dark"] .sh-w.vs-w.cur,
+html[data-ui="light"] .sh-w.vs-w.past {
+  color: #14213D !important;
+  -webkit-text-fill-color: #14213D !important;
+}
 html[data-ui="light"][data-theme="dark"] .sub-word-unit.vs-w.past,
-html[data-ui="light"][data-theme="dark"] .sub-word-unit.vs-w.cur,
-html.dark .sh-w.vs-w.past,
-html.dark .sh-w.vs-w.cur,
+html[data-ui="light"][data-theme="dark"] .sh-w.vs-w.past,
 html.dark .sub-word-unit.vs-w.past,
-html.dark .sub-word-unit.vs-w.cur {
-  background-color: #fef08a !important;
-  color: #0f172a !important;
-  text-shadow: none !important;
-  -webkit-text-fill-color: #0f172a !important;
+html.dark .sh-w.vs-w.past {
+  color: #E8F3EE !important;
+  -webkit-text-fill-color: #E8F3EE !important;
 }
 
-/* Double click / selection trên từ vựng đã highlight */
+/* 4. CHỒNG TẦNG L1 + L3: Từ vựng ĐANG PHÁT ÂM (Hiển thị song song cả gạch chân chấm & Pill phát âm) */
+html[data-ui="light"] .sh-w.vs-w.cur,
+html[data-ui="light"] .sub-word-unit.vs-w.karaoke-word-active,
+html[data-ui="light"] .cs-w.vs-w.cs-cur {
+  background-color: #E1F5EC !important;
+  color: #0B5A3C !important;
+  -webkit-text-fill-color: #0B5A3C !important;
+  text-decoration: underline dotted 2px #B45309 !important;
+  text-underline-offset: 4px !important;
+  box-shadow: 0 0 0 1.5px rgba(11, 90, 60, 0.28) !important;
+  border-radius: 6px !important;
+  transition: none !important;
+}
+
+html[data-ui="light"][data-theme="dark"] .sh-w.vs-w.cur,
+html[data-ui="light"][data-theme="dark"] .sub-word-unit.vs-w.karaoke-word-active,
+html[data-ui="light"][data-theme="dark"] .cs-w.vs-w.cs-cur,
+html.dark .sh-w.vs-w.cur,
+html.dark .sub-word-unit.vs-w.karaoke-word-active,
+html.dark .cs-w.vs-w.cs-cur {
+  background-color: #1D3A30 !important;
+  color: #A8E6CF !important;
+  -webkit-text-fill-color: #A8E6CF !important;
+  text-decoration: underline dotted 2px #FBBF24 !important;
+  text-underline-offset: 4px !important;
+  box-shadow: 0 0 0 1.5px rgba(168, 230, 207, 0.45) !important;
+  border-radius: 6px !important;
+  transition: none !important;
+}
+
+/* 5. L2: Bôi đen / Selection bán trong suốt trung tính */
+html[data-ui="light"] ::selection,
 html[data-ui="light"] .vs-w::selection,
-html[data-ui="light"] .sub-word-unit.vs-w::selection,
-html[data-ui="light"] .sh-w.vs-w::selection,
-html[data-ui="light"] .cs-w.vs-w::selection,
-html[data-ui="light"][data-theme="dark"] .vs-w::selection,
-html[data-ui="light"][data-theme="dark"] .sub-word-unit.vs-w::selection,
-html[data-ui="light"][data-theme="dark"] .sh-w.vs-w::selection,
-html[data-ui="light"][data-theme="dark"] .cs-w.vs-w::selection,
-html.dark .vs-w::selection,
-html.dark .sub-word-unit.vs-w::selection,
-html.dark .sh-w.vs-w::selection,
-html.dark .cs-w.vs-w::selection {
-  background-color: rgba(217, 119, 6, 0.45) !important;
-  color: #0f172a !important;
-  -webkit-text-fill-color: #0f172a !important;
+html[data-ui="light"] .sub-word-unit::selection,
+html[data-ui="light"] .sh-w::selection,
+html[data-ui="light"] .cs-w::selection {
+  background-color: rgba(99, 102, 241, 0.22) !important;
+  color: inherit !important;
 }
-
-@media (hover: hover) and (pointer: fine) {
-  html[data-ui="light"] .sub-word-unit.vs-w:hover:not(.karaoke-word-active),
-  html[data-ui="light"] #subtitles-scroll-container .sub-word-unit.vs-w.word-hover:hover:not(.karaoke-word-active) {
-    background-color: #fde047 !important;
-    box-shadow: 0 0 0 .12rem #fde047 !important;
-    color: #0f172a !important;
-    -webkit-text-fill-color: #0f172a !important;
-  }
+html[data-ui="light"][data-theme="dark"] ::selection,
+html[data-ui="light"][data-theme="dark"] .vs-w::selection,
+html[data-ui="light"][data-theme="dark"] .sub-word-unit::selection,
+html[data-ui="light"][data-theme="dark"] .sh-w::selection,
+html[data-ui="light"][data-theme="dark"] .cs-w::selection,
+html.dark ::selection,
+html.dark .vs-w::selection,
+html.dark .sub-word-unit::selection,
+html.dark .sh-w::selection,
+html.dark .cs-w::selection {
+  background-color: rgba(99, 102, 241, 0.32) !important;
+  color: inherit !important;
 }
 
 /* 4. Bản dịch tiếng Việt trong thẻ câu (.sub-vi-text) */
@@ -3689,15 +3718,58 @@ html[data-ui="light"] .sh-row.active {
 
 html[data-ui="light"] .sh-w:not(.vs-w) {
   color: var(--fs-ink) !important;
+  transition: none !important;
 }
 
 html[data-ui="light"] .sh-w.past:not(.vs-w) {
   color: var(--fs-ink) !important;
 }
 
+/* L3: Chữ đang phát âm trong Shadowing (.sh-w.cur) */
 html[data-ui="light"] .sh-w.cur:not(.vs-w) {
-  background: var(--fs-tint) !important;
-  color: var(--fs-accent-text) !important;
+  background: #E1F5EC !important;
+  color: #0B5A3C !important;
+  -webkit-text-fill-color: #0B5A3C !important;
+  box-shadow: 0 0 0 1.5px rgba(11, 90, 60, 0.28) !important;
+  border-radius: 6px !important;
+  transition: none !important;
+}
+
+html[data-ui="light"][data-theme="dark"] .sh-w.cur:not(.vs-w),
+html.dark .sh-w.cur:not(.vs-w) {
+  background: #1D3A30 !important;
+  color: #A8E6CF !important;
+  -webkit-text-fill-color: #A8E6CF !important;
+  box-shadow: 0 0 0 1.5px rgba(168, 230, 207, 0.45) !important;
+  border-radius: 6px !important;
+  transition: none !important;
+}
+
+/* L4: Phiên âm IPA ([data-ipa]) */
+html[data-ui="light"] .sh-w[data-ipa]::after,
+html[data-ui="light"] .cs-w[data-ipa]::after {
+  color: #64748B !important;
+  font-weight: 500 !important;
+}
+
+html[data-ui="light"][data-theme="dark"] .sh-w[data-ipa]::after,
+html[data-ui="light"][data-theme="dark"] .cs-w[data-ipa]::after,
+html.dark .sh-w[data-ipa]::after,
+html.dark .cs-w[data-ipa]::after {
+  color: #94A3B8 !important;
+  font-weight: 500 !important;
+}
+
+html[data-ui="light"] .sh-w[data-ipa].cur::after,
+html[data-ui="light"] .cs-w[data-ipa].cs-cur::after {
+  color: #0B5A3C !important;
+}
+
+html[data-ui="light"][data-theme="dark"] .sh-w[data-ipa].cur::after,
+html[data-ui="light"][data-theme="dark"] .cs-w[data-ipa].cs-cur::after,
+html.dark .sh-w[data-ipa].cur::after,
+html.dark .cs-w[data-ipa].cs-cur::after {
+  color: #A8E6CF !important;
 }
 
 html[data-ui="light"] .sh-collapse {

@@ -165,8 +165,8 @@
     .dc-hw.nx { color: #93c5fd; box-shadow: inset 0 -2px 0 #3b82f6; }
     .dc-hw.cur { background: rgba(96, 165, 250, .28); color: #fff; }   /* karaoke: từ đang được đọc */
     .dc-hw.ok.cur { color: #86efac; }
-    .dc-hw.loopsel { box-shadow: inset 0 0 0 1.5px rgba(34, 197, 94, .75); background: rgba(34, 197, 94, .16); }   /* từ nằm trong đoạn đang loop */
-    .dc-hw.loopsel.cur { background: rgba(34, 197, 94, .42); color: #fff; }
+    .dc-hw.loopsel { box-shadow: inset 0 0 0 1.5px rgba(99, 102, 241, .85); background: rgba(99, 102, 241, .14); }   /* từ nằm trong đoạn đang loop */
+    .dc-hw.loopsel.cur { background: rgba(99, 102, 241, .42); color: #fff; }
     .dc-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
     .dc-actions { display: flex; gap: 8px; flex-wrap: wrap; }
     .dc-btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 9px 15px; border-radius: 11px; font-size: 13px; font-weight: 700; background: #0d1630; border: 1px solid #1e2c52; color: #b6c4e0; cursor: pointer; transition: all .15s; white-space: nowrap; }
@@ -350,14 +350,14 @@
     .sh-rate span { color: #9fb0cf; font: 700 12.5px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 
     /* Thanh báo đang loop đoạn bôi đen */
-    .sh-loopbar { display: flex; align-items: center; gap: 10px 12px; flex-wrap: wrap; padding: 8px 12px; border-radius: 12px; background: rgba(16, 185, 129, .1); border: 1px solid rgba(45, 212, 191, .35); font-size: 12.5px; color: #a7f3d0; }
+    .sh-loopbar { display: flex; align-items: center; gap: 10px 12px; flex-wrap: wrap; padding: 8px 12px; border-radius: 12px; background: rgba(99, 102, 241, .12); border: 1px solid rgba(129, 140, 248, .4); font-size: 12.5px; color: #c7d2fe; }
     .sh-loopbar:empty { display: none; }
-    .sh-loop-dot { width: 8px; height: 8px; border-radius: 50%; background: #34d399; animation: shBlink 1s ease-in-out infinite; flex: none; }
-    .sh-loop-label { flex: 1 1 140px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; }
-    .sh-loop-delay { display: inline-flex; align-items: center; gap: 6px; color: #6ee7b7; font-weight: 700; }
-    .sh-loop-delay button { width: 22px; height: 22px; border-radius: 7px; border: 1px solid rgba(45, 212, 191, .35); background: rgba(6, 78, 59, .5); color: #d1fae5; cursor: pointer; font-weight: 800; line-height: 1; padding: 0; }
-    .sh-loop-delay button:hover { background: rgba(5, 150, 105, .6); }
-    .sh-loop-delay b { min-width: 24px; text-align: center; color: #ecfdf5; font-weight: 800; }
+    .sh-loop-dot { width: 8px; height: 8px; border-radius: 50%; background: #818cf8; animation: shBlink 1s ease-in-out infinite; flex: none; }
+    .sh-loop-label { flex: 1 1 140px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; color: #e0e7ff; }
+    .sh-loop-delay { display: inline-flex; align-items: center; gap: 6px; color: #c7d2fe; font-weight: 700; }
+    .sh-loop-delay button { width: 22px; height: 22px; border-radius: 7px; border: 1px solid rgba(129, 140, 248, .4); background: rgba(49, 46, 129, .5); color: #e0e7ff; cursor: pointer; font-weight: 800; line-height: 1; padding: 0; }
+    .sh-loop-delay button:hover { background: rgba(67, 56, 202, .6); }
+    .sh-loop-delay b { min-width: 24px; text-align: center; color: #e0e7ff; font-weight: 800; }
     .sh-loop-stop { padding: 5px 12px; border-radius: 9px; border: 1px solid rgba(248, 113, 113, .45); background: rgba(127, 29, 29, .35); color: #fecaca; font-weight: 700; font-size: 12px; cursor: pointer; }
     .sh-loop-stop:hover { background: rgba(185, 28, 28, .5); color: #fff; }
 

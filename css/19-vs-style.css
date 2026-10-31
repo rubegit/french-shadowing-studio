@@ -1,116 +1,117 @@
 
-  /* >>> CHỈNH MÀU VÀ ĐỘ ĐẬM NHẠT Ở ĐÂY (2 dòng) <<<
-     --vs-color   : màu highlight (vàng: #facc15 · vàng cam: #fbbf24 · vàng chanh: #fde047)
-     --vs-opacity : độ đậm, từ 0 (không thấy) đến 1 (đặc hoàn toàn). Gợi ý: nhạt .25 · vừa .38 · đậm .55
-     Màu thực tế được trộn sẵn với nền tối thành một màu đặc nên chỗ hai ô chữ chạm nhau không bị đậm hơn. */
+  /* >>> CẤU HÌNH HIGHLIGHT ĐA TẦNG CHO TỪ VỰNG & AUDIO-SYNC (SPEC 2026) <<<
+     L1 - Từ vựng đã lưu: Nhận diện bằng gạch chân chấm hổ phách (#B45309 Light / #FBBF24 Dark) + nền alpha nhạt.
+     L2 - Vùng chọn / Loop: Khung viền Indigo (#818CF8), selection lớp phủ alpha trung tính (rgba(99,102,241,0.22)).
+     L3 - Chữ đang phát âm: Pill Mint Pastel (#E1F5EC Light / #1D3A30 Dark) + chữ đảo sắc tương phản cao.
+     Zero Repaint Jank: Toàn bộ cursor chạy audio-sync không dùng transition để tránh giật trên mobile. */
   :root {
-    --vs-color: #fde047;
-    --vs-opacity: .45;
-    --vs-bg: #fef08a;   /* dự phòng cho trình duyệt cũ, không cần sửa */
-    --vs-bg: #fef08a;
+    --vs-color: #f59e0b;
+    --vs-opacity: .14;
+    --vs-bg-light: rgba(245, 158, 11, 0.12);
+    --vs-bg-dark: rgba(245, 158, 11, 0.18);
   }
 
-  /* Từ highlight/đã lưu (.vs-w): Nền vàng #fef08a luôn đi cùng chữ đen tối #0f172a chống chói mắt */
+  /* L1: Từ vựng đã lưu (.vs-w): Nhận diện bằng gạch chân chấm hổ phách bền vững */
   .vs-w,
   .sub-word-unit.vs-w,
   .sh-w.vs-w,
   .cs-w.vs-w,
   .dc-d.vs-w {
-    background-color: var(--vs-bg);
-    color: #0f172a !important;
+    background-color: var(--vs-bg-light);
+    color: #14213D !important;
+    -webkit-text-fill-color: #14213D !important;
+    text-decoration: underline dotted 2px #B45309 !important;
+    text-underline-offset: 4px !important;
     text-shadow: none !important;
     border-radius: 4px;
-    -webkit-text-fill-color: #0f172a !important;
   }
   .vs-w.vs-first { border-top-left-radius: 4px; border-bottom-left-radius: 4px; }
   .vs-w.vs-last { border-top-right-radius: 4px; border-bottom-right-radius: 4px; }
-  /* Nối liền qua khoảng trắng bằng box-shadow (không phủ lên vùng bôi đen nên bôi đen vẫn liền mạch) */
-  .vs-w.vs-cont { box-shadow: calc(.3em + var(--sub-ws, 0em)) 0 0 0 var(--vs-bg); }
+  .vs-w.vs-cont { box-shadow: calc(.3em + var(--sub-ws, 0em)) 0 0 0 var(--vs-bg-light); }
 
-  /* Double click / selection trên từ highlight luôn giữ chữ đen tương phản cao */
+  /* L2: Bôi đen / Selection bán trong suốt: Không che lấp gạch chân và màu từ vựng bên dưới */
+  ::selection {
+    background-color: rgba(99, 102, 241, 0.22) !important;
+    color: inherit !important;
+  }
   .vs-w::selection,
   .sub-word-unit.vs-w::selection,
   .sh-w.vs-w::selection,
   .cs-w.vs-w::selection,
   .dc-d.vs-w::selection {
-    background-color: rgba(217, 119, 6, 0.45) !important;
-    color: #0f172a !important;
-    -webkit-text-fill-color: #0f172a !important;
+    background-color: rgba(99, 102, 241, 0.28) !important;
+    color: inherit !important;
   }
 
-  /* 1) Mặc định + Đọc báo/IELTS: rê chuột và karaoke giữ màu đỏ cũ */
+  /* 1) Mặc định + Đọc báo/IELTS */
   @media (hover: hover) and (pointer: fine) {
-    .sub-word-unit.vs-w:hover:not(.karaoke-word-active) { background-color: rgba(148, 163, 184, .3); box-shadow: none; }
+    .sub-word-unit.vs-w:hover:not(.karaoke-word-active) { background-color: rgba(148, 163, 184, .25); }
   }
-  .sub-word-unit.vs-w.karaoke-word-active { background-color: #dc2626; box-shadow: 0 0 10px rgba(239, 68, 68, .85); color: #fff !important; -webkit-text-fill-color: #fff !important; }
 
-  /* 1b) Bôi đen liền mạch: bỏ phần đệm ngang quanh mỗi chữ (trình duyệt không tô bôi đen lên phần đệm nên bị hở vạch tối giữa các chữ).
-         Hình dáng ô khi rê chuột / karaoke / highlight vàng được giữ nguyên nhờ viền bóng (không ảnh hưởng bố cục hay thao tác bôi đen). */
+  /* 1b) Bôi đen liền mạch: bỏ đệm ngang để vùng bôi đen không bị ngắt quãng */
   #subtitles-scroll-container .sub-word-unit.word-hover { padding-left: 0; padding-right: 0; }
-  #subtitles-scroll-container .sub-word-unit.vs-w { box-shadow: 0 0 0 .12rem var(--vs-bg); color: #0f172a !important; }
-  #subtitles-scroll-container .sub-word-unit.vs-w.vs-cont { box-shadow: 0 0 0 .12rem var(--vs-bg), calc(.3em + var(--sub-ws, 0em)) 0 0 0 var(--vs-bg); }
+  #subtitles-scroll-container .sub-word-unit.vs-w { box-shadow: 0 0 0 .12rem var(--vs-bg-light); }
+  #subtitles-scroll-container .sub-word-unit.vs-w.vs-cont { box-shadow: 0 0 0 .12rem var(--vs-bg-light), calc(.3em + var(--sub-ws, 0em)) 0 0 0 var(--vs-bg-light); }
   @media (hover: hover) and (pointer: fine) {
     #subtitles-scroll-container .sub-word-unit.word-hover:hover:not(.karaoke-word-active) { box-shadow: 0 0 0 .12rem rgba(148, 163, 184, .14); }
-    #subtitles-scroll-container .sub-word-unit.vs-w.word-hover:hover:not(.karaoke-word-active) { box-shadow: 0 0 0 .12rem rgba(148, 163, 184, .3); }
+    #subtitles-scroll-container .sub-word-unit.vs-w.word-hover:hover:not(.karaoke-word-active) { box-shadow: 0 0 0 .12rem rgba(245, 158, 11, .25); }
   }
-  #subtitles-scroll-container .sub-word-unit.karaoke-word-active { box-shadow: 0 0 0 .12rem #dc2626, 0 0 10px .12rem rgba(239, 68, 68, .85); }
 
-  /* Karaoke: bỏ hiệu ứng chuyển mượt (transition) của từng chữ để ô đỏ (nền + viền + glow) đổi cùng lúc,
-     không bị tách thành 2 phần (nền chạy trước, viền đỏ chạy theo sau). */
+  /* Karaoke / Audio cursor: BỎ HOÀN TOÀN TRANSITION để tránh repaint jank khi audio quét nhanh */
   #subtitles-scroll-container .sub-word-unit,
   #subtitles-scroll-container .sub-word-unit.word-hover,
-  #subtitles-scroll-container .sub-word-unit.karaoke-word-active {
+  #subtitles-scroll-container .sub-word-unit.karaoke-word-active,
+  .sh-w,
+  .sh-w.cur,
+  .cs-w,
+  .cs-w.cs-cur {
     transition: none !important;
   }
 
   /* 2) Shadowing */
-  .sh-w.vs-w:hover { background-color: rgba(148, 163, 184, .3); box-shadow: none; }
-  .sh-w.vs-w.cur { background-color: #2f5f9e; box-shadow: none; color: #fff !important; -webkit-text-fill-color: #fff !important; }
-  .sh-text.masked .vs-w { background: none !important; box-shadow: none !important; }
+  .sh-w.vs-w:hover { background-color: rgba(148, 163, 184, .25); box-shadow: none; }
+  .sh-text.masked .vs-w { background: none !important; box-shadow: none !important; text-decoration: none !important; }
 
-  /* 3) Đáp án chép chính tả: chỉ tô từ đúng / hiển thị thường; từ sai - thiếu - gần đúng giữ màu phản hồi riêng */
+  /* 3) Đáp án chép chính tả */
   .dc-d.vs-w { background-color: transparent; box-shadow: none; }
-  .dc-d.vs-w.ok, .dc-d.vs-w.plain { background-color: var(--vs-bg); color: #0f172a !important; -webkit-text-fill-color: #0f172a !important; }
-  .dc-d.vs-w.vs-cont:is(.ok, .plain):has(+ .dc-d.vs-w:is(.ok, .plain)) { box-shadow: calc(.3em + 2px) 0 0 0 var(--vs-bg); }
+  .dc-d.vs-w.ok, .dc-d.vs-w.plain { background-color: var(--vs-bg-light); }
+  .dc-d.vs-w.vs-cont:is(.ok, .plain):has(+ .dc-d.vs-w:is(.ok, .plain)) { box-shadow: calc(.3em + 2px) 0 0 0 var(--vs-bg-light); }
 
-  /* ===== Bôi đen liền mạch ở: câu hiện tại (#cs-text), Shadowing, Đáp án chép chính tả =====
-     Trình duyệt KHÔNG tô màu bôi đen lên phần padding/margin của chữ dạng inline-block, nên mỗi chữ có đệm
-     ngang sẽ để lại một vạch tối giữa các chữ. Bỏ đệm ngang; hình dáng ô khi rê chuột / đang đọc / đúng-sai
-     được giữ nguyên bằng viền bóng (box-shadow không ảnh hưởng bố cục hay thao tác bôi đen). */
+  /* ===== Bôi đen liền mạch ===== */
   .cs-w, .sh-w, .dc-hw { padding-left: 0; padding-right: 0; }
   .cs-w:hover { box-shadow: 0 0 0 2px rgba(148, 163, 184, .18); }
-  .cs-w.cs-cur { box-shadow: 0 0 0 2px rgba(96, 165, 250, .30); }
   .sh-w:hover { box-shadow: 0 0 0 2px rgba(148, 163, 184, .14); }
-  .sh-w.cur { box-shadow: 0 0 0 2px rgba(96, 165, 250, .28); }
-  .sh-w.vs-w:hover { box-shadow: 0 0 0 2px rgba(148, 163, 184, .3); }
-  .sh-w.vs-w.cur { box-shadow: 0 0 0 2px #2f5f9e; }
   .sh-text.masked .sh-w.vs-w { box-shadow: none !important; }
   .dc-hw:hover { box-shadow: 0 0 0 2px rgba(148, 163, 184, .14); }
-  .dc-hw.cur { box-shadow: 0 0 0 2px rgba(96, 165, 250, .28); }
-  .dc-hw.nx { box-shadow: inset 0 -2px 0 #3b82f6; }
-  .dc-hw.loopsel { box-shadow: inset 0 0 0 1.5px rgba(34, 197, 94, .75); }
-  /* nhãn IPA: ô nền theo chữ cần nở ra 2px mỗi bên để khớp với viền bóng ở trên */
+  .dc-hw.cur { box-shadow: 0 0 0 2px rgba(99, 102, 241, .45); }
+  .dc-hw.nx { box-shadow: inset 0 -2px 0 #6366f1; }
+  .dc-hw.loopsel { box-shadow: inset 0 0 0 1.5px rgba(99, 102, 241, .85); background: rgba(99, 102, 241, .14); }
+  
+  /* Nhãn IPA: ô nền theo chữ nở ra 2px mỗi bên */
   .cs-w[data-ipa]::before, .sh-w[data-ipa]::before { left: -2px; right: -2px; }
   .dc-d { padding-left: 0; padding-right: 0; margin-left: 0; margin-right: 0; }
   .dc-d.miss { box-shadow: inset 0 -2px 0 #ef4444, 0 0 0 3px rgba(239, 68, 68, .13); }
   .dc-d.wrong { box-shadow: inset 0 -2px 0 #ef4444, 0 0 0 3px rgba(239, 68, 68, .16); }
   .dc-d.close { box-shadow: inset 0 -2px 0 #f59e0b, 0 0 0 3px rgba(245, 158, 11, .16); }
-  .dc-d.vs-w.vs-cont:is(.ok, .plain):has(+ .dc-d.vs-w:is(.ok, .plain)) { box-shadow: .3em 0 0 0 var(--vs-bg); }
+  .dc-d.vs-w.vs-cont:is(.ok, .plain):has(+ .dc-d.vs-w:is(.ok, .plain)) { box-shadow: .3em 0 0 0 var(--vs-bg-light); }
 
-  /* ===== Đoạn đang LOOP: khung chữ nhật xanh kiểu timeline In/Out của giao diện Chép chính tả (viền + tay nắm 2 đầu + phát sáng nhịp nhàng) ===== */
+  /* ===== L2: ĐOẠN ĐANG LOOP (Chuyển sang dải màu Indigo #818CF8 tách biệt trực giao với Mint Pastel) ===== */
   .loop-box-layer { pointer-events: none; width: 0; height: 0; left: 0; top: 0; }
   .loop-box-layer.fx { position: fixed; z-index: 40; }
   .loop-seg.on { display: block; }
-  .loop-seg .lh { position: absolute; top: -1px; bottom: -1px; width: 7px; background: #22c55e; }
+  .loop-seg {
+    position: absolute; display: none; box-sizing: border-box; pointer-events: none;
+    border: 1.5px solid #818CF8; border-radius: 6px; background: rgba(99, 102, 241, .14);
+    box-shadow: 0 0 8px rgba(99, 102, 241, .25);
+  }
+  .loop-seg .lh { position: absolute; top: -1px; bottom: -1px; width: 7px; background: #818CF8; }
   .loop-seg .lh.l { left: -1px; border-radius: 5px 0 0 5px; }
   .loop-seg .lh.r { right: -1px; border-radius: 0 5px 5px 0; }
-  .loop-seg .lh::after { content: ""; position: absolute; left: 50%; top: 50%; width: 2px; height: 12px; margin: -6px 0 0 -1px; border-radius: 2px; background: rgba(6, 40, 20, .75); }
-  /* Đoạn loop xuống dòng: mỗi dòng một khung, chỉ dòng đầu có tay nắm trái, chỉ dòng cuối có tay nắm phải */
+  .loop-seg .lh::after { content: ""; position: absolute; left: 50%; top: 50%; width: 2px; height: 12px; margin: -6px 0 0 -1px; border-radius: 2px; background: rgba(30, 27, 75, .85); }
   .loop-seg.no-in { border-left-color: transparent; border-top-left-radius: 0; border-bottom-left-radius: 0; }
   .loop-seg.no-in .lh.l { display: none; }
   .loop-seg.no-out { border-right-color: transparent; border-top-right-radius: 0; border-bottom-right-radius: 0; }
   .loop-seg.no-out .lh.r { display: none; }
 
-  /* Trả lại khoảng cách giữa các chữ như cũ (trước đây mỗi chữ có đệm 2px hai bên = 4px mỗi khe; giờ đã bỏ đệm để bôi đen liền mạch).
-     Bù bằng word-spacing: nó nằm trên chính ký tự khoảng trắng nên vùng bôi đen vẫn liền, không hở lại. */
+  /* Khoảng cách giữa các chữ bù bằng word-spacing */
   #cs-text, .sh-text { word-spacing: 4px; }
