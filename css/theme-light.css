@@ -2524,14 +2524,21 @@ html[data-ui="light"] #pv-dictation.pv-x {
 }
 
 html[data-ui="light"] #pv-dictation .dc-wrap {
-  max-width: 1240px !important;
+  max-width: 900px !important;
   width: 100% !important;
   margin: 0 auto !important;
-  display: grid !important;
-  grid-template-columns: minmax(0, 7fr) minmax(0, 4fr) !important;
-  gap: 24px !important;
-  padding: 24px 32px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
+  padding: 20px 24px 80px !important;
   box-sizing: border-box !important;
+}
+
+@media (max-width: 768px) {
+  html[data-ui="light"] #pv-dictation .dc-wrap {
+    padding: 12px 14px 60px !important;
+    gap: 12px !important;
+  }
 }
 
 html[data-ui="light"] #pv-shadowing {
@@ -3580,6 +3587,56 @@ html[data-ui="light"] .sh-list > div {
   color: var(--fs-ink) !important;
 }
 
+/* Khắc phục chữ Shadowing bị chói: gán về var(--fs-ink) chuẩn độ tương phản WCAG AAA */
+html[data-ui="light"] .sh-text,
+html[data-ui="light"] .sh-text.big {
+  color: var(--fs-ink) !important;
+}
+
+html[data-ui="light"] .sh-vi,
+html[data-ui="light"] .sh-vi.big {
+  color: var(--fs-muted) !important;
+}
+
+html[data-ui="light"] .sh-num {
+  color: var(--fs-muted) !important;
+}
+
+html[data-ui="light"] .sh-num.on {
+  background: var(--fs-tint) !important;
+  color: var(--fs-accent-text) !important;
+}
+
+html[data-ui="light"] .sh-row.active {
+  background: var(--fs-surface) !important;
+  border-color: var(--fs-primary) !important;
+  box-shadow: 0 0 0 2px var(--fs-tint), var(--fs-shadow-lg) !important;
+}
+
+html[data-ui="light"] .sh-w {
+  color: var(--fs-ink) !important;
+}
+
+html[data-ui="light"] .sh-w.past {
+  color: var(--fs-ink) !important;
+}
+
+html[data-ui="light"] .sh-w.cur {
+  background: var(--fs-tint) !important;
+  color: var(--fs-accent-text) !important;
+}
+
+html[data-ui="light"] .sh-collapse {
+  background: var(--fs-surface-subtle) !important;
+  border: 1px solid var(--fs-line) !important;
+  color: var(--fs-muted) !important;
+}
+
+html[data-ui="light"] .sh-collapse:hover {
+  background: var(--fs-hover) !important;
+  color: var(--fs-ink) !important;
+}
+
 /* Segmented filter control (.dc-seg) */
 html[data-ui="light"] .dc-seg {
   background: var(--fs-surface) !important;
@@ -3608,14 +3665,68 @@ html[data-ui="light"] #pv-dictation {
   background-color: var(--fs-bg) !important;
 }
 
-html[data-ui="light"] #pv-dictation .dc-side {
+html[data-ui="light"] .dc-card {
+  background-color: var(--fs-surface) !important;
+  border: 1px solid var(--fs-line) !important;
+  border-radius: 18px !important;
+  box-shadow: var(--fs-shadow-sm) !important;
+  color: var(--fs-ink) !important;
+}
+
+html[data-ui="light"] .dc-wave b {
+  background: var(--fs-surface-subtle) !important;
+}
+html[data-ui="light"] .dc-wave b.on {
+  background: var(--fs-primary) !important;
+}
+
+html[data-ui="light"] .dc-timeline {
+  color: var(--fs-muted) !important;
+}
+
+html[data-ui="light"] .dc-side {
   background-color: var(--fs-surface) !important;
   border-right: 1px solid var(--fs-line) !important;
 }
 
-html[data-ui="light"] #pv-dictation .dc-side-title {
+html[data-ui="light"] .dc-side-title {
   color: var(--fs-ink) !important;
   font-weight: 700 !important;
+}
+
+html[data-ui="light"] .dc-side-sum {
+  background-color: var(--fs-surface-subtle) !important;
+  border: 1px solid var(--fs-line) !important;
+}
+
+html[data-ui="light"] .dc-side-big b {
+  color: var(--fs-ink) !important;
+}
+
+html[data-ui="light"] .dc-side-big span,
+html[data-ui="light"] .dc-side-meta {
+  color: var(--fs-muted) !important;
+}
+
+html[data-ui="light"] .dc-side-bar {
+  background: var(--fs-surface) !important;
+}
+
+html[data-ui="light"] .dc-btn {
+  background: var(--fs-surface-subtle) !important;
+  border: 1px solid var(--fs-line) !important;
+  color: var(--fs-ink) !important;
+}
+
+html[data-ui="light"] .dc-btn:hover {
+  background: var(--fs-hover) !important;
+  border-color: var(--fs-border) !important;
+}
+
+html[data-ui="light"] .dc-btn.primary {
+  background: var(--fs-primary) !important;
+  border-color: var(--fs-primary) !important;
+  color: var(--fs-on-primary, #0F3D2B) !important;
 }
 
 html[data-ui="light"] #dc-input,
