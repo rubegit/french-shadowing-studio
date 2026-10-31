@@ -64,29 +64,30 @@
         if (btn) btn.setAttribute('aria-expanded', 'false');
     };
     window.updatePracticeMobileMenuBadges = function () {
+        const s = window.settings || (typeof settings !== 'undefined' ? settings : {});
         const bk = $('psm-badge-karaoke');
         if (bk) {
-            const on = (typeof isKaraokeMode !== 'undefined' && isKaraokeMode) || document.body.classList.contains('karaoke-mode') || ($('btn-toggle-karaoke') && $('btn-toggle-karaoke').classList.contains('active'));
+            const on = !!s.karaokeMode;
             bk.textContent = on ? 'BẬT' : 'TẮT';
-            bk.classList.toggle('on', !!on);
+            bk.classList.toggle('on', on);
         }
         const bb = $('psm-badge-bilingual');
         if (bb) {
-            const on = document.body.classList.contains('bilingual-mode') || (typeof isBilingualMode !== 'undefined' && isBilingualMode);
+            const on = !!s.bilingual;
             bb.textContent = on ? 'BẬT' : 'TẮT';
-            bb.classList.toggle('on', !!on);
+            bb.classList.toggle('on', on);
         }
         const ba = $('psm-badge-autostop');
         if (ba) {
-            const on = (typeof isSentenceAutoStop !== 'undefined' && isSentenceAutoStop) || ($('btn-toggle-autostop') && $('btn-toggle-autostop').classList.contains('active'));
+            const on = !!s.sentenceAutoStop;
             ba.textContent = on ? 'BẬT' : 'TẮT';
-            ba.classList.toggle('on', !!on);
+            ba.classList.toggle('on', on);
         }
         const bs = $('psm-badge-autoscroll');
         if (bs) {
-            const on = (typeof isAutoScroll !== 'undefined' && isAutoScroll) || ($('btn-toggle-autoscroll') && $('btn-toggle-autoscroll').classList.contains('active'));
+            const on = !!s.autoScroll;
             bs.textContent = on ? 'BẬT' : 'TẮT';
-            bs.classList.toggle('on', !!on);
+            bs.classList.toggle('on', on);
         }
     };
     window.togglePracticeMobileMenu = function (e) {

@@ -160,6 +160,7 @@
         }
         var next = (cur === 'dark') ? 'light' : 'dark';
         document.documentElement.setAttribute('data-theme', next);
+        document.documentElement.classList.toggle('dark', next === 'dark');
         localStorage.setItem('fss_ui_theme', next);
       } catch (e) {}
     };
@@ -210,11 +211,11 @@
 <link rel="stylesheet" href="css/12-video-timeline.css?v=f5eef356" id="vp-style">
 <link rel="stylesheet" href="css/13-default-controls.css?v=12e6e602" id="pv-ctl-style">
 
-  <link rel="stylesheet" href="css/14-subtitle-card.css?v=75c0454d" id="cs-style">
+  <link rel="stylesheet" href="css/14-subtitle-card.css?v=c64a1a62" id="cs-style">
 <link rel="stylesheet" href="css/15-ipa-highlight.css?v=5b8c6b2b" id="ipa-hl-style">
 <link rel="stylesheet" href="css/16-own-video.css?v=211e741b" id="own-yt-style">
   <!-- Redesign Theme: Mint Pastel & Dark Mode (Spec 2026) -->
-  <link rel="stylesheet" href="css/theme-light.css?v=5e0958af">
+  <link rel="stylesheet" href="css/theme-light.css?v=a818e7e0">
 </head>
 <body class="bg-[#070b14] text-slate-100 min-h-screen flex flex-col antialiased selection:bg-red-600/40 selection:text-white" onclick="ensurePageFocus()">
 
@@ -1961,17 +1962,17 @@
     </div>
   </div>
 
-  <script src="js/01-core.js?v=1c8788a3"></script>
+  <script src="js/01-core.js?v=61bd75df"></script>
 <script src="js/01b-catalog.js?v=7cbedf43"></script>
 <script src="js/01c-subtitles.js?v=cca0d801"></script>
-<script src="js/01d-player.js?v=89d0f84c"></script>
-<script src="js/01e-translate-ai.js?v=3b4a2fa4"></script>
+<script src="js/01d-player.js?v=79302613"></script>
+<script src="js/01e-translate-ai.js?v=c1cab56f"></script>
 <script src="js/01f-lookup.js?v=ddf9abe2"></script>
 <script src="js/01g-vocab-list.js?v=65f5b8cc"></script>
 <script src="js/01h-ebook.js?v=cb54eb78"></script>
 
   <script src="js/02-pv-helper.js?v=d2adcc44"></script>
-  <script id="pv-script" src="js/03-practice-engine.js?v=4320d635"></script>
+  <script id="pv-script" src="js/03-practice-engine.js?v=1b074d76"></script>
 <script src="js/04-vt-helper.js?v=3d49b6ed"></script>
 <script id="vt-script" src="js/05-translate-engine.js?v=6b41522a"></script>
 <!-- ============ ĐÁNH DẤU NHẸ TỪ / CỤM / CÂU ĐÃ LƯU (chỉ tính các mục lưu từ chính video / bài viết đang mở) ============ -->

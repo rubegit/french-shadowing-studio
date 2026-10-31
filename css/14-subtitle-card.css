@@ -323,44 +323,47 @@
     color: #4ade80;
   }
 
-  /* Tương thích Light Mode cho Menu Sandwich */
+  /* Tương thích Light & Dark Mode cho Menu Sandwich màn Luyện tập theo Taste-Skill & Impeccable */
   html[data-ui="light"] .practice-sandwich-btn {
-    background: var(--fs-surface, #ffffff) !important;
-    border-color: var(--fs-line, #cbd5e1) !important;
-    color: var(--fs-ink, #0f172a) !important;
+    background-color: var(--fs-surface) !important;
+    border: 1px solid var(--fs-line) !important;
+    color: var(--fs-ink) !important;
+    border-radius: var(--fs-radius-pill, 9999px) !important;
   }
   html[data-ui="light"] .practice-sandwich-btn:hover,
   html[data-ui="light"] .practice-sandwich-btn[aria-expanded="true"] {
-    background: var(--fs-hover, #f1f5f9) !important;
-    border-color: var(--fs-primary, #3b82f6) !important;
-    color: var(--fs-primary, #1d4ed8) !important;
+    background-color: var(--fs-hover) !important;
+    border-color: var(--fs-primary) !important;
+    color: var(--fs-primary) !important;
   }
   html[data-ui="light"] .practice-sandwich-menu {
-    background: #ffffff !important;
-    border-color: #cbd5e1 !important;
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.14) !important;
+    background-color: var(--fs-surface) !important;
+    border: 1px solid var(--fs-line) !important;
+    box-shadow: var(--fs-shadow-lg) !important;
   }
   html[data-ui="light"] .psm-title {
-    color: #94a3b8 !important;
+    color: var(--fs-muted) !important;
   }
   html[data-ui="light"] .psm-item {
-    color: #1e293b !important;
+    color: var(--fs-ink) !important;
   }
   html[data-ui="light"] .psm-item:hover,
   html[data-ui="light"] .psm-item:active {
-    background: #f1f5f9 !important;
-    color: #0f172a !important;
+    background: var(--fs-hover) !important;
+    color: var(--fs-ink) !important;
   }
   html[data-ui="light"] .psm-sep {
-    background: #e2e8f0 !important;
+    background: var(--fs-line) !important;
   }
   html[data-ui="light"] .psm-badge {
-    background: #f1f5f9 !important;
-    color: #64748b !important;
+    background: var(--fs-surface-subtle) !important;
+    color: var(--fs-muted) !important;
+    border: 1px solid var(--fs-line) !important;
   }
   html[data-ui="light"] .psm-badge.on {
-    background: #dcfce7 !important;
-    color: #15803d !important;
+    background: var(--fs-tint) !important;
+    color: var(--fs-primary) !important;
+    border-color: var(--fs-primary) !important;
   }
   html[data-ui="light"] #screen-practice header .vocab-btn {
     border-radius: 12px !important;

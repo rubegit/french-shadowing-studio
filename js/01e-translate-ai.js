@@ -730,6 +730,7 @@
       setBilingual(true);
       if (!isTextMode) saveBilingualPref(currentVideoId, true);
     }
+    window.toggleBilingual = toggleBilingual;
 
     // Video thư viện có sẵn bản dịch, người xem chưa từng bật/tắt Song ngữ cho video này -> mở lần đầu luôn thấy Song ngữ BẬT
     function ensureBilingualDefaultOn() {

@@ -140,8 +140,9 @@ html[data-ui="light"] {
   --fs-page-padding-mobile: 20px;
 }
 
-/* --- DARK MODE TOKEN OVERRIDES (Explicit data-theme="dark") --- */
-html[data-ui="light"][data-theme="dark"] {
+/* --- DARK MODE TOKEN OVERRIDES (Explicit data-theme="dark" or class="dark") --- */
+html[data-ui="light"][data-theme="dark"],
+html[data-ui="light"].dark {
   /* Core Surface & Text */
   --fs-bg: #0E1714;
   --fs-surface: #16221E;
@@ -10285,19 +10286,20 @@ html:not([data-ui="light"]) .fs-theme-toggle {
   min-width: 42px !important;
   height: 42px !important;
   padding: 0 !important;
-  border-radius: 12px !important;
-  background: var(--fs-surface, #ffffff) !important;
-  border: 1px solid var(--fs-line, rgba(0,0,0,0.1)) !important;
-  color: var(--fs-ink, #0f172a) !important;
+  border-radius: var(--fs-radius-pill, 9999px) !important;
+  background-color: var(--fs-surface) !important;
+  border: 1px solid var(--fs-line) !important;
+  color: var(--fs-ink) !important;
   cursor: pointer !important;
   transition: all 0.2s ease !important;
 }
 
 html[data-ui="light"][data-theme="dark"] .mobile-menu-btn,
 html.dark .mobile-menu-btn {
-  background: #111e38 !important;
-  border-color: rgba(59, 130, 246, 0.3) !important;
-  color: #f1f5f9 !important;
+  background-color: var(--fs-surface) !important;
+  border-color: var(--fs-line) !important;
+  color: var(--fs-ink) !important;
+  border-radius: var(--fs-radius-pill, 9999px) !important;
 }
 
 .mobile-menu-btn:hover {

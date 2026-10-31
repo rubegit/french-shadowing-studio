@@ -2295,31 +2295,37 @@
     function toggleKaraokeMode() {
       settings.karaokeMode = !settings.karaokeMode;
       const btn = document.getElementById('btn-toggle-karaoke');
-      if (settings.karaokeMode) {
-        btn.className = 'btn-interactive flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer transition-all bg-red-600/30 text-red-200 border-red-500/60 glow-red shrink-0 whitespace-nowrap';
-      } else {
-        btn.className = 'btn-interactive flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer transition-all bg-slate-800 hover:bg-slate-700 text-slate-400 border-slate-700 shrink-0 whitespace-nowrap';
-        if (currentHighlightedWordEl) {
-          currentHighlightedWordEl.classList.remove('karaoke-word-active');
-          currentHighlightedWordEl = null;
+      if (btn) {
+        if (settings.karaokeMode) {
+          btn.className = 'btn-interactive flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer transition-all bg-red-600/30 text-red-200 border-red-500/60 glow-red shrink-0 whitespace-nowrap';
+        } else {
+          btn.className = 'btn-interactive flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer transition-all bg-slate-800 hover:bg-slate-700 text-slate-400 border-slate-700 shrink-0 whitespace-nowrap';
+          if (currentHighlightedWordEl) {
+            currentHighlightedWordEl.classList.remove('karaoke-word-active');
+            currentHighlightedWordEl = null;
+          }
         }
       }
       saveUserPreferences();
     }
+    window.toggleKaraokeMode = toggleKaraokeMode;
 
     function toggleAutoScroll() {
       settings.autoScroll = !settings.autoScroll;
       const btn = document.getElementById('btn-toggle-autoscroll');
-      if (settings.autoScroll) {
-        btn.className = 'btn-interactive flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer transition-all bg-red-600/30 text-red-200 border-red-500/60 glow-red shrink-0 whitespace-nowrap';
-        lastReportedScrollTarget = -1;
-        lastTrackedLineTop = -1;
-        triggerSmoothCenterScroll(currentSentenceIndex, true);
-      } else {
-        btn.className = 'btn-interactive flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer transition-all bg-slate-800 hover:bg-slate-700 text-slate-400 border-slate-700 shrink-0 whitespace-nowrap';
+      if (btn) {
+        if (settings.autoScroll) {
+          btn.className = 'btn-interactive flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer transition-all bg-red-600/30 text-red-200 border-red-500/60 glow-red shrink-0 whitespace-nowrap';
+          lastReportedScrollTarget = -1;
+          lastTrackedLineTop = -1;
+          triggerSmoothCenterScroll(currentSentenceIndex, true);
+        } else {
+          btn.className = 'btn-interactive flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer transition-all bg-slate-800 hover:bg-slate-700 text-slate-400 border-slate-700 shrink-0 whitespace-nowrap';
+        }
       }
       saveUserPreferences();
     }
+    window.toggleAutoScroll = toggleAutoScroll;
 
     function updateSentenceAutoStopUI() {
       const btn = document.getElementById('btn-toggle-autostop');
@@ -2347,4 +2353,5 @@
       updateSentenceAutoStopUI();
       saveUserPreferences();
     }
+    window.toggleSentenceAutoStop = toggleSentenceAutoStop;
 

@@ -601,6 +601,7 @@
       karaokeMode: savedPrefs.karaokeMode !== undefined ? savedPrefs.karaokeMode : true,
       bilingual: false   // trạng thái khởi tạo; khi mở video có sẵn bản dịch thì resetBilingualForNewVideo() / ensureBilingualDefaultOn() tự bật lần đầu
     };
+    window.settings = settings;
 
     function saveUserPreferences() {
       try {
