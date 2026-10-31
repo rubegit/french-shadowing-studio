@@ -243,11 +243,36 @@
     }
   }
 
-  /* Ẩn Menu sandwich trên Desktop */
-  @media (min-width: 769px) {
-    .practice-mobile-menu-wrap {
-      display: none !important;
-    }
+  /* Ẩn dải công cụ nằm ngang cũ trên toàn bộ màn hình */
+  #practice-header-tools {
+    display: none !important;
+  }
+
+  /* Nút Menu Sandwich hiển thị đồng nhất trên mọi kích thước màn hình */
+  .practice-mobile-menu-wrap {
+    display: inline-flex !important;
+    position: relative !important;
+    flex-shrink: 0 !important;
+  }
+  .practice-sandwich-btn {
+    display: inline-flex !important;
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 10px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: #0d1630 !important;
+    border: 1px solid #1e2c52 !important;
+    color: #9fb0cf !important;
+    cursor: pointer !important;
+    padding: 0 !important;
+    transition: all .15s ease !important;
+  }
+  .practice-sandwich-btn:hover,
+  .practice-sandwich-btn[aria-expanded="true"] {
+    background: #182859 !important;
+    border-color: #3b82f6 !important;
+    color: #ffffff !important;
   }
 
   /* Popup Dropdown của Menu Sandwich */
@@ -255,7 +280,7 @@
     position: absolute;
     top: calc(100% + 8px);
     right: 0;
-    width: 260px;
+    width: 275px;
     max-width: calc(100vw - 20px);
     background: #0a1126;
     border: 1px solid #1e293b;
@@ -269,6 +294,43 @@
   }
   .practice-sandwich-menu.pv-x {
     display: none !important;
+  }
+  .psm-item-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    width: 100%;
+  }
+  .psm-item-flex {
+    flex: 1 1 auto;
+    width: auto;
+  }
+  .psm-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: transparent;
+    border: 1px solid transparent;
+    color: #94a3b8;
+    cursor: pointer;
+    transition: all .15s ease;
+    flex-shrink: 0;
+  }
+  .psm-action-btn:hover {
+    background: #141f3d;
+    color: #38bdf8;
+    border-color: #1e293b;
+  }
+  html[data-ui="light"] .psm-action-btn {
+    color: var(--fs-muted) !important;
+  }
+  html[data-ui="light"] .psm-action-btn:hover {
+    background: var(--fs-hover) !important;
+    color: var(--fs-primary) !important;
+    border-color: var(--fs-line) !important;
   }
   .psm-title {
     font-size: 11px;

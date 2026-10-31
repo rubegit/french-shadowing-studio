@@ -63,8 +63,33 @@
         if (m) m.classList.add('pv-x');
         if (btn) btn.setAttribute('aria-expanded', 'false');
     };
+    window.togglePracticeIpa = function () {
+        const curView = (window.pvGetView && window.pvGetView()) || 'default';
+        if (curView === 'shadowing') {
+            const shBtn = $('sh-ipa');
+            if (shBtn) shBtn.click();
+        } else {
+            const csBtn = $('cs-ipa');
+            if (csBtn) csBtn.click();
+        }
+        window.updatePracticeMobileMenuBadges();
+    };
     window.updatePracticeMobileMenuBadges = function () {
         const s = window.settings || (typeof settings !== 'undefined' ? settings : {});
+        const curView = (window.pvGetView && window.pvGetView()) || 'default';
+        const bipa = $('psm-badge-ipa');
+        if (bipa) {
+            let on = false;
+            if (curView === 'shadowing') {
+                const shBtn = $('sh-ipa');
+                on = !!(shBtn && shBtn.classList.contains('on'));
+            } else {
+                const csBtn = $('cs-ipa');
+                on = !!(csBtn && csBtn.classList.contains('on'));
+            }
+            bipa.textContent = on ? 'BẬT' : 'TẮT';
+            bipa.classList.toggle('on', on);
+        }
         const bk = $('psm-badge-karaoke');
         if (bk) {
             const on = !!s.karaokeMode;

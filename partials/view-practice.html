@@ -55,8 +55,8 @@
         </div>
       </div>
 
-      <!-- CỤM NÚT PHẢI: ĐIỀU CHỈNH PHỤ ĐỀ (chỉ hiện ở giao diện Mặc định) -->
-      <div id="practice-header-tools" class="flex items-center gap-2 sm:gap-2.5 flex-nowrap justify-end shrink overflow-x-auto min-w-0" style="scrollbar-width:none;-ms-overflow-style:none;">
+      <!-- CỤM NÚT PHẢI: ĐIỀU CHỈNH PHỤ ĐỀ (ẩn trên toàn bộ giao diện; gom vào Sandwich Menu) -->
+      <div id="practice-header-tools" class="flex items-center gap-2 sm:gap-2.5 flex-nowrap justify-end shrink overflow-x-auto min-w-0" style="display:none !important;scrollbar-width:none;-ms-overflow-style:none;">
         
         <!-- NÚT GỘP: CỠ CHỮ + GIÃN DÒNG PHỤ ĐỀ -->
         <div class="fs-wrap" id="fs-wrap">
@@ -206,7 +206,7 @@
             <button type="button" class="dc-chip2" id="sh-hide" title="Ẩn toàn bộ chữ (thành dấu •) để luyện nghe; bấm lại để hiện chữ (phím H)">Ẩn chữ</button>
           </div>
 
-          <!-- NÚT MENU SANDWICH 3 SỌC (Chỉ hiện trên mobile) -->
+          <!-- NÚT MENU SANDWICH 3 SỌC (Hiện trên mọi màn hình & giao diện) -->
           <div class="practice-mobile-menu-wrap" id="practice-mobile-menu-wrap">
             <button
               type="button"
@@ -215,12 +215,12 @@
               aria-haspopup="true"
               aria-expanded="false"
               onclick="togglePracticeMobileMenu(event)"
-              title="Menu chức năng khác"
-              aria-label="Menu chức năng khác"
+              title="Menu chức năng luyện tập"
+              aria-label="Menu chức năng luyện tập"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
             </button>
-            <div class="practice-sandwich-menu pv-x" id="practice-sandwich-menu" role="menu" aria-label="Menu chức năng trên mobile">
+            <div class="practice-sandwich-menu pv-x" id="practice-sandwich-menu" role="menu" aria-label="Menu chức năng luyện tập">
               <div class="psm-title">Chức năng & Tiện ích</div>
               <div class="psm-section">
                 <button type="button" class="psm-item" onclick="openCloudSyncModal(); closePracticeMobileMenu();">
@@ -240,16 +240,26 @@
               </div>
               <div class="psm-sep"></div>
               <div class="psm-section">
+                <button type="button" class="psm-item" id="psm-btn-ipa" onclick="togglePracticeIpa();">
+                  <span class="font-bold text-xs bg-slate-800 text-slate-200 px-1.5 py-0.5 rounded border border-slate-700">IPA</span>
+                  <span>Phiên âm IPA</span>
+                  <span class="psm-badge" id="psm-badge-ipa">TẮT</span>
+                </button>
                 <button type="button" class="psm-item" id="psm-btn-karaoke" onclick="toggleKaraokeMode(); updatePracticeMobileMenuBadges();">
                   <i data-lucide="sparkles" class="w-4 h-4 text-red-400"></i>
                   <span>Chạy chữ Karaoke</span>
                   <span class="psm-badge" id="psm-badge-karaoke">TẮT</span>
                 </button>
-                <button type="button" class="psm-item" id="psm-btn-bilingual" onclick="toggleBilingual(); updatePracticeMobileMenuBadges();">
-                  <i data-lucide="languages" class="w-4 h-4 text-emerald-400"></i>
-                  <span>Dịch Song ngữ</span>
-                  <span class="psm-badge" id="psm-badge-bilingual">TẮT</span>
-                </button>
+                <div class="psm-item-row">
+                  <button type="button" class="psm-item psm-item-flex" id="psm-btn-bilingual" onclick="toggleBilingual(); updatePracticeMobileMenuBadges();">
+                    <i data-lucide="languages" class="w-4 h-4 text-emerald-400"></i>
+                    <span>Dịch Song ngữ</span>
+                    <span class="psm-badge" id="psm-badge-bilingual">TẮT</span>
+                  </button>
+                  <button type="button" class="psm-action-btn" onclick="closePracticeMobileMenu(); openBilingualModal(true);" title="Sửa bản dịch song ngữ" aria-label="Sửa bản dịch song ngữ">
+                    <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
+                  </button>
+                </div>
                 <button type="button" class="psm-item" id="psm-btn-autostop" onclick="toggleSentenceAutoStop(); updatePracticeMobileMenuBadges();">
                   <i data-lucide="pause-circle" class="w-4 h-4 text-indigo-400"></i>
                   <span>Tự dừng sau mỗi câu</span>
@@ -272,7 +282,7 @@
                   <span>Từ vựng khó (AI)</span>
                 </button>
                 <button type="button" class="psm-item" onclick="closePracticeMobileMenu(); window.TcfExam && window.TcfExam.openModal();">
-                  <span>🇨🇦</span>
+                  <span style="font-size:14px">🇨🇦</span>
                   <span class="font-semibold text-blue-300">Thi thử nghe TCF</span>
                 </button>
               </div>
