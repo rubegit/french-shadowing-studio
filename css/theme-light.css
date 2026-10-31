@@ -724,6 +724,14 @@ html[data-ui="light"] .pv-opt {
   color: var(--fs-ink) !important;
 }
 
+html[data-ui="light"] .pv-opt-name {
+  color: var(--fs-ink) !important;
+}
+
+html[data-ui="light"] .pv-opt-desc {
+  color: var(--fs-muted) !important;
+}
+
 html[data-ui="light"] .pv-opt:hover {
   background-color: var(--fs-hover) !important;
 }
@@ -731,6 +739,15 @@ html[data-ui="light"] .pv-opt:hover {
 html[data-ui="light"] .pv-opt.active {
   background-color: var(--fs-tint) !important;
   color: var(--fs-accent-text) !important;
+}
+
+html[data-ui="light"] .pv-opt.active .pv-opt-name {
+  color: var(--fs-accent-text) !important;
+}
+
+html[data-ui="light"] .pv-opt.active .pv-opt-desc {
+  color: var(--fs-accent-text) !important;
+  opacity: 0.85 !important;
 }
 
 /* ====================================================================
@@ -3634,6 +3651,60 @@ html[data-ui="light"] .sh-collapse {
 
 html[data-ui="light"] .sh-collapse:hover {
   background: var(--fs-hover) !important;
+  color: var(--fs-ink) !important;
+}
+
+/* Nút Thu âm Shadowing (.sh-recbtn): chống chói mắt ở Light Mode */
+html[data-ui="light"] .sh-recbtn.go {
+  background: #FEF2F2 !important;
+  border-color: #FCA5A5 !important;
+  color: #B91C1C !important;
+  box-shadow: 0 1px 4px rgba(239, 68, 68, 0.12) !important;
+}
+
+html[data-ui="light"] .sh-recbtn.go .sh-micdot {
+  background: #FEE2E2 !important;
+}
+
+html[data-ui="light"] .sh-recbtn.go svg {
+  color: #DC2626 !important;
+}
+
+html[data-ui="light"] .sh-recbtn.go:hover {
+  background: #FEE2E2 !important;
+  border-color: #EF4444 !important;
+  color: #991B1B !important;
+}
+
+/* Ô nhập mốc thời gian & điều chỉnh tốc độ ở Shadowing / Dictation */
+html[data-ui="light"] .ts-in,
+html[data-ui="light"] .sh-rate {
+  background: var(--fs-surface-subtle) !important;
+  border: 1px solid var(--fs-line) !important;
+  color: var(--fs-ink) !important;
+}
+
+html[data-ui="light"] .sh-rate input {
+  color: var(--fs-ink) !important;
+}
+
+html[data-ui="light"] .ts-step {
+  background: var(--fs-surface-subtle) !important;
+  border: 1px solid var(--fs-line) !important;
+  color: var(--fs-muted) !important;
+}
+
+html[data-ui="light"] .ts-step:hover {
+  background: var(--fs-hover) !important;
+  color: var(--fs-ink) !important;
+  border-color: var(--fs-border) !important;
+}
+
+/* Hàng phím tắt điều hướng kbd */
+html[data-ui="light"] .sh-keys kbd,
+html[data-ui="light"] .dc-keys kbd {
+  background: var(--fs-surface-subtle) !important;
+  border: 1px solid var(--fs-line) !important;
   color: var(--fs-ink) !important;
 }
 
