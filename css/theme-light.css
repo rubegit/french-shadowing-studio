@@ -11198,12 +11198,59 @@ html, body, #screen-input {
 
 /* 4. Pagination Bar */
 .video-pagination-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  width: 100%;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  width: 100% !important;
+  margin-top: 32px !important;
+  padding-top: 20px !important;
+  border-top: 1px solid var(--fs-line, rgba(255, 255, 255, 0.1)) !important;
 }
+
+html[data-ui="light"] .video-pagination-bar {
+  border-top: 1px solid var(--fs-line) !important;
+  margin-top: 32px !important;
+  padding-top: 20px !important;
+}
+
+html[data-ui="light"] #video-pagination-info {
+  color: var(--fs-muted) !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  font-family: var(--fs-font-sans) !important;
+}
+
+html[data-ui="light"] .page-nav-btn {
+  padding: 7px 14px !important;
+  background: var(--fs-surface-subtle) !important;
+  border: 1px solid var(--fs-line) !important;
+  border-radius: 9px !important;
+  color: var(--fs-ink) !important;
+  font-size: 12.5px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+}
+
+html[data-ui="light"] .page-nav-btn:hover:not(:disabled) {
+  background: var(--fs-hover) !important;
+  border-color: var(--fs-primary) !important;
+  color: var(--fs-ink) !important;
+}
+
+html[data-ui="light"] .page-nav-btn:disabled {
+  opacity: 0.35 !important;
+  cursor: not-allowed !important;
+}
+
+html[data-ui="light"] #video-page-num {
+  color: var(--fs-ink) !important;
+  font-weight: 700 !important;
+  font-size: 13px !important;
+  padding: 0 4px !important;
+}
+
 .page-nav-btn {
   padding: 6px 12px;
   background: #060a17;
