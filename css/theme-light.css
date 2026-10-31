@@ -3444,22 +3444,40 @@ html[data-ui="light"] {
 html[data-ui="light"] .vs-w,
 html[data-ui="light"] .sub-word-unit.vs-w,
 html[data-ui="light"] .sh-w.vs-w,
-html[data-ui="light"] .vocab-saved-word {
+html[data-ui="light"] .cs-w.vs-w,
+html[data-ui="light"] .dc-d.vs-w,
+html[data-ui="light"] .vocab-saved-word,
+html[data-ui="light"][data-theme="dark"] .vs-w,
+html[data-ui="light"][data-theme="dark"] .sub-word-unit.vs-w,
+html[data-ui="light"][data-theme="dark"] .sh-w.vs-w,
+html[data-ui="light"][data-theme="dark"] .cs-w.vs-w,
+html[data-ui="light"][data-theme="dark"] .dc-d.vs-w,
+html[data-ui="light"][data-theme="dark"] .vocab-saved-word,
+html.dark .vs-w,
+html.dark .sub-word-unit.vs-w,
+html.dark .sh-w.vs-w,
+html.dark .cs-w.vs-w,
+html.dark .dc-d.vs-w,
+html.dark .vocab-saved-word {
   background-color: #fef08a !important;
   color: #0f172a !important;
   border-radius: 4px !important;
   text-decoration: underline dotted 2px #d97706 !important;
   text-underline-offset: 4px !important;
+  text-shadow: none !important;
+  -webkit-text-fill-color: #0f172a !important;
 }
 
 html[data-ui="light"] .vs-w.vs-first,
-html[data-ui="light"] .sub-word-unit.vs-w.vs-first {
+html[data-ui="light"] .sub-word-unit.vs-w.vs-first,
+html[data-ui="light"] .sh-w.vs-w.vs-first {
   border-top-left-radius: 4px !important;
   border-bottom-left-radius: 4px !important;
 }
 
 html[data-ui="light"] .vs-w.vs-last,
-html[data-ui="light"] .sub-word-unit.vs-w.vs-last {
+html[data-ui="light"] .sub-word-unit.vs-w.vs-last,
+html[data-ui="light"] .sh-w.vs-w.vs-last {
   border-top-right-radius: 4px !important;
   border-bottom-right-radius: 4px !important;
 }
@@ -3467,10 +3485,48 @@ html[data-ui="light"] .sub-word-unit.vs-w.vs-last {
 html[data-ui="light"] #subtitles-scroll-container .sub-word-unit.vs-w {
   box-shadow: 0 0 0 .12rem #fef08a !important;
   color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
 }
 
 html[data-ui="light"] #subtitles-scroll-container .sub-word-unit.vs-w.vs-cont {
   box-shadow: 0 0 0 .12rem #fef08a, calc(.3em + var(--sub-ws, 0em)) 0 0 0 #fef08a !important;
+}
+
+/* Đảm bảo tuyệt đối: Dù ở trạng thái .past hay .cur, chữ trên nền vàng highlight không bị đè thành màu trắng */
+html[data-ui="light"] .sh-w.vs-w.past,
+html[data-ui="light"] .sh-w.vs-w.cur,
+html[data-ui="light"] .sub-word-unit.vs-w.past,
+html[data-ui="light"] .sub-word-unit.vs-w.cur,
+html[data-ui="light"][data-theme="dark"] .sh-w.vs-w.past,
+html[data-ui="light"][data-theme="dark"] .sh-w.vs-w.cur,
+html[data-ui="light"][data-theme="dark"] .sub-word-unit.vs-w.past,
+html[data-ui="light"][data-theme="dark"] .sub-word-unit.vs-w.cur,
+html.dark .sh-w.vs-w.past,
+html.dark .sh-w.vs-w.cur,
+html.dark .sub-word-unit.vs-w.past,
+html.dark .sub-word-unit.vs-w.cur {
+  background-color: #fef08a !important;
+  color: #0f172a !important;
+  text-shadow: none !important;
+  -webkit-text-fill-color: #0f172a !important;
+}
+
+/* Double click / selection trên từ vựng đã highlight */
+html[data-ui="light"] .vs-w::selection,
+html[data-ui="light"] .sub-word-unit.vs-w::selection,
+html[data-ui="light"] .sh-w.vs-w::selection,
+html[data-ui="light"] .cs-w.vs-w::selection,
+html[data-ui="light"][data-theme="dark"] .vs-w::selection,
+html[data-ui="light"][data-theme="dark"] .sub-word-unit.vs-w::selection,
+html[data-ui="light"][data-theme="dark"] .sh-w.vs-w::selection,
+html[data-ui="light"][data-theme="dark"] .cs-w.vs-w::selection,
+html.dark .vs-w::selection,
+html.dark .sub-word-unit.vs-w::selection,
+html.dark .sh-w.vs-w::selection,
+html.dark .cs-w.vs-w::selection {
+  background-color: rgba(217, 119, 6, 0.45) !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -3479,6 +3535,7 @@ html[data-ui="light"] #subtitles-scroll-container .sub-word-unit.vs-w.vs-cont {
     background-color: #fde047 !important;
     box-shadow: 0 0 0 .12rem #fde047 !important;
     color: #0f172a !important;
+    -webkit-text-fill-color: #0f172a !important;
   }
 }
 
@@ -3630,15 +3687,15 @@ html[data-ui="light"] .sh-row.active {
   box-shadow: 0 0 0 2px var(--fs-tint), var(--fs-shadow-lg) !important;
 }
 
-html[data-ui="light"] .sh-w {
+html[data-ui="light"] .sh-w:not(.vs-w) {
   color: var(--fs-ink) !important;
 }
 
-html[data-ui="light"] .sh-w.past {
+html[data-ui="light"] .sh-w.past:not(.vs-w) {
   color: var(--fs-ink) !important;
 }
 
-html[data-ui="light"] .sh-w.cur {
+html[data-ui="light"] .sh-w.cur:not(.vs-w) {
   background: var(--fs-tint) !important;
   color: var(--fs-accent-text) !important;
 }
@@ -3654,11 +3711,15 @@ html[data-ui="light"] .sh-collapse:hover {
   color: var(--fs-ink) !important;
 }
 
-/* Nút Thu âm Shadowing (.sh-recbtn): chống chói mắt ở Light Mode */
+/* Nút Thu âm Shadowing (.sh-recbtn): chống chói mắt ở Light Mode theo Taste-skill & Impeccable */
+html[data-ui="light"] .sh-recbtn {
+  color: var(--fs-ink) !important;
+}
+
 html[data-ui="light"] .sh-recbtn.go {
   background: #FEF2F2 !important;
   border-color: #FCA5A5 !important;
-  color: #B91C1C !important;
+  color: #991B1B !important;
   box-shadow: 0 1px 4px rgba(239, 68, 68, 0.12) !important;
 }
 
@@ -3673,7 +3734,20 @@ html[data-ui="light"] .sh-recbtn.go svg {
 html[data-ui="light"] .sh-recbtn.go:hover {
   background: #FEE2E2 !important;
   border-color: #EF4444 !important;
+  color: #7F1D1D !important;
+}
+
+html[data-ui="light"] .sh-recbtn.rec {
+  background: #FEF2F2 !important;
+  border-color: #EF4444 !important;
   color: #991B1B !important;
+}
+
+html[data-ui="light"] .sh-recbtn.redo,
+html[data-ui="light"] .sh-recbtn.alt {
+  background: var(--fs-surface-subtle) !important;
+  border-color: var(--fs-line) !important;
+  color: var(--fs-ink) !important;
 }
 
 /* Ô nhập mốc thời gian & điều chỉnh tốc độ ở Shadowing / Dictation */
