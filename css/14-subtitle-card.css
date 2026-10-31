@@ -359,11 +359,23 @@
     background: var(--fs-surface-subtle) !important;
     color: var(--fs-muted) !important;
     border: 1px solid var(--fs-line) !important;
+    padding: 2px 8px !important;
+    font-size: 10.5px !important;
+    font-weight: 700 !important;
+    border-radius: 9999px !important;
+    letter-spacing: 0.02em !important;
+    transition: all 0.15s ease !important;
   }
   html[data-ui="light"] .psm-badge.on {
     background: var(--fs-tint) !important;
-    color: var(--fs-primary) !important;
-    border-color: var(--fs-primary) !important;
+    color: var(--fs-accent-text) !important;
+    border: 1px solid rgba(11, 90, 60, 0.22) !important;
+  }
+  html[data-ui="light"][data-theme="dark"] .psm-badge.on,
+  html.dark .psm-badge.on {
+    background: var(--fs-tint) !important;
+    color: var(--fs-accent-text) !important;
+    border-color: rgba(168, 230, 207, 0.25) !important;
   }
   html[data-ui="light"] #screen-practice header .vocab-btn {
     border-radius: 12px !important;
