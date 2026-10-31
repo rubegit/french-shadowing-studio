@@ -11284,6 +11284,18 @@ html[data-ui="light"] .fs-header-nav-row {
   border-bottom: 1px solid var(--fs-line) !important;
 }
 
+html[data-ui="light"][data-theme="dark"] .fs-header-nav-row {
+  background: var(--fs-surface-subtle) !important;
+  border-bottom: 1px solid var(--fs-line) !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  html[data-ui="light"]:not([data-theme="light"]):not([data-theme="dark"]) .fs-header-nav-row {
+    background: var(--fs-surface-subtle) !important;
+    border-bottom: 1px solid var(--fs-line) !important;
+  }
+}
+
 .fs-header-nav-row .fs-header-right {
   display: flex !important;
   align-items: center !important;
