@@ -2658,6 +2658,7 @@ html[data-ui="light"] #btn-save-action {
   background: var(--fs-primary) !important;
   color: var(--fs-on-primary) !important;
   border-color: var(--fs-primary) !important;
+  text-decoration: none !important;
 }
 
 html[data-ui="light"] #btn-lookup-action:hover,
@@ -3645,6 +3646,7 @@ html[data-ui="light"] #btn-save-action {
   background: var(--fs-primary) !important;
   color: var(--fs-on-primary) !important;
   border-color: var(--fs-primary) !important;
+  text-decoration: none !important;
 }
 
 html[data-ui="light"] #btn-lookup-action:hover,
@@ -7794,6 +7796,7 @@ html[data-ui="light"] .vocab-mini {
   align-items: center !important;
   justify-content: center !important;
   flex: 1 1 auto !important;
+  text-decoration: none !important;
 }
 
 html[data-ui="light"] .vocab-mini:hover {

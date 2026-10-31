@@ -196,7 +196,7 @@
   
   <link rel="stylesheet" href="css/02-base.css?v=ca84d219">
 
-  <link rel="stylesheet" href="css/03-layout.css?v=6c51eff0">
+  <link rel="stylesheet" href="css/03-layout.css?v=e55f315c">
   <link rel="stylesheet" href="css/04-view-reader.css?v=9972a115">
 
   <link rel="stylesheet" href="css/05-view-catalog.css?v=86f8be75" id="playlist-page-style">
@@ -215,7 +215,7 @@
 <link rel="stylesheet" href="css/15-ipa-highlight.css?v=5b8c6b2b" id="ipa-hl-style">
 <link rel="stylesheet" href="css/16-own-video.css?v=211e741b" id="own-yt-style">
   <!-- Redesign Theme: Mint Pastel & Dark Mode (Spec 2026) -->
-  <link rel="stylesheet" href="css/theme-light.css?v=d2786838">
+  <link rel="stylesheet" href="css/theme-light.css?v=4c16a770">
 </head>
 <body class="bg-[#070b14] text-slate-100 min-h-screen flex flex-col antialiased selection:bg-red-600/40 selection:text-white" onclick="ensurePageFocus()">
 
@@ -241,13 +241,13 @@
     onmouseleave="handleLookupTooltipMouseLeave()"
   >
     <div class="lookup-btn-row">
-      <button type="button" id="btn-lookup-action">
+      <a id="btn-lookup-action" href="#" target="_blank" rel="noopener noreferrer" role="button">
         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="11" cy="11" r="8"></circle>
           <path d="m21 21-4.3-4.3"></path>
         </svg>
         <span>Tra nghĩa</span>
-      </button>
+      </a>
       <button type="button" id="btn-pronounce-action" style="display:none" title="Phát âm từ này (Shift + click: Mở Từ điển Larousse)">
         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
@@ -312,8 +312,8 @@
 <script src="js/01c-subtitles.js?v=cca0d801"></script>
 <script src="js/01d-player.js?v=79302613"></script>
 <script src="js/01e-translate-ai.js?v=c1cab56f"></script>
-<script src="js/01f-lookup.js?v=ddf9abe2"></script>
-<script src="js/01g-vocab-list.js?v=65f5b8cc"></script>
+<script src="js/01f-lookup.js?v=b4a6fb3f"></script>
+<script src="js/01g-vocab-list.js?v=da9530ac"></script>
 <script src="js/01h-ebook.js?v=cb54eb78"></script>
 
   <script src="js/02-pv-helper.js?v=d2adcc44"></script>

@@ -2,6 +2,37 @@
     const lookupTooltip = document.getElementById('lookup-tooltip');
     const btnLookupAction = document.getElementById('btn-lookup-action');
 
+    // Hàm mở tab mới an toàn, không bao giờ bị Popup Blocker chặn
+    function safeOpenTab(url) {
+      if (!url) return;
+      try {
+        const a = document.createElement('a');
+        a.href = url;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => { if (a.parentNode) a.parentNode.removeChild(a); }, 300);
+      } catch (err) {
+        window.open(url, '_blank', 'noopener,noreferrer');
+      }
+    }
+    window.safeOpenTab = safeOpenTab;
+
+    function buildLookupSearchUrl(selText, contextStr) {
+      if (!selText) return '';
+      const queryStr =
+`Tôi đang học tiếng Pháp. Tôi muốn hỏi từ/câu/đoạn sau đây có nghĩa là gì: “${selText}”.
+Trình bày theo kiểu trích lại đoạn/câu/từ gốc + loại từ + giống (masculin/féminin nếu là danh từ) + phiên âm IPA chuẩn Pháp, sau đó xuống dòng và viết nghĩa tiếng Việt của nó (phần nghĩa tiếng Việt bôi đen).
+Nếu đoạn văn bản tôi vừa cung cấp là/chứa một từ/thành ngữ/cụm từ thì cho thêm 2-3 ví dụ thực tế bằng tiếng Pháp kèm bản dịch tiếng Việt của từng ví dụ.
+Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
+
+“${contextStr || selText}”`;
+      return `https://www.google.com/search?udm=50&q=${encodeURIComponent(queryStr)}`;
+    }
+    window.buildLookupSearchUrl = buildLookupSearchUrl;
+
     let selectedRangeForLoop = null;
     let vocabAreaCtx = null;   // != null khi đang bôi đen trong "Từ vựng đã lưu" / "Từ khó" (hiện Tra nghĩa + Lưu + Phát âm, không có Loop)
 
@@ -192,6 +223,13 @@
       const blurActive = !va && !!settings.blurMode && !isTextMode && !bkActive();
       if (btnLookupAction) {
         btnLookupAction.style.display = blurActive ? 'none' : '';
+        if (!blurActive) {
+          const contextStr = vocabAreaCtx ? vocabAreaCtx.contextStr : (typeof getContextForSelectedText === 'function' ? getContextForSelectedText(text).contextStr : text);
+          const searchUrl = buildLookupSearchUrl(text, contextStr);
+          btnLookupAction.href = searchUrl;
+          btnLookupAction.setAttribute('target', '_blank');
+          btnLookupAction.setAttribute('rel', 'noopener noreferrer');
+        }
       }
       // "Phát âm" hiển thị khi bôi đen từ hoặc cụm ngắn
       const btnPron = document.getElementById('btn-pronounce-action');
@@ -1008,7 +1046,7 @@
       const extPresent = document.documentElement.dataset.shadowingExtension === '1';
       const fallback = (msg) => {
         if (msg && !bgTabHintShown) { bgTabHintShown = true; showVocabToast(msg, false); }
-        window.open(url, '_blank');
+        safeOpenTab(url);
       };
       if (!extPresent) {
         fallback('Shift + click mở tab nền cần cài extension Shadowing Studio. Tạm thời mở tab bình thường.');
@@ -1202,31 +1240,29 @@
 
     btnLookupAction.addEventListener('click', (e) => {
       e.stopPropagation();
-      e.preventDefault();
-      if (!selectedTextForLookup) return;
+      if (!selectedTextForLookup) {
+        e.preventDefault();
+        return;
+      }
 
       const selText = selectedTextForLookup;
       const contextStr = vocabAreaCtx ? vocabAreaCtx.contextStr : getContextForSelectedText(selText).contextStr;
-
-      const queryStr =
-`Tôi đang học tiếng Pháp. Tôi muốn hỏi từ/câu/đoạn sau đây có nghĩa là gì: “${selText}”.
-Trình bày theo kiểu trích lại đoạn/câu/từ gốc + loại từ + giống (masculin/féminin nếu là danh từ) + phiên âm IPA chuẩn Pháp, sau đó xuống dòng và viết nghĩa tiếng Việt của nó (phần nghĩa tiếng Việt bôi đen).
-Nếu đoạn văn bản tôi vừa cung cấp là/chứa một từ/thành ngữ/cụm từ thì cho thêm 2-3 ví dụ thực tế bằng tiếng Pháp kèm bản dịch tiếng Việt của từng ví dụ.
-Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
-
-“${contextStr}”`;
-
-      const searchUrl = `https://www.google.com/search?udm=50&q=${encodeURIComponent(queryStr)}`;   // udm=50: mở thẳng Google AI Mode (luôn trả lời bằng AI)
+      const searchUrl = buildLookupSearchUrl(selText, contextStr);
+      btnLookupAction.href = searchUrl;
 
       if (e.shiftKey) {
         // Shift + click: mở tab mới ở nền để tra nghĩa, vẫn ở lại trang hiện tại và GIỮ NGUYÊN 3 pop-up + vùng bôi đen.
+        e.preventDefault();
         openUrlInBackgroundTab(searchUrl);
         return;
       }
 
-      window.open(searchUrl, '_blank');
-      hideLookupTooltip();
-      window.getSelection()?.removeAllRanges();
+      // Normal click: Không gọi e.preventDefault() để thẻ <a> target="_blank" tự mở tab theo cơ chế native hyperlink của trình duyệt
+      // Điều này ngăn chặn 100% tình trạng Popup Blocker chặn mở tab mới.
+      setTimeout(() => {
+        hideLookupTooltip();
+        window.getSelection()?.removeAllRanges();
+      }, 100);
     });
 
     const btnPronounceAction = document.getElementById('btn-pronounce-action');
