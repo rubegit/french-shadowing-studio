@@ -754,7 +754,7 @@ html[data-ui="light"] .pv-opt.active .pv-opt-desc {
    MODULE M2: TRANG CHỦ LUYỆN VIDEO (LIBRARY CARD GRID & 2-STEP INPUT)
    ==================================================================== */
 
-/* --- 1. KHUNG CHÍNH 2 CỘT 5fr : 7fr THEO MOCKUP (MODULE L1) --- */
+/* --- 1. KHUNG CHÍNH 1 CỘT THỐNG NHẤT (SINGLE COLUMN HERO & LIBRARY) --- */
 html[data-ui="light"] #main-card {
   background: transparent !important;
   border: none !important;
@@ -763,32 +763,28 @@ html[data-ui="light"] #main-card {
 }
 
 html[data-ui="light"] #main-card:has(#video-input-mode:not(.hidden)) {
-  display: grid !important;
-  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr) !important;
-  gap: 32px !important;
-  align-items: start !important;
-}
-
-@media (max-width: 900px) {
-  html[data-ui="light"] #main-card:has(#video-input-mode:not(.hidden)) {
-    grid-template-columns: 1fr !important;
-    gap: 24px !important;
-  }
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 20px !important;
+  width: 100% !important;
+  max-width: 1200px !important;
+  margin: 0 auto !important;
 }
 
 html[data-ui="light"] #main-card:has(#video-input-mode:not(.hidden)) > #site-counter-footer {
-  grid-column: 1 / -1 !important;
+  width: 100% !important;
 }
 
-/* --- 2. CỘT TRÁI (5fr) - HERO TITLE, SUBTITLE & 2-STEP CARD --- */
+/* --- 2. TIÊU ĐỀ NẰM ĐẦU Ô VIDEO (.home-hero-text) --- */
 html[data-ui="light"] .home-hero-text {
-  margin-bottom: 24px !important;
+  margin-bottom: 0 !important;
+  padding: 0 4px !important;
 }
 
 html[data-ui="light"] .home-title {
-  margin: 0 0 8px 0 !important;
-  font-size: 42px !important;
-  line-height: 1.1 !important;
+  margin: 0 0 6px 0 !important;
+  font-size: 28px !important;
+  line-height: 1.25 !important;
   font-weight: 800 !important;
   letter-spacing: -0.02em !important;
   color: var(--fs-ink) !important;
@@ -797,14 +793,14 @@ html[data-ui="light"] .home-title {
 
 @media (max-width: 900px) {
   html[data-ui="light"] .home-title {
-    font-size: 32px !important;
+    font-size: 23px !important;
   }
 }
 
 html[data-ui="light"] .home-sub {
   margin: 0 !important;
   color: var(--fs-muted) !important;
-  font-size: 16px !important;
+  font-size: 15px !important;
   line-height: 1.5 !important;
   font-family: var(--fs-font-sans) !important;
 }
