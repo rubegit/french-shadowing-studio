@@ -250,16 +250,15 @@
                   <span>Chạy chữ Karaoke</span>
                   <span class="psm-badge" id="psm-badge-karaoke">TẮT</span>
                 </button>
-                <div class="psm-item-row">
-                  <button type="button" class="psm-item psm-item-flex" id="psm-btn-bilingual" onclick="toggleBilingual(); updatePracticeMobileMenuBadges();">
-                    <i data-lucide="languages" class="w-4 h-4 text-emerald-400"></i>
-                    <span>Dịch Song ngữ</span>
-                    <span class="psm-badge" id="psm-badge-bilingual">TẮT</span>
-                  </button>
-                  <button type="button" class="psm-action-btn" onclick="closePracticeMobileMenu(); openBilingualModal(true);" title="Sửa bản dịch song ngữ" aria-label="Sửa bản dịch song ngữ">
-                    <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
-                  </button>
-                </div>
+                <button type="button" class="psm-item" id="psm-btn-bilingual" onclick="toggleBilingual(); updatePracticeMobileMenuBadges();">
+                  <i data-lucide="languages" class="w-4 h-4 text-emerald-400"></i>
+                  <span>Dịch Song ngữ</span>
+                  <span class="psm-badge" id="psm-badge-bilingual">TẮT</span>
+                </button>
+                <button type="button" class="psm-item" onclick="closePracticeMobileMenu(); openBilingualModal(true);" title="Sửa bản dịch song ngữ">
+                  <i data-lucide="pencil" class="w-4 h-4 text-emerald-400"></i>
+                  <span>Sửa bản dịch song ngữ</span>
+                </button>
                 <button type="button" class="psm-item" id="psm-btn-autostop" onclick="toggleSentenceAutoStop(); updatePracticeMobileMenuBadges();">
                   <i data-lucide="pause-circle" class="w-4 h-4 text-indigo-400"></i>
                   <span>Tự dừng sau mỗi câu</span>

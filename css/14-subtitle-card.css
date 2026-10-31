@@ -295,43 +295,6 @@
   .practice-sandwich-menu.pv-x {
     display: none !important;
   }
-  .psm-item-row {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    width: 100%;
-  }
-  .psm-item-flex {
-    flex: 1 1 auto;
-    width: auto;
-  }
-  .psm-action-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    background: transparent;
-    border: 1px solid transparent;
-    color: #94a3b8;
-    cursor: pointer;
-    transition: all .15s ease;
-    flex-shrink: 0;
-  }
-  .psm-action-btn:hover {
-    background: #141f3d;
-    color: #38bdf8;
-    border-color: #1e293b;
-  }
-  html[data-ui="light"] .psm-action-btn {
-    color: var(--fs-muted) !important;
-  }
-  html[data-ui="light"] .psm-action-btn:hover {
-    background: var(--fs-hover) !important;
-    color: var(--fs-primary) !important;
-    border-color: var(--fs-line) !important;
-  }
   .psm-title {
     font-size: 11px;
     font-weight: 700;
