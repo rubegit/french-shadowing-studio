@@ -214,7 +214,7 @@
 <link rel="stylesheet" href="css/15-ipa-highlight.css?v=5b8c6b2b" id="ipa-hl-style">
 <link rel="stylesheet" href="css/16-own-video.css?v=211e741b" id="own-yt-style">
   <!-- Redesign Theme: Mint Pastel & Dark Mode (Spec 2026) -->
-  <link rel="stylesheet" href="css/theme-light.css?v=48ae3ccd">
+  <link rel="stylesheet" href="css/theme-light.css?v=209051f2">
 </head>
 <body class="bg-[#070b14] text-slate-100 min-h-screen flex flex-col antialiased selection:bg-red-600/40 selection:text-white" onclick="ensurePageFocus()">
 
@@ -532,6 +532,17 @@
               <span class="cloud-sync-dot disconnected"></span>
               <span class="text-xs text-slate-400">&rarr;</span>
             </div>
+          </button>
+
+          <button type="button" class="mobile-nav-action-btn fs-theme-toggle" onclick="toggleFsTheme();" title="Chuyển chế độ Sáng / Tối" aria-label="Chuyển chế độ Sáng / Tối">
+            <div class="flex items-center gap-3">
+              <div class="mobile-action-icon text-amber-400">
+                <svg class="fs-theme-icon-moon w-4 h-4" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+                <svg class="fs-theme-icon-sun w-4 h-4" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+              </div>
+              <span class="font-semibold text-sm">Chế độ Sáng / Tối</span>
+            </div>
+            <span class="text-xs text-slate-400">&rarr;</span>
           </button>
         </div>
       </div>
