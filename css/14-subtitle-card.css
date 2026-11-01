@@ -502,6 +502,11 @@
   }
 
   /* ==================== HEADER DANH SÁCH CÂU & Ô TÌM KIẾM SỔ NGANG ==================== */
+  #panel-right, .split-panel-right {
+    container-type: inline-size;
+    container-name: subpanel;
+  }
+
   .sub-panel-hd {
     position: relative !important;
     display: flex !important;
@@ -512,17 +517,22 @@
     background: #0a1126 !important;
     flex-shrink: 0 !important;
     gap: 8px !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
   html[data-ui="light"] .sub-panel-hd {
     background: var(--fs-surface, #ffffff) !important;
     border-bottom-color: var(--fs-line, #e2e8f0) !important;
-    padding: 12px 16px 10px !important;
+    padding: 10px 14px 8px !important;
+    align-items: center !important;
   }
 
   .sub-panel-tabs {
     position: relative !important;
     z-index: 10 !important;
-    flex-shrink: 0 !important;
+    flex: 0 1 auto !important;
+    min-width: 0 !important;
   }
 
   .sub-panel-right-tools {
@@ -532,6 +542,8 @@
     justify-content: flex-end !important;
     position: relative !important;
     flex-shrink: 0 !important;
+    margin-left: auto !important;
+    min-width: 0 !important;
   }
 
   .sub-panel-count {
@@ -540,6 +552,8 @@
     color: #7d8db0 !important;
     white-space: nowrap !important;
     transition: opacity .18s ease, width .18s ease !important;
+    flex-shrink: 1 !important;
+    min-width: 0 !important;
   }
   html[data-ui="light"] .sub-panel-count {
     color: #64748b !important;
@@ -550,6 +564,7 @@
     display: inline-flex !important;
     align-items: center !important;
     justify-content: flex-end !important;
+    flex-shrink: 0 !important;
   }
 
   .sub-search-expand-input {
@@ -642,6 +657,73 @@
     background: transparent !important;
     border-color: transparent !important;
     color: #64748b !important;
+  }
+
+  /* Co giãn thông minh khi thu hẹp chiều ngang cột phụ đề (bằng resizer hoặc màn hình nhỏ) */
+  @container subpanel (max-width: 380px) {
+    .sub-panel-hd {
+      padding: 8px 10px 6px !important;
+      gap: 6px !important;
+    }
+    .sub-panel-tabs button {
+      padding: 5px 9px !important;
+      font-size: 12px !important;
+    }
+    .sub-panel-count {
+      font-size: 11.5px !important;
+    }
+  }
+
+  @container subpanel (max-width: 330px) {
+    .sub-panel-hd {
+      padding: 6px 8px 6px !important;
+      gap: 4px !important;
+    }
+    /* Ẩn chỉ số đếm câu để nút kính lúp luôn luôn hiển thị trọn vẹn ở mép phải */
+    .sub-panel-count {
+      display: none !important;
+    }
+    .sub-panel-tabs button {
+      padding: 4px 7px !important;
+      font-size: 11px !important;
+    }
+    .sub-search-toggle-btn {
+      width: 28px !important;
+      height: 28px !important;
+      min-width: 28px !important;
+    }
+  }
+
+  @container subpanel (max-width: 270px) {
+    #tab-sub-sentences {
+      max-width: 80px !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      white-space: nowrap !important;
+    }
+    #tab-sub-keyvocab {
+      max-width: 60px !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      white-space: nowrap !important;
+    }
+  }
+
+  /* Khi mở ô tìm kiếm trên cột hẹp: ẩn tạm tabs để ô input có 100% diện tích nhập */
+  @container subpanel (max-width: 360px) {
+    .sub-panel-hd:has(.sub-search-expandable.open) .sub-panel-tabs {
+      display: none !important;
+    }
+    .sub-panel-right-tools:has(.sub-search-expandable.open) {
+      width: 100% !important;
+    }
+    .sub-search-expandable.open {
+      width: 100% !important;
+    }
+    .sub-search-expandable.open .sub-search-expand-input {
+      width: 100% !important;
+      max-width: 100% !important;
+    }
   }
 
   /* Nới rộng chiều cao danh sách câu tối đa trên mobile */

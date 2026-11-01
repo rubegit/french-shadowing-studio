@@ -2394,8 +2394,8 @@ html[data-ui="light"] #panel-right {
 html[data-ui="light"] .sub-panel-hd {
   display: flex !important;
   justify-content: space-between !important;
-  align-items: baseline !important;
-  padding: 16px 20px 12px !important;
+  align-items: center !important;
+  padding: 10px 14px 8px !important;
   border-bottom: 1px solid var(--fs-line) !important;
   background: var(--fs-surface) !important;
   flex-shrink: 0 !important;
