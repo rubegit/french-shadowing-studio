@@ -450,6 +450,11 @@
   },
   {
    "kind": "include",
+   "replacement": "<!-- @include partials/modal-sentence-edit.html -->",
+   "file": "partials/modal-sentence-edit.html"
+  },
+  {
+   "kind": "include",
    "replacement": "<!-- @include partials/modal-punctuation.html -->",
    "file": "partials/modal-punctuation.html"
   },

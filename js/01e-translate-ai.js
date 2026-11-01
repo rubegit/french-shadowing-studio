@@ -919,6 +919,9 @@
       closeSentenceEditModal();
       renderSubtitleList();
       persistSentencesToHistory();
+      if (typeof syncVocabSentenceTranslations === 'function') {
+        syncVocabSentenceTranslations(currentVideoId, sentences);
+      }
       if (window.FSS_SUPABASE && typeof window.FSS_SUPABASE.syncHistoryDebounced === 'function') {
         window.FSS_SUPABASE.syncHistoryDebounced(getRawHistory());
       }

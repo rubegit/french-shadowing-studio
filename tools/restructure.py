@@ -63,6 +63,9 @@ def build():
         if e['kind'] == 'include' and e['replacement'] in t:
             p = P(e['file'])
             if p.exists(): t = t.replace(e['replacement'], p.read_text(encoding='utf-8'))
+    for m in re.finditer(r'<!--\s*@include\s+([^\s>]+)\s*-->', t):
+        p = P(m.group(1))
+        if p.exists(): t = t.replace(m.group(0), p.read_text(encoding='utf-8'))
     t = update_cache_busters(t)
     OUT.write_text(t, encoding='utf-8'); return t
 
