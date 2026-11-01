@@ -57,13 +57,40 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
     }
     window.buildLookupPromptText = buildLookupPromptText;
 
+    function getAiLookupProvider() {
+      return localStorage.getItem('fss_ai_provider') || 'chatgpt';
+    }
+    window.getAiLookupProvider = getAiLookupProvider;
+
+    function setAiLookupProvider(provider) {
+      if (!['chatgpt', 'gemini', 'google'].includes(provider)) return;
+      localStorage.setItem('fss_ai_provider', provider);
+      if (typeof window.updateAiLookupProviderUI === 'function') {
+        window.updateAiLookupProviderUI();
+      }
+      const names = { chatgpt: 'ChatGPT', gemini: 'Gemini AI', google: 'Google Search' };
+      if (typeof showVocabToast === 'function') {
+        showVocabToast(`✓ Đã chọn công cụ tra nghĩa: ${names[provider]}`, true);
+      }
+    }
+    window.setAiLookupProvider = setAiLookupProvider;
+
     function buildGeminiLookupUrl(promptText) {
       return `https://gemini.google.com/app?prompt=${encodeURIComponent(promptText || '')}`;
     }
     window.buildGeminiLookupUrl = buildGeminiLookupUrl;
 
     function buildLookupSearchUrl(selText, contextStr) {
-      return buildGeminiLookupUrl(buildLookupPromptText(selText, contextStr));
+      const promptText = buildLookupPromptText(selText, contextStr);
+      const provider = getAiLookupProvider();
+      if (provider === 'gemini') {
+        return `https://gemini.google.com/app?prompt=${encodeURIComponent(promptText || '')}`;
+      }
+      if (provider === 'google') {
+        return `https://www.google.com/search?udm=50&q=${encodeURIComponent(promptText || '')}`;
+      }
+      // Mặc định: chatgpt (hỗ trợ tự điền prompt trực tiếp qua URL ?q=)
+      return `https://chatgpt.com/?q=${encodeURIComponent(promptText || '')}`;
     }
     window.buildLookupSearchUrl = buildLookupSearchUrl;
 
@@ -263,7 +290,9 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
           btnLookupAction.href = searchUrl;
           btnLookupAction.setAttribute('target', '_blank');
           btnLookupAction.setAttribute('rel', 'noopener noreferrer');
-          btnLookupAction.setAttribute('title', 'Tra nghĩa trên Gemini AI (tự động copy câu hỏi ngữ cảnh)');
+          const p = getAiLookupProvider();
+          const pName = p === 'gemini' ? 'Gemini AI' : (p === 'google' ? 'Google Search' : 'ChatGPT');
+          btnLookupAction.setAttribute('title', `Tra nghĩa với ${pName} (tự động chuẩn bị câu hỏi ngữ cảnh)`);
         }
       }
       // "Phát âm" hiển thị khi bôi đen từ hoặc cụm ngắn
@@ -1283,13 +1312,20 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
       const selText = selectedTextForLookup;
       const contextStr = vocabAreaCtx ? vocabAreaCtx.contextStr : getContextForSelectedText(selText).contextStr;
       const promptText = buildLookupPromptText(selText, contextStr);
-      const searchUrl = buildGeminiLookupUrl(promptText);
+      const provider = getAiLookupProvider();
+      const searchUrl = buildLookupSearchUrl(selText, contextStr);
       btnLookupAction.href = searchUrl;
 
-      // Tự động copy prompt ngữ cảnh vào clipboard
+      // Luôn copy prompt ngữ cảnh vào clipboard
       copyPromptToClipboard(promptText);
       if (typeof showVocabToast === 'function') {
-        showVocabToast('✨ Đã copy câu hỏi! Nhấn Ctrl+V / Cmd+V vào Gemini', true);
+        if (provider === 'chatgpt') {
+          showVocabToast('✨ Đang mở ChatGPT với câu hỏi ngữ cảnh...', true);
+        } else if (provider === 'gemini') {
+          showVocabToast('✨ Đã copy câu hỏi! Nhấn Ctrl+V / Cmd+V vào Gemini', true);
+        } else {
+          showVocabToast('✨ Đang mở Google Search...', true);
+        }
       }
 
       if (e.shiftKey) {

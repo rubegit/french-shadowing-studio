@@ -1959,22 +1959,36 @@
     }
 
     function getVocabSearchUrl(x) {
-      if (!x) return 'https://gemini.google.com/app';
+      if (!x) return 'https://chatgpt.com/';
       const promptText = getVocabPromptText(x);
-      return `https://gemini.google.com/app?prompt=${encodeURIComponent(promptText)}`;
+      const provider = (typeof window.getAiLookupProvider === 'function') ? window.getAiLookupProvider() : 'chatgpt';
+      if (provider === 'gemini') {
+        return `https://gemini.google.com/app?prompt=${encodeURIComponent(promptText)}`;
+      }
+      if (provider === 'google') {
+        return `https://www.google.com/search?udm=50&q=${encodeURIComponent(promptText)}`;
+      }
+      return `https://chatgpt.com/?q=${encodeURIComponent(promptText)}`;
     }
 
     function lookupVocab(id, ev) {
       const x = getVocab().find((v) => v.id === id);
       if (!x) return;
       const promptText = getVocabPromptText(x);
+      const provider = (typeof window.getAiLookupProvider === 'function') ? window.getAiLookupProvider() : 'chatgpt';
       const url = getVocabSearchUrl(x);
 
       if (typeof window.copyPromptToClipboard === 'function') {
         window.copyPromptToClipboard(promptText);
       }
       if (typeof showVocabToast === 'function') {
-        showVocabToast('✨ Đã copy câu hỏi! Nhấn Ctrl+V / Cmd+V vào Gemini', true);
+        if (provider === 'chatgpt') {
+          showVocabToast('✨ Đang mở ChatGPT với câu hỏi ngữ cảnh...', true);
+        } else if (provider === 'gemini') {
+          showVocabToast('✨ Đã copy câu hỏi! Nhấn Ctrl+V / Cmd+V vào Gemini', true);
+        } else {
+          showVocabToast('✨ Đang mở Google Search...', true);
+        }
       }
 
       if (!ev) {

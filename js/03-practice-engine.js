@@ -114,6 +114,15 @@
             bs.textContent = on ? 'BẬT' : 'TẮT';
             bs.classList.toggle('on', on);
         }
+        if (typeof window.updateAiLookupProviderUI === 'function') {
+            window.updateAiLookupProviderUI();
+        }
+    };
+    window.updateAiLookupProviderUI = function () {
+        const provider = (typeof window.getAiLookupProvider === 'function') ? window.getAiLookupProvider() : 'chatgpt';
+        document.querySelectorAll('.psm-ai-opt').forEach((b) => {
+            b.classList.toggle('active', b.getAttribute('data-ai') === provider);
+        });
     };
     window.togglePracticeMobileMenu = function (e) {
         if (e) e.stopPropagation();
