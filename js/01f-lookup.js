@@ -20,16 +20,50 @@
     }
     window.safeOpenTab = safeOpenTab;
 
-    function buildLookupSearchUrl(selText, contextStr) {
+    function copyPromptToClipboard(text) {
+      if (!text) return;
+      if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+        navigator.clipboard.writeText(text).catch(() => {
+          tryExecCopy(text);
+        });
+      } else {
+        tryExecCopy(text);
+      }
+    }
+    function tryExecCopy(text) {
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      } catch (e) {}
+    }
+    window.copyPromptToClipboard = copyPromptToClipboard;
+
+    function buildLookupPromptText(selText, contextStr) {
       if (!selText) return '';
-      const queryStr =
-`Tôi đang học tiếng Pháp. Tôi muốn hỏi từ/câu/đoạn sau đây có nghĩa là gì: “${selText}”.
+      return `Tôi đang học tiếng Pháp. Tôi muốn hỏi từ/câu/đoạn sau đây có nghĩa là gì: “${selText}”.
 Trình bày theo kiểu trích lại đoạn/câu/từ gốc + loại từ + giống (masculin/féminin nếu là danh từ) + phiên âm IPA chuẩn Pháp, sau đó xuống dòng và viết nghĩa tiếng Việt của nó (phần nghĩa tiếng Việt bôi đen).
 Nếu đoạn văn bản tôi vừa cung cấp là/chứa một từ/thành ngữ/cụm từ thì cho thêm 2-3 ví dụ thực tế bằng tiếng Pháp kèm bản dịch tiếng Việt của từng ví dụ.
 Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
 
 “${contextStr || selText}”`;
-      return `https://www.google.com/search?udm=50&q=${encodeURIComponent(queryStr)}`;
+    }
+    window.buildLookupPromptText = buildLookupPromptText;
+
+    function buildGeminiLookupUrl(promptText) {
+      return `https://gemini.google.com/app?prompt=${encodeURIComponent(promptText || '')}`;
+    }
+    window.buildGeminiLookupUrl = buildGeminiLookupUrl;
+
+    function buildLookupSearchUrl(selText, contextStr) {
+      return buildGeminiLookupUrl(buildLookupPromptText(selText, contextStr));
     }
     window.buildLookupSearchUrl = buildLookupSearchUrl;
 
@@ -229,6 +263,7 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
           btnLookupAction.href = searchUrl;
           btnLookupAction.setAttribute('target', '_blank');
           btnLookupAction.setAttribute('rel', 'noopener noreferrer');
+          btnLookupAction.setAttribute('title', 'Tra nghĩa trên Gemini AI (tự động copy câu hỏi ngữ cảnh)');
         }
       }
       // "Phát âm" hiển thị khi bôi đen từ hoặc cụm ngắn
@@ -1247,8 +1282,15 @@ Tôi tìm thấy đoạn/câu/từ trên ở trong ngữ cảnh sau:
 
       const selText = selectedTextForLookup;
       const contextStr = vocabAreaCtx ? vocabAreaCtx.contextStr : getContextForSelectedText(selText).contextStr;
-      const searchUrl = buildLookupSearchUrl(selText, contextStr);
+      const promptText = buildLookupPromptText(selText, contextStr);
+      const searchUrl = buildGeminiLookupUrl(promptText);
       btnLookupAction.href = searchUrl;
+
+      // Tự động copy prompt ngữ cảnh vào clipboard
+      copyPromptToClipboard(promptText);
+      if (typeof showVocabToast === 'function') {
+        showVocabToast('✨ Đã copy câu hỏi! Nhấn Ctrl+V / Cmd+V vào Gemini', true);
+      }
 
       if (e.shiftKey) {
         // Shift + click: mở tab mới ở nền để tra nghĩa, vẫn ở lại trang hiện tại và GIỮ NGUYÊN 3 pop-up + vùng bôi đen.

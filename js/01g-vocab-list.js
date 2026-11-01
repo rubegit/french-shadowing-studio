@@ -927,7 +927,7 @@
           <div class="vocab-card-tools">
             <button type="button" class="vocab-mini" onclick="playVocabWordAudio('${x.id}', event)" title="Nghe phát âm từ vựng">🗣️ Phát âm</button>
             ${(x.videoId && !x.bookId) ? `<button type="button" class="vocab-mini vocab-video-mini" onclick="playVocabVideoAudio('${x.id}', event)" title="Nghe âm thanh từ video gốc (không chiếu video)">🎧 Audio video</button>` : ''}
-            <a href="${escHtml(getVocabSearchUrl(x))}" target="_blank" rel="noopener noreferrer" class="vocab-mini">Tra nghĩa</a>
+            <a href="${escHtml(getVocabSearchUrl(x))}" target="_blank" rel="noopener noreferrer" class="vocab-mini" onclick="lookupVocab('${x.id}', event)" title="Tra nghĩa trên Gemini AI (tự động copy câu hỏi)">Tra nghĩa</a>
             <button type="button" class="vocab-mini del" title="Xoá từ vựng này" onclick="deleteVocab('${x.id}')" aria-label="Xoá"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg></button>
           </div>
         </div>
@@ -1953,20 +1953,36 @@
         : `<div class="vocab-empty">${all.length ? 'Không có mục nào khớp bộ lọc.' : 'Chưa có từ vựng nào.<br>Khi luyện tập, bôi đen một từ, cụm từ hoặc câu rồi bấm <b style="color:#fbbf24">Lưu</b> để lưu lại ở đây.'}</div>`;
     }
 
-    function getVocabSearchUrl(x) {
+    function getVocabPromptText(x) {
       if (!x) return '';
-      const q = `tôi đang học tiếng Pháp. Từ/cụm từ "${x.text}" trong câu "${x.en}" có nghĩa là gì? Giải thích ngắn gọn bằng tiếng Việt.`;
-      return `https://www.google.com/search?udm=50&q=${encodeURIComponent(q)}`;
+      return `Tôi đang học tiếng Pháp. Từ/cụm từ "${x.text}" trong câu "${x.en}" có nghĩa là gì? Giải thích ngắn gọn bằng tiếng Việt kèm loại từ, phiên âm IPA và 2 ví dụ thực tế.`;
     }
 
-    function lookupVocab(id) {
+    function getVocabSearchUrl(x) {
+      if (!x) return 'https://gemini.google.com/app';
+      const promptText = getVocabPromptText(x);
+      return `https://gemini.google.com/app?prompt=${encodeURIComponent(promptText)}`;
+    }
+
+    function lookupVocab(id, ev) {
       const x = getVocab().find((v) => v.id === id);
       if (!x) return;
+      const promptText = getVocabPromptText(x);
       const url = getVocabSearchUrl(x);
-      if (typeof window.safeOpenTab === 'function') {
-        window.safeOpenTab(url);
-      } else {
-        window.open(url, '_blank', 'noopener,noreferrer');
+
+      if (typeof window.copyPromptToClipboard === 'function') {
+        window.copyPromptToClipboard(promptText);
+      }
+      if (typeof showVocabToast === 'function') {
+        showVocabToast('✨ Đã copy câu hỏi! Nhấn Ctrl+V / Cmd+V vào Gemini', true);
+      }
+
+      if (!ev) {
+        if (typeof window.safeOpenTab === 'function') {
+          window.safeOpenTab(url);
+        } else {
+          window.open(url, '_blank', 'noopener,noreferrer');
+        }
       }
     }
     function deleteVocab(id) {
