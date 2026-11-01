@@ -120,14 +120,26 @@
           }
         }
 
-        // Kiểm tra và hỏi xóa từ vựng liên quan tương ứng với video này
-        const allVocab = typeof getVocab === 'function' ? getVocab() : [];
-        const relatedVocabCount = allVocab.filter(function(v) {
-          return v.videoId === videoId || (Array.isArray(v.contexts) && v.contexts.some(function(c) { return c.videoId === videoId; }));
-        }).length;
+        // Kiểm tra và hỏi dọn dẹp từ vựng liên quan tương ứng với video này
+        const breakdown = typeof window.getScopeVocabBreakdown === 'function'
+          ? window.getScopeVocabBreakdown('video:' + videoId)
+          : { deleted: 0, contextOnly: 0, total: 0 };
 
-        if (relatedVocabCount > 0) {
-          if (confirm(`Video này có ${relatedVocabCount} từ vựng đã lưu.\n\nBạn có muốn XÓA LUÔN toàn bộ ${relatedVocabCount} từ vựng tương ứng với video này không?\n\n• Bấm OK: Xóa cả video VÀ xóa toàn bộ ${relatedVocabCount} từ vựng\n• Bấm Hủy (Cancel): Chỉ xóa video, GIỮ LẠI từ vựng`)) {
+        if (breakdown.total > 0) {
+          let vocabMsg = `Video này có ${breakdown.total} từ vựng liên quan:\n`;
+          if (breakdown.deleted > 0 && breakdown.contextOnly > 0) {
+            vocabMsg += `• ${breakdown.deleted} từ chỉ có trong video này\n`;
+            vocabMsg += `• ${breakdown.contextOnly} từ dùng chung với bài khác\n\n`;
+            vocabMsg += `Bạn có muốn dọn dẹp từ vựng của video này không?\n\n`;
+            vocabMsg += `• Bấm OK: Xóa video, xóa ${breakdown.deleted} từ độc lập và gỡ ngữ cảnh của ${breakdown.contextOnly} từ dùng chung\n`;
+            vocabMsg += `• Bấm Hủy (Cancel): Chỉ xóa video, GIỮ NGUYÊN toàn bộ từ vựng`;
+          } else {
+            vocabMsg += `Bạn có muốn XÓA LUÔN toàn bộ ${breakdown.total} từ vựng tương ứng với video này không?\n\n`;
+            vocabMsg += `• Bấm OK: Xóa cả video VÀ xóa toàn bộ ${breakdown.total} từ vựng\n`;
+            vocabMsg += `• Bấm Hủy (Cancel): Chỉ xóa video, GIỮ LẠI từ vựng`;
+          }
+
+          if (confirm(vocabMsg)) {
             if (typeof window.deleteVocabByVideo === 'function') {
               window.deleteVocabByVideo(videoId);
             }

@@ -1957,11 +1957,17 @@
       const delScopeTxt = document.getElementById('vocab-del-scope-text');
       if (delScopeBtn) {
         if (vocabSource && vocabSource !== 'all') {
-          const scopedItems = vocabInScope(vocabSource);
-          if (scopedItems.length > 0) {
+          const breakdown = getScopeVocabBreakdown(vocabSource);
+          if (breakdown.total > 0) {
             delScopeBtn.style.display = 'inline-flex';
-            if (delScopeTxt) delScopeTxt.textContent = `Xóa ${scopedItems.length} từ bài này`;
-            delScopeBtn.title = `Xóa toàn bộ ${scopedItems.length} từ vựng thuộc bài này`;
+            if (delScopeTxt) {
+              if (breakdown.contextOnly > 0) {
+                delScopeTxt.textContent = `Xóa từ bài này (${breakdown.deleted} từ + ${breakdown.contextOnly} ngữ cảnh)`;
+              } else {
+                delScopeTxt.textContent = `Xóa ${breakdown.deleted} từ bài này`;
+              }
+            }
+            delScopeBtn.title = `Dọn dẹp từ vựng thuộc bài này (${breakdown.deleted} từ xóa, ${breakdown.contextOnly} từ gỡ ngữ cảnh)`;
           } else {
             delScopeBtn.style.display = 'none';
           }
@@ -2023,12 +2029,34 @@
       renderVocabPage();
     }
 
+    // Phân tích cơ cấu từ vựng theo bài: bao nhiêu từ độc lập và bao nhiêu từ dùng chung ngữ cảnh
+    function getScopeVocabBreakdown(scopeKey) {
+      if (!scopeKey || scopeKey === 'all') return { deleted: 0, contextOnly: 0, total: 0 };
+      const items = vocabInScope(scopeKey);
+      let deleted = 0;
+      let contextOnly = 0;
+      items.forEach(function(v) {
+        const mainMatches = vocabSourceInfo(v).key === scopeKey;
+        const remainingContexts = Array.isArray(v.contexts)
+          ? v.contexts.filter(function(c) { return vocabSourceInfo(c).key !== scopeKey; })
+          : [];
+        if (mainMatches && remainingContexts.length === 0) {
+          deleted++;
+        } else {
+          contextOnly++;
+        }
+      });
+      return { deleted: deleted, contextOnly: contextOnly, total: items.length };
+    }
+    window.getScopeVocabBreakdown = getScopeVocabBreakdown;
+
     // Xóa từ vựng theo phạm vi nguồn (scopeKey: 'video:ID', 'text:ID', 'book:ID')
     function deleteVocabByScope(scopeKey) {
-      if (!scopeKey || scopeKey === 'all') return 0;
+      if (!scopeKey || scopeKey === 'all') return { deletedCount: 0, contextRemovedCount: 0, totalAffected: 0 };
       const raw = getRawVocab();
       const now = Date.now();
-      let affected = 0;
+      let deletedCount = 0;
+      let contextRemovedCount = 0;
 
       const updated = raw.map(function(v) {
         if (v._deleted) return v;
@@ -2038,16 +2066,18 @@
 
         if (!mainMatches && !ctxMatches) return v;
 
-        affected++;
         if (mainMatches && !hasContexts) {
           // Chỉ có ngữ cảnh từ bài này -> Đánh dấu tombstone xóa hoàn toàn
+          deletedCount++;
           return Object.assign({}, v, { _deleted: true, _deletedAt: now });
         } else if (mainMatches && hasContexts) {
           // Là từ chính ở bài này nhưng có ngữ cảnh phụ ở bài khác -> Chuyển ngữ cảnh phụ thành chính
           const remainingContexts = v.contexts.filter(function(c) { return vocabSourceInfo(c).key !== scopeKey; });
           if (!remainingContexts.length) {
+            deletedCount++;
             return Object.assign({}, v, { _deleted: true, _deletedAt: now });
           }
+          contextRemovedCount++;
           const nextCtx = remainingContexts[0];
           const otherContexts = remainingContexts.slice(1);
           return Object.assign({}, v, {
@@ -2064,6 +2094,7 @@
           });
         } else {
           // Không phải bài chính, chỉ là một ngữ cảnh phụ -> Xóa ngữ cảnh phụ này
+          contextRemovedCount++;
           const remaining = v.contexts.filter(function(c) { return vocabSourceInfo(c).key !== scopeKey; });
           return Object.assign({}, v, {
             contexts: remaining.length ? remaining : undefined,
@@ -2072,7 +2103,8 @@
         }
       });
 
-      if (!affected) return 0;
+      const totalAffected = deletedCount + contextRemovedCount;
+      if (!totalAffected) return { deletedCount: 0, contextRemovedCount: 0, totalAffected: 0 };
 
       const validList = updated.filter(function(v) {
         if (!v._deleted) return true;
@@ -2084,26 +2116,47 @@
         window.FSS_SUPABASE.syncVocabDebounced(validList);
       }
       updateVocabBadges();
-      return affected;
+      return { deletedCount: deletedCount, contextRemovedCount: contextRemovedCount, totalAffected: totalAffected };
     }
     window.deleteVocabByScope = deleteVocabByScope;
 
     window.deleteVocabByVideo = function(videoId) {
-      if (!videoId) return 0;
+      if (!videoId) return { deletedCount: 0, contextRemovedCount: 0, totalAffected: 0 };
       return deleteVocabByScope('video:' + videoId);
     };
 
     function deleteCurrentScopedVocab() {
       if (!vocabSource || vocabSource === 'all') return;
-      const scopedItems = vocabInScope(vocabSource);
-      if (!scopedItems.length) return;
+      const breakdown = getScopeVocabBreakdown(vocabSource);
+      if (!breakdown.total) return;
+
       const sel = document.getElementById('vocab-source');
-      const title = sel ? (sel.options[sel.selectedIndex]?.text || 'bài này') : 'bài này';
-      if (!confirm(`Bạn có chắc muốn xóa toàn bộ ${scopedItems.length} từ vựng của "${title}"?\n\n(Thao tác này sẽ xóa trên thiết bị này và đồng bộ lên Đám mây)`)) {
-        return;
+      let title = sel ? (sel.options[sel.selectedIndex]?.text || 'bài này') : 'bài này';
+      title = title.replace(/\s*\(\d+\)$/, '');
+
+      let msg = `Bạn có chắc muốn dọn dẹp từ vựng của "${title}"?\n\n`;
+      if (breakdown.deleted > 0 && breakdown.contextOnly > 0) {
+        msg += `• Xóa hoàn toàn: ${breakdown.deleted} từ (chỉ có trong bài này)\n`;
+        msg += `• Gỡ ngữ cảnh câu: ${breakdown.contextOnly} từ (vẫn giữ nguyên từ vựng vì bạn đã lưu ở bài học khác)\n\n`;
+      } else if (breakdown.deleted > 0) {
+        msg += `• Xóa hoàn toàn: ${breakdown.deleted} từ vựng\n\n`;
+      } else {
+        msg += `• Gỡ ngữ cảnh câu: ${breakdown.contextOnly} từ (các từ này vẫn được giữ lại trong kho từ vựng)\n\n`;
       }
-      const count = deleteVocabByScope(vocabSource);
-      showVocabToast(`Đã xóa ${count} từ vựng của bài`, false);
+      msg += `(Thao tác này sẽ cập nhật trên thiết bị này và đồng bộ lên Đám mây)`;
+
+      if (!confirm(msg)) return;
+
+      const res = deleteVocabByScope(vocabSource);
+      let toastMsg = '';
+      if (res.deletedCount > 0 && res.contextRemovedCount > 0) {
+        toastMsg = `Đã xóa ${res.deletedCount} từ và gỡ ngữ cảnh của ${res.contextRemovedCount} từ dùng chung`;
+      } else if (res.deletedCount > 0) {
+        toastMsg = `Đã xóa ${res.deletedCount} từ vựng`;
+      } else {
+        toastMsg = `Đã gỡ ngữ cảnh của ${res.contextRemovedCount} từ`;
+      }
+      showVocabToast(toastMsg, false);
       vocabSource = 'all';
       renderVocabPage();
     }
