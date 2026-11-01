@@ -1951,6 +1951,24 @@
       document.getElementById('vocab-list').innerHTML = list.length
         ? list.map(vocabCardHtml).join('')
         : `<div class="vocab-empty">${all.length ? 'Không có mục nào khớp bộ lọc.' : 'Chưa có từ vựng nào.<br>Khi luyện tập, bôi đen một từ, cụm từ hoặc câu rồi bấm <b style="color:#fbbf24">Lưu</b> để lưu lại ở đây.'}</div>`;
+
+      // Cập nhật nút "Xóa từ bài này" khi đang lọc theo video/bài cụ thể
+      const delScopeBtn = document.getElementById('vocab-del-scope-btn');
+      const delScopeTxt = document.getElementById('vocab-del-scope-text');
+      if (delScopeBtn) {
+        if (vocabSource && vocabSource !== 'all') {
+          const scopedItems = vocabInScope(vocabSource);
+          if (scopedItems.length > 0) {
+            delScopeBtn.style.display = 'inline-flex';
+            if (delScopeTxt) delScopeTxt.textContent = `Xóa ${scopedItems.length} từ bài này`;
+            delScopeBtn.title = `Xóa toàn bộ ${scopedItems.length} từ vựng thuộc bài này`;
+          } else {
+            delScopeBtn.style.display = 'none';
+          }
+        } else {
+          delScopeBtn.style.display = 'none';
+        }
+      }
     }
 
     function getVocabPromptText(x) {
@@ -2004,11 +2022,109 @@
       updateVocabBadges();
       renderVocabPage();
     }
+
+    // Xóa từ vựng theo phạm vi nguồn (scopeKey: 'video:ID', 'text:ID', 'book:ID')
+    function deleteVocabByScope(scopeKey) {
+      if (!scopeKey || scopeKey === 'all') return 0;
+      const raw = getRawVocab();
+      const now = Date.now();
+      let affected = 0;
+
+      const updated = raw.map(function(v) {
+        if (v._deleted) return v;
+        const mainMatches = vocabSourceInfo(v).key === scopeKey;
+        const hasContexts = Array.isArray(v.contexts) && v.contexts.length > 0;
+        const ctxMatches = hasContexts && v.contexts.some(function(c) { return vocabSourceInfo(c).key === scopeKey; });
+
+        if (!mainMatches && !ctxMatches) return v;
+
+        affected++;
+        if (mainMatches && !hasContexts) {
+          // Chỉ có ngữ cảnh từ bài này -> Đánh dấu tombstone xóa hoàn toàn
+          return Object.assign({}, v, { _deleted: true, _deletedAt: now });
+        } else if (mainMatches && hasContexts) {
+          // Là từ chính ở bài này nhưng có ngữ cảnh phụ ở bài khác -> Chuyển ngữ cảnh phụ thành chính
+          const remainingContexts = v.contexts.filter(function(c) { return vocabSourceInfo(c).key !== scopeKey; });
+          if (!remainingContexts.length) {
+            return Object.assign({}, v, { _deleted: true, _deletedAt: now });
+          }
+          const nextCtx = remainingContexts[0];
+          const otherContexts = remainingContexts.slice(1);
+          return Object.assign({}, v, {
+            videoId: nextCtx.videoId,
+            videoTitle: nextCtx.videoTitle,
+            bookId: nextCtx.bookId,
+            en: nextCtx.en,
+            vi: nextCtx.vi,
+            hs: nextCtx.hs,
+            he: nextCtx.he,
+            t: nextCtx.t,
+            contexts: otherContexts.length ? otherContexts : undefined,
+            updatedAt: now
+          });
+        } else {
+          // Không phải bài chính, chỉ là một ngữ cảnh phụ -> Xóa ngữ cảnh phụ này
+          const remaining = v.contexts.filter(function(c) { return vocabSourceInfo(c).key !== scopeKey; });
+          return Object.assign({}, v, {
+            contexts: remaining.length ? remaining : undefined,
+            updatedAt: now
+          });
+        }
+      });
+
+      if (!affected) return 0;
+
+      const validList = updated.filter(function(v) {
+        if (!v._deleted) return true;
+        return v._deletedAt && (now - v._deletedAt) < VOCAB_TOMBSTONE_TTL;
+      });
+
+      localStorage.setItem(VOCAB_KEY, JSON.stringify(validList));
+      if (window.FSS_SUPABASE && typeof window.FSS_SUPABASE.syncVocabDebounced === 'function') {
+        window.FSS_SUPABASE.syncVocabDebounced(validList);
+      }
+      updateVocabBadges();
+      return affected;
+    }
+    window.deleteVocabByScope = deleteVocabByScope;
+
+    window.deleteVocabByVideo = function(videoId) {
+      if (!videoId) return 0;
+      return deleteVocabByScope('video:' + videoId);
+    };
+
+    function deleteCurrentScopedVocab() {
+      if (!vocabSource || vocabSource === 'all') return;
+      const scopedItems = vocabInScope(vocabSource);
+      if (!scopedItems.length) return;
+      const sel = document.getElementById('vocab-source');
+      const title = sel ? (sel.options[sel.selectedIndex]?.text || 'bài này') : 'bài này';
+      if (!confirm(`Bạn có chắc muốn xóa toàn bộ ${scopedItems.length} từ vựng của "${title}"?\n\n(Thao tác này sẽ xóa trên thiết bị này và đồng bộ lên Đám mây)`)) {
+        return;
+      }
+      const count = deleteVocabByScope(vocabSource);
+      showVocabToast(`Đã xóa ${count} từ vựng của bài`, false);
+      vocabSource = 'all';
+      renderVocabPage();
+    }
+    window.deleteCurrentScopedVocab = deleteCurrentScopedVocab;
+
     function clearAllVocab() {
-      if (!getVocab().length || !confirm('Xoá toàn bộ từ vựng đã lưu trên thiết bị này?')) return;
-      setVocab([]);
+      const active = getVocab();
+      if (!active.length) return;
+      if (!confirm(`Xoá toàn bộ ${active.length} từ vựng đã lưu trên thiết bị này và Đám mây?`)) return;
+      const now = Date.now();
+      const raw = getRawVocab();
+      const updated = raw.map(function(v) {
+        return Object.assign({}, v, { _deleted: true, _deletedAt: now });
+      });
+      localStorage.setItem(VOCAB_KEY, JSON.stringify(updated));
+      if (window.FSS_SUPABASE && typeof window.FSS_SUPABASE.syncVocabDebounced === 'function') {
+        window.FSS_SUPABASE.syncVocabDebounced(updated);
+      }
       updateVocabBadges();
       renderVocabPage();
+      showVocabToast('Đã xóa toàn bộ từ vựng', false);
     }
     function exportVocabCsv() {
       const all = getVocab();

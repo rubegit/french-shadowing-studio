@@ -119,6 +119,21 @@
             return;
           }
         }
+
+        // Kiểm tra và hỏi xóa từ vựng liên quan tương ứng với video này
+        const allVocab = typeof getVocab === 'function' ? getVocab() : [];
+        const relatedVocabCount = allVocab.filter(function(v) {
+          return v.videoId === videoId || (Array.isArray(v.contexts) && v.contexts.some(function(c) { return c.videoId === videoId; }));
+        }).length;
+
+        if (relatedVocabCount > 0) {
+          if (confirm(`Video này có ${relatedVocabCount} từ vựng đã lưu.\n\nBạn có muốn XÓA LUÔN toàn bộ ${relatedVocabCount} từ vựng tương ứng với video này không?\n\n• Bấm OK: Xóa cả video VÀ xóa toàn bộ ${relatedVocabCount} từ vựng\n• Bấm Hủy (Cancel): Chỉ xóa video, GIỮ LẠI từ vựng`)) {
+            if (typeof window.deleteVocabByVideo === 'function') {
+              window.deleteVocabByVideo(videoId);
+            }
+          }
+        }
+
         // Đánh tombstone thay vì xóa cứng để sync đúng sang máy khác
         const now = Date.now();
         const HIST_TOMBSTONE_TTL = 30 * 24 * 60 * 60 * 1000;
