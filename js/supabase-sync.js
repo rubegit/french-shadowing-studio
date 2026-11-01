@@ -1134,14 +1134,38 @@
     });
   };
 
-  // Đăng xuất
-  window.fssSignOut = function () {
+  // Đăng xuất (mặc định toàn cầu: scope = 'global')
+  window.fssSignOut = function (scope) {
     if (!client) return;
-    if (!confirm('Bạn có chắc muốn đăng xuất khỏi Supabase?')) return;
-    client.auth.signOut().then(function () {
+
+    var cleanScope = (typeof scope === 'string' && (scope === 'local' || scope === 'global')) ? scope : 'global';
+
+    var confirmMsg = cleanScope === 'global'
+      ? 'Bạn có chắc muốn đăng xuất khỏi Supabase?\n\nLưu ý: Thao tác này sẽ đăng xuất và thu hồi phiên làm việc trên TẤT CẢ các thiết bị khác.'
+      : 'Bạn có chắc muốn đăng xuất khỏi Supabase trên thiết bị này?';
+    if (!confirm(confirmMsg)) return;
+
+    client.auth.signOut({ scope: cleanScope }).then(function (res) {
+      if (res && res.error) {
+        alert('Chưa thu hồi được phiên. Thử lại khi có mạng: ' + (res.error.message || res.error));
+        return;
+      }
+      // Chỉ hủy các bộ hẹn giờ đồng bộ sau khi đăng xuất thành công
+      if (vocabSyncTimer) { clearTimeout(vocabSyncTimer); vocabSyncTimer = null; }
+      if (historySyncTimer) { clearTimeout(historySyncTimer); historySyncTimer = null; }
+      if (progressSyncTimer) { clearTimeout(progressSyncTimer); progressSyncTimer = null; }
+
       currentUser = null;
       updateSyncStatus('disconnected', 'Chưa đăng nhập');
       renderModalContent('login');
+      if (typeof showVocabToast === 'function') {
+        var toastMsg = cleanScope === 'global'
+          ? 'Đã đăng xuất toàn cầu thành công'
+          : 'Đã đăng xuất thành công trên thiết bị này';
+        showVocabToast(toastMsg, true);
+      }
+    }).catch(function (err) {
+      alert('Lỗi kết nối khi đăng xuất: ' + (err.message || err) + '. Phiên làm việc chưa được thu hồi. Vui lòng thử lại khi có mạng.');
     });
   };
 
