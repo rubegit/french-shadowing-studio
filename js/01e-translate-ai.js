@@ -136,6 +136,18 @@
             });
           }
 
+          const editBtn = document.createElement('button');
+          editBtn.type = 'button';
+          editBtn.className = 'sent-edit-btn';
+          editBtn.title = 'Sửa chính tả câu này';
+          editBtn.setAttribute('aria-label', 'Sửa chính tả câu này');
+          editBtn.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>';
+          editBtn.onclick = (e) => {
+            e.stopPropagation();
+            openSentenceEditModal(sentence.id);
+          };
+          sentLine.appendChild(editBtn);
+
           if (sentence.vi && sentence.vi.trim()) {
             const viDiv = document.createElement('div');
             viDiv.className = 'sub-textmode-trans sub-vi-line mt-1 pl-1 leading-normal';
@@ -819,6 +831,120 @@
       if (modal) modal.classList.remove('open');
     }
 
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeBilingualModal(); closePunctModal(); } });
+    // ---------- Cửa sổ "Sửa câu phụ đề" ----------
+    let _editingSentenceId = null;
+
+    function openSentenceEditModal(sentenceId) {
+      const s = sentences.find((x) => x.id === sentenceId);
+      if (!s) return;
+      _editingSentenceId = sentenceId;
+      const modal = document.getElementById('sentence-edit-modal');
+      if (!modal) return;
+
+      const idx = sentences.findIndex((x) => x.id === sentenceId);
+      const title = document.getElementById('se-title');
+      if (title) {
+        const timeStr = typeof formatTime === 'function' ? formatTime(s.startTime || 0) : '';
+        title.textContent = `Sửa câu phụ đề #${idx + 1}${timeStr ? ` (${timeStr})` : ''}`;
+      }
+
+      const txtFr = document.getElementById('se-text-fr');
+      if (txtFr) {
+        txtFr.value = String(s.text || '').trim();
+      }
+
+      const txtVi = document.getElementById('se-text-vi');
+      if (txtVi) {
+        txtVi.value = String(s.vi || '').trim();
+      }
+
+      modal.classList.add('open');
+      if (txtFr) {
+        setTimeout(() => { txtFr.focus(); txtFr.select(); }, 60);
+      }
+      if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+    }
+    window.openSentenceEditModal = openSentenceEditModal;
+
+    function closeSentenceEditModal() {
+      const modal = document.getElementById('sentence-edit-modal');
+      if (modal) modal.classList.remove('open');
+      _editingSentenceId = null;
+    }
+    window.closeSentenceEditModal = closeSentenceEditModal;
+
+    function saveSentenceEdit() {
+      if (_editingSentenceId == null) return;
+      const s = sentences.find((x) => x.id === _editingSentenceId);
+      if (!s) return;
+
+      const txtFr = document.getElementById('se-text-fr');
+      const txtVi = document.getElementById('se-text-vi');
+      const newFr = (txtFr ? txtFr.value : '').trim();
+      const newVi = (txtVi ? txtVi.value : '').trim();
+
+      if (!newFr) {
+        alert('Câu tiếng Pháp không được để trống.');
+        if (txtFr) txtFr.focus();
+        return;
+      }
+
+      s.text = newFr;
+      if (newVi) {
+        s.vi = newVi;
+      } else {
+        delete s.vi;
+      }
+
+      // Cập nhật lại danh sách từ (words) nếu có
+      if (Array.isArray(s.words) && s.words.length > 0) {
+        const rawTokens = newFr.split(/\s+/).filter(Boolean);
+        if (rawTokens.length === s.words.length) {
+          rawTokens.forEach((tk, i) => {
+            s.words[i].word = tk;
+          });
+        } else {
+          const sStart = Number(s.startTime) || 0;
+          const sEnd = Number(s.endTime) || (sStart + Math.max(1, rawTokens.length * 0.4));
+          const dur = Math.max(0.4, sEnd - sStart);
+          const step = dur / rawTokens.length;
+          s.words = rawTokens.map((tk, i) => ({
+            word: tk,
+            startTime: Number((sStart + i * step).toFixed(3)),
+            endTime: Number((sStart + (i + 1) * step).toFixed(3))
+          }));
+        }
+      }
+
+      closeSentenceEditModal();
+      renderSubtitleList();
+      persistSentencesToHistory();
+      if (window.FSS_SUPABASE && typeof window.FSS_SUPABASE.syncHistoryDebounced === 'function') {
+        window.FSS_SUPABASE.syncHistoryDebounced(getRawHistory());
+      }
+      showVocabToast('✓ Đã lưu thay đổi câu phụ đề', false);
+    }
+    window.saveSentenceEdit = saveSentenceEdit;
+
+    // Hỗ trợ Cmd+Enter / Ctrl+Enter để lưu nhanh trong modal sửa câu
+    ['se-text-fr', 'se-text-vi'].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('keydown', (e) => {
+          if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+            e.preventDefault();
+            saveSentenceEdit();
+          }
+        });
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeBilingualModal();
+        closePunctModal();
+        closeSentenceEditModal();
+      }
+    });
 
 

@@ -621,6 +621,48 @@
       margin-bottom: var(--sub-textmode-gap) !important;
       padding: 4px 6px;
       border-radius: 8px;
+      position: relative;
+    }
+    .sent-edit-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+      background: rgba(30, 41, 59, 0.75);
+      border: 1px solid rgba(100, 116, 139, 0.35);
+      color: #94a3b8;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.15s ease, color 0.15s ease, background 0.15s ease;
+      vertical-align: middle;
+      margin-left: 6px;
+      padding: 0;
+      line-height: 1;
+    }
+    .sentence-text-line:hover .sent-edit-btn {
+      opacity: 1;
+    }
+    .sent-edit-btn:hover {
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.2);
+      border-color: rgba(56, 189, 248, 0.4);
+    }
+    @media (max-width: 768px) {
+      .sent-edit-btn {
+        opacity: 0.6;
+      }
+    }
+    html[data-ui="light"] .sent-edit-btn {
+      background: #e2e8f0;
+      border-color: #cbd5e1;
+      color: #64748b;
+    }
+    html[data-ui="light"] .sent-edit-btn:hover {
+      background: #e0f2fe;
+      color: #0284c7;
+      border-color: #7dd3fc;
     }
     @media (max-width: 768px) {
       .sub-textmode-container {
