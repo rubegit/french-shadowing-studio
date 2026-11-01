@@ -2071,3 +2071,60 @@ html[data-ui="light"] .vph-word-diff-box {
   background: #f1f5f9;
   border-color: #e2e8f0;
 }
+
+/* Mobile responsive enhancements for Translate Mode & Mode Tabs (380px friendly) */
+@media (max-width: 640px) {
+  .vph-mode-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    flex-wrap: nowrap !important;
+  }
+  .vph-mode-tabs::-webkit-scrollbar {
+    display: none;
+  }
+  .vph-tab-btn {
+    flex-shrink: 0;
+    min-width: 68px;
+  }
+  .vph-translate-container {
+    gap: 12px;
+  }
+  .vph-translate-prompt-box {
+    padding: 12px 14px;
+    border-radius: 12px;
+  }
+  .vph-translate-prompt-text {
+    font-size: 15px;
+    line-height: 1.45;
+  }
+  .vph-translate-textarea {
+    font-size: 15px;
+    padding: 10px 12px;
+    min-height: 60px;
+    border-radius: 10px;
+  }
+  .vph-word-diff-box {
+    font-size: 13px;
+    padding: 8px 10px;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+  .vph-translate-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .vph-translate-controls > div:last-child {
+    display: flex;
+    width: 100%;
+    gap: 8px;
+  }
+  .vph-translate-controls .vph-primary-btn,
+  .vph-translate-controls .vph-secondary-btn {
+    flex: 1;
+    justify-content: center;
+    padding: 10px 8px;
+    min-height: 40px;
+  }
+}

@@ -65,6 +65,7 @@
 
   // Spaced Repetition configuration constants
   const TRANSLATE_MIN_RECOGNITION_REPS = 2; // Điều kiện độ nhận biết (reps >= 2) để mở bài luyện dịch
+  const TRANSLATE_DEFAULT_INCLUDE_LOW_REPS = true; // Công tắc: Mặc định bật khi app chưa release
 
   // ==================== SPACED REPETITION (SM-2) CORE ====================
   function srsDefault() {
@@ -184,6 +185,7 @@
     level: 'all',        // CEFR level filter: 'all' | 'A1' | 'A2' | 'A2+' | 'B1' | 'B2' | 'C1' | 'C2'
     onlyDue: false,      // SRS filter: only due items
     translateIgnoreAccents: false, // Tùy chọn bỏ qua dấu phụ cho bài Dịch Việt -> Pháp
+    translateIncludeLowReps: TRANSLATE_DEFAULT_INCLUDE_LOW_REPS, // Công tắc: gồm cả thẻ reps < 2
     translateSkippedInfo: { lowReps: 0, noExamples: 0 },
     items: [],
     questions: [],
@@ -723,7 +725,13 @@
   }
 
   // ==================== TRANSLATE SESSION GENERATOR (M44) ====================
-  function buildTranslateSession(scopedItems) {
+  function buildTranslateSession(scopedItems, options) {
+    const includeLowReps = (options && typeof options.includeLowReps === 'boolean')
+      ? options.includeLowReps
+      : (typeof state !== 'undefined' && typeof state.translateIncludeLowReps === 'boolean'
+          ? state.translateIncludeLowReps
+          : TRANSLATE_DEFAULT_INCLUDE_LOW_REPS);
+
     const sourceList = scopedItems.length > 0 ? scopedItems : CURATED_FALLBACK_VOCAB;
     let skippedLowReps = 0;
     let skippedNoExamples = 0;
@@ -732,7 +740,7 @@
     sourceList.forEach(item => {
       if (!item) return;
       const reps = (item.srs && typeof item.srs.reps === 'number') ? item.srs.reps : 0;
-      if (reps < TRANSLATE_MIN_RECOGNITION_REPS) {
+      if (!includeLowReps && reps < TRANSLATE_MIN_RECOGNITION_REPS) {
         skippedLowReps++;
         return;
       }
@@ -2122,10 +2130,16 @@
         </div>
 
         <div class="vph-translate-controls">
-          <label class="vph-toggle-label" title="Khi bật, hệ thống sẽ bỏ qua sự khác nhau về dấu é, è, ê, à... và dấu câu cuối">
-            <input type="checkbox" id="vph-translate-ignore-accents" ${state.translateIgnoreAccents ? 'checked' : ''}>
-            <span>Bỏ qua dấu phụ (accents)</span>
-          </label>
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <label class="vph-toggle-label" title="Khi bật, hệ thống sẽ bỏ qua sự khác nhau về dấu é, è, ê, à... và dấu câu cuối">
+              <input type="checkbox" id="vph-translate-ignore-accents" ${state.translateIgnoreAccents ? 'checked' : ''}>
+              <span>Bỏ qua dấu phụ (accents)</span>
+            </label>
+            <label class="vph-toggle-label" title="Luyện dịch cả những thẻ từ vựng mới học (reps < 2) nhưng đã có câu ví dụ song ngữ">
+              <input type="checkbox" id="vph-translate-include-low-reps" ${state.translateIncludeLowReps ? 'checked' : ''}>
+              <span>Gồm cả thẻ chưa đạt nhận biết (reps &lt; 2)</span>
+            </label>
+          </div>
 
           <div style="display:flex; gap:8px;">
             <button type="button" class="vph-secondary-btn" id="vph-translate-skip-btn">
@@ -2143,6 +2157,7 @@
 
     const input = document.getElementById('vph-translate-input');
     const toggleAccents = document.getElementById('vph-translate-ignore-accents');
+    const toggleLowReps = document.getElementById('vph-translate-include-low-reps');
     const submitBtn = document.getElementById('vph-translate-submit-btn');
     const skipBtn = document.getElementById('vph-translate-skip-btn');
 
@@ -2164,6 +2179,13 @@
       });
     }
 
+    if (toggleLowReps) {
+      toggleLowReps.addEventListener('change', () => {
+        state.translateIncludeLowReps = toggleLowReps.checked;
+        startSession();
+      });
+    }
+
     if (submitBtn) {
       submitBtn.addEventListener('click', handleTranslateSubmit);
     }
@@ -2176,6 +2198,12 @@
   function renderNoTranslateEligibleScreen(sessionData) {
     const body = document.getElementById('vph-body');
     if (!body) return;
+
+    const enableLowRepsBtnHtml = (sessionData.skippedLowReps > 0 && !state.translateIncludeLowReps)
+      ? `<button type="button" class="vph-primary-btn" id="vph-enable-low-reps-btn" style="background:#2563eb; color:#fff;">
+           <span>⚡ Bật "Gồm cả thẻ reps &lt; 2" (${sessionData.skippedLowReps} thẻ)</span>
+         </button>`
+      : '';
 
     body.innerHTML = `
       <div class="vph-empty">
@@ -2190,8 +2218,9 @@
           (Đã kiểm tra: ${sessionData.skippedLowReps} thẻ chưa đủ reps, ${sessionData.skippedNoExamples} thẻ thiếu câu ví dụ).
         </div>
         <div class="vph-actions-row">
+          ${enableLowRepsBtnHtml}
           <button type="button" class="vph-primary-btn" id="vph-switch-to-flashcard-btn">
-            <span>🎴 Học Flashcard để tăng nhận biết</span>
+            <span>🎴 Học Flashcard</span>
           </button>
           <button type="button" class="vph-secondary-btn" id="vph-switch-to-quiz-btn">
             <span>🎯 Luyện Trắc nghiệm</span>
@@ -2200,6 +2229,10 @@
       </div>
     `;
 
+    document.getElementById('vph-enable-low-reps-btn')?.addEventListener('click', () => {
+      state.translateIncludeLowReps = true;
+      startSession();
+    });
     document.getElementById('vph-switch-to-flashcard-btn')?.addEventListener('click', () => switchMode('flashcard'));
     document.getElementById('vph-switch-to-quiz-btn')?.addEventListener('click', () => switchMode('quiz'));
   }
@@ -2507,7 +2540,8 @@
     translateSkillCompute: translateSkillCompute,
     updateItemTranslateSkill: updateItemTranslateSkill,
     getTranslateSkill: getTranslateSkill,
-    TRANSLATE_MIN_RECOGNITION_REPS: TRANSLATE_MIN_RECOGNITION_REPS
+    TRANSLATE_MIN_RECOGNITION_REPS: TRANSLATE_MIN_RECOGNITION_REPS,
+    TRANSLATE_DEFAULT_INCLUDE_LOW_REPS: TRANSLATE_DEFAULT_INCLUDE_LOW_REPS
   };
 
   window.VocabPracticeHub = exportedApi;

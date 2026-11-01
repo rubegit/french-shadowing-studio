@@ -109,11 +109,12 @@ test('M44.1 buildTranslateSession: bỏ qua thẻ thiếu ví dụ và thẻ srs
     }
   ];
 
-  const session = hub.buildTranslateSession(mockItems);
+  // 1. Khi công tắc includeLowReps = false (ngưỡng strict reps >= 2)
+  const session = hub.buildTranslateSession(mockItems, { includeLowReps: false });
 
   assert.strictEqual(session.skippedLowReps, 2, 'Phải bỏ qua 2 thẻ có reps < 2 (thẻ 3 và thẻ 4)');
   assert.strictEqual(session.skippedNoExamples, 2, 'Phải bỏ qua 2 thẻ thiếu ví dụ (thẻ 1 và thẻ 2)');
-  assert.strictEqual(session.eligibleCount, 2, 'Chỉ có 2 thẻ đủ điều kiện (thẻ 5 và thẻ 6)');
+  assert.strictEqual(session.eligibleCount, 2, 'Chỉ có 2 thẻ đủ điều kiện khi tắt công tắc (thẻ 5 và thẻ 6)');
   assert.strictEqual(session.questions.length, 2);
 
   // Đảm bảo question được dựng đúng trường
@@ -122,6 +123,12 @@ test('M44.1 buildTranslateSession: bỏ qua thẻ thiếu ví dụ và thẻ srs
   assert.strictEqual(qPomme.promptVi, 'Tôi thích quả táo.');
   assert.strictEqual(qPomme.expectedFr, 'J\'aime la pomme.');
   assert.strictEqual(qPomme.wordVi, 'quả táo');
+
+  // 2. Khi công tắc includeLowReps = true (mặc định app chưa release)
+  const sessionLow = hub.buildTranslateSession(mockItems, { includeLowReps: true });
+  assert.strictEqual(sessionLow.skippedLowReps, 0, 'Không bỏ qua thẻ low reps khi bật công tắc');
+  assert.strictEqual(sessionLow.skippedNoExamples, 2, 'Vẫn phải bỏ qua thẻ thiếu ví dụ (thẻ 1 và thẻ 2)');
+  assert.strictEqual(sessionLow.eligibleCount, 4, 'Bao gồm 4 thẻ đủ ví dụ (thẻ 3, 4, 5, 6)');
 });
 
 // ============================================================================
@@ -250,4 +257,48 @@ test('M44.5 SM-2 Translate Skill: cập nhật skills.translate riêng biệt, b
   const storedList3 = JSON.parse(sandbox.localStorage.getItem('shadowing_saved_vocab_v1'));
   assert.strictEqual(storedList3[0].srs.reps, 4, 'srs.reps tuyệt đối không bị ảnh hưởng');
   assert.strictEqual(storedList3[0].srs.interval, 14);
+});
+
+// ============================================================================
+// TEST 6: Bài dịch với dữ liệu thực từ backup/yt-aMx0d42wzBs.txt
+// ============================================================================
+test('M44.6 Bài dịch với dữ liệu thực từ backup/yt-aMx0d42wzBs.txt trên localStorage giả lập', () => {
+  const SchemaV02 = require('./schema-v02.js');
+  const fileContent = fs.readFileSync(path.join(__dirname, '../backup/yt-aMx0d42wzBs.txt'), 'utf-8');
+
+  // Nạp 37 mục vào danh sách từ vựng giả lập
+  const staged = SchemaV02.stageMultiSourceImport([{
+    fileName: 'yt-aMx0d42wzBs.txt',
+    content: fileContent
+  }], []);
+  const commit = SchemaV02.commitStagedImport(staged, 'ADD_SOURCE', {}, []);
+  const realItems = commit.updatedVocabList;
+
+  assert.strictEqual(realItems.length, 37, 'File phải nạp đúng 37 mục');
+
+  const { sandbox } = createPracticeContext({
+    shadowing_saved_vocab_v1: JSON.stringify(realItems)
+  });
+  const hub = sandbox.VocabPracticeHub;
+
+  // 1. Khi công tắc tắt (chỉ lấy reps >= 2):
+  // Vì 37 thẻ vừa nạp có srs.reps = 0, nên có 0 thẻ đủ điều kiện và 37 thẻ bị bỏ qua
+  const sessionOff = hub.buildTranslateSession(realItems, { includeLowReps: false });
+  assert.strictEqual(sessionOff.eligibleCount, 0, 'Khi tắt công tắc: 0 thẻ đủ điều kiện do srs.reps = 0');
+  assert.strictEqual(sessionOff.skippedLowReps, 37, 'Toàn bộ 37 thẻ bị bỏ qua vì chưa đủ reps');
+  assert.strictEqual(sessionOff.skippedNoExamples, 0, 'Không thẻ nào bị thiếu ví dụ');
+
+  // 2. Khi công tắc bật (mặc định app chưa release):
+  // Tất cả 37/37 thẻ đều có ví dụ song ngữ -> cả 37 thẻ đều đủ điều kiện
+  const sessionOn = hub.buildTranslateSession(realItems, { includeLowReps: true });
+  assert.strictEqual(sessionOn.eligibleCount, 37, 'Khi bật công tắc: đủ 37/37 thẻ');
+  assert.strictEqual(sessionOn.skippedLowReps, 0);
+  assert.strictEqual(sessionOn.skippedNoExamples, 0);
+  assert.ok(sessionOn.questions.length > 0);
+
+  // Kiểm tra 1 câu hỏi bất kỳ từ lô 37 mục
+  const q0 = sessionOn.questions[0];
+  assert.ok(q0.promptVi && q0.promptVi.length > 0, 'promptVi phải có nội dung tiếng Việt');
+  assert.ok(q0.expectedFr && q0.expectedFr.length > 0, 'expectedFr phải có nội dung tiếng Pháp');
+  assert.ok(q0.wordVi && q0.wordVi.length > 0, 'wordVi làm gợi ý');
 });
