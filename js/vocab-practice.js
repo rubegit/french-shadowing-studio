@@ -256,8 +256,9 @@
   function playQuestionVideoAudio(q) {
     if (!q) return;
     const vid = q.videoId || q.item?.videoId;
+    const frenchWord = q.frenchWord || (q.item && q.item.text) || q.text || '';
     if (!vid) {
-      speakFrench(q.frenchWord || q.text);
+      speakFrench(frenchWord);
       return;
     }
     const btns = document.querySelectorAll('.vph-video-audio-btn');
@@ -269,6 +270,12 @@
     }
 
     btns.forEach(b => b.classList.add('playing'));
+    // Rule 1 & 2: Chưa căn mốc thời gian -> chuyển thẳng sang đọc TTS câu/từ
+    if (q.t_known === false || (q.item && q.item.t_known === false)) {
+      btns.forEach(b => b.classList.remove('playing'));
+      speakFrench(frenchWord);
+      return;
+    }
     if (typeof window.playVideoAudioSegment === 'function') {
       const dur = q.duration || (q.sentence || q.ctx ? Math.max(2.5, Math.min(8.0, (q.sentence || q.ctx).split(/\s+/).length * 0.45 + 1.0)) : 4);
       window.playVideoAudioSegment(vid, q.t || 0, dur, {
@@ -276,11 +283,11 @@
         onEnd: () => { btns.forEach(b => b.classList.remove('playing')); },
         onError: () => {
           btns.forEach(b => b.classList.remove('playing'));
-          speakFrench(q.frenchWord || q.text);
+          speakFrench(frenchWord);
         }
       });
     } else {
-      speakFrench(q.frenchWord || q.text);
+      speakFrench(frenchWord);
     }
   }
 
@@ -503,6 +510,7 @@
         vietnameseMeaning: item.wordVi || item.vi || '',
         videoId: item.videoId || '',
         t: item.t || 0,
+        t_known: (typeof item.t_known === 'boolean') ? item.t_known : true,
         duration: item.duration || (item.en ? Math.max(2.5, Math.min(8.0, item.en.split(/\s+/).length * 0.45 + 1.0)) : 4)
       };
     });
@@ -525,6 +533,7 @@
       let he = item.he || 0;
       let videoId = item.videoId || '';
       let t = item.t || 0;
+      let t_known = (typeof item.t_known === 'boolean') ? item.t_known : true;
       if (Array.isArray(item.contexts) && item.contexts.length > 0 && Math.random() < 0.5) {
         const randCtx = item.contexts[Math.floor(Math.random() * item.contexts.length)];
         if (randCtx && randCtx.en) {
@@ -533,6 +542,7 @@
           he = randCtx.he || 0;
           videoId = randCtx.videoId || videoId;
           t = randCtx.t || t;
+          t_known = (typeof randCtx.t_known === 'boolean') ? randCtx.t_known : true;
         }
       }
       const sentence = en;
@@ -551,6 +561,7 @@
         meaning,
         videoId,
         t,
+        t_known,
         duration: item.duration || (sentence ? Math.max(2.5, Math.min(8.0, sentence.split(/\s+/).length * 0.45 + 1.0)) : 4)
       };
     });
@@ -1271,7 +1282,9 @@
     const srsDueTag = srsIsDue(q.item) ? `<span class="vph-srs-due-badge">Đến hạn ôn</span>` : '';
 
     const ytUrl = (q.videoId && !q.item?.bookId)
-      ? `https://www.youtube.com/watch?v=${encodeURIComponent(q.videoId)}&t=${Math.max(0, Math.floor((q.t || 0) - 2))}s`
+      ? (q.t_known === false || q.item?.t_known === false
+          ? `https://www.youtube.com/watch?v=${encodeURIComponent(q.videoId)}`
+          : `https://www.youtube.com/watch?v=${encodeURIComponent(q.videoId)}&t=${Math.max(0, Math.floor((q.t || 0) - 2))}s`)
       : '';
 
     if (typeof window.stopVideoAudioSegment === 'function') window.stopVideoAudioSegment();

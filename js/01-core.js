@@ -558,6 +558,13 @@
       document.querySelectorAll('.vocab-video-mini.playing, .vocab-audio-tag-btn.playing').forEach((b) => b.classList.remove('playing'));
       if (btn) btn.classList.add('playing');
 
+      // Rule 1 & 2: Chưa căn mốc thời gian -> chuyển thẳng sang đọc TTS câu/từ
+      if (item.t_known === false) {
+        if (btn) btn.classList.remove('playing');
+        window.playFrenchAudio(item.en || item.text);
+        return;
+      }
+
       const dur = item.duration || (item.en ? Math.max(2.5, Math.min(8.0, item.en.split(/\s+/).length * 0.45 + 1.0)) : 4);
       window.playVideoAudioSegment(item.videoId, item.t || 0, dur, {
         onStart: () => { if (btn) btn.classList.add('playing'); },

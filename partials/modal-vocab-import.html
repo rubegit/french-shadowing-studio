@@ -1,0 +1,244 @@
+<!-- Modal Import Từ vựng & Quản lý Dữ liệu (Schema 0.2 - M40) -->
+<div id="fss-import-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xs p-3 hidden animate-in fade-in duration-150">
+  <div class="bg-[#0b1329] border border-blue-900/80 rounded-2xl w-full max-w-4xl max-h-[94vh] flex flex-col shadow-2xl text-slate-200 overflow-hidden">
+    
+    <!-- Header -->
+    <div class="flex items-center justify-between px-5 py-3 border-b border-blue-900/60 bg-[#070e22]">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-lg bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+        </div>
+        <div>
+          <h3 class="text-sm font-bold text-white flex items-center gap-2">
+            Nạp Từ Vựng & Quản Lý Dữ Liệu
+            <span class="text-[10px] px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/40 font-mono">Schema 0.2</span>
+          </h3>
+          <p class="text-[11px] text-slate-400">Hỗ trợ nhiều nguồn, đối chiếu thông minh và đồng bộ an toàn</p>
+        </div>
+      </div>
+      
+      <div class="flex items-center gap-2">
+        <button type="button" onclick="window.downloadVocabJsonBackup()" class="px-2.5 py-1.5 rounded-lg bg-blue-950/80 hover:bg-blue-900 text-blue-300 border border-blue-800/80 text-xs flex items-center gap-1.5 transition cursor-pointer" title="Tải toàn bộ kho từ vựng hiện tại về máy dạng file JSON sao lưu an toàn">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+          <span>Tải file sao lưu JSON</span>
+        </button>
+        <button type="button" onclick="window.closeVocabImportModal()" class="w-8 h-8 rounded-lg text-slate-400 hover:text-white hover:bg-blue-900/40 flex items-center justify-center transition cursor-pointer">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mode Selector Tabs -->
+    <div class="flex border-b border-blue-900/60 bg-[#060c1d] px-5 pt-2 gap-2 text-xs">
+      <button type="button" id="fss-tab-btn-add" onclick="window.switchVocabImportMode('ADD_SOURCE')" class="px-4 py-2 font-medium border-b-2 border-blue-500 text-blue-400 cursor-pointer transition">
+        1. Thêm nguồn mới (Mặc định)
+      </button>
+      <button type="button" id="fss-tab-btn-replace" onclick="window.switchVocabImportMode('REPLACE_ALL')" class="px-4 py-2 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 cursor-pointer transition">
+        2. Thay thế toàn bộ kho (Xóa cũ & ghi đè)
+      </button>
+      <button type="button" id="fss-tab-btn-restore" onclick="window.switchVocabImportMode('RESTORE')" class="px-4 py-2 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 cursor-pointer transition">
+        3. Khôi phục từ file sao lưu
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="flex-1 overflow-y-auto p-5 space-y-4 text-xs">
+      
+      <!-- Persistent Cloud Sync Alert (Hiện khi local đã ghi nhưng pushAll thất bại) -->
+      <div id="fss-import-cloud-alert" class="hidden p-4 rounded-xl bg-rose-950/80 border-2 border-rose-600 text-rose-100 space-y-2">
+        <div class="flex items-start gap-2.5">
+          <svg class="w-5 h-5 text-rose-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+          <div class="flex-1 text-[11px] space-y-1">
+            <div class="font-bold text-sm text-rose-200">CẢNH BÁO: LOCAL ĐÃ GHI, NHƯNG ĐẨY LÊN CLOUD THẤT BẠI</div>
+            <p id="fss-import-cloud-alert-msg" class="leading-relaxed"></p>
+            <p class="font-semibold text-rose-300">
+              TUYỆT ĐỐI KHÔNG mở hoặc đăng nhập trên thiết bị khác lúc này. Thiết bị khác chưa cập nhật sẽ tải dữ liệu cũ hoặc đẩy đè lại lên Cloud làm hỏng kho từ vựng.
+            </p>
+          </div>
+          <button type="button" id="fss-import-cloud-retry-btn" onclick="window.retryCloudPush()" class="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shrink-0 cursor-pointer transition shadow">
+            Thử đẩy lại Cloud
+          </button>
+        </div>
+      </div>
+
+      <!-- Mode 2 Warning Banner (Thay thế toàn bộ) -->
+      <div id="fss-import-replace-warning" class="hidden p-3.5 rounded-xl bg-amber-950/40 border border-amber-600/70 text-amber-200 space-y-1.5">
+        <div class="flex items-center gap-2 font-bold text-xs text-amber-300">
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+          <span>Quy trình thay thế toàn bộ (Xóa sạch 504 mục thử nghiệm)</span>
+        </div>
+        <p class="text-[11px] text-amber-100/90 leading-relaxed">
+          Kho từ vựng sẽ được thay thế 100% bằng lô dữ liệu mới bạn nạp. Không tạo tombstone rác.
+          Để đảm bảo an toàn tuyệt đối: bạn phải <strong>đăng xuất toàn cầu</strong> và dọn sạch dữ liệu (Clear Storage) trên tất cả điện thoại/máy tính khác trước khi bấm xác nhận tại đây.
+        </p>
+      </div>
+
+      <!-- Mode 3 Info Banner (Khôi phục) -->
+      <div id="fss-import-restore-info" class="hidden p-3 rounded-xl bg-blue-950/40 border border-blue-600/60 text-blue-200 text-[11px] leading-relaxed">
+        Chọn file JSON sao lưu mảng phẳng (<code class="font-mono text-blue-300">french_vocab_backup_*.json</code>) để nạp lại toàn bộ kho từ vựng.
+      </div>
+
+      <!-- File Inputs Section -->
+      <div class="space-y-2">
+        <div class="flex items-center justify-between">
+          <label class="text-[11px] font-semibold text-slate-300 flex items-center gap-1.5">
+            <span>Chọn file dữ liệu (.txt định dạng 2A hoặc .json 2B):</span>
+            <span class="text-[10px] text-slate-400 font-normal">(Có thể chọn nhiều file cùng lúc)</span>
+          </label>
+          <input type="file" id="fss-import-file-input" accept=".txt,.json" multiple class="hidden" onchange="window.handleVocabImportFiles(event)" />
+          <button type="button" onclick="document.getElementById('fss-import-file-input').click()" class="px-3 py-1 rounded bg-blue-900/60 hover:bg-blue-800 text-blue-300 border border-blue-700/60 text-[11px] cursor-pointer transition">
+            + Chọn nhiều file từ máy tính
+          </button>
+        </div>
+
+        <!-- Selected files list -->
+        <div id="fss-import-staged-files-list" class="flex flex-wrap gap-2 text-[11px] empty:hidden"></div>
+
+        <!-- Direct Textarea -->
+        <div>
+          <label class="block text-[11px] text-slate-400 mb-1">Hoặc dán trực tiếp nội dung văn bản (có thể chứa nhiều khối <code class="font-mono text-slate-300"># SOURCE:</code>):</label>
+          <textarea id="fss-import-textarea" rows="6" placeholder="Dán nội dung .txt hoặc JSON vào đây...&#10;Ví dụ:&#10;# SOURCE: yt:UoxA5R0tcFA | Bài học 1&#10;213. s'il vous plaît || cụm từ || A1 || [loc.] làm ơn, xin vui lòng&#10;Trong bài: Oui, s'il vous plaît.&#10;VD1: Un café, s'il vous plaît. || Cho tôi một ly cà phê, làm ơn.&#10;..." class="w-full p-3 rounded-lg bg-[#060a17] border border-blue-900/80 text-slate-200 font-mono text-xs leading-relaxed focus:border-blue-500 focus:outline-none"></textarea>
+        </div>
+      </div>
+
+      <!-- Action Button: Run Preview / Staging -->
+      <div class="flex items-center justify-between pt-1">
+        <div class="text-[11px] text-slate-400">
+          Nhấn "Kiểm tra & Chuẩn bị" để phân tích cú pháp, đối chiếu kho và phát hiện xung đột.
+        </div>
+        <button type="button" id="fss-import-run-btn" onclick="window.runVocabDryRunPreview()" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs flex items-center gap-1.5 transition cursor-pointer shadow-lg shadow-blue-600/30">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+          <span>Kiểm tra & Xem trước (Staging)</span>
+        </button>
+      </div>
+
+      <!-- Staging & Preview Results Container -->
+      <div id="fss-import-preview-results" class="hidden space-y-4 pt-3 border-t border-blue-950/80">
+        
+        <!-- Stats Summary -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center" id="fss-import-stats-grid"></div>
+
+        <!-- Sources Breakdown Table -->
+        <div id="fss-import-sources-breakdown" class="hidden rounded-xl border border-blue-900/60 overflow-hidden bg-[#070e22]">
+          <div class="px-3.5 py-2 bg-[#09132e] border-b border-blue-900/60 flex items-center justify-between">
+            <span class="font-bold text-slate-200 text-xs">Thống kê theo từng nguồn (Source Breakdown)</span>
+          </div>
+          <table class="w-full text-left text-xs">
+            <thead class="bg-[#050b1a] text-slate-400 uppercase text-[10px] tracking-wider border-b border-blue-950">
+              <tr>
+                <th class="px-3 py-2">Tên file / Nguồn</th>
+                <th class="px-3 py-2">Mã nguồn (source_id)</th>
+                <th class="px-3 py-2 text-center">Số mục mới</th>
+                <th class="px-3 py-2 text-center">Số occurrences</th>
+              </tr>
+            </thead>
+            <tbody id="fss-import-sources-tbody" class="divide-y divide-blue-950/60"></tbody>
+          </table>
+        </div>
+
+        <!-- Errors Box (Syntax & Unresolved) -->
+        <div id="fss-import-errors-box" class="hidden p-3 rounded-xl bg-rose-950/40 border border-rose-800/80 text-rose-200 space-y-1">
+          <div class="font-bold text-[11px] text-rose-300 flex items-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <span>Phát hiện lỗi (bỏ qua dòng lỗi, không làm dừng toàn bộ lô):</span>
+          </div>
+          <ul id="fss-import-errors-list" class="list-disc list-inside text-[11px] space-y-0.5 max-h-24 overflow-y-auto"></ul>
+        </div>
+
+        <!-- TYPE_COLLISION Resolution Section -->
+        <div id="fss-import-collisions-section" class="hidden p-3.5 rounded-xl bg-amber-950/30 border border-amber-500/60 space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="font-bold text-xs text-amber-300 flex items-center gap-1.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              <span>Xung đột loại từ vựng (TYPE_COLLISION) - Cần chọn xử lý để mở khóa ghi</span>
+            </div>
+            <span id="fss-collision-badge" class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono text-[10px]"></span>
+          </div>
+          <div id="fss-collisions-list" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
+        </div>
+
+        <!-- SUSPICIOUS Resolution Section -->
+        <div id="fss-import-suspicious-section" class="hidden p-3.5 rounded-xl bg-purple-950/30 border border-purple-500/60 space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="font-bold text-xs text-purple-300 flex items-center gap-1.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              <span>Nghi ngờ trùng lặp (SUSPICIOUS) - Cần giải quyết trước khi ghi</span>
+            </div>
+            <div class="flex items-center gap-1.5 text-[11px]">
+              <span class="text-slate-400">Chọn hàng loạt:</span>
+              <button type="button" onclick="window.applyBulkSuspicious('merge')" class="px-2 py-0.5 rounded bg-purple-900/60 hover:bg-purple-800 text-purple-200 border border-purple-700/60 cursor-pointer">Gộp tất cả</button>
+              <button type="button" onclick="window.applyBulkSuspicious('separate')" class="px-2 py-0.5 rounded bg-blue-900/60 hover:bg-blue-800 text-blue-200 border border-blue-700/60 cursor-pointer">Tách riêng tất cả</button>
+              <button type="button" onclick="window.applyBulkSuspicious('skip')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 cursor-pointer">Bỏ qua tất cả</button>
+            </div>
+          </div>
+          <div id="fss-suspicious-list" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
+        </div>
+
+        <!-- Preview Table -->
+        <div class="rounded-xl border border-blue-900/60 overflow-hidden bg-[#070e22]">
+          <div class="px-3.5 py-2 bg-[#09132e] border-b border-blue-900/60 flex items-center justify-between">
+            <span class="font-bold text-slate-200 text-xs">Bảng đối chiếu danh sách mục</span>
+            <span id="fss-preview-count-label" class="text-[11px] text-slate-400"></span>
+          </div>
+          <div class="max-h-60 overflow-y-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-[#050b1a] text-slate-400 uppercase text-[10px] tracking-wider sticky top-0 border-b border-blue-950">
+                <tr>
+                  <th class="px-3 py-2 w-12 text-center">Seq</th>
+                  <th class="px-3 py-2">Từ vựng (FR)</th>
+                  <th class="px-3 py-2 w-24">Phân loại</th>
+                  <th class="px-3 py-2 w-16 text-center">Cấp độ</th>
+                  <th class="px-3 py-2">Nghĩa tiếng Việt</th>
+                  <th class="px-3 py-2 w-28 text-center">Trạng thái</th>
+                </tr>
+              </thead>
+              <tbody id="fss-import-table-body" class="divide-y divide-blue-950/60"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Overwrite options (cho mục ĐÃ CÓ ở mode ADD_SOURCE) -->
+        <div id="fss-import-overwrite-container" class="flex items-center gap-2 text-[11px] text-slate-300 pt-1">
+          <input type="checkbox" id="fss-import-overwrite-checkbox" class="rounded border-blue-900 bg-[#060a17] text-blue-500 focus:ring-0 cursor-pointer" />
+          <label for="fss-import-overwrite-checkbox" class="cursor-pointer">
+            Cập nhật nội dung (nghĩa, ví dụ) cho các mục ĐÃ CÓ (Mặc định giữ nguyên nội dung cũ và SRS, chỉ bổ sung ngữ cảnh mới)
+          </label>
+        </div>
+
+        <!-- Confirmation Text Boxes for Commit -->
+        <div id="fss-import-confirm-box-replace" class="hidden p-3.5 rounded-xl bg-[#060e22] border border-amber-600/80 space-y-2">
+          <label class="block text-xs font-bold text-amber-300">
+            Xác nhận thay thế toàn bộ kho: Gõ chính xác từ khóa <span class="text-white font-mono bg-amber-950/80 px-2 py-0.5 rounded border border-amber-600">THAY THE</span> để mở khóa ghi
+          </label>
+          <input type="text" id="fss-import-confirm-replace-input" oninput="window.checkCommitUnlock()" placeholder="Gõ THAY THE..." class="w-full sm:w-64 px-3 py-2 rounded-lg bg-[#040814] border border-amber-500/80 text-white font-mono text-xs focus:outline-none focus:border-amber-400" />
+        </div>
+
+        <div id="fss-import-confirm-box-restore" class="hidden p-3.5 rounded-xl bg-[#060e22] border border-blue-600/80 space-y-2">
+          <label class="block text-xs font-bold text-blue-300">
+            Xác nhận khôi phục kho: Gõ chính xác từ khóa <span class="text-white font-mono bg-blue-950/80 px-2 py-0.5 rounded border border-blue-600">KHOI PHUC</span> để mở khóa ghi
+          </label>
+          <input type="text" id="fss-import-confirm-restore-input" oninput="window.checkCommitUnlock()" placeholder="Gõ KHOI PHUC..." class="w-full sm:w-64 px-3 py-2 rounded-lg bg-[#040814] border border-blue-500/80 text-white font-mono text-xs focus:outline-none focus:border-blue-400" />
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="px-5 py-3 border-t border-blue-900/60 bg-[#070e22] flex items-center justify-between text-xs">
+      <div id="fss-import-status-text" class="text-slate-400 text-[11px] flex items-center gap-1.5">
+        <span>Sẵn sàng. Dữ liệu chỉ được ghi sau khi bạn xác nhận.</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <button type="button" onclick="window.closeVocabImportModal()" class="px-4 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer">
+          Hủy bỏ
+        </button>
+        <button type="button" id="fss-import-commit-btn" disabled onclick="window.executeVocabCommit()" class="px-5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs flex items-center gap-1.5 transition cursor-pointer shadow-lg shadow-emerald-900/30">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+          <span id="fss-import-commit-btn-text">Xác nhận ghi vào kho</span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>

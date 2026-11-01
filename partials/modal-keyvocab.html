@@ -21,6 +21,13 @@
         </div>
 
         <div class="ai-copy-row">
+          <label class="flex items-center gap-1.5 text-[11px] text-slate-300 cursor-pointer select-none" style="margin-right:auto">
+            <input type="checkbox" id="kv-opt-daco" class="rounded border-slate-700 bg-slate-900 text-blue-500 cursor-pointer" />
+            <span>Gửi danh sách từ đã có để AI đánh dấu trùng (tùy chọn)</span>
+          </label>
+        </div>
+
+        <div class="ai-copy-row">
           <button type="button" class="ai-btn ai-btn-copy" onclick="copyKeyVocabPrompt(this)">
             <i data-lucide="copy"></i><span>Copy prompt</span>
           </button>
@@ -28,6 +35,8 @@
         </div>
         <textarea id="kv-textarea" class="ai-textarea" spellcheck="false" placeholder="Dán câu trả lời của AI vào đây..."></textarea>
         <div class="ai-actions">
+          <input type="file" id="kv-file-input" accept=".txt,.json" style="display:none" onchange="window.kvHandleFileSelect && window.kvHandleFileSelect(this)" />
+          <button type="button" class="ai-btn ai-btn-ghost" onclick="document.getElementById('kv-file-input').click()"><i data-lucide="folder-open"></i><span>Chọn file .txt</span></button>
           <button type="button" class="ai-btn ai-btn-primary" onclick="applyKeyVocabAnswer()"><i data-lucide="check"></i><span>Áp dụng</span></button>
           <button type="button" class="ai-btn ai-btn-ghost" onclick="closeKeyVocabModal()">Đóng</button>
         </div>
