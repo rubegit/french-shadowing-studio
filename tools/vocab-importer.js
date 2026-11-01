@@ -92,7 +92,7 @@
 
     // Cập nhật tab active (kiểu nút chọn chế độ ở thanh đáy)
     var activeClass = 'px-3 py-1.5 rounded-lg font-semibold text-xs bg-blue-600 text-white shadow-sm cursor-pointer transition';
-    var inactiveClass = 'px-3 py-1.5 rounded-lg font-medium text-xs bg-blue-950/60 hover:bg-blue-900/60 text-slate-300 hover:text-white border border-blue-900/50 cursor-pointer transition';
+    var inactiveClass = 'fss-tab-btn-inactive px-3 py-1.5 rounded-lg font-medium text-xs bg-blue-950/60 hover:bg-blue-900/60 text-slate-300 hover:text-white border border-blue-900/50 cursor-pointer transition';
 
     if (btnAdd) btnAdd.className = (currentMode === 'ADD_SOURCE') ? activeClass : inactiveClass;
     if (btnRep) btnRep.className = (currentMode === 'REPLACE_ALL') ? activeClass : inactiveClass;
@@ -158,7 +158,7 @@
     container.innerHTML = '';
     stagedFiles.forEach(function (f, idx) {
       var pill = document.createElement('div');
-      pill.className = 'flex items-center gap-1.5 px-2.5 py-1 rounded bg-blue-950/80 border border-blue-800 text-blue-200';
+      pill.className = 'fss-staged-pill flex items-center gap-1.5 px-2.5 py-1 rounded bg-blue-950/80 border border-blue-800 text-blue-200';
       pill.innerHTML = '<span class="font-mono">' + escapeHtml(f.fileName) + '</span>' +
         '<button type="button" onclick="window.removeStagedFile(' + idx + ')" class="text-rose-400 hover:text-rose-300 ml-1 font-bold cursor-pointer">&times;</button>';
       container.appendChild(pill);
