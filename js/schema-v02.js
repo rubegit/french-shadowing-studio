@@ -1682,13 +1682,14 @@
     } catch (e) {
       throw new Error('Dữ liệu JSON không hợp lệ: ' + e.message);
     }
-    if (!Array.isArray(parsed) || parsed.length === 0) {
-      throw new Error('File sao lưu phải là một mảng JSON chứa các mục từ vựng và không được rỗng.');
+    var itemsArray = Array.isArray(parsed) ? parsed : (parsed && Array.isArray(parsed.items) ? parsed.items : null);
+    if (!itemsArray || itemsArray.length === 0) {
+      throw new Error('File sao lưu phải là một mảng JSON hoặc object có trường items chứa các mục từ vựng và không được rỗng.');
     }
 
     var validList = [];
     var now = Date.now();
-    parsed.forEach(function (it) {
+    itemsArray.forEach(function (it) {
       if (!it || typeof it !== 'object') return;
       if (!it.text && !it.fr) return;
       var clone = Object.assign({}, it);

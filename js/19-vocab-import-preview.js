@@ -15,6 +15,17 @@
   var collisionDecisions = {}; // collisionId -> 'keep_existing_add_occ' | 'skip_new'
   var suspiciousDecisions = {}; // suspiciousId -> 'merge' | 'separate' | 'skip'
   var lastCommittedList = null; // dùng cho nút thử đẩy lại cloud nếu pushAll lỗi
+  var hasDownloadedBackupInSession = false; // đánh dấu đã tải file sao lưu trong phiên modal này
+
+  window.getBackupSessionStatus = function () {
+    return hasDownloadedBackupInSession;
+  };
+  window.setBackupSessionStatus = function (val) {
+    hasDownloadedBackupInSession = !!val;
+    if (typeof window.checkCommitUnlock === 'function') {
+      window.checkCommitUnlock();
+    }
+  };
 
   // =========================================================================
   // 1. SAO LƯU DỮ LIỆU JSON
@@ -23,7 +34,25 @@
     try {
       var raw = localStorage.getItem(VOCAB_STORAGE_KEY) || '[]';
       var parsed = JSON.parse(raw);
-      var prettyJson = JSON.stringify(parsed, null, 2);
+      var items = Array.isArray(parsed) ? parsed : (parsed && Array.isArray(parsed.items) ? parsed.items : []);
+      var totalItems = items.length;
+      var tombstoneCount = 0;
+      var activeCount = 0;
+      items.forEach(function (it) {
+        if (it && it._deleted) tombstoneCount++;
+        else activeCount++;
+      });
+      var backupData = {
+        metadata: {
+          totalItems: totalItems,
+          activeCount: activeCount,
+          tombstoneCount: tombstoneCount,
+          exportedAt: new Date().toISOString(),
+          schema_version: '0.2'
+        },
+        items: items
+      };
+      var prettyJson = JSON.stringify(backupData, null, 2);
       var blob = new Blob([prettyJson], { type: 'application/json;charset=utf-8' });
       var url = URL.createObjectURL(blob);
       var a = document.createElement('a');
@@ -34,8 +63,17 @@
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+
+      hasDownloadedBackupInSession = true;
+      var backupBtn = document.getElementById('fss-import-backup-btn');
+      if (backupBtn) {
+        backupBtn.innerHTML = '✓ Đã tải sao lưu JSON';
+      }
       if (typeof window.showVocabToast === 'function') {
         window.showVocabToast('Đã tải file sao lưu JSON về máy tính', true);
+      }
+      if (typeof window.checkCommitUnlock === 'function') {
+        window.checkCommitUnlock();
       }
     } catch (e) {
       alert('Không thể tạo file sao lưu: ' + (e.message || e));
@@ -51,6 +89,11 @@
     modal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
     document.body.classList.add('has-import-modal-open');
+    hasDownloadedBackupInSession = false;
+    var backupBtn = document.getElementById('fss-import-backup-btn');
+    if (backupBtn) {
+      backupBtn.innerHTML = '<span class="inline-block mr-1">📥</span> Tải file sao lưu JSON';
+    }
     window.switchVocabImportMode('ADD_SOURCE');
 
     if (preloadedFile) {
@@ -508,6 +551,11 @@
     if (currentMode === 'RESTORE') {
       var restoreInput = document.getElementById('fss-import-confirm-restore-input');
       var tokenOk = restoreInput && restoreInput.value.trim() === 'KHOI PHUC';
+      if (!hasDownloadedBackupInSession) {
+        commitBtn.disabled = true;
+        if (statusText) statusText.textContent = 'Chặn khôi phục: Cần tải file sao lưu JSON trong phiên này trước khi khôi phục.';
+        return;
+      }
       commitBtn.disabled = !tokenOk;
       if (statusText) {
         statusText.textContent = tokenOk ? 'Đã xác nhận KHOI PHUC. Sẵn sàng ghi.' : 'Cần gõ "KHOI PHUC" để mở khóa nút ghi.';
@@ -549,8 +597,13 @@
       }
     }
 
-    // Kiểm tra từ khóa xác nhận cho REPLACE_ALL
+    // Kiểm tra cho REPLACE_ALL: phải tải sao lưu trước và gõ đúng "THAY THE"
     if (currentMode === 'REPLACE_ALL') {
+      if (!hasDownloadedBackupInSession) {
+        commitBtn.disabled = true;
+        if (statusText) statusText.textContent = 'Chặn thay thế: Cần tải file sao lưu JSON trong phiên này trước khi thay thế.';
+        return;
+      }
       var replaceInput = document.getElementById('fss-import-confirm-replace-input');
       var repTokenOk = replaceInput && replaceInput.value.trim() === 'THAY THE';
       if (!repTokenOk) {

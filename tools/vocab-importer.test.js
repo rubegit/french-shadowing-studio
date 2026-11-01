@@ -867,3 +867,263 @@ test('M42.10 (c) nội dung không có header: dùng source_id video đang mở 
   assert.strictEqual(maison.primaryContext.t_known, true);
   assert.strictEqual(maison.primaryContext.t, 12.0);
 });
+
+// =========================================================================
+// TEST SUITE 12: Backup Lock & Verification (C1, C2, C3)
+// =========================================================================
+
+function setupImporterVm(initialStorage = {}) {
+  const code = fs.readFileSync(path.join(__dirname, 'vocab-importer.js'), 'utf-8');
+  const store = Object.assign({}, initialStorage);
+  const elements = {};
+  function getEl(id) {
+    if (!elements[id]) {
+      elements[id] = {
+        id,
+        classList: {
+          contains: () => false,
+          add: () => {},
+          remove: () => {},
+          toggle: () => {}
+        },
+        style: {},
+        value: '',
+        disabled: false,
+        textContent: '',
+        innerHTML: '',
+        className: '',
+        appendChild: () => {},
+        removeChild: () => {},
+        querySelector: () => null,
+        querySelectorAll: () => []
+      };
+    }
+    return elements[id];
+  }
+
+  const downloadedBlobs = [];
+  const sandbox = {
+    SchemaV02: SchemaV02,
+    VOCAB_STORAGE_KEY: 'shadowing_saved_vocab_v1',
+    localStorage: {
+      getItem(k) { return store[k] !== undefined ? store[k] : null; },
+      setItem(k, v) { store[k] = String(v); },
+      removeItem(k) { delete store[k]; }
+    },
+    document: {
+      body: {
+        classList: { add: () => {}, remove: () => {} },
+        style: {},
+        appendChild: () => {},
+        removeChild: () => {}
+      },
+      getElementById(id) { return getEl(id); },
+      createElement(tag) {
+        return {
+          tag,
+          style: {},
+          click() {},
+          href: '',
+          download: '',
+          className: '',
+          innerHTML: '',
+          appendChild: () => {},
+          removeChild: () => {},
+          setAttribute: () => {}
+        };
+      },
+      addEventListener() {}
+    },
+    Blob: function (parts, options) {
+      this.parts = parts;
+      this.options = options;
+      downloadedBlobs.push(this);
+    },
+    URL: {
+      createObjectURL: () => 'blob:mock-url',
+      revokeObjectURL: () => {}
+    },
+    alert: () => {},
+    console: console,
+    Date: Date,
+    JSON: JSON
+  };
+  sandbox.window = sandbox;
+  vm.createContext(sandbox);
+  vm.runInContext(code, sandbox);
+
+  return { sandbox, elements, store, downloadedBlobs, getEl };
+}
+
+test('C1: Khóa nút ghi ở Thay thế và Khôi phục khi chưa tải sao lưu trong phiên; Mở ở Thêm nguồn', () => {
+  const { sandbox, getEl } = setupImporterVm();
+
+  // 1. Chế độ RESTORE: có token "KHOI PHUC" nhưng chưa tải backup -> nút bị khóa
+  sandbox.switchVocabImportMode('RESTORE');
+  getEl('fss-import-confirm-restore-input').value = 'KHOI PHUC';
+  sandbox.setBackupSessionStatus(false);
+  sandbox.checkCommitUnlock();
+  assert.strictEqual(getEl('fss-import-commit-btn').disabled, true, 'RESTORE: nút ghi phải bị khóa khi chưa tải backup');
+  assert.match(getEl('fss-import-status-text').textContent, /Chặn khôi phục/);
+
+  // 2. Chế độ REPLACE_ALL: có staged item, có token "THAY THE" nhưng chưa tải backup -> nút bị khóa
+  sandbox.switchVocabImportMode('REPLACE_ALL');
+  getEl('fss-import-confirm-replace-input').value = 'THAY THE';
+  getEl('fss-import-textarea').value = '1. pomme || từ || A1 || [n.f.] quả táo\nTrong bài: J\'aime la pomme.';
+  sandbox.runVocabDryRunPreview();
+  sandbox.setBackupSessionStatus(false);
+  sandbox.checkCommitUnlock();
+  assert.strictEqual(getEl('fss-import-commit-btn').disabled, true, 'REPLACE_ALL: nút ghi phải bị khóa khi chưa tải backup');
+  assert.match(getEl('fss-import-status-text').textContent, /Chặn thay thế/);
+
+  // 3. Chế độ ADD_SOURCE: không yêu cầu tải sao lưu
+  sandbox.switchVocabImportMode('ADD_SOURCE');
+  sandbox.checkCommitUnlock();
+  assert.strictEqual(getEl('fss-import-commit-btn').disabled, false, 'ADD_SOURCE: nút ghi mở bình thường, không đòi sao lưu');
+});
+
+test('C2: Tải sao lưu mở khóa nút ghi trong phiên', () => {
+  const { sandbox, getEl } = setupImporterVm({
+    shadowing_saved_vocab_v1: JSON.stringify([{ id: 'word:pomme', text: 'pomme', type: 'word' }])
+  });
+
+  // RESTORE mode
+  sandbox.switchVocabImportMode('RESTORE');
+  getEl('fss-import-confirm-restore-input').value = 'KHOI PHUC';
+  sandbox.checkCommitUnlock();
+  assert.strictEqual(getEl('fss-import-commit-btn').disabled, true);
+
+  // Tải sao lưu
+  sandbox.downloadVocabJsonBackup();
+  assert.strictEqual(sandbox.getBackupSessionStatus(), true, 'downloadVocabJsonBackup phải set status = true');
+  assert.strictEqual(getEl('fss-import-commit-btn').disabled, false, 'Nút ghi phải mở sau khi tải sao lưu');
+
+  // Mở lại modal: reset session status
+  sandbox.openVocabImportModal();
+  assert.strictEqual(sandbox.getBackupSessionStatus(), false, 'openVocabImportModal phải reset session status');
+});
+
+test('C3: File sao lưu chứa metadata (tổng số mục, active, tombstone, exportedAt) và restoreFlatBackup đọc lại được', () => {
+  const initialItems = [
+    { id: 'word:pomme', text: 'pomme', type: 'word', schema_version: '0.2' },
+    { id: 'word:orange', text: 'orange', type: 'word', _deleted: true, schema_version: '0.2' }
+  ];
+  const { sandbox, downloadedBlobs } = setupImporterVm({
+    shadowing_saved_vocab_v1: JSON.stringify(initialItems)
+  });
+
+  sandbox.downloadVocabJsonBackup();
+  assert.strictEqual(downloadedBlobs.length, 1);
+  const downloadedJson = downloadedBlobs[0].parts[0];
+  const parsed = JSON.parse(downloadedJson);
+
+  // Kiểm tra cấu trúc metadata
+  assert.ok(parsed.metadata, 'File sao lưu phải có metadata');
+  assert.strictEqual(parsed.metadata.totalItems, 2, 'Tổng số mục = 2');
+  assert.strictEqual(parsed.metadata.activeCount, 1, 'Số active = 1');
+  assert.strictEqual(parsed.metadata.tombstoneCount, 1, 'Số tombstone = 1');
+  assert.ok(parsed.metadata.exportedAt, 'exportedAt phải tồn tại');
+  assert.strictEqual(parsed.metadata.schema_version, '0.2');
+  assert.strictEqual(parsed.items.length, 2);
+
+  // Kiểm tra restoreFlatBackup đọc lại thành công
+  const res = SchemaV02.restoreFlatBackup(downloadedJson, 'KHOI PHUC');
+  assert.strictEqual(res.success, true);
+  assert.strictEqual(res.count, 2);
+  assert.strictEqual(res.restoredVocabList[0].item_id, 'word:pomme');
+  assert.strictEqual(res.restoredVocabList[1].item_id, 'word:orange');
+});
+
+// =========================================================================
+// TEST SUITE 13: Nghiệm thu không trùng thẻ trên localStorage giả lập (Item 2)
+// =========================================================================
+test('Nghiệm thu: nạp backup/yt-aMx0d42wzBs.txt 2 lần bằng Thêm nguồn, không trùng thẻ, srs không đổi', () => {
+  const filePath = path.join(__dirname, '../backup/yt-aMx0d42wzBs.txt');
+  const fileContent = fs.readFileSync(filePath, 'utf-8');
+
+  // Lần 1: Nạp vào kho rỗng
+  const staged1 = SchemaV02.stageMultiSourceImport([{
+    fileName: 'yt-aMx0d42wzBs.txt',
+    content: fileContent
+  }], []);
+  assert.strictEqual(staged1.stats.newCount, 37, 'Lần 1 phải có 37 mục mới');
+
+  const commit1 = SchemaV02.commitStagedImport(staged1, 'ADD_SOURCE', {}, []);
+  const list1 = commit1.updatedVocabList;
+  assert.strictEqual(list1.length, 37, 'Kho sau lần 1 phải có đúng 37 mục');
+
+  // Đặt tiến độ học (SRS) cho một số mục để kiểm tra bảo toàn
+  list1[0].srs = { reps: 4, interval: 14, ease: 2.6, due: Date.now() + 86400000 };
+  list1[5].srs = { reps: 2, interval: 6, ease: 2.5, due: Date.now() + 86400000 };
+  const srsSnapshot0 = Object.assign({}, list1[0].srs);
+  const srsSnapshot5 = Object.assign({}, list1[5].srs);
+
+  // Lần 2: Nạp lại ĐÚNG file đó vào kho list1
+  const staged2 = SchemaV02.stageMultiSourceImport([{
+    fileName: 'yt-aMx0d42wzBs.txt',
+    content: fileContent
+  }], list1);
+
+  assert.strictEqual(staged2.stats.newCount, 0, 'Lần 2 phải có 0 mục mới');
+  assert.strictEqual(staged2.stats.existsCount, 37, 'Lần 2 cả 37 mục phải là ĐÃ CÓ');
+
+  const commit2 = SchemaV02.commitStagedImport(staged2, 'ADD_SOURCE', {}, list1);
+  const list2 = commit2.updatedVocabList;
+
+  // Nghiệm thu: số mục không đổi, srs không đổi
+  assert.strictEqual(list2.length, 37, 'Tổng số mục sau lần 2 vẫn là 37');
+  assert.deepStrictEqual(list2[0].srs, srsSnapshot0, 'SRS mục 0 phải được giữ nguyên 100%');
+  assert.deepStrictEqual(list2[5].srs, srsSnapshot5, 'SRS mục 5 phải được giữ nguyên 100%');
+});
+
+test('Nghiệm thu: nạp test1.txt rồi test2.txt -> maison thêm 1 OCC không tạo thẻ mới, bientôt là 1 mục mới', () => {
+  const file1Content = fs.readFileSync(path.join(__dirname, '../backup/test1.txt'), 'utf-8');
+  const file2Content = fs.readFileSync(path.join(__dirname, '../backup/test2.txt'), 'utf-8');
+
+  // Bước 1: Nạp test1.txt
+  const staged1 = SchemaV02.stageMultiSourceImport([{
+    fileName: 'test1.txt',
+    content: file1Content
+  }], []);
+  assert.strictEqual(staged1.stats.newCount, 1, 'test1.txt có 1 mục mới (maison)');
+
+  const commit1 = SchemaV02.commitStagedImport(staged1, 'ADD_SOURCE', {}, []);
+  const list1 = commit1.updatedVocabList;
+  assert.strictEqual(list1.length, 1);
+  assert.strictEqual(list1[0].norm_key, 'maison');
+  assert.strictEqual(list1[0].contexts.length, 0, 'Lúc đầu chưa có secondary context');
+
+  // Đặt SRS cho maison
+  list1[0].srs = { reps: 3, interval: 10, ease: 2.5, due: 123456789 };
+
+  // Bước 2: Nạp test2.txt (chứa OCC maison và mục mới bientôt)
+  const staged2 = SchemaV02.stageMultiSourceImport([{
+    fileName: 'test2.txt',
+    content: file2Content
+  }], list1);
+
+  assert.strictEqual(staged2.stats.newCount, 1, 'bientôt là 1 mục mới');
+  assert.strictEqual(staged2.files[0].occurrencesCount, 1, 'maison được nhận diện qua OCC (occurrencesCount = 1)');
+
+  const commit2 = SchemaV02.commitStagedImport(staged2, 'ADD_SOURCE', {}, list1);
+  const list2 = commit2.updatedVocabList;
+
+  // Nghiệm thu:
+  // 1. Tổng số thẻ = 2 (maison và bientôt)
+  assert.strictEqual(list2.length, 2, 'Tổng số thẻ phải là 2');
+
+  // 2. maison: chỉ có 1 thẻ duy nhất (không trùng thẻ), có 1 secondary context mới từ video 2
+  const maisonCards = list2.filter(it => it.norm_key === 'maison');
+  assert.strictEqual(maisonCards.length, 1, 'Chỉ được có đúng 1 thẻ maison (không bị trùng thẻ)');
+  assert.strictEqual(maisonCards[0].contexts.length, 1, 'maison có thêm 1 context từ test2.txt');
+  assert.strictEqual(maisonCards[0].contexts[0].source_id, 'yt:testvideo02');
+  assert.strictEqual(maisonCards[0].contexts[0].source_text || maisonCards[0].contexts[0].en, 'Nous construisons une nouvelle maison.');
+  assert.strictEqual(maisonCards[0].srs.reps, 3, 'SRS của maison không bị thay đổi');
+  assert.strictEqual(maisonCards[0].srs.interval, 10);
+
+  // 3. bientôt: 1 mục mới hoàn toàn
+  const bientotCard = list2.find(it => it.norm_key === 'bientôt' || it.fr === 'bientôt');
+  assert.ok(bientotCard, 'Thẻ bientôt phải tồn tại');
+  assert.strictEqual(bientotCard.source_id, 'yt:testvideo02');
+  assert.strictEqual(bientotCard.wordVi, 'sớm, sắp tới');
+});
