@@ -46,6 +46,7 @@
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
     padding: 1.25rem;
+    background-color: #0b1329;
   }
   #fss-import-modal-footer {
     flex-shrink: 0;
@@ -65,142 +66,461 @@
     bottom: calc(90px + env(safe-area-inset-bottom, 0px));
   }
 
-  /* =====================================================================
-     ĐỒNG BỘ THEME CHO PHẦN INPUT & MODAL: LIGHT & DARK MODE
-     ===================================================================== */
-  html[data-ui="light"]:not([data-theme="dark"]) #fss-import-modal-box {
-    background-color: var(--fs-surface, #ffffff);
-    border-color: var(--fs-line, #e2e8f0);
-    color: var(--fs-ink, #0f172a);
-    box-shadow: 0 25px 60px rgba(15, 23, 42, 0.18);
+  /* Bố cục nút dry-run: Canh phải tuyệt đối trên desktop, full-width chuẩn chạm trên mobile */
+  .fss-dryrun-btn-row {
+    display: flex !important;
+    justify-content: flex-end !important;
+    width: 100% !important;
+    padding-top: 0.5rem;
   }
-  html[data-ui="light"]:not([data-theme="dark"]) #fss-import-modal-header {
-    background-color: var(--fs-surface-subtle, #f8fafc);
-    border-bottom-color: var(--fs-line, #e2e8f0);
+  .fss-dryrun-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0.375rem !important;
+    padding: 0.5rem 1.1rem !important;
+    border-radius: 0.5rem !important;
+    background-color: #2563eb !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    font-size: 0.75rem !important;
+    cursor: pointer !important;
+    border: none !important;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35) !important;
+    transition: all 0.15s ease-in-out !important;
+    min-height: 38px !important;
   }
-  html[data-ui="light"]:not([data-theme="dark"]) #fss-import-modal-header h3 {
-    color: var(--fs-ink, #0f172a);
+  .fss-dryrun-btn:hover {
+    background-color: #1d4ed8 !important;
+    box-shadow: 0 6px 18px rgba(37, 99, 235, 0.45) !important;
   }
-  html[data-ui="light"]:not([data-theme="dark"]) #fss-import-modal-header p {
-    color: var(--fs-muted, #64748b);
-  }
-  html[data-ui="light"]:not([data-theme="dark"]) #fss-import-modal-header button {
-    color: var(--fs-muted, #64748b);
-  }
-  html[data-ui="light"]:not([data-theme="dark"]) #fss-import-modal-header button:hover {
-    background-color: rgba(226, 232, 240, 0.8);
-    color: var(--fs-ink, #0f172a);
+  @media (max-width: 639px) {
+    .fss-dryrun-btn {
+      width: 100% !important;
+      min-height: 44px !important;
+    }
   }
 
-  /* Input Form Elements ở Light Theme */
-  html[data-ui="light"]:not([data-theme="dark"]) #fss-import-modal-body label {
-    color: var(--fs-ink, #0f172a);
+  /* =====================================================================
+     MẶC ĐỊNH CHO TOÀN BỘ PHẦN TỬ: TONE TỐI DARK NAVY ĐỒNG NHẤT
+     (Áp dụng khi macOS bật Dark Mode hoặc app ở Dark Theme)
+     ===================================================================== */
+  #fss-import-modal-box {
+    background-color: #0b1329 !important;
+    border: 1px solid rgba(30, 58, 138, 0.8) !important;
+    color: #f1f5f9 !important;
   }
-  html[data-ui="light"]:not([data-theme="dark"]) .fss-import-file-btn {
+  #fss-import-modal-header {
+    background-color: #070e22 !important;
+    border-bottom: 1px solid rgba(30, 58, 138, 0.6) !important;
+  }
+  #fss-import-modal-header h3 {
+    color: #ffffff !important;
+  }
+  #fss-import-modal-header p {
+    color: #94a3b8 !important;
+  }
+  #fss-import-modal-header button {
+    color: #94a3b8 !important;
+  }
+  #fss-import-modal-header button:hover {
+    color: #ffffff !important;
+    background-color: rgba(30, 58, 138, 0.4) !important;
+  }
+  #fss-import-modal-body {
+    background-color: #0b1329 !important;
+  }
+  #fss-import-modal-body label {
+    color: #e2e8f0 !important;
+  }
+  .fss-import-file-btn {
+    background-color: rgba(30, 58, 138, 0.6) !important;
+    border: 1px solid rgba(29, 78, 216, 0.8) !important;
+    color: #bfdbfe !important;
+  }
+  .fss-import-file-btn:hover {
+    background-color: #1e40af !important;
+    color: #ffffff !important;
+  }
+  #fss-import-textarea {
+    background-color: #030712 !important;
+    border: 1px solid rgba(30, 58, 138, 0.8) !important;
+    color: #f8fafc !important;
+  }
+  #fss-import-textarea::placeholder {
+    color: #475569 !important;
+  }
+  #fss-import-textarea:focus {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important;
+  }
+  .fss-textarea-caption {
+    color: #64748b !important;
+  }
+  .fss-staged-pill {
+    background-color: rgba(15, 23, 42, 0.9) !important;
+    border: 1px solid #1e3a8a !important;
+    color: #93c5fd !important;
+  }
+  #fss-import-modal-footer {
+    background-color: #070e22 !important;
+    border-top: 1px solid rgba(30, 58, 138, 0.6) !important;
+  }
+  #fss-import-status-text {
+    color: #94a3b8 !important;
+  }
+  .fss-tab-btn-inactive {
+    background-color: rgba(15, 23, 42, 0.8) !important;
+    border: 1px solid rgba(30, 58, 138, 0.5) !important;
+    color: #94a3b8 !important;
+  }
+  .fss-tab-btn-inactive:hover {
+    background-color: rgba(30, 58, 138, 0.5) !important;
+    color: #ffffff !important;
+  }
+  .fss-btn-cancel {
+    background-color: #1e293b !important;
+    border: 1px solid #334155 !important;
+    color: #cbd5e1 !important;
+  }
+  .fss-btn-cancel:hover {
+    background-color: #334155 !important;
+    color: #ffffff !important;
+  }
+  .fss-btn-backup {
+    background-color: rgba(15, 32, 72, 0.8) !important;
+    border: 1px solid rgba(30, 64, 175, 0.8) !important;
+    color: #93c5fd !important;
+  }
+  .fss-btn-backup:hover {
+    background-color: #1e40af !important;
+    color: #ffffff !important;
+  }
+  #fss-import-sources-breakdown,
+  .fss-preview-card {
+    background-color: #070e22 !important;
+    border: 1px solid rgba(30, 58, 138, 0.6) !important;
+  }
+  .fss-card-header {
+    background-color: #09132e !important;
+    border-bottom: 1px solid rgba(30, 58, 138, 0.6) !important;
+    color: #e2e8f0 !important;
+  }
+  .fss-table thead {
+    background-color: #050b1a !important;
+    color: #94a3b8 !important;
+    border-bottom: 1px solid #172554 !important;
+  }
+  .fss-table tbody tr {
+    border-bottom: 1px solid rgba(23, 37, 84, 0.6) !important;
+  }
+  .fss-table tbody tr:hover {
+    background-color: #0e1a38 !important;
+  }
+  .fss-table td {
+    color: #cbd5e1 !important;
+  }
+  .fss-table td.font-medium,
+  .fss-table td .text-slate-200 {
+    color: #f8fafc !important;
+  }
+  #fss-import-confirm-box-replace {
+    background-color: #060e22 !important;
+    border: 1px solid rgba(217, 119, 6, 0.8) !important;
+  }
+  #fss-import-confirm-box-restore {
+    background-color: #060e22 !important;
+    border: 1px solid rgba(37, 99, 235, 0.8) !important;
+  }
+  #fss-import-confirm-replace-input,
+  #fss-import-confirm-restore-input {
+    background-color: #040814 !important;
+    border: 1px solid #1e3a8a !important;
+    color: #ffffff !important;
+  }
+  #fss-import-overwrite-container {
+    color: #cbd5e1 !important;
+  }
+
+  /* =====================================================================
+     LIGHT MODE OVERRIDES: CHỈ ÁP DỤNG KHI THỰC SỰ LÀ GIAO DIỆN SÁNG
+     1. Khi có data-theme="light" tường minh
+     2. Khi hệ thống ở chế độ sáng và không có dark mode
+     ===================================================================== */
+  @media (prefers-color-scheme: light) {
+    html:not([data-theme="dark"]):not(.dark) #fss-import-modal-box {
+      background-color: #ffffff !important;
+      border: 1px solid #cbd5e1 !important;
+      color: #0f172a !important;
+      box-shadow: 0 25px 60px rgba(15, 23, 42, 0.15) !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) #fss-import-modal-header {
+      background-color: #f8fafc !important;
+      border-bottom: 1px solid #e2e8f0 !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) #fss-import-modal-header h3 {
+      color: #0f172a !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) #fss-import-modal-header p {
+      color: #64748b !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) #fss-import-modal-header button {
+      color: #64748b !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) #fss-import-modal-header button:hover {
+      background-color: rgba(226, 232, 240, 0.8) !important;
+      color: #0f172a !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) #fss-import-modal-body {
+      background-color: #ffffff !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) #fss-import-modal-body label {
+      color: #0f172a !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) .fss-import-file-btn {
+      background-color: #f1f5f9 !important;
+      border-color: #cbd5e1 !important;
+      color: #1e40af !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) .fss-import-file-btn:hover {
+      background-color: #e2e8f0 !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) #fss-import-textarea {
+      background-color: #ffffff !important;
+      border-color: #cbd5e1 !important;
+      color: #0f172a !important;
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) #fss-import-textarea::placeholder {
+      color: #94a3b8 !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) #fss-import-textarea:focus {
+      border-color: #3b82f6 !important;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18) !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) .fss-textarea-caption {
+      color: #64748b !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) .fss-staged-pill {
+      background-color: #eff6ff !important;
+      border-color: #bfdbfe !important;
+      color: #1e40af !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) #fss-import-modal-footer {
+      background-color: #f8fafc !important;
+      border-top-color: #e2e8f0 !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) #fss-import-status-text {
+      color: #64748b !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) .fss-tab-btn-inactive {
+      background-color: #f1f5f9 !important;
+      color: #475569 !important;
+      border-color: #cbd5e1 !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) .fss-tab-btn-inactive:hover {
+      background-color: #e2e8f0 !important;
+      color: #0f172a !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) .fss-btn-cancel {
+      background-color: #f1f5f9 !important;
+      color: #475569 !important;
+      border: 1px solid #cbd5e1 !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) .fss-btn-cancel:hover {
+      background-color: #e2e8f0 !important;
+      color: #0f172a !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) .fss-btn-backup {
+      background-color: #eff6ff !important;
+      color: #1d4ed8 !important;
+      border-color: #bfdbfe !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) .fss-btn-backup:hover {
+      background-color: #dbeafe !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) #fss-import-sources-breakdown,
+    html:not([data-theme="dark"]):not(.dark) .fss-preview-card {
+      background-color: #ffffff !important;
+      border-color: #e2e8f0 !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) .fss-card-header {
+      background-color: #f8fafc !important;
+      border-bottom-color: #e2e8f0 !important;
+      color: #0f172a !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) .fss-table thead {
+      background-color: #f1f5f9 !important;
+      color: #475569 !important;
+      border-bottom-color: #e2e8f0 !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) .fss-table tbody tr {
+      border-bottom-color: #f1f5f9 !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) .fss-table tbody tr:hover {
+      background-color: #f8fafc !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) .fss-table td {
+      color: #1e293b !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) .fss-table td.font-medium,
+    html:not([data-theme="dark"]):not(.dark) .fss-table td .text-slate-200 {
+      color: #0f172a !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) #fss-import-confirm-box-replace {
+      background-color: #fffbeb !important;
+      border-color: #f59e0b !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) #fss-import-confirm-box-restore {
+      background-color: #eff6ff !important;
+      border-color: #3b82f6 !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) #fss-import-confirm-replace-input,
+    html:not([data-theme="dark"]):not(.dark) #fss-import-confirm-restore-input {
+      background-color: #ffffff !important;
+      color: #0f172a !important;
+      border-color: #cbd5e1 !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) #fss-import-overwrite-container {
+      color: #334155 !important;
+    }
+  }
+
+  /* Khi người dùng chọn sáng thủ công: html[data-theme="light"] */
+  html[data-theme="light"] #fss-import-modal-box {
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+    box-shadow: 0 25px 60px rgba(15, 23, 42, 0.15) !important;
+  }
+  html[data-theme="light"] #fss-import-modal-header {
+    background-color: #f8fafc !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+  }
+  html[data-theme="light"] #fss-import-modal-header h3 {
+    color: #0f172a !important;
+  }
+  html[data-theme="light"] #fss-import-modal-header p {
+    color: #64748b !important;
+  }
+  html[data-theme="light"] #fss-import-modal-header button {
+    color: #64748b !important;
+  }
+  html[data-theme="light"] #fss-import-modal-header button:hover {
+    background-color: rgba(226, 232, 240, 0.8) !important;
+    color: #0f172a !important;
+  }
+  html[data-theme="light"] #fss-import-modal-body {
+    background-color: #ffffff !important;
+  }
+  html[data-theme="light"] #fss-import-modal-body label {
+    color: #0f172a !important;
+  }
+  html[data-theme="light"] .fss-import-file-btn {
     background-color: #f1f5f9 !important;
     border-color: #cbd5e1 !important;
     color: #1e40af !important;
   }
-  html[data-ui="light"]:not([data-theme="dark"]) .fss-import-file-btn:hover {
+  html[data-theme="light"] .fss-import-file-btn:hover {
     background-color: #e2e8f0 !important;
   }
-  html[data-ui="light"]:not([data-theme="dark"]) #fss-import-textarea {
+  html[data-theme="light"] #fss-import-textarea {
     background-color: #ffffff !important;
     border-color: #cbd5e1 !important;
     color: #0f172a !important;
-    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04) !important;
   }
-  html[data-ui="light"]:not([data-theme="dark"]) #fss-import-textarea::placeholder {
+  html[data-theme="light"] #fss-import-textarea::placeholder {
     color: #94a3b8 !important;
   }
-  html[data-ui="light"]:not([data-theme="dark"]) #fss-import-textarea:focus {
+  html[data-theme="light"] #fss-import-textarea:focus {
     border-color: #3b82f6 !important;
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18) !important;
   }
-  html[data-ui="light"]:not([data-theme="dark"]) .fss-textarea-caption {
+  html[data-theme="light"] .fss-textarea-caption {
     color: #64748b !important;
   }
-  html[data-ui="light"]:not([data-theme="dark"]) .fss-staged-pill {
+  html[data-theme="light"] .fss-staged-pill {
     background-color: #eff6ff !important;
     border-color: #bfdbfe !important;
     color: #1e40af !important;
   }
-
-  /* Footer & Mode Tabs ở Light Theme */
-  html[data-ui="light"]:not([data-theme="dark"]) #fss-import-modal-footer {
-    background-color: var(--fs-surface-subtle, #f8fafc);
-    border-top-color: var(--fs-line, #e2e8f0);
+  html[data-theme="light"] #fss-import-modal-footer {
+    background-color: #f8fafc !important;
+    border-top-color: #e2e8f0 !important;
   }
-  html[data-ui="light"]:not([data-theme="dark"]) #fss-import-status-text {
-    color: #64748b;
+  html[data-theme="light"] #fss-import-status-text {
+    color: #64748b !important;
   }
-  html[data-ui="light"]:not([data-theme="dark"]) .fss-tab-btn-inactive {
+  html[data-theme="light"] .fss-tab-btn-inactive {
     background-color: #f1f5f9 !important;
     color: #475569 !important;
     border-color: #cbd5e1 !important;
   }
-  html[data-ui="light"]:not([data-theme="dark"]) .fss-tab-btn-inactive:hover {
+  html[data-theme="light"] .fss-tab-btn-inactive:hover {
     background-color: #e2e8f0 !important;
     color: #0f172a !important;
   }
-  html[data-ui="light"]:not([data-theme="dark"]) .fss-btn-cancel {
+  html[data-theme="light"] .fss-btn-cancel {
     background-color: #f1f5f9 !important;
     color: #475569 !important;
     border: 1px solid #cbd5e1 !important;
   }
-  html[data-ui="light"]:not([data-theme="dark"]) .fss-btn-cancel:hover {
+  html[data-theme="light"] .fss-btn-cancel:hover {
     background-color: #e2e8f0 !important;
     color: #0f172a !important;
   }
-  html[data-ui="light"]:not([data-theme="dark"]) .fss-btn-backup {
+  html[data-theme="light"] .fss-btn-backup {
     background-color: #eff6ff !important;
     color: #1d4ed8 !important;
     border-color: #bfdbfe !important;
   }
-  html[data-ui="light"]:not([data-theme="dark"]) .fss-btn-backup:hover {
+  html[data-theme="light"] .fss-btn-backup:hover {
     background-color: #dbeafe !important;
   }
-
-  /* Bảng & Cards preview ở Light Theme */
-  html[data-ui="light"]:not([data-theme="dark"]) #fss-import-sources-breakdown,
-  html[data-ui="light"]:not([data-theme="dark"]) .fss-preview-card {
+  html[data-theme="light"] #fss-import-sources-breakdown,
+  html[data-theme="light"] .fss-preview-card {
     background-color: #ffffff !important;
     border-color: #e2e8f0 !important;
   }
-  html[data-ui="light"]:not([data-theme="dark"]) .fss-card-header {
+  html[data-theme="light"] .fss-card-header {
     background-color: #f8fafc !important;
     border-bottom-color: #e2e8f0 !important;
     color: #0f172a !important;
   }
-  html[data-ui="light"]:not([data-theme="dark"]) .fss-table thead {
+  html[data-theme="light"] .fss-table thead {
     background-color: #f1f5f9 !important;
     color: #475569 !important;
     border-bottom-color: #e2e8f0 !important;
   }
-  html[data-ui="light"]:not([data-theme="dark"]) .fss-table tbody tr {
+  html[data-theme="light"] .fss-table tbody tr {
     border-bottom-color: #f1f5f9 !important;
   }
-  html[data-ui="light"]:not([data-theme="dark"]) .fss-table tbody tr:hover {
+  html[data-theme="light"] .fss-table tbody tr:hover {
     background-color: #f8fafc !important;
   }
-  html[data-ui="light"]:not([data-theme="dark"]) .fss-table td {
+  html[data-theme="light"] .fss-table td {
     color: #1e293b !important;
   }
-  html[data-ui="light"]:not([data-theme="dark"]) #fss-import-confirm-box-replace {
+  html[data-theme="light"] .fss-table td.font-medium,
+  html[data-theme="light"] .fss-table td .text-slate-200 {
+    color: #0f172a !important;
+  }
+  html[data-theme="light"] #fss-import-confirm-box-replace {
     background-color: #fffbeb !important;
     border-color: #f59e0b !important;
   }
-  html[data-ui="light"]:not([data-theme="dark"]) #fss-import-confirm-box-restore {
+  html[data-theme="light"] #fss-import-confirm-box-restore {
     background-color: #eff6ff !important;
     border-color: #3b82f6 !important;
   }
-  html[data-ui="light"]:not([data-theme="dark"]) #fss-import-confirm-replace-input,
-  html[data-ui="light"]:not([data-theme="dark"]) #fss-import-confirm-restore-input {
+  html[data-theme="light"] #fss-import-confirm-replace-input,
+  html[data-theme="light"] #fss-import-confirm-restore-input {
     background-color: #ffffff !important;
     color: #0f172a !important;
     border-color: #cbd5e1 !important;
   }
-  html[data-ui="light"]:not([data-theme="dark"]) #fss-import-overwrite-container {
+  html[data-theme="light"] #fss-import-overwrite-container {
     color: #334155 !important;
   }
 </style>
@@ -287,16 +607,16 @@
 
         <!-- Khung dán văn bản trực tiếp -->
         <div class="space-y-1">
-          <textarea id="fss-import-textarea" rows="5" placeholder="Dán nội dung .txt hoặc JSON vào đây...&#10;Ví dụ:&#10;# SOURCE: yt:UoxA5R0tcFA | Bài học 1&#10;213. s'il vous plaît || cụm từ || A1 || [loc.] làm ơn, xin vui lòng&#10;Trong bài: Oui, s'il vous plaît.&#10;VD1: Un café, s'il vous plaît. || Cho tôi một ly cà phê, làm ơn.&#10;..." class="w-full p-3 rounded-lg bg-[#060a17] border border-blue-900/80 text-slate-200 font-mono text-xs leading-relaxed focus:border-blue-500 focus:outline-none transition"></textarea>
+          <textarea id="fss-import-textarea" rows="5" placeholder="Dán nội dung .txt hoặc JSON vào đây...&#10;Ví dụ:&#10;# SOURCE: yt:UoxA5R0tcFA | Bài học 1&#10;213. s'il vous plaît || cụm từ || A1 || [loc.] làm ơn, xin vui lòng&#10;Trong bài: Oui, s'il vous plaît.&#10;VD1: Un café, s'il vous plaît. || Cho tôi một ly cà phê, làm ơn.&#10;..." class="w-full p-3 rounded-lg font-mono text-xs leading-relaxed focus:outline-none transition"></textarea>
           <div class="flex items-center justify-between text-[11px] text-slate-400 px-1 fss-textarea-caption">
             <span>Hỗ trợ định dạng .txt (mục mới, dòng ≈ nghi trùng, OCC) hoặc JSON (items, occurrences).</span>
             <span class="font-mono">UTF-8 NFC</span>
           </div>
         </div>
 
-        <!-- Nút kích hoạt Dry-run Preview (Canh phải tuyệt đối: flex justify-end + ml-auto) -->
-        <div class="pt-1 flex items-center justify-end w-full">
-          <button type="button" id="fss-import-run-btn" onclick="window.runVocabDryRunPreview()" class="ml-auto px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs flex items-center gap-1.5 transition cursor-pointer shadow-lg shadow-blue-600/30">
+        <!-- Nút kích hoạt Dry-run Preview (Canh phải tuyệt đối trên desktop, full width trên mobile) -->
+        <div class="fss-dryrun-btn-row">
+          <button type="button" id="fss-import-run-btn" onclick="window.runVocabDryRunPreview()" class="fss-dryrun-btn">
             <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
             <span>Chạy đối chiếu & Xem trước (Dry-run)</span>
           </button>
@@ -438,11 +758,11 @@
           <span>Sẵn sàng. Dữ liệu chỉ được ghi sau khi bạn xác nhận.</span>
         </div>
         <div class="flex flex-wrap items-center gap-2 ml-auto">
-          <button type="button" onclick="window.downloadVocabJsonBackup()" class="fss-btn-backup px-3 py-1.5 rounded-lg bg-blue-950/80 hover:bg-blue-900 text-blue-300 border border-blue-800/80 text-xs flex items-center gap-1.5 transition cursor-pointer" title="Tải toàn bộ kho từ vựng hiện tại về máy dạng file JSON sao lưu an toàn">
+          <button type="button" onclick="window.downloadVocabJsonBackup()" class="fss-btn-backup px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 transition cursor-pointer" title="Tải toàn bộ kho từ vựng hiện tại về máy dạng file JSON sao lưu an toàn">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
             <span>Tải file sao lưu JSON</span>
           </button>
-          <button type="button" onclick="window.closeVocabImportModal()" class="fss-btn-cancel px-4 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer">
+          <button type="button" onclick="window.closeVocabImportModal()" class="fss-btn-cancel px-4 py-1.5 rounded-lg transition cursor-pointer">
             Hủy bỏ
           </button>
           <button type="button" id="fss-import-commit-btn" disabled onclick="window.executeVocabCommit()" class="px-5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs flex items-center gap-1.5 transition cursor-pointer shadow-lg shadow-emerald-900/30">
