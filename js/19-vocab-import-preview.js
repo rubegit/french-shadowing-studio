@@ -49,6 +49,8 @@
     var modal = document.getElementById('fss-import-modal');
     if (!modal) return;
     modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    document.body.classList.add('has-import-modal-open');
     window.switchVocabImportMode('ADD_SOURCE');
 
     if (preloadedFile) {
@@ -61,7 +63,19 @@
   window.closeVocabImportModal = function () {
     var modal = document.getElementById('fss-import-modal');
     if (modal) modal.classList.add('hidden');
+    document.body.style.overflow = '';
+    document.body.classList.remove('has-import-modal-open');
   };
+
+  // Lắng nghe phím Esc để đóng modal ở bước preview
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' || e.keyCode === 27) {
+      var modal = document.getElementById('fss-import-modal');
+      if (modal && !modal.classList.contains('hidden')) {
+        window.closeVocabImportModal();
+      }
+    }
+  });
 
   window.switchVocabImportMode = function (mode) {
     currentMode = mode || 'ADD_SOURCE';
@@ -76,9 +90,9 @@
     var boxRes = document.getElementById('fss-import-confirm-box-restore');
     var overwriteBox = document.getElementById('fss-import-overwrite-container');
 
-    // Cập nhật tab active
-    var activeClass = 'px-4 py-2 font-medium border-b-2 border-blue-500 text-blue-400 cursor-pointer transition';
-    var inactiveClass = 'px-4 py-2 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 cursor-pointer transition';
+    // Cập nhật tab active (kiểu nút chọn chế độ ở thanh đáy)
+    var activeClass = 'px-3 py-1.5 rounded-lg font-semibold text-xs bg-blue-600 text-white shadow-sm cursor-pointer transition';
+    var inactiveClass = 'px-3 py-1.5 rounded-lg font-medium text-xs bg-blue-950/60 hover:bg-blue-900/60 text-slate-300 hover:text-white border border-blue-900/50 cursor-pointer transition';
 
     if (btnAdd) btnAdd.className = (currentMode === 'ADD_SOURCE') ? activeClass : inactiveClass;
     if (btnRep) btnRep.className = (currentMode === 'REPLACE_ALL') ? activeClass : inactiveClass;
