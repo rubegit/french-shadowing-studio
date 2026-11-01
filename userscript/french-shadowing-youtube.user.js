@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         French Shadowing Studio - Trợ thủ YouTube (Word Timestamps & 1-Click Import)
 // @namespace    https://french-shadowing-studio.vercel.app/
-// @version      1.3.6
+// @version      1.3.7
 // @description  Tự động trích xuất phụ đề tiếng Pháp dạng JSON3 trên YouTube: Tải file .json3 về máy hoặc 1-click chuyển video sang French Shadowing Studio.
 // @author       French Shadowing Studio
 // @downloadURL  https://french-shadowing-studio.vercel.app/userscript/french-shadowing-youtube.user.js
@@ -141,19 +141,20 @@
   function selectFrenchTrack(tracks) {
     if (!tracks || !tracks.length) return null;
 
-    var asr = tracks.find(function (t) {
-      return (t.languageCode === 'fr' || (t.languageCode && t.languageCode.startsWith('fr-'))) && t.kind === 'asr';
-    });
-
     var manual = tracks.find(function (t) {
       return (t.languageCode === 'fr' || (t.languageCode && t.languageCode.startsWith('fr-'))) && t.kind !== 'asr';
     });
 
-    if (asr) {
-      return { primaryTrack: asr, manualTrack: manual, type: 'asr' };
-    }
+    var asr = tracks.find(function (t) {
+      return (t.languageCode === 'fr' || (t.languageCode && t.languageCode.startsWith('fr-'))) && t.kind === 'asr';
+    });
+
+    // Luôn ưu tiên phụ đề thủ công do con người / tác giả tải lên (manual) vì chuẩn xác 100%, không bị ảo giác âm thanh
     if (manual) {
       return { primaryTrack: manual, manualTrack: null, type: 'manual' };
+    }
+    if (asr) {
+      return { primaryTrack: asr, manualTrack: null, type: 'asr' };
     }
 
     var anyFr = tracks.find(function (t) {

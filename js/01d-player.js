@@ -55,13 +55,20 @@
 
     function saveToLocalHistory(item) {
       try {
-        let history = getLocalHistory();
-        const prevItem = history.find(h => h.videoId === item.videoId);
+        const raw = getRawHistory();
+        const prevItem = raw.find(h => h.videoId === item.videoId && !h._deleted);
         const isLib = !item.isText && isLibraryVideo(item.videoId);
         const userTrans = isLib && (item.userTrans !== undefined ? !!item.userTrans : userTransVid === item.videoId);
         const keepSentences = !isLib || userTrans;   // video thư viện: chỉ giữ phụ đề khi là bản dịch của người dùng
         const mergedMeta = Object.assign({}, prevItem && prevItem.meta, item.meta);
-        history = history.filter(h => h.videoId !== item.videoId);
+        const now = Date.now();
+        const HIST_TOMBSTONE_TTL = 30 * 24 * 60 * 60 * 1000;
+
+        // Xóa sạch bản ghi cũ và tombstone cũ của videoId này
+        let history = raw.filter(h => h.videoId !== item.videoId);
+        // Dọn tombstone hết hạn
+        history = history.filter(h => !h._deleted || (h._deletedAt && (now - h._deletedAt) < HIST_TOMBSTONE_TTL));
+
         history.unshift({
           videoId: item.videoId,
           title: item.title || `YouTube Video (${item.videoId})`,
@@ -72,7 +79,7 @@
           sentences: keepSentences ? item.sentences : [],
           lib: isLib ? true : undefined,
           userTrans: userTrans ? true : undefined,
-          updatedAt: Date.now()
+          updatedAt: now
         });
         if (sharedNoSaveId && item.videoId === sharedNoSaveId) return;   // đang xem bản được chia sẻ: không ghi đè dữ liệu riêng của mình
         if (history.length > 20) {
@@ -105,8 +112,14 @@
     function removeHistoryItem(videoId, e) {
       if (e) e.stopPropagation();
       try {
-        // Đánh tombstone thay vì xóa cứng để sync đúng sang máy khác
         const raw = getRawHistory();
+        const currentItem = raw.find(function(h) { return h.videoId === videoId; });
+        if (currentItem && currentItem.sentences && typeof aicHasTranslation === 'function' && aicHasTranslation(currentItem.sentences)) {
+          if (!confirm('Video này đã có bản dịch song ngữ tiếng Việt. Bạn có chắc chắn muốn xóa không?')) {
+            return;
+          }
+        }
+        // Đánh tombstone thay vì xóa cứng để sync đúng sang máy khác
         const now = Date.now();
         const HIST_TOMBSTONE_TTL = 30 * 24 * 60 * 60 * 1000;
         let found = false;
