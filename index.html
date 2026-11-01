@@ -324,11 +324,11 @@
   <div id="keyvocab-modal" class="ai-modal-backdrop" onmousedown="if (event.target === this) closeKeyVocabModal()">
     <div class="ai-modal" role="dialog" aria-modal="true">
       <div class="ai-modal-head">
-        <div id="kv-title" class="ai-modal-title">Từ vựng khó trong bài</div>
+        <div id="kv-title" class="ai-modal-title">Trích xuất từ vựng khó trong bài</div>
         <button type="button" class="ai-modal-close" onclick="closeKeyVocabModal()" title="Đóng (Esc)"><i data-lucide="x"></i></button>
       </div>
       <div id="kv-input-view">
-        <p class="ai-step-text">Bấm "Copy prompt", dán cho AI (ChatGPT/Claude...). AI sẽ trích xuất từ vựng, cụm từ, collocation, thành ngữ, tiếng lóng (argot) tiếng Pháp thực sự hữu ích cho giao tiếp thực tế theo các cấp độ CEFR đã chọn, kèm nghĩa và 3 câu ví dụ tiếng Pháp. Sau đó dán câu trả lời của AI vào ô bên dưới rồi bấm "Áp dụng".</p>
+        <p class="ai-step-text">Bấm "Copy prompt", dán cho AI (ChatGPT/Claude/Gemini...). AI sẽ trích xuất từ vựng, cụm từ, collocation, thành ngữ, tiếng lóng (argot) tiếng Pháp thực sự hữu ích cho giao tiếp thực tế theo các cấp độ CEFR đã chọn, kèm nghĩa và 3 câu ví dụ tiếng Pháp. Sau đó dán câu trả lời của AI vào ô bên dưới rồi bấm "Áp dụng".</p>
         
         <!-- Cài đặt Trình độ trích xuất CEFR (tối giản A1-C2, tối ưu mobile) -->
         <div class="kv-level-box" id="kv-level-box">
@@ -352,24 +352,13 @@
         <textarea id="kv-textarea" class="ai-textarea" spellcheck="false" placeholder="Dán câu trả lời của AI vào đây..."></textarea>
         <div class="ai-actions">
           <button type="button" class="ai-btn ai-btn-primary" onclick="applyKeyVocabAnswer()"><i data-lucide="check"></i><span>Áp dụng</span></button>
-          <button type="button" id="kv-back-btn" class="ai-btn ai-btn-ghost ai-hide" onclick="kvShowView('list')">Xem danh sách</button>
           <button type="button" class="ai-btn ai-btn-ghost" onclick="closeKeyVocabModal()">Đóng</button>
         </div>
         <div id="kv-status" class="ai-status"></div>
       </div>
-      <div id="kv-list-view" style="display:none">
-        <div class="kv-head-row">
-          <span id="kv-count" class="kv-count"></span>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-            <button type="button" class="kv-save-btn" id="kv-save-all-btn" onclick="kvSaveAll()">Lưu tất cả</button>
-            <button type="button" class="vocab-mini" onclick="kvShowView('input')">Dán câu trả lời khác</button>
-            <button type="button" class="vocab-mini del" onclick="kvClear()">Xóa danh sách</button>
-          </div>
-        </div>
-        <div id="kv-list"></div>
-      </div>
     </div>
   </div>
+
 
   <!-- ==================== CỬA SỔ ĐIỀN NGHĨA TỪ VỰNG HÀNG LOẠT (AI) ==================== -->
   <div id="vocab-meaning-modal" class="ai-modal-backdrop" onmousedown="if (event.target === this) closeVocabMeaningModal()">
@@ -2033,12 +2022,12 @@
   </div>
 
   <script src="js/01-core.js?v=61bd75df"></script>
-<script src="js/01b-catalog.js?v=7cbedf43"></script>
+<script src="js/01b-catalog.js?v=70d9318e"></script>
 <script src="js/01c-subtitles.js?v=cca0d801"></script>
-<script src="js/01d-player.js?v=53a215dd"></script>
+<script src="js/01d-player.js?v=2ce38552"></script>
 <script src="js/01e-translate-ai.js?v=88c80ec8"></script>
 <script src="js/01f-lookup.js?v=bb67c688"></script>
-<script src="js/01g-vocab-list.js?v=12f75bf3"></script>
+<script src="js/01g-vocab-list.js?v=c0a5cf59"></script>
 <script src="js/01h-ebook.js?v=cb54eb78"></script>
 
   <script src="js/02-pv-helper.js?v=d2adcc44"></script>

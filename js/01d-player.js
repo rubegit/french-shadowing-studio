@@ -109,6 +109,52 @@
       } catch (e) {}
     }
 
+    const ARCHIVED_TRANS_KEY = 'shadowing_archived_trans_v1';
+    function getArchivedTranslations() {
+      try {
+        const raw = localStorage.getItem(ARCHIVED_TRANS_KEY);
+        return raw ? JSON.parse(raw) : {};
+      } catch (e) { return {}; }
+    }
+    function setArchivedTranslation(videoId, data) {
+      if (!videoId || !data || !Array.isArray(data.sentences) || !data.sentences.length) return;
+      try {
+        const all = getArchivedTranslations();
+        all[videoId] = {
+          title: data.title || '',
+          format: data.format || 'srt',
+          sentences: data.sentences,
+          meta: data.meta || null,
+          archivedAt: Date.now()
+        };
+        const keys = Object.keys(all);
+        if (keys.length > 30) {
+          keys.sort((a, b) => (all[a].archivedAt || 0) - (all[b].archivedAt || 0))
+              .slice(0, keys.length - 30)
+              .forEach(k => delete all[k]);
+        }
+        localStorage.setItem(ARCHIVED_TRANS_KEY, JSON.stringify(all));
+      } catch (e) {}
+    }
+    function getArchivedTranslation(videoId) {
+      if (!videoId) return null;
+      const all = getArchivedTranslations();
+      return all[videoId] || null;
+    }
+    function removeArchivedTranslation(videoId) {
+      try {
+        const all = getArchivedTranslations();
+        if (all[videoId]) {
+          delete all[videoId];
+          localStorage.setItem(ARCHIVED_TRANS_KEY, JSON.stringify(all));
+        }
+      } catch (e) {}
+    }
+    window.getArchivedTranslations = getArchivedTranslations;
+    window.setArchivedTranslation = setArchivedTranslation;
+    window.getArchivedTranslation = getArchivedTranslation;
+    window.removeArchivedTranslation = removeArchivedTranslation;
+
     function removeHistoryItem(videoId, e) {
       if (e) e.stopPropagation();
       try {
@@ -118,6 +164,13 @@
           if (!confirm('Video này đã có bản dịch song ngữ tiếng Việt. Bạn có chắc chắn muốn xóa không?')) {
             return;
           }
+          // Lưu dự phòng bản dịch song ngữ trước khi xóa để có thể hỏi khôi phục khi nạp lại
+          setArchivedTranslation(videoId, {
+            title: currentItem.title,
+            format: currentItem.format,
+            sentences: currentItem.sentences,
+            meta: currentItem.meta
+          });
         }
 
         // Kiểm tra và hỏi dọn dẹp từ vựng liên quan tương ứng với video này
@@ -209,6 +262,9 @@
       resetPlaybackTrackingState();
       initYouTubePlayer();
       renderSubtitleList();
+      if (window.activeRightPanelTab === 'keyvocab' && typeof window.renderRightPanelKeyVocab === 'function') {
+        window.renderRightPanelKeyVocab();
+      }
       const scrollBox0 = document.getElementById('subtitles-scroll-container');
       if (scrollBox0) scrollBox0.scrollTop = 0;
       updateActiveSentenceDisplay();
@@ -400,6 +456,23 @@
       if (!currentVideoId || sentences.length === 0) return;
       if (pendingUserVi) { userTransVid = currentVideoId; pendingUserVi = false; }   // người dùng tự nạp phụ đề có bản dịch cho video này
 
+      // Kiểm tra nếu video này từng có bản dịch song ngữ cũ được lưu mà bản hiện tại chưa có dịch
+      if (typeof getArchivedTranslation === 'function' && typeof aicHasTranslation === 'function' && !aicHasTranslation(sentences)) {
+        const archived = getArchivedTranslation(currentVideoId);
+        if (archived && archived.sentences && archived.sentences.length && aicHasTranslation(archived.sentences)) {
+          const useOld = confirm(
+            `Video này (${currentVideoId}) đã có bản dịch song ngữ tiếng Việt đã lưu trước đây (${archived.sentences.length} câu).\n\n` +
+            `• Bấm OK: Khôi phục lại bản dịch song ngữ cũ\n` +
+            `• Bấm Hủy (Cancel): Dùng bản phụ đề mới vừa nạp`
+          );
+          if (useOld) {
+            sentences = archived.sentences;
+            subtitleFormat = archived.format || subtitleFormat;
+            if (typeof showVocabToast === 'function') showVocabToast('Đã khôi phục bản dịch song ngữ cũ của video!', false);
+          }
+        }
+      }
+
       captureHomeState();   // chụp trạng thái trang chủ trước khi lưu lịch sử
       saveToLocalHistory({
         videoId: currentVideoId,
@@ -407,6 +480,17 @@
         format: subtitleFormat,
         sentences: sentences
       });
+
+      // Nếu video nạp lại có từ vựng đã lưu sẵn, đảm bảo kích hoạt đồng bộ lên Cloud
+      if (window.FSS_SUPABASE && typeof window.FSS_SUPABASE.syncVocabDebounced === 'function' && typeof getRawVocab === 'function') {
+        const rawVoc = getRawVocab();
+        const hasVidVocab = rawVoc.some(function(v) {
+          return !v._deleted && (v.videoId === currentVideoId || (Array.isArray(v.contexts) && v.contexts.some(c => c.videoId === currentVideoId)));
+        });
+        if (hasVidVocab) {
+          window.FSS_SUPABASE.syncVocabDebounced(rawVoc);
+        }
+      }
 
       document.getElementById('screen-vocab').classList.add('hidden');
       document.getElementById('screen-input').classList.add('hidden');
@@ -417,6 +501,9 @@
       resetPlaybackTrackingState();
       initYouTubePlayer();
       renderSubtitleList();
+      if (window.activeRightPanelTab === 'keyvocab' && typeof window.renderRightPanelKeyVocab === 'function') {
+        window.renderRightPanelKeyVocab();
+      }
       const scrollBox0 = document.getElementById('subtitles-scroll-container');
       if (scrollBox0) scrollBox0.scrollTop = 0;
       updateActiveSentenceDisplay();

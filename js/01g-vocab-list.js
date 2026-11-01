@@ -1325,19 +1325,69 @@
       updateVocabBadges();
     }
 
-    // ==================== TỪ VỰNG KHÓ TRONG BÀI (AI tổng hợp) ====================
-    // Quy trình: copy prompt (kèm cả bài) -> AI trả lời đúng mẫu -> dán lại -> app hiện danh sách + nút "Lưu từ vựng".
-    // Kết quả được nhớ theo từng video/bài để mở lại không phải dán lần nữa.
+    // ==================== TỪ VỰNG KHÓ TRONG BÀI (Đồng bộ duy nhất 1 nguồn từ vựng theo video) ====================
+    // Tab "Từ khó" cột phải và Trang Từ vựng dùng chung 1 nguồn chân lý: getVocab() theo videoId (sync Cloud).
     const KV_KEY = 'shadowing_keyvocab_v1';
     const KV_LABEL = { 'từ': 'Từ', 'collocation': 'Collocation', 'phrasal verb': 'Phrasal verb', 'idiom': 'Idiom', 'slang': 'Slang', 'cụm từ': 'Cụm từ' };
-    function kvLoadAll() { try { const d = JSON.parse(localStorage.getItem(KV_KEY) || '{}'); return (d && typeof d === 'object') ? d : {}; } catch (e) { return {}; } }
-    function kvGet() { const a = kvLoadAll()[currentVideoId]; return a && Array.isArray(a.items) ? a.items : []; }
-    function kvSet(items) {
-      const all = kvLoadAll();
-      if (items.length) all[currentVideoId] = { ts: Date.now(), items: items }; else delete all[currentVideoId];
-      const keys = Object.keys(all);
-      if (keys.length > 80) keys.sort((a, b) => (all[a].ts || 0) - (all[b].ts || 0)).slice(0, keys.length - 80).forEach((k) => { delete all[k]; });
-      try { localStorage.setItem(KV_KEY, JSON.stringify(all)); return true; } catch (e) { return false; }
+    function kvLoadLegacy() { try { const d = JSON.parse(localStorage.getItem(KV_KEY) || '{}'); return (d && typeof d === 'object') ? d : {}; } catch (e) { return {}; } }
+    function matchVid(a, b) {
+      if (!a || !b) return false;
+      const sA = String(a).replace(/^(video|text|book):/, '').trim();
+      const sB = String(b).replace(/^(video|text|book):/, '').trim();
+      return sA.toLowerCase() === sB.toLowerCase();
+    }
+
+    function kvGet() {
+      if (!currentVideoId) return [];
+      const all = getVocab();
+      let vids = all.filter(function(x) {
+        if (matchVid(x.videoId, currentVideoId)) return true;
+        if (Array.isArray(x.contexts) && x.contexts.some(function(c) { return matchVid(c.videoId, currentVideoId); })) return true;
+        return false;
+      });
+
+      // Nếu trong kho chính chưa có mà trong legacy KV_KEY có -> tự động nạp chuyển tiếp sang kho chính
+      if (!vids.length) {
+        const legacy = kvLoadLegacy()[currentVideoId];
+        if (legacy && Array.isArray(legacy.items) && legacy.items.length) {
+          const list = getVocab();
+          let added = 0;
+          legacy.items.slice().reverse().forEach(function(it) {
+            if (kvStoreItem(list, it)) added++;
+          });
+          if (added > 0) {
+            setVocab(list);
+            updateVocabBadges();
+            vids = list.filter(function(x) {
+              return matchVid(x.videoId, currentVideoId) || (Array.isArray(x.contexts) && x.contexts.some(function(c) { return matchVid(c.videoId, currentVideoId); }));
+            });
+          }
+        }
+      }
+
+      return vids.map(function(x) {
+        const isMain = matchVid(x.videoId, currentVideoId);
+        let ctx = null;
+        if (isMain && x.en && x.hs !== undefined && x.he !== undefined && x.hs >= 0) {
+          ctx = { en: x.en, hs: x.hs, he: x.he, vi: x.vi };
+        } else if (Array.isArray(x.contexts)) {
+          const c = x.contexts.find(function(c) { return matchVid(c.videoId, currentVideoId); });
+          if (c && c.en && c.hs !== undefined && c.he !== undefined && c.hs >= 0) {
+            ctx = { en: c.en, hs: c.hs, he: c.he, vi: c.vi };
+          }
+        }
+        return {
+          id: x.id,
+          term: x.text || '',
+          kind: kvNormKind(x.tag || x.kind, x.text),
+          level: x.level || '',
+          meaning: x.wordVi || '',
+          inText: x.text || '',
+          examples: Array.isArray(x.examples) ? x.examples : [],
+          ctx: ctx,
+          rawItem: x
+        };
+      });
     }
     function kvNormKind(k, term) {
       const t = String(k || '').toLowerCase();
@@ -1480,25 +1530,13 @@
       });
     }
 
-    function kvShowView(view) {
-      const inp = document.getElementById('kv-input-view'), lst = document.getElementById('kv-list-view');
-      if (!inp || !lst) return;
-      inp.style.display = view === 'input' ? '' : 'none';
-      lst.style.display = view === 'list' ? '' : 'none';
-      document.getElementById('kv-title').textContent = view === 'list' ? 'Từ vựng khó trong bài' : 'Tổng hợp từ vựng khó bằng AI';
-      const back = document.getElementById('kv-back-btn');
-      if (back) back.classList.toggle('ai-hide', !kvGet().length);
-      if (view === 'list') kvRenderList();
-      if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
-    }
     function openKeyVocabModal() {
-      if (!sentences.length) { alert('Chưa có nội dung để tổng hợp.'); return; }
+      if (!sentences || !sentences.length) { alert('Chưa có nội dung để tổng hợp.'); return; }
       resetCopyButtons();
       document.getElementById('kv-textarea').value = '';
       aiSetStatus(document.getElementById('kv-status'), '', '');
       document.getElementById('keyvocab-modal').classList.add('open');
       kvRenderLevels();
-      kvShowView(kvGet().length ? 'list' : 'input');
     }
     function closeKeyVocabModal() {
       const m = document.getElementById('keyvocab-modal');
@@ -1524,15 +1562,22 @@
         aiSetStatus(statusEl, 'err', 'Không nhận ra được mục nào. Mỗi mục cần có dòng "1. từ || loại || nghĩa" (có dấu ||) và các dòng "VD1: câu tiếng Pháp || bản dịch". Kiểm tra lại câu trả lời của AI rồi dán lại.');
         return;
       }
-      if (!kvSet(items)) { aiSetStatus(statusEl, 'err', 'Không lưu được danh sách: bộ nhớ trình duyệt đã đầy.'); return; }
+      const list = getVocab();
+      let added = 0;
+      items.slice().reverse().forEach((it) => {
+        if (kvStoreItem(list, it)) added++;
+      });
+      if (!setVocab(list)) {
+        aiSetStatus(statusEl, 'err', 'Không lưu được danh sách: bộ nhớ trình duyệt đã đầy.');
+        return;
+      }
       document.getElementById('kv-textarea').value = '';
       aiSetStatus(statusEl, '', '');
-      kvShowView('list');
-    }
-    function kvClear() {
-      if (!confirm('Xóa danh sách từ vựng khó của bài này? (Những từ bạn đã lưu vào "Từ vựng đã lưu" vẫn được giữ.)')) return;
-      kvSet([]);
-      kvShowView('input');
+      closeKeyVocabModal();
+      updateVocabBadges();
+      showVocabToast(added ? `✓ Đã nạp ${added} từ vựng mới vào bài học và đồng bộ Cloud!` : 'Tất cả các từ này đã có trong kho từ vựng', false);
+      if (window.renderRightPanelKeyVocab) window.renderRightPanelKeyVocab();
+      if (typeof renderVocabPage === 'function') renderVocabPage();
     }
 
     // Tìm câu trong bài chứa từ này (ưu tiên đúng cụm chữ AI chép lại từ bài), để lấy ngữ cảnh + vị trí tô sáng
@@ -1557,59 +1602,6 @@
         }
       }
       return null;
-    }
-    function kvIsSaved(it) {
-      const k = String(it.term || '').trim().toLowerCase();
-      return getVocab().some((x) => {
-        if (String(x.text || '').trim().toLowerCase() !== k) return false;
-        if (x.videoId === currentVideoId) return true;
-        if (Array.isArray(x.contexts) && x.contexts.some((c) => c.videoId === currentVideoId)) return true;
-        return false;
-      });
-    }
-
-    function kvRenderList() {
-      const items = kvGet();
-      const box = document.getElementById('kv-list');
-      document.getElementById('kv-count').textContent = `${items.length} từ/cụm khó`;
-      box.innerHTML = items.map((it, i) => {
-        const ctx = kvFindContext(it);
-        let ctxHtml = '';
-        if (ctx) {
-          const en = String(ctx.s.text || '');
-          ctxHtml = `<p class="vocab-ctx">${escHtml(en.slice(0, ctx.hs))}<mark class="vocab-hl">${escHtml(en.slice(ctx.hs, ctx.he))}</mark>${escHtml(en.slice(ctx.he))}</p>`
-            + (ctx.s.vi ? `<p class="vocab-vi">Cả câu: ${escHtml(ctx.s.vi)}</p>` : '');
-        }
-        const exHtml = it.examples.map((e) => `<div><p class="vocab-ex-en">${hlExample(String(e.en), it.term)}</p>${e.vi ? `<p class="vocab-ex-vi">${escHtml(e.vi)}</p>` : ''}</div>`).join('');
-        const saved = kvIsSaved(it);
-        const lvlBadge = it.level ? `<span class="vocab-level-badge level-${escHtml(it.level.toLowerCase().replace('+', 'plus'))}">${escHtml(it.level)}</span>` : '';
-        return `<article class="vocab-card" data-kv-i="${i}">
-          <div class="vocab-card-head">
-            <div><span class="vocab-kind vocab-kind-${it.kind === 'từ' ? 'word' : 'phrase'}">${escHtml(KV_LABEL[it.kind] || '')}</span>${lvlBadge}<h3 class="vocab-word">${escHtml(it.term)}</h3></div>
-            <div class="vocab-card-tools"><button type="button" class="vocab-mini del" title="Xóa từ này khỏi danh sách" onclick="kvRemove(${i})">Xóa</button><button type="button" class="kv-save-btn${saved ? ' saved' : ''}" ${saved ? 'disabled' : ''} onclick="kvSave(${i})">${saved ? '✓ Đã lưu' : 'Lưu từ vựng'}</button></div>
-          </div>
-          ${ctxHtml}
-          <p class="vocab-wordvi" style="margin-top:8px">${formatGrammarBadgeHtml(escHtml(it.meaning))}</p>
-          ${exHtml ? `<div class="vocab-examples" style="margin-left:0">${exHtml}</div>` : ''}
-        </article>`;
-      }).join('');
-      const allBtn = document.getElementById('kv-save-all-btn');
-      if (allBtn) {
-        const allSaved = items.length > 0 && items.every((it) => kvIsSaved(it));
-        allBtn.disabled = allSaved;
-        allBtn.classList.toggle('saved', allSaved);
-        allBtn.textContent = allSaved ? '✓ Đã lưu tất cả' : 'Lưu tất cả';
-      }
-    }
-
-    // Xóa 1 từ khỏi danh sách tạm (không đụng tới "Từ vựng đã lưu")
-    function kvRemove(i) {
-      const items = kvGet().slice();
-      if (i < 0 || i >= items.length) return;
-      items.splice(i, 1);
-      kvSet(items);
-      if (!items.length) { kvShowView('input'); return; }
-      kvRenderList();
     }
 
     // Thêm 1 mục từ khó vào mảng từ vựng đã lưu `list` (chưa ghi xuống bộ nhớ). Trả về true nếu là mục mới.
@@ -1656,34 +1648,65 @@
       return true;
     }
 
-    function kvSave(i) {
-      const it = kvGet()[i];
+    // Xóa từ vựng trực tiếp khỏi bài học (đồng bộ xóa chuẩn xác cả Local và Supabase Cloud)
+    function kvDeleteItem(id) {
+      if (!confirm('Bạn có chắc muốn xóa từ vựng này khỏi bài học?')) return;
+      const raw = getRawVocab();
+      const it = raw.find(function(v) { return v.id === id; });
       if (!it) return;
-      const text = it.term.trim();
-      const list = getVocab();
-      kvStoreItem(list, it);
-      if (!setVocab(list)) { showVocabToast('Không lưu được: bộ nhớ trình duyệt đã đầy', false); return; }
-      updateVocabBadges();
-      showVocabToast(`Đã lưu “${text.length > 40 ? text.slice(0, 40) + '…' : text}”`, false);
-      kvRenderList();
-    }
-
-    // Lưu tất cả các từ còn lại trong danh sách (đã xóa bớt từ không cần thì chỉ lưu phần còn lại)
-    function kvSaveAll() {
-      const items = kvGet();
-      if (!items.length) return;
-      const list = getVocab();
-      let added = 0;
-      // duyệt ngược để từ đầu danh sách nằm trên cùng trong \"Từ vựng đã lưu\"
-      items.slice().reverse().forEach((it) => { if (kvStoreItem(list, it)) added++; });
-      if (!setVocab(list)) { showVocabToast('Không lưu được: bộ nhớ trình duyệt đã đầy', false); return; }
-      updateVocabBadges();
-      showVocabToast(added ? `Đã lưu ${added} từ vựng` : 'Tất cả từ đã được lưu trước đó', false);
-      kvRenderList();
-      if (window.activeRightPanelTab === 'keyvocab' && window.renderRightPanelKeyVocab) {
-        window.renderRightPanelKeyVocab();
+      const now = Date.now();
+      const hasContexts = Array.isArray(it.contexts) && it.contexts.length > 0;
+      if (!hasContexts) {
+        markVocabDeleted(id);
+      } else {
+        const isMain = it.videoId === currentVideoId;
+        if (isMain) {
+          const nextCtx = it.contexts[0];
+          const otherContexts = it.contexts.slice(1);
+          const updated = raw.map(function(v) {
+            if (v.id !== id) return v;
+            return Object.assign({}, v, {
+              videoId: nextCtx.videoId,
+              videoTitle: nextCtx.videoTitle,
+              bookId: nextCtx.bookId,
+              en: nextCtx.en,
+              vi: nextCtx.vi,
+              hs: nextCtx.hs,
+              he: nextCtx.he,
+              t: nextCtx.t,
+              contexts: otherContexts.length ? otherContexts : undefined,
+              updatedAt: now
+            });
+          });
+          localStorage.setItem(VOCAB_KEY, JSON.stringify(updated));
+          if (window.FSS_SUPABASE && typeof window.FSS_SUPABASE.syncVocabDebounced === 'function') {
+            window.FSS_SUPABASE.syncVocabDebounced(updated);
+          }
+        } else {
+          const remaining = it.contexts.filter(function(c) { return c.videoId !== currentVideoId; });
+          const updated = raw.map(function(v) {
+            if (v.id !== id) return v;
+            return Object.assign({}, v, {
+              contexts: remaining.length ? remaining : undefined,
+              updatedAt: now
+            });
+          });
+          localStorage.setItem(VOCAB_KEY, JSON.stringify(updated));
+          if (window.FSS_SUPABASE && typeof window.FSS_SUPABASE.syncVocabDebounced === 'function') {
+            window.FSS_SUPABASE.syncVocabDebounced(updated);
+          }
+        }
       }
+      updateVocabBadges();
+      renderRightPanelKeyVocab();
+      if (typeof renderVocabPage === 'function') renderVocabPage();
+      showVocabToast('Đã xóa từ vựng', false);
     }
+    window.kvDeleteItem = kvDeleteItem;
+
+    function kvSave() {}
+    function kvSaveAll() {}
+    function kvRemove() {}
 
     // ==================== BỐ CỤC CỘT PHẢI: TỪ KHÓ & CHÚ GIẢI KÝ HIỆU (MODULE L3) ====================
     window.activeRightPanelTab = 'sentences';
@@ -1747,8 +1770,6 @@
         return `<button type="button" class="kv-chip ${isActive ? 'active' : ''}" onclick="renderRightPanelKeyVocab('${lvl}')">${lvl === 'all' ? 'Tất cả' : lvl} <span class="kv-chip-num">(${count})</span></button>`;
       }).join('');
 
-      const allSaved = rawItems.length > 0 && rawItems.every((it) => kvIsSaved(it));
-
       let listHtml = '';
       if (!rawItems.length) {
         listHtml = `
@@ -1765,18 +1786,23 @@
         listHtml = `<div class="kv-panel-empty"><p class="kv-empty-desc">Không có từ vựng nào thuộc cấp độ <b>${curFilter}</b>.</p></div>`;
       } else {
         listHtml = items.map((it) => {
-          const rawIndex = rawItems.indexOf(it);
-          const ctx = kvFindContext(it);
           let ctxHtml = '';
-          if (ctx) {
-            const en = String(ctx.s.text || '');
-            ctxHtml = `<p class="vocab-ctx">${escHtml(en.slice(0, ctx.hs))}<mark class="vocab-hl">${escHtml(en.slice(ctx.hs, ctx.he))}</mark>${escHtml(en.slice(ctx.he))}</p>`;
+          if (it.ctx && it.ctx.en) {
+            const en = String(it.ctx.en || '');
+            const hs = it.ctx.hs >= 0 ? it.ctx.hs : 0;
+            const he = it.ctx.he > hs ? it.ctx.he : hs;
+            ctxHtml = `<p class="vocab-ctx">${escHtml(en.slice(0, hs))}<mark class="vocab-hl">${escHtml(en.slice(hs, he))}</mark>${escHtml(en.slice(he))}</p>`;
+          } else {
+            const ctx = kvFindContext(it);
+            if (ctx) {
+              const en = String(ctx.s.text || '');
+              ctxHtml = `<p class="vocab-ctx">${escHtml(en.slice(0, ctx.hs))}<mark class="vocab-hl">${escHtml(en.slice(ctx.hs, ctx.he))}</mark>${escHtml(en.slice(ctx.he))}</p>`;
+            }
           }
           const exHtml = (it.examples || []).map((e) => `<div><p class="vocab-ex-en">${hlExample(String(e.en || ''), it.term)}</p>${e.vi ? `<p class="vocab-ex-vi">${escHtml(e.vi)}</p>` : ''}</div>`).join('');
-          const saved = kvIsSaved(it);
           const lvlBadge = it.level ? `<span class="vocab-level-badge level-${escHtml(it.level.toLowerCase().replace('+', 'plus'))}">${escHtml(it.level)}</span>` : '';
           return `
-            <article class="vocab-card kv-panel-card" data-kv-term="${escHtml(it.term)}">
+            <article class="vocab-card kv-panel-card" data-kv-term="${escHtml(it.term)}" data-kv-id="${escHtml(it.id)}">
               <div class="vocab-card-head">
                 <div>
                   <span class="vocab-kind vocab-kind-${it.kind === 'từ' ? 'word' : 'phrase'}">${escHtml(KV_LABEL[it.kind] || 'Từ')}</span>
@@ -1787,10 +1813,7 @@
                   <button type="button" class="vocab-mini" title="Phát âm từ này" onclick="window.playFrenchAudio && window.playFrenchAudio('${escHtml(it.term).replace(/'/g, "\\'")}')">
                     <i data-lucide="volume-2" class="w-3.5 h-3.5"></i>
                   </button>
-                  <button type="button" class="kv-save-btn ${saved ? 'saved' : ''}" ${saved ? 'disabled' : ''} onclick="kvSave(${rawIndex})">
-                    ${saved ? '✓ Đã lưu' : 'Lưu'}
-                  </button>
-                  <button type="button" class="vocab-mini del" title="Xóa từ này" onclick="kvRemove(${rawIndex})">✕</button>
+                  <button type="button" class="vocab-mini del" title="Xóa từ này khỏi bài học" onclick="kvDeleteItem('${it.id}')">✕</button>
                 </div>
               </div>
               ${ctxHtml}
@@ -1805,9 +1828,6 @@
         <div class="kv-panel-toolbar">
           <div class="kv-panel-chips">${chipsHtml}</div>
           <div class="kv-panel-actions">
-            <button type="button" class="kv-save-all-btn ${allSaved ? 'saved' : ''}" ${allSaved || !rawItems.length ? 'disabled' : ''} onclick="kvSaveAll()">
-              ${allSaved ? '✓ Đã lưu tất cả' : 'Lưu tất cả (' + rawItems.length + ')'}
-            </button>
             <button type="button" class="kv-action-ghost" onclick="openKeyVocabModal()">
               <i data-lucide="sparkles"></i><span>Nhờ AI</span>
             </button>
@@ -2710,12 +2730,23 @@
       const dur = Number(p.duration) > 0 ? Number(p.duration) : 0;
       sharedNoSaveId = '';
       const existing = getLocalHistory().find((h) => h.videoId === p.videoId && !h.isText);
-      // Video đã có bản dịch song ngữ trong lịch sử -> mở bản đã lưu, tránh ghi đè mất bản dịch
-      if (existing && existing.sentences && existing.sentences.length && aicHasTranslation(existing.sentences)) {
-        showVocabToast('Video này đã có bản dịch trong lịch sử, đang mở bản đã lưu', false);
-        saveToLocalHistory(Object.assign({}, existing, { meta: Object.assign({}, existing.meta, meta), duration: existing.duration || dur }));   // cập nhật tên kênh/lượt xem mới nhất
-        loadFromHistory(p.videoId);
-        return true;
+      const archived = typeof window.getArchivedTranslation === 'function' ? window.getArchivedTranslation(p.videoId) : null;
+      const oldTransItem = (existing && existing.sentences && existing.sentences.length && aicHasTranslation(existing.sentences)) ? existing
+        : (archived && archived.sentences && archived.sentences.length && aicHasTranslation(archived.sentences) ? archived : null);
+
+      // Nếu đã có bản dịch song ngữ cũ (trong lịch sử hoặc lưu dự phòng sau khi xóa) -> hỏi xác nhận người dùng
+      if (oldTransItem) {
+        const useOld = confirm(
+          `Video này đã có bản dịch song ngữ tiếng Việt trước đây (${oldTransItem.sentences.length} câu).\n\n` +
+          `• Bấm OK: Khôi phục & DÙNG LẠI bản dịch song ngữ cũ\n` +
+          `• Bấm Hủy (Cancel): DÙNG BẢN MỚI vừa import từ YouTube`
+        );
+        if (useOld) {
+          showVocabToast('Đang mở bản dịch song ngữ đã lưu của video này', false);
+          saveToLocalHistory(Object.assign({}, oldTransItem, { meta: Object.assign({}, oldTransItem.meta, meta), duration: oldTransItem.duration || dur }));
+          loadFromHistory(p.videoId);
+          return true;
+        }
       }
       currentVideoId = String(p.videoId);
       currentVideoTitle = (p.title || '').trim() || (existing && existing.title) || `Video ${p.videoId}`;

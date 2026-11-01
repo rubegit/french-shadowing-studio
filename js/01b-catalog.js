@@ -802,6 +802,7 @@
         const hiddenInfo = libraryFolderMap[videoId] ? null : (hiddenVideoMap[videoId] || null);
         // Đã từng nạp + có bản dịch song ngữ được lưu -> dùng lại bản đã lưu, không đọc lại file gốc (file gốc không có bản dịch).
         const savedItem = getLocalHistory().find((h) => h.videoId === videoId);
+        const archived = typeof window.getArchivedTranslation === 'function' ? window.getArchivedTranslation(videoId) : null;
         const isLib = isLibraryVideo(videoId);
         // Video thư viện: chỉ dùng bản lưu trên máy khi đó là bản dịch do CHÍNH người dùng nạp (userTrans); còn lại luôn lấy mới từ server
         if (savedItem && savedItem.sentences && savedItem.sentences.length && aicHasTranslation(savedItem.sentences) && (!isLib || savedItem.userTrans === true)) {
@@ -815,6 +816,24 @@
           startPractice();
           ensureBilingualDefaultOn();
           return true;
+        } else if (archived && archived.sentences && archived.sentences.length && aicHasTranslation(archived.sentences)) {
+          const useOld = confirm(
+            `Video này đã có bản dịch song ngữ tiếng Việt trước đây (${archived.sentences.length} câu).\n\n` +
+            `• Bấm OK: Khôi phục lại bản dịch song ngữ cũ\n` +
+            `• Bấm Hủy (Cancel): Tải bản phụ đề gốc từ thư viện`
+          );
+          if (useOld) {
+            userTransVid = isLib ? videoId : '';
+            currentVideoId = videoId;
+            currentVideoTitle = archived.title || videoTitle || `Video ${videoId}`;
+            sentences = archived.sentences;
+            subtitleFormat = archived.format || 'srt';
+            inputUrl.value = `https://www.youtube.com/watch?v=${currentVideoId}`;
+            checkStartReady();
+            startPractice();
+            ensureBilingualDefaultOn();
+            return true;
+          }
         }
 
         // Video dạng thư mục (_[ID]_[Tên]/): đọc file ngay trong thư mục đó. Không có -> cách cũ (file nằm thẳng trong subs/).
