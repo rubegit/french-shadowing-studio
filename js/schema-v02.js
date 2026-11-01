@@ -541,11 +541,15 @@
       span = findHighlightSpan(enSentence, frText, it.verb);
     }
 
-    var tVal = 0;
+    var tVal = null;
     if (typeof pCtx.t === 'number') {
       tVal = pCtx.t;
     } else if (typeof it.t === 'number') {
       tVal = it.t;
+    } else if (pCtx.t === null || it.t === null) {
+      tVal = null;
+    } else {
+      tVal = 0;
     }
 
     var tKnown = false;
@@ -554,7 +558,7 @@
     } else if (typeof it.t_known === 'boolean') {
       tKnown = it.t_known;
     } else {
-      tKnown = (tVal > 0);
+      tKnown = (typeof tVal === 'number' && tVal > 0);
     }
 
     var kindVal = it.kind;
@@ -1072,6 +1076,7 @@
    */
   function stageMultiSourceImport(files, existingVocabList, options) {
     options = options || {};
+    var currentSourceId = canonicalSourceId(options.currentSourceId || options.currentVideoId || '');
     var stagedFiles = Array.isArray(files) ? files : [files];
     var existingList = Array.isArray(existingVocabList) ? existingVocabList : [];
 
@@ -1087,6 +1092,7 @@
     var allSuspicious = [];
     var allUnresolvedOccs = [];
     var allErrors = [];
+    var allWarnings = [];
     var fileSummaries = [];
     var alignStats = { exact: 0, fuzzy: 0, multiple: 0, notFound: 0 };
     var hasSubtitles = Array.isArray(options.sentences) && options.sentences.length > 0;
@@ -1094,7 +1100,7 @@
     stagedFiles.forEach(function (fileObj, fIdx) {
       var rawContent = typeof fileObj === 'string' ? fileObj : (fileObj.content || '');
       var fileName = fileObj.fileName || ('File ' + (fIdx + 1));
-      var srcId = canonicalSourceId(fileObj.source_id || '');
+      var srcId = fileObj.source_id ? canonicalSourceId(fileObj.source_id) : '';
       var srcTitle = fileObj.title || '';
 
       var parsed = null;
@@ -1106,8 +1112,34 @@
         parsed = parseText2A(trimmed, srcId);
       }
 
-      var finalSrcId = canonicalSourceId(srcId || parsed.source.source_id || ('source_' + (fIdx + 1)));
-      var finalTitle = srcTitle || parsed.source.title || fileName;
+      var explicitSrcId = srcId || (parsed.source && parsed.source.source_id ? canonicalSourceId(parsed.source.source_id) : '');
+      var hasExplicitHeader = !!explicitSrcId;
+      var finalSrcId = '';
+      var finalTitle = '';
+
+      if (hasExplicitHeader) {
+        finalSrcId = explicitSrcId;
+        finalTitle = srcTitle || (parsed.source && parsed.source.title) || fileName;
+      } else {
+        // Nội dung không có header thì dùng source_id của video đang mở
+        finalSrcId = currentSourceId || canonicalSourceId('source_' + (fIdx + 1));
+        finalTitle = srcTitle || options.currentVideoTitle || (parsed.source && parsed.source.title) || fileName;
+      }
+
+      var isSourceMismatch = false;
+      var fileWarning = null;
+
+      if (currentSourceId && finalSrcId !== currentSourceId) {
+        isSourceMismatch = true;
+      } else if (hasSubtitles && !currentSourceId) {
+        isSourceMismatch = true;
+      }
+
+      if (isSourceMismatch) {
+        var currDisplay = currentSourceId || 'chưa mở video';
+        fileWarning = 'Nguồn trong file (' + finalSrcId + ') khác video đang mở (' + currDisplay + '): chưa căn mốc thời gian';
+        allWarnings.push({ file: fileName, warning: fileWarning });
+      }
 
       if (parsed.errors && parsed.errors.length) {
         parsed.errors.forEach(function (err) {
@@ -1136,16 +1168,17 @@
           vi: it.meaning_vi || it.translation || it.vi || '',
           hs: occSpan.hs,
           he: occSpan.he,
-          t: typeof it.t === 'number' ? it.t : 0,
-          t_known: typeof it.t_known === 'boolean' ? it.t_known : (typeof it.t === 'number' && it.t > 0),
+          t: isSourceMismatch ? null : (typeof it.t === 'number' ? it.t : 0),
+          t_known: isSourceMismatch ? false : (typeof it.t_known === 'boolean' ? it.t_known : (typeof it.t === 'number' && it.t > 0)),
           seq: it.seq || null,
           scene: it.scene || null,
           source_corrected: it.source_corrected || null,
           source_original: it.source_original || null,
-          is_primary: true
+          is_primary: true,
+          align_status: isSourceMismatch ? 'SOURCE_MISMATCH' : 'PENDING'
         };
 
-        if (hasSubtitles) {
+        if (hasSubtitles && !isSourceMismatch) {
           var aligned = alignSubtitleForContext(it.source_text || '', frText, options.sentences, it.verb);
           if (aligned.status === 'EXACT') {
             alignStats.exact++;
@@ -1304,16 +1337,17 @@
             vi: occ.translation || occ.vi || '',
             hs: occSpan.hs,
             he: occSpan.he,
-            t: typeof occ.t === 'number' ? occ.t : 0,
-            t_known: typeof occ.t_known === 'boolean' ? occ.t_known : (typeof occ.t === 'number' && occ.t > 0),
+            t: isSourceMismatch ? null : (typeof occ.t === 'number' ? occ.t : 0),
+            t_known: isSourceMismatch ? false : (typeof occ.t_known === 'boolean' ? occ.t_known : (typeof occ.t === 'number' && occ.t > 0)),
             seq: occ.seq || null,
             scene: occ.scene || null,
             source_corrected: occ.source_corrected || null,
             source_original: occ.source_original || null,
-            is_primary: false
+            is_primary: false,
+            align_status: isSourceMismatch ? 'SOURCE_MISMATCH' : 'PENDING'
           };
 
-          if (hasSubtitles) {
+          if (hasSubtitles && !isSourceMismatch) {
             var occAligned = alignSubtitleForContext(occ.source_text || '', frOcc, options.sentences, targetVerb);
             if (occAligned.status === 'EXACT') {
               alignStats.exact++;
@@ -1376,7 +1410,8 @@
         source_id: finalSrcId,
         title: finalTitle,
         itemsCount: fileItemCount,
-        occurrencesCount: fileOccCount
+        occurrencesCount: fileOccCount,
+        warning: fileWarning
       });
     });
 
@@ -1397,6 +1432,7 @@
       suspicious: allSuspicious,
       unresolvedOccurrences: allUnresolvedOccs,
       errors: allErrors,
+      warnings: allWarnings,
       stats: {
         totalFiles: stagedFiles.length,
         totalItems: stagedList.length,

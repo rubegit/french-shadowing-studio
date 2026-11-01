@@ -201,9 +201,15 @@
     var sents = Array.isArray(customSentences) && customSentences.length
       ? customSentences
       : ((typeof window.sentences !== 'undefined' && Array.isArray(window.sentences) && window.sentences.length) ? window.sentences : null);
+    var curVid = (typeof window.currentVideoId !== 'undefined' && window.currentVideoId) ? window.currentVideoId : '';
+    var curTitle = (typeof window.currentVideoTitle !== 'undefined' && window.currentVideoTitle) ? window.currentVideoTitle : '';
 
     try {
-      stagedResult = window.SchemaV02.stageMultiSourceImport(filesToStage, existingVocab, { sentences: sents });
+      stagedResult = window.SchemaV02.stageMultiSourceImport(filesToStage, existingVocab, {
+        sentences: sents,
+        currentVideoId: curVid,
+        currentVideoTitle: curTitle
+      });
     } catch (err) {
       alert('Lỗi trong quá trình chuẩn bị dữ liệu: ' + err.message);
       return;
@@ -261,8 +267,11 @@
     box.classList.remove('hidden');
     tbody.innerHTML = '';
     files.forEach(function (f) {
+      var warnHtml = f.warning
+        ? '<div class="text-amber-400 text-[11px] mt-0.5 flex items-center gap-1 font-sans"><span>⚠️ ' + escapeHtml(f.warning) + '</span></div>'
+        : '';
       var tr = document.createElement('tr');
-      tr.innerHTML = '<td class="px-3 py-2 font-medium text-slate-200">' + escapeHtml(f.fileName) + '</td>' +
+      tr.innerHTML = '<td class="px-3 py-2 font-medium text-slate-200">' + escapeHtml(f.fileName) + warnHtml + '</td>' +
         '<td class="px-3 py-2 font-mono text-blue-300 text-[11px]">' + escapeHtml(f.source_id) + '</td>' +
         '<td class="px-3 py-2 text-center text-emerald-400 font-mono font-bold">' + f.itemsCount + '</td>' +
         '<td class="px-3 py-2 text-center text-cyan-400 font-mono font-bold">' + f.occurrencesCount + '</td>';

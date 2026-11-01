@@ -772,3 +772,98 @@ test('M42.9 mergeVocabLists: không làm mất item_id, norm_key, t_known, schem
   assert.strictEqual(it2.schema_version, '0.2');
   assert.strictEqual(it2.contexts.length, 1);
 });
+
+// =========================================================================
+// TEST SUITE 16: M42.10 - An toàn dữ liệu nguồn: chỉ căn phụ đề khi source_id trùng video đang mở
+// =========================================================================
+test('M42.10 (a) header khác video đang mở: không mục nào có t_known=true, t=null, preview hiện cảnh báo rõ', () => {
+  const fakeSentences = [
+    { startTime: 12.0, text: 'J\'ai acheté une maison.', vi: 'Tôi đã mua một ngôi nhà.' }
+  ];
+
+  const contentOther = [
+    '# SOURCE: yt:videoOther123 | Video Khác',
+    '',
+    '1. maison || từ || A1 || [n.f.] ngôi nhà',
+    'Trong bài: J\'ai acheté une maison.'
+  ].join('\n');
+
+  const staged = SchemaV02.stageMultiSourceImport([{
+    fileName: 'test_diff.txt',
+    content: contentOther
+  }], [], {
+    sentences: fakeSentences,
+    currentVideoId: 'videoOpen456'
+  });
+
+  assert.strictEqual(staged.files.length, 1);
+  assert.ok(staged.files[0].warning.includes('Nguồn trong file (yt:videoOther123) khác video đang mở (yt:videoOpen456)'));
+  assert.ok(staged.warnings.length > 0);
+
+  // Không mục nào có t_known=true
+  staged.stagedItems.forEach(it => {
+    assert.strictEqual(it.primaryContext.t_known, false);
+    assert.strictEqual(it.primaryContext.t, null);
+  });
+});
+
+test('M42.10 (b) header trùng video đang mở: căn phụ đề bình thường, t_known=true', () => {
+  const fakeSentences = [
+    { startTime: 12.0, text: 'J\'ai acheté une maison.', vi: 'Tôi đã mua một ngôi nhà.' }
+  ];
+
+  const contentSame = [
+    '# SOURCE: yt:videoOpen456 | Video Đang Mở',
+    '',
+    '1. maison || từ || A1 || [n.f.] ngôi nhà',
+    'Trong bài: J\'ai acheté une maison.'
+  ].join('\n');
+
+  const staged = SchemaV02.stageMultiSourceImport([{
+    fileName: 'test_same.txt',
+    content: contentSame
+  }], [], {
+    sentences: fakeSentences,
+    currentVideoId: 'videoOpen456'
+  });
+
+  assert.strictEqual(staged.files.length, 1);
+  assert.strictEqual(staged.files[0].warning, null);
+
+  const maison = staged.stagedItems.find(it => it.fr === 'maison');
+  assert.ok(maison);
+  assert.strictEqual(maison.primaryContext.t_known, true);
+  assert.strictEqual(maison.primaryContext.t, 12.0);
+  assert.strictEqual(maison.primaryContext.align_status, 'EXACT');
+});
+
+test('M42.10 (c) nội dung không có header: dùng source_id video đang mở và căn bình thường', () => {
+  const fakeSentences = [
+    { startTime: 12.0, text: 'J\'ai acheté une maison.', vi: 'Tôi đã mua một ngôi nhà.' }
+  ];
+
+  const contentNoHeader = [
+    '1. maison || từ || A1 || [n.f.] ngôi nhà',
+    'Trong bài: J\'ai acheté une maison.'
+  ].join('\n');
+
+  const staged = SchemaV02.stageMultiSourceImport([{
+    fileName: 'test_no_header.txt',
+    content: contentNoHeader
+  }], [], {
+    sentences: fakeSentences,
+    currentVideoId: 'videoOpen456',
+    currentVideoTitle: 'Video Đang Mở'
+  });
+
+  assert.strictEqual(staged.files.length, 1);
+  assert.strictEqual(staged.files[0].source_id, 'yt:videoOpen456');
+  assert.strictEqual(staged.files[0].warning, null);
+
+  const maison = staged.stagedItems.find(it => it.fr === 'maison');
+  assert.ok(maison);
+  assert.strictEqual(maison.source_id, 'yt:videoOpen456');
+  assert.strictEqual(maison.primaryContext.source_id, 'yt:videoOpen456');
+  assert.strictEqual(maison.primaryContext.t_known, true);
+  assert.strictEqual(maison.primaryContext.t, 12.0);
+});
