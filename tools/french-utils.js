@@ -434,10 +434,11 @@
 
     var normForCompare = function (s, isLenient) {
       var res = s;
+      // Bỏ dấu câu cuối câu để người học không bị phạt vì thiếu chấm/hỏi
+      res = res.replace(/[\.,;:!\?¿¡\(\)\[\]\{\}"«»“”]+$/g, '').trim();
       if (isLenient) {
-        // Chế độ nới lỏng (lenient): bỏ dấu phụ và bỏ dấu câu cuối câu
+        // Chế độ nới lỏng (lenient): bỏ dấu phụ
         res = res.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-        res = res.replace(/[\.,;:!\?¿¡\(\)\[\]\{\}"«»“”]+$/g, '').trim();
       }
       return res;
     };
