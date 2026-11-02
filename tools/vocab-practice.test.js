@@ -661,6 +661,16 @@ test('M45.3 Sandwich Menu: switchMode chuyển chế độ, cập nhật tiêu �
 
   const dropdownEl = sandbox.document.getElementById('vph-sandwich-dropdown');
   assert.strictEqual(dropdownEl.classList.contains('open'), false, 'Sau khi chọn mode, menu phải tự đóng lại');
+
+  // Mở menu và chọn chuyển sang 'reorder' (M46.1)
+  hub.openSandwichMenu();
+  hub.switchMode('reorder');
+
+  assert.strictEqual(state.currentMode, 'reorder', 'currentMode phải đổi sang reorder');
+  assert.ok(titleEl.innerHTML.includes('Sắp xếp câu'), 'Tiêu đề nút menu phải cập nhật sang Sắp xếp câu');
+  assert.ok(titleEl.innerHTML.includes('🧩'), 'Icon menu phải cập nhật icon 🧩');
+  assert.strictEqual(dropdownEl.classList.contains('open'), false, 'Menu tự đóng sau khi chọn reorder');
+
   hub.close();
 });
 

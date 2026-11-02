@@ -1226,6 +1226,15 @@
                   </div>
                   <span class="vph-sandwich-item-check">✓</span>
                 </button>
+
+                <button type="button" class="vph-sandwich-item vph-tab-btn" data-mode="reorder" role="menuitem">
+                  <span class="vph-sandwich-item-icon">🧩</span>
+                  <div class="vph-sandwich-item-text">
+                    <div class="vph-sandwich-item-title">Sắp xếp câu</div>
+                    <div class="vph-sandwich-item-desc">Chạm các thẻ từ để ghép thành câu tiếng Pháp hoàn chỉnh</div>
+                  </div>
+                  <span class="vph-sandwich-item-check">✓</span>
+                </button>
               </div>
             </div>
           </div>
@@ -3651,6 +3660,7 @@
     else if (state.currentMode === 'match') modeName = 'Ghép thẻ nhanh';
     else if (state.currentMode === 'flashcard') modeName = 'Flashcard 3D (SRS)';
     else if (state.currentMode === 'translate') modeName = 'Dịch Việt → Pháp';
+    else if (state.currentMode === 'reorder') modeName = 'Sắp xếp câu';
 
     body.innerHTML = `
       <div class="vph-done-card">
