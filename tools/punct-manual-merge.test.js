@@ -241,3 +241,102 @@ test('Test 3: aiBuildPrompt("trans-player") xuất ra văn bản tiếng Pháp �
   assert.ok(prompt.includes("Bonjour, j'aimerais acheter un croissant"), 'Prompt chứa câu tiếng Pháp đã sửa');
   assert.equal(prompt.includes('poisson it bags'), false, 'Prompt không chứa lỗi ASR cũ');
 });
+
+test('Test 4: mergeManualIntoAsr không nhồi từ ASR nghe nhầm (bảo đảm sạch với video 7wUXSXZgNlU)', () => {
+  const { mergeManualIntoAsr, aicPlainTranscript } = createSubtitlesEnv();
+
+  const asrRaw = `on parle souvent ne va veut réfléchi mais en fait le terme général et verbe pronominal il s'applique aux verts devant lesquels on place un pronom représentant le sujet aujourd'hui on va vous présenter les verbes pronominaux avec des petites histoires c'est parti si vous voulez tout savoir sur ce sujet et même sur tous les autres points épineux de la grammaire française inscrivez-vous sur pas très haut pour accéder à une banque des grammaires détaillé avec des explications claires et des petits quizz pour tester votre compréhension [Musique] se lever se réveiller se prépare et faire quelque chose ce dauchez se coiffer s'habiller se maquiller s'installer s'appelait hélène se lèvent de bonne heure comme tous les matins pour bien se révéler elle se fait du café et se prépare un bon petit déjeuner ensuite elle va à la salle de bain pour se débarbouiller c'est à dire se laver le visage et se brosser les dents pendant que son chéri sunrise elle va se doucher [Musique] après quoi elle se sèche les cheveux se coiffe hessabi [Musique] elle se regarde dans le miroir et se demande si elle va se maquiller ce matin je me maquille ou pas puis elle regarde leurs fourches me dépêche elle se rend compte qu'elle doit se dépêcher si elle ne veut pas être en retard à sa ruine sous une fois prête elle s'installe sur son siège face à son ordinateur et se connecte pour débuter sa journée de travail elle attend que je dis tu es l'état la compacte elle s'appelle au moins une fois par semaine se rencontrer se promener se saluer se voir s'arrêter s'amuser et l'année judith se rencontrent par hasard dans la rue pendant qu'elle se promène elles se sont vues de loin et se sait qu salut ça va ça va et toi après avoir pris des nouvelles l'une de l'autre elles partent se balader ensemble elle s'arrête devant un magasin avec une drôle de vitrine elle se met à rien alice la mousse bien ensemble [Musique] se discute et s'éloigner se taire se souvenir s'approcher s'excuser judith et hélène se dispute thường ces derniers temps julie n'est pas contente qu'hélène l'appel - elle sans qu hélène s'éloigne d'elle un peu judith est triste và se souvient des bons moments qu'elle avait l'habitude de passer avec il est elle décide de crever l'abcès de s'approcher des laines qui elle est assise un peu plus loin et qui préfèrent se taire plutôt que de dire des choses qu'elle ne pense pas judith veut trop en parler et s'excuse et s'il ya lieu elles finissent par se réconcilier et oui c'est aussi ça l'amitié savoir se pardonner [Musique] je me promène tu te promènes il/elle où se promènent nous nous promenons vous vous promenez il elle se promène merci les amis d'avoir regarder cet épisode on espère qu'il vous a plu n'oubliez pas de vous abonner à notre chaîne pour ne rater aucune de nos vidéos à bientôt [Musique] m`;
+
+  const manualText = `On parle souvent de verbe réfléchi,
+mais en fait, le terme général est verbe pronominal.
+Il s'applique aux verbes devant lesquels on place un pronom représentant le sujet.
+Aujourd'hui, on va vous présenter les verbes pronominaux với des petites histoires.
+C'est parti !
+Si vous voulez tout savoir sur ce sujet
+et même sur tous les autres points épineux de la grammaire française,
+inscrivez-vous sur Patreon pour accéder à une banque de grammaire détaillée
+avec des explications claires và des petits quiz pour tester votre compréhension.
+(Musique).
+Se lever, se réveiller, se préparer à faire quelque chose,
+se doucher, se coiffer, s'habiller, se maquiller, s'installer, s'appeler.
+Hélène se lève de bonne heure comme tous les matins.
+Pour bien se réveiller, elle se fait du café và se prépare un bon petit déjeuner.
+Ensuite, elle va à la salle de bain pour se débarbouiller,
+c'est-à-dire se laver le visage và se brosser les dents.
+Pendant que son chéri se réveille, elle va se doucher.
+(Musique).
+Après quoi, elle se sèche les cheveux, se coiffe và s'habille.
+(Musique).
+Elle se regarde dans le miroir và se demande si elle va se maquiller ce matin :
+Je me maquille ou pas ?
+Puis elle regarde l'heure :
+Faut que je me dépêche !
+Elle se rend compte qu'elle doit se dépêcher si elle ne veut pas être en retard à sa réunion Zoom.
+Une fois prête, elle s'installe sur son siège face à son ordinateur
+et se connecte pour débuter sa journée de travail.
+Elle attend que Judith la contacte.
+Elles s'appellent au moins une fois par semaine.
+Se rencontrer, se promener, se saluer, se voir, s'arrêter, s'amuser.
+Hélène et Judith se rencontrent par hasard dans la rue pendant qu'elles se promènent.
+Elles se sont vues de loin và se saluent :
+Salut, ça va ?
+Ça va, và toi ?
+Après avoir pris des nouvelles l'une de l'autre, elles partent se balader ensemble.
+Elles s'arrêtent devant un magasin với une drôle de vitrine.
+Elles se mettent à rire, elles s'amusent bien ensemble.
+(Musique).
+Se disputer, s'éloigner, se taire, se souvenir, s'approcher, s'excuser.
+Judith et Hélène se disputent thường ces derniers temps.
+Judith n'est pas contente qu'Hélène l'appelle moins.
+Elle sent qu'Hélène s'éloigne d'elle un peu.
+Judith est triste và se souvient des bons moments qu'elle avait l'habitude de passer với Hélène.
+Elle décide de crever l'abcès, de s'approcher d'Hélène,
+qui, elle, est assise un peu plus loin và qui préfère se taire
+plutôt que de dire des choses qu'elle ne pense pas.
+Judith veut trop en parler và s'excuser s'il y a lieu.
+Elles finissent par se réconcilier.
+Et oui, c'est aussi ça l'amitié : savoir se pardonner.
+(Musique).
+Je me promène,
+tu te promènes,
+il, elle, on se promène,
+nous nous promenons,
+vous vous promenez,
+ils, elles se promènent.
+Merci les amis d'avoir regardé cet épisode.
+On espère qu'il vous a plu.
+N'oubliez pas de vous abonner à notre chaîne pour ne rater aucune de nos vidéos.
+À bientôt !
+(Musique).`;
+
+  let t = 0;
+  const words = asrRaw.split(/\s+/).filter(Boolean).map((w) => ({ word: w, startTime: t, endTime: (t += 0.3) }));
+  const asrSents = [{ id: 1, startTime: 0, endTime: t, words }];
+
+  const res = mergeManualIntoAsr(asrSents, manualText);
+  assert.equal(res.ok, true, 'mergeManualIntoAsr phải thành công với 7wUXSXZgNlU');
+
+  const plain = aicPlainTranscript(res.sentences);
+
+  // Phải có chữ đúng
+  assert.ok(plain.includes('On parle souvent de verbe réfléchi'), 'Phải là "souvent de", không phải "souvent ne de"');
+  assert.ok(plain.includes('sur Patreon'), 'Phải là "sur Patreon", không phải "pas très Patreon"');
+  assert.ok(plain.includes('Judith la contacte'), 'Phải là "Judith la contacte", không phải "je dis tu es Judith"');
+  assert.ok(plain.includes('se saluent'), 'Phải là "se saluent", không phải "se sait saluent"');
+  assert.ok(plain.includes('se mettent à rire'), 'Phải là "à rire", không phải "à rien rire"');
+  assert.ok(plain.includes('Se disputer'), 'Phải là "Se disputer", không phải "Se discute disputer"');
+  assert.ok(plain.includes('Elle sent qu\'Hélène'), 'Phải là "Elle sent", không phải "Elle sans sent"');
+  assert.ok(plain.includes('passer với Hélène') || plain.includes('passer avec Hélène'), 'Phải chứa passer avec Hélène');
+  assert.ok(plain.includes('s\'approcher d\'Hélène'), 'Phải là "d\'Hélène", không phải "des d\'Hélène"');
+
+  // Tuyệt đối không còn từ rác ASR bị chèn
+  assert.equal(plain.includes('ne de verbe'), false, 'Không còn ne de verbe');
+  assert.equal(plain.includes('pas très Patreon'), false, 'Không còn pas rất Patreon');
+  assert.equal(plain.includes('je dis tu es Judith'), false, 'Không còn je dis tu es Judith');
+  assert.equal(plain.includes('se sait saluent'), false, 'Không còn se sait saluent');
+  assert.equal(plain.includes('rien rire'), false, 'Không còn rien rire');
+  assert.equal(plain.includes('discute disputer'), false, 'Không còn discute disputer');
+  assert.equal(plain.includes('sans sent'), false, 'Không còn sans sent');
+  assert.equal(plain.includes('il Hélène'), false, 'Không còn il Hélène');
+  assert.equal(plain.includes('des d\'Hélène'), false, 'Không còn des d\'Hélène');
+});
