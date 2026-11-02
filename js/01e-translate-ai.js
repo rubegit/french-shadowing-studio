@@ -576,6 +576,7 @@
       if (!res.ok) { if (keptOld) sentences = keptOld; aiSetStatus(st, 'err', res.error); return; }
       // Người dùng tự nạp bản dịch song ngữ -> với video thư viện, đây là trường hợp được phép lưu vào localStorage
       if (isTrans) { if (kind === 'trans-player') userTransVid = currentVideoId || ''; else pendingUserVi = true; }
+      if (kind === 'punct') { if (typeof pendingUserPunct !== 'undefined') pendingUserPunct = true; }
 
       if (kind === 'punct-player') {
         if (!_pcPendingState) {
@@ -708,13 +709,15 @@
     function persistSentencesToHistory() {
       if (!currentVideoId) return;
       const existing = getLocalHistory().find((h) => h.videoId === currentVideoId);
+      const isLib = typeof isLibraryVideo === 'function' ? isLibraryVideo(currentVideoId) : false;
       saveToLocalHistory({
         videoId: currentVideoId,
         title: currentVideoTitle || (existing && existing.title) || `Video ${currentVideoId}`,
         duration: existing ? existing.duration : 0,
         format: subtitleFormat,
         isText: isTextMode,
-        sentences: sentences
+        sentences: sentences,
+        userPunct: isLib && typeof userPunctVid !== 'undefined' && userPunctVid === currentVideoId ? true : (existing ? existing.userPunct : undefined)
       });
     }
 

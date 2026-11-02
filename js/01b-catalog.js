@@ -784,6 +784,7 @@
       }
       isSelectingVideo = true;
       pendingUserVi = false;
+      if (typeof pendingUserPunct !== 'undefined') pendingUserPunct = false;
 
       // cardPrefix = '' (thẻ trong thư viện) hoặc 'hist-' (thẻ ở hàng "Video Bạn Đã Luyện Gần Đây"): vòng xoay hiện đúng thẻ người dùng vừa bấm
       const cp = cardPrefix || '';
@@ -804,9 +805,10 @@
         const savedItem = getLocalHistory().find((h) => h.videoId === videoId);
         const archived = typeof window.getArchivedTranslation === 'function' ? window.getArchivedTranslation(videoId) : null;
         const isLib = isLibraryVideo(videoId);
-        // Video thư viện: chỉ dùng bản lưu trên máy khi đó là bản dịch do CHÍNH người dùng nạp (userTrans); còn lại luôn lấy mới từ server
-        if (savedItem && savedItem.sentences && savedItem.sentences.length && aicHasTranslation(savedItem.sentences) && (!isLib || savedItem.userTrans === true)) {
-          userTransVid = isLib ? videoId : '';
+        // Video thư viện: chỉ dùng bản lưu trên máy khi đó là bản dịch do CHÍNH người dùng nạp (userTrans) hoặc đã sửa dấu câu/từ (userPunct); còn lại luôn lấy mới từ server
+        if (savedItem && savedItem.sentences && savedItem.sentences.length && ((aicHasTranslation(savedItem.sentences) && (!isLib || savedItem.userTrans === true)) || (savedItem.userPunct === true))) {
+          userTransVid = (isLib && savedItem.userTrans === true) ? videoId : '';
+          if (typeof userPunctVid !== 'undefined') userPunctVid = (isLib && savedItem.userPunct === true) ? videoId : '';
           currentVideoId = videoId;
           currentVideoTitle = savedItem.title || videoTitle || `Video ${videoId}`;
           sentences = savedItem.sentences;
@@ -912,6 +914,7 @@
           throw new Error('Dữ liệu phụ đề chưa đúng định dạng chuẩn.');
         }
         userTransVid = '';
+        if (typeof userPunctVid !== 'undefined') userPunctVid = '';
         let serverHasVi = false;
 
         // Có sẵn file bản dịch song ngữ (đặt tên <videoId>_vi.txt cùng thư mục) -> tự động ghép vào, giữ nguyên timecode/word-level gốc.
