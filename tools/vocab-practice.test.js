@@ -63,23 +63,35 @@ function createPracticeContext(initialStorage = {}) {
       },
       readyState: 'complete',
       addEventListener() {},
-      getElementById(id) { return getEl(id); },
+      getElementById(id) {
+        if (id === 'vph-backdrop') return elements['vph-backdrop'] || null;
+        return getEl(id);
+      },
       querySelector(sel) {
         if (sel === '.vph-modal') return getEl('vph-modal');
         return null;
       },
       querySelectorAll() { return []; },
       createElement() {
-        return {
-          style: {},
-          setAttribute() {},
+        const el = {
+          _id: '',
+          set id(val) { this._id = val; elements[val] = this; },
+          get id() { return this._id; },
+          style: { setProperty() {} },
+          classList: { add() {}, remove() {}, toggle() {}, contains() { return false; } },
+          setAttribute(k, v) { this[k] = v; if (k === 'id') elements[v] = this; },
+          getAttribute(k) { return this[k]; },
           appendChild() {},
           querySelectorAll() { return []; },
           addEventListener() {}
         };
+        return el;
       }
     },
-    window: {},
+    window: {
+      addEventListener() {},
+      removeEventListener() {}
+    },
     Date: Date,
     Math: Math,
     console: console,
@@ -91,7 +103,9 @@ function createPracticeContext(initialStorage = {}) {
     },
     clearTimeout: clearTimeout,
     setInterval: setInterval,
-    clearInterval: clearInterval
+    clearInterval: clearInterval,
+    addEventListener() {},
+    removeEventListener() {}
   };
   sandbox.window = sandbox;
   sandbox.globalThis = sandbox;
@@ -591,6 +605,26 @@ test('M45.1 Sandwich Menu: Metadata đầy đủ 6 chế độ luyện tập v�
   assert.strictEqual(hub.MODE_METADATA.reorder.icon, '🧩');
   assert.ok(hub.MODE_METADATA.translate.title.includes('Dịch Việt → Pháp'));
   assert.ok(hub.MODE_METADATA.reorder.title.includes('Sắp xếp câu'));
+
+  // Kiểm tra menu DOM được sinh tự động 100% từ MODE_METADATA
+  const menuHtml = hub.buildSandwichMenuItemsHtml();
+  modes.forEach(modeKey => {
+    assert.ok(
+      menuHtml.includes(`data-mode="${modeKey}"`),
+      `buildSandwichMenuItemsHtml bắt buộc phải sinh nút cho mode ${modeKey}`
+    );
+  });
+
+  hub.open('all', null, 'quiz');
+  const backdropEl = sandbox.document.getElementById('vph-backdrop');
+  assert.ok(backdropEl, 'vph-backdrop phải tồn tại trong DOM');
+  modes.forEach(modeKey => {
+    assert.ok(
+      backdropEl.innerHTML.includes(`data-mode="${modeKey}"`),
+      `Modal DOM bắt buộc phải chứa nút menu cho mode ${modeKey}`
+    );
+  });
+  hub.close();
 });
 
 // ============================================================================
@@ -921,6 +955,10 @@ test('M46.3 Chấm điểm & so sánh: ghép chuỗi, chấp nhận 2 token trù
   assert.strictEqual(state.answered, true);
   assert.strictEqual(state.score, 10, 'Đổi chỗ hai từ trùng chữ vẫn được chấm đúng vì chuỗi ghép khớp chuẩn');
 
+  const answerZoneEl = sandbox.document.getElementById('vph-reorder-answer-zone');
+  assert.ok(!answerZoneEl.innerHTML.includes('misplaced-pos'), 'Không có token nào bị đánh dấu misplaced-pos');
+  assert.ok(answerZoneEl.innerHTML.includes('correct-pos'), 'Cả hai token de và các token khác đều có class correct-pos');
+
   // Ca 3: Ghép sai thứ tự -> báo sai, hiện câu chuẩn
   state.answered = false;
   state.score = 0;
@@ -1103,6 +1141,20 @@ test('M46.6 Gợi ý & SM-2: mức 0 thưởng ease +0.10, mức 1 giữ ease, m
   assert.strictEqual(rFail.ease, 2.25);
   assert.strictEqual(rFail.reps, 0);
   assert.strictEqual(rFail.interval, 0);
+
+  // 6. Gợi ý mức 2 nhưng vẫn sắp sai (isCorrect = false): Tính là FAIL (không được tính gần trượt)
+  const r2Wrong = hub.reorderSkillCompute(s2, false, 2);
+  assert.strictEqual(r2Wrong.reps, 0, 'Sắp sai ở mức 2 vẫn bị reset reps = 0');
+  assert.strictEqual(r2Wrong.interval, 0, 'Sắp sai ở mức 2 bị reset interval = 0');
+  assert.strictEqual(r2Wrong.ease, 2.25, 'Sắp sai ở mức 2 bị phạt ease FAIL (-0.25)');
+  assert.ok(r2Wrong.due > Date.now(), 'Lên lịch ôn lại sau 10 phút');
+
+  // 7. Đặt lại mức gợi ý (state.reorderHintLevel = 0) khi sang câu tiếp theo
+  hub.open('all', null, 'reorder');
+  hub._state.reorderHintLevel = 2;
+  hub.renderReorderQuestion();
+  assert.strictEqual(hub._state.reorderHintLevel, 0, 'reorderHintLevel phải đặt lại về 0 cho câu kế tiếp');
+  hub.close();
 });
 
 // ============================================================================
@@ -1130,4 +1182,54 @@ test('M46.7 REORDER_SM2_CONFIG: gom đủ tất cả hằng số cấu hình SM-
   assert.strictEqual(cfg.PERFECT_BONUS_MULTIPLIER, 1.2);
   assert.strictEqual(cfg.HINT1_MULTIPLIER, 1.2);
   assert.strictEqual(cfg.FAIL_DUE_MS, 10 * 60 * 1000);
+});
+
+// ============================================================================
+// TEST 23: M46.8 - Bảo toàn item.srs (so sánh sâu không đổi)
+// ============================================================================
+test('M46.8 Bảo toàn item.srs: kiểm tra so sánh sâu trước/sau khi chấm ở mọi ca (đúng, sai, gợi ý 1, 2, 3)', () => {
+  const { sandbox } = createPracticeContext();
+  const hub = sandbox.VocabPracticeHub;
+
+  const originalSrs = {
+    reps: 5,
+    interval: 12,
+    ease: 2.6,
+    due: 1730000000000,
+    lastReview: 1729000000000
+  };
+
+  const testItem = {
+    id: 'srs_preserve_test',
+    text: 'maison',
+    srs: JSON.parse(JSON.stringify(originalSrs)),
+    skills: {}
+  };
+
+  sandbox.localStorage.setItem('shadowing_saved_vocab_v1', JSON.stringify([testItem]));
+
+  function getPersisted() {
+    return JSON.parse(sandbox.localStorage.getItem('shadowing_saved_vocab_v1'))[0];
+  }
+
+  // 1. Chấm đúng hoàn toàn không gợi ý (hint 0)
+  hub.updateItemReorderSkill('srs_preserve_test', true, 0);
+  assert.deepStrictEqual(getPersisted().srs, originalSrs, 'item.srs không đổi khi đúng hint 0');
+  assert.strictEqual(getPersisted().skills.reorder.reps, 1);
+
+  // 2. Chấm đúng với gợi ý mức 1
+  hub.updateItemReorderSkill('srs_preserve_test', true, 1);
+  assert.deepStrictEqual(getPersisted().srs, originalSrs, 'item.srs không đổi khi đúng hint 1');
+
+  // 3. Chấm đúng với gợi ý mức 2
+  hub.updateItemReorderSkill('srs_preserve_test', true, 2);
+  assert.deepStrictEqual(getPersisted().srs, originalSrs, 'item.srs không đổi khi đúng hint 2');
+
+  // 4. Xem câu mẫu mức 3
+  hub.updateItemReorderSkill('srs_preserve_test', true, 3);
+  assert.deepStrictEqual(getPersisted().srs, originalSrs, 'item.srs không đổi khi hint 3');
+
+  // 5. Trả lời sai (isCorrect = false)
+  hub.updateItemReorderSkill('srs_preserve_test', false, 0);
+  assert.deepStrictEqual(getPersisted().srs, originalSrs, 'item.srs không đổi khi sai');
 });

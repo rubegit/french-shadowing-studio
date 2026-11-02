@@ -1131,6 +1131,31 @@
     };
   }
 
+  // Practice Modes Metadata (Single Source of Truth for Modes and Menu)
+  const MODE_METADATA = {
+    quiz: { icon: '🎯', title: 'Trắc nghiệm 4 đáp án', desc: 'Luyện nhận diện nghĩa từ vựng nhanh' },
+    cloze: { icon: '🎧', title: 'Nghe & Điền từ', desc: 'Rèn luyện nghe phát âm và chính tả' },
+    match: { icon: '🃏', title: 'Ghép thẻ nhanh', desc: 'Thử thách tốc độ ghép cặp từ và nghĩa' },
+    flashcard: { icon: '🎴', title: 'Flashcard 3D (SRS)', desc: 'Ôn tập chủ động ghi nhớ dài hạn' },
+    translate: { icon: '✍️', title: 'Dịch Việt → Pháp', desc: 'Luyện dịch câu song ngữ phản xạ xuôi' },
+    reorder: { icon: '🧩', title: 'Sắp xếp câu', desc: 'Chạm các thẻ từ để ghép thành câu tiếng Pháp hoàn chỉnh' }
+  };
+
+  function buildSandwichMenuItemsHtml(activeMode = 'quiz') {
+    return Object.entries(MODE_METADATA).map(([modeKey, meta]) => {
+      const isActive = modeKey === activeMode ? ' active' : '';
+      return `
+                <button type="button" class="vph-sandwich-item vph-tab-btn${isActive}" data-mode="${modeKey}" role="menuitem">
+                  <span class="vph-sandwich-item-icon">${meta.icon}</span>
+                  <div class="vph-sandwich-item-text">
+                    <div class="vph-sandwich-item-title">${escHtml(meta.title)}</div>
+                    <div class="vph-sandwich-item-desc">${escHtml(meta.desc)}</div>
+                  </div>
+                  <span class="vph-sandwich-item-check">✓</span>
+                </button>`;
+    }).join('\n');
+  }
+
   // ==================== DOM CREATION & HUB STRUCTURE ====================
   function ensureModalElement() {
     let backdrop = document.getElementById('vph-backdrop');
@@ -1182,59 +1207,7 @@
                 <span>Chọn bài luyện tập</span>
               </div>
               <div class="vph-sandwich-items">
-                <button type="button" class="vph-sandwich-item vph-tab-btn active" data-mode="quiz" role="menuitem">
-                  <span class="vph-sandwich-item-icon">🎯</span>
-                  <div class="vph-sandwich-item-text">
-                    <div class="vph-sandwich-item-title">Trắc nghiệm 4 đáp án</div>
-                    <div class="vph-sandwich-item-desc">Luyện nhận diện nghĩa từ vựng nhanh</div>
-                  </div>
-                  <span class="vph-sandwich-item-check">✓</span>
-                </button>
-
-                <button type="button" class="vph-sandwich-item vph-tab-btn" data-mode="cloze" role="menuitem">
-                  <span class="vph-sandwich-item-icon">🎧</span>
-                  <div class="vph-sandwich-item-text">
-                    <div class="vph-sandwich-item-title">Nghe &amp; Điền từ</div>
-                    <div class="vph-sandwich-item-desc">Rèn luyện nghe phát âm và chính tả</div>
-                  </div>
-                  <span class="vph-sandwich-item-check">✓</span>
-                </button>
-
-                <button type="button" class="vph-sandwich-item vph-tab-btn" data-mode="match" role="menuitem">
-                  <span class="vph-sandwich-item-icon">🃏</span>
-                  <div class="vph-sandwich-item-text">
-                    <div class="vph-sandwich-item-title">Ghép thẻ nhanh</div>
-                    <div class="vph-sandwich-item-desc">Thử thách tốc độ ghép cặp từ và nghĩa</div>
-                  </div>
-                  <span class="vph-sandwich-item-check">✓</span>
-                </button>
-
-                <button type="button" class="vph-sandwich-item vph-tab-btn" data-mode="flashcard" role="menuitem">
-                  <span class="vph-sandwich-item-icon">🎴</span>
-                  <div class="vph-sandwich-item-text">
-                    <div class="vph-sandwich-item-title">Flashcard 3D (SRS)</div>
-                    <div class="vph-sandwich-item-desc">Ôn tập chủ động ghi nhớ dài hạn</div>
-                  </div>
-                  <span class="vph-sandwich-item-check">✓</span>
-                </button>
-
-                <button type="button" class="vph-sandwich-item vph-tab-btn" data-mode="translate" role="menuitem">
-                  <span class="vph-sandwich-item-icon">✍️</span>
-                  <div class="vph-sandwich-item-text">
-                    <div class="vph-sandwich-item-title">Dịch Việt → Pháp</div>
-                    <div class="vph-sandwich-item-desc">Luyện dịch câu song ngữ phản xạ xuôi</div>
-                  </div>
-                  <span class="vph-sandwich-item-check">✓</span>
-                </button>
-
-                <button type="button" class="vph-sandwich-item vph-tab-btn" data-mode="reorder" role="menuitem">
-                  <span class="vph-sandwich-item-icon">🧩</span>
-                  <div class="vph-sandwich-item-text">
-                    <div class="vph-sandwich-item-title">Sắp xếp câu</div>
-                    <div class="vph-sandwich-item-desc">Chạm các thẻ từ để ghép thành câu tiếng Pháp hoàn chỉnh</div>
-                  </div>
-                  <span class="vph-sandwich-item-check">✓</span>
-                </button>
+                ${buildSandwichMenuItemsHtml('quiz')}
               </div>
             </div>
           </div>
@@ -1361,15 +1334,6 @@
     return backdrop;
   }
 
-  // Practice Modes Metadata (M45)
-  const MODE_METADATA = {
-    quiz: { icon: '🎯', title: 'Trắc nghiệm 4 đáp án', desc: 'Luyện nhận diện nghĩa từ vựng nhanh' },
-    cloze: { icon: '🎧', title: 'Nghe & Điền từ', desc: 'Rèn luyện nghe phát âm và chính tả' },
-    match: { icon: '🃏', title: 'Ghép thẻ nhanh', desc: 'Thử thách tốc độ ghép cặp từ và nghĩa' },
-    flashcard: { icon: '🎴', title: 'Flashcard 3D (SRS)', desc: 'Ôn tập chủ động ghi nhớ dài hạn' },
-    translate: { icon: '✍️', title: 'Dịch Việt → Pháp', desc: 'Luyện dịch câu song ngữ phản xạ xuôi' },
-    reorder: { icon: '🧩', title: 'Sắp xếp câu', desc: 'Chạm các thẻ từ để ghép thành câu tiếng Pháp hoàn chỉnh' }
-  };
 
   function toggleSandwichMenu(force) {
     const dropdown = document.getElementById('vph-sandwich-dropdown');
@@ -3763,6 +3727,7 @@
     handleTranslateHintAdvance: handleTranslateHintAdvance,
     handleTranslateRevealAnswer: handleTranslateRevealAnswer,
     REORDER_SM2_CONFIG: REORDER_SM2_CONFIG,
+    buildSandwichMenuItemsHtml: buildSandwichMenuItemsHtml,
     reorderSkillCompute: reorderSkillCompute,
     getReorderSkill: getReorderSkill,
     updateItemReorderSkill: updateItemReorderSkill,
