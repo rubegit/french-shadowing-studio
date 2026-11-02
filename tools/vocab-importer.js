@@ -41,6 +41,45 @@
     }
   };
 
+  // Cập nhật huy hiệu Cloud sync & tùy chọn Lưu cục bộ (M43-B)
+  function updateCloudSyncBadge() {
+    var badge = document.getElementById('fss-cloud-sync-badge');
+    var badgeText = document.getElementById('fss-cloud-sync-badge-text');
+    var badgeIcon = document.getElementById('fss-cloud-sync-badge-icon');
+    var localOnlyCheckbox = document.getElementById('fss-import-local-only-checkbox');
+    if (!badge) return;
+
+    var isSignedIn = false;
+    try {
+      if (typeof window.fssIsUserSignedIn === 'function') {
+        isSignedIn = !!window.fssIsUserSignedIn();
+      } else if (window.FSS_SUPABASE && typeof window.FSS_SUPABASE.getCurrentUser === 'function') {
+        isSignedIn = !!window.FSS_SUPABASE.getCurrentUser();
+      }
+    } catch (e) {
+      isSignedIn = false;
+    }
+
+    if (isSignedIn) {
+      if (badgeText) badgeText.textContent = 'Đã đăng nhập: sẽ đồng bộ lên đám mây';
+      if (badgeIcon) badgeIcon.textContent = '☁️';
+      badge.className = 'px-2 py-0.5 rounded text-[11px] font-semibold flex items-center gap-1.5 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+      if (localOnlyCheckbox) {
+        localOnlyCheckbox.disabled = false;
+        localOnlyCheckbox.checked = false;
+      }
+    } else {
+      if (badgeText) badgeText.textContent = 'Chưa đăng nhập: chỉ lưu cục bộ';
+      if (badgeIcon) badgeIcon.textContent = '💾';
+      badge.className = 'px-2 py-0.5 rounded text-[11px] font-semibold flex items-center gap-1.5 bg-slate-700/40 text-slate-300 border border-slate-600/40';
+      if (localOnlyCheckbox) {
+        localOnlyCheckbox.checked = true;
+        localOnlyCheckbox.disabled = true;
+      }
+    }
+  }
+  window.updateVocabImportCloudBadge = updateCloudSyncBadge;
+
   // =========================================================================
   // 1. SAO LƯU DỮ LIỆU JSON
   // =========================================================================
@@ -108,6 +147,7 @@
     if (backupBtn) {
       backupBtn.innerHTML = '<span class="inline-block mr-1">📥</span> Tải file sao lưu JSON';
     }
+    updateCloudSyncBadge();
     window.switchVocabImportMode('ADD_SOURCE');
 
     if (preloadedFile) {
@@ -689,9 +729,12 @@
 
     lastCommittedList = finalVocabList;
 
-    // 2. Đẩy Cloud (Supabase Push All)
+    // 2. Đẩy Cloud (Supabase Push All) - Bỏ qua nếu người dùng tích "Chỉ lưu cục bộ" (M43-B)
+    var localOnlyCheckbox = document.getElementById('fss-import-local-only-checkbox');
+    var isLocalOnly = !!(localOnlyCheckbox && localOnlyCheckbox.checked);
+
     var currentUser = null;
-    if (window.FSS_SUPABASE && typeof window.FSS_SUPABASE.getCurrentUser === 'function') {
+    if (!isLocalOnly && window.FSS_SUPABASE && typeof window.FSS_SUPABASE.getCurrentUser === 'function') {
       currentUser = window.FSS_SUPABASE.getCurrentUser();
     }
 
@@ -718,7 +761,11 @@
         return;
       }
     } else {
-      if (currentMode === 'REPLACE_ALL') {
+      var statusText = document.getElementById('fss-import-status-text');
+      if (statusText) {
+        statusText.textContent = isLocalOnly ? 'Đã lưu cục bộ (bỏ qua đẩy Cloud theo yêu cầu).' : 'Đã lưu cục bộ.';
+      }
+      if (currentMode === 'REPLACE_ALL' && !isLocalOnly) {
         alert('Lưu ý: Bạn chưa đăng nhập Supabase. Dữ liệu mới đã được lưu vào LocalStorage của trình duyệt này. Nếu sau này đăng nhập lại vào tài khoản cũ, dữ liệu cũ trên Cloud có thể bị gộp trở lại.');
       }
     }

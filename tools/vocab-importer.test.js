@@ -888,6 +888,7 @@ function setupImporterVm(initialStorage = {}) {
         },
         style: {},
         value: '',
+        checked: false,
         disabled: false,
         textContent: '',
         innerHTML: '',
@@ -1151,4 +1152,64 @@ test('Nghiệm thu: nạp test1.txt rồi test2.txt -> maison thêm 1 OCC không
   assert.ok(bientotCard, 'Thẻ bientôt phải tồn tại');
   assert.strictEqual(bientotCard.source_id, 'yt:testvideo02');
   assert.strictEqual(bientotCard.wordVi, 'sớm, sắp tới');
+});
+
+// =========================================================================
+// TEST SUITE 14: M43-B Huy hiệu Cloud sync & tùy chọn "Chỉ lưu cục bộ"
+// =========================================================================
+test('M43.B1 Huy hiệu Cloud sync: hiển thị chính xác trạng thái đã/chưa đăng nhập', () => {
+  const { sandbox, getEl } = setupImporterVm();
+
+  // 1. Khi CHƯA đăng nhập:
+  sandbox.FSS_SUPABASE = { getCurrentUser: () => null };
+  sandbox.updateVocabImportCloudBadge();
+
+  assert.strictEqual(getEl('fss-cloud-sync-badge-text').textContent, 'Chưa đăng nhập: chỉ lưu cục bộ');
+  assert.strictEqual(getEl('fss-cloud-sync-badge-icon').textContent, '💾');
+  assert.strictEqual(getEl('fss-import-local-only-checkbox').disabled, true, 'Chưa đăng nhập thì checkbox bị khóa');
+  assert.strictEqual(getEl('fss-import-local-only-checkbox').checked, true, 'Chưa đăng nhập thì tự động tích cục bộ');
+
+  // 2. Khi ĐÃ đăng nhập:
+  sandbox.FSS_SUPABASE = { getCurrentUser: () => ({ id: 'usr_test_123', email: 'test@example.com' }) };
+  sandbox.updateVocabImportCloudBadge();
+
+  assert.strictEqual(getEl('fss-cloud-sync-badge-text').textContent, 'Đã đăng nhập: sẽ đồng bộ lên đám mây');
+  assert.strictEqual(getEl('fss-cloud-sync-badge-icon').textContent, '☁️');
+  assert.strictEqual(getEl('fss-import-local-only-checkbox').disabled, false, 'Đã đăng nhập thì checkbox được mở');
+  assert.strictEqual(getEl('fss-import-local-only-checkbox').checked, false, 'Mặc định không tích');
+});
+
+test('M43.B2 Tùy chọn "Chỉ lưu cục bộ": chặn gọi pushAll khi được tích chọn dù đã đăng nhập', async () => {
+  let pushAllCalled = false;
+  let pushedVocab = null;
+
+  const { sandbox, getEl, store } = setupImporterVm();
+  sandbox.FSS_SUPABASE = {
+    getCurrentUser: () => ({ id: 'usr_test_123' }),
+    pushAll: async (v, h, p) => {
+      pushAllCalled = true;
+      pushedVocab = v;
+    }
+  };
+
+  // Nạp 1 file vào preview
+  sandbox.switchVocabImportMode('ADD_SOURCE');
+  getEl('fss-import-textarea').value = '1. livre || từ || A1 || [n.m.] cuốn sách\nTrong bài: J\'ai un livre.';
+  sandbox.runVocabDryRunPreview();
+
+  // Ca 1: Đã đăng nhập và TÍCH chọn "Chỉ lưu cục bộ" -> pushAll KHÔNG được gọi
+  getEl('fss-import-local-only-checkbox').checked = true;
+  await sandbox.executeVocabCommit();
+
+  assert.strictEqual(pushAllCalled, false, 'Khi tích Chỉ lưu cục bộ, pushAll tuyệt đối KHÔNG được gọi');
+  const localList = JSON.parse(store['shadowing_saved_vocab_v1'] || '[]');
+  assert.strictEqual(localList.length, 1, 'Dữ liệu vẫn được lưu vào localStorage');
+  assert.strictEqual(localList[0].norm_key, 'livre');
+
+  // Ca 2: Đã đăng nhập và KHÔNG tích chọn "Chỉ lưu cục bộ" -> pushAll ĐƯỢC GỌI
+  getEl('fss-import-local-only-checkbox').checked = false;
+  await sandbox.executeVocabCommit();
+
+  assert.strictEqual(pushAllCalled, true, 'Khi không tích, pushAll được gọi bình thường');
+  assert.strictEqual(pushedVocab.length, 1);
 });
