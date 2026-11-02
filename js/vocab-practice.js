@@ -1088,9 +1088,10 @@
         return;
       }
 
-      // Lọc các ví dụ có cả fr và vi không rỗng (VD1 đến VD3)
+      // Lọc các ví dụ có cả fr/en và vi không rỗng (VD1 đến VD3)
       const validExamples = (Array.isArray(item.examples) ? item.examples : []).filter(ex => {
-        return ex && ex.fr && String(ex.fr).trim() && ex.vi && String(ex.vi).trim();
+        const fr = ex && (ex.fr || ex.en);
+        return fr && String(fr).trim() && ex.vi && String(ex.vi).trim();
       });
 
       if (validExamples.length === 0) {
@@ -1116,7 +1117,7 @@
         id: item.id || `translate_${qIndex}`,
         item: item,
         promptVi: chosen.vi.trim(),
-        expectedFr: chosen.fr.trim(),
+        expectedFr: (chosen.fr || chosen.en || '').trim(),
         wordVi: item.wordVi || item.vi || '',
         frenchWord: item.text || item.fr || '',
         extra_accepted: Array.isArray(item.extra_accepted) ? item.extra_accepted : []
@@ -3069,8 +3070,9 @@
       }
 
       const validExamples = (Array.isArray(item.examples) ? item.examples : []).filter(ex => {
-        if (!ex || !ex.fr || !String(ex.fr).trim() || !ex.vi || !String(ex.vi).trim()) return false;
-        const tok = tokenizeFrenchForReorder(String(ex.fr).trim());
+        const fr = ex && (ex.fr || ex.en);
+        if (!fr || !String(fr).trim() || !ex.vi || !String(ex.vi).trim()) return false;
+        const tok = tokenizeFrenchForReorder(String(fr).trim());
         return tok.valid;
       });
 
@@ -3092,7 +3094,7 @@
     const questions = targetSubset.map((entry, qIndex) => {
       const { item, examples } = entry;
       const chosen = examples[Math.floor(Math.random() * examples.length)];
-      const tokRes = tokenizeFrenchForReorder(chosen.fr.trim());
+      const tokRes = tokenizeFrenchForReorder((chosen.fr || chosen.en || '').trim());
 
       const bankShuffled = [...tokRes.tokens].sort(() => Math.random() - 0.5);
       if (bankShuffled.length >= 3 && bankShuffled.every((t, i) => t.origIndex === i)) {
