@@ -262,10 +262,24 @@
       var sIdx = candMatches[0].index;
       var span = findHighlightSpanWithSoundTags(sObj.text, frText, verbData);
       var prevText = (sIdx > 0 && sentences[sIdx - 1]) ? String(sentences[sIdx - 1].text || '').trim() : '';
+      var matchedT = typeof sObj.startTime === 'number' ? sObj.startTime : 0;
+      if (Array.isArray(sObj.words) && sObj.words.length > 0 && span.hs > 0) {
+        var charAcc = 0;
+        for (var w = 0; w < sObj.words.length; w++) {
+          var wTxt = sObj.words[w].word || '';
+          var wStart = charAcc;
+          var wEnd = charAcc + wTxt.length;
+          if (span.hs >= wStart && span.hs <= wEnd && typeof sObj.words[w].startTime === 'number') {
+            matchedT = sObj.words[w].startTime;
+            break;
+          }
+          charAcc = wEnd + 1;
+        }
+      }
       return {
         matched: true,
         status: 'EXACT',
-        t: typeof sObj.startTime === 'number' ? sObj.startTime : 0,
+        t: matchedT,
         t_known: true,
         en: String(sObj.text || '').trim(),
         vi: String(sObj.vi || '').trim(),
@@ -309,10 +323,24 @@
       var sfIdx = frMatches[0].index;
       var spanF = findHighlightSpanWithSoundTags(sfObj.text, frText, verbData);
       var prevTextF = (sfIdx > 0 && sentences[sfIdx - 1]) ? String(sentences[sfIdx - 1].text || '').trim() : '';
+      var matchedTf = typeof sfObj.startTime === 'number' ? sfObj.startTime : 0;
+      if (Array.isArray(sfObj.words) && sfObj.words.length > 0 && spanF.hs > 0) {
+        var charAccF = 0;
+        for (var wf = 0; wf < sfObj.words.length; wf++) {
+          var wfTxt = sfObj.words[wf].word || '';
+          var wfStart = charAccF;
+          var wfEnd = charAccF + wfTxt.length;
+          if (spanF.hs >= wfStart && spanF.hs <= wfEnd && typeof sfObj.words[wf].startTime === 'number') {
+            matchedTf = sfObj.words[wf].startTime;
+            break;
+          }
+          charAccF = wfEnd + 1;
+        }
+      }
       return {
         matched: true,
         status: 'FUZZY',
-        t: typeof sfObj.startTime === 'number' ? sfObj.startTime : 0,
+        t: matchedTf,
         t_known: true,
         en: String(sfObj.text || '').trim(),
         vi: String(sfObj.vi || '').trim(),

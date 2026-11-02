@@ -675,7 +675,10 @@
     }
     if (typeof window.playVideoAudioSegment === 'function') {
       const dur = q.duration || (q.sentence || q.ctx ? Math.max(2.5, Math.min(8.0, (q.sentence || q.ctx).split(/\s+/).length * 0.45 + 1.0)) : 4);
-      window.playVideoAudioSegment(vid, q.t || 0, dur, {
+      const timing = (typeof window.resolveVocabAudioTiming === 'function')
+        ? window.resolveVocabAudioTiming(q.item || q)
+        : { startTime: q.t || 0, duration: dur };
+      window.playVideoAudioSegment(vid, timing.startTime, timing.duration, {
         onStart: () => { btns.forEach(b => b.classList.add('playing')); },
         onEnd: () => { btns.forEach(b => b.classList.remove('playing')); },
         onError: () => {

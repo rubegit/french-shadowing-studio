@@ -1714,6 +1714,19 @@
       let en, hs, he, vi = '', t = 0, prev = '';
       if (ctx) {
         en = String(ctx.s.text || ''); hs = ctx.hs; he = ctx.he; vi = (ctx.s.vi || '').trim(); t = ctx.s.startTime || 0;
+        if (Array.isArray(ctx.s.words) && ctx.s.words.length > 0 && hs > 0) {
+          let charAcc = 0;
+          for (let w = 0; w < ctx.s.words.length; w++) {
+            const wTxt = ctx.s.words[w].word || '';
+            const wStart = charAcc;
+            const wEnd = charAcc + wTxt.length;
+            if (hs >= wStart && hs <= wEnd && typeof ctx.s.words[w].startTime === 'number') {
+              t = ctx.s.words[w].startTime;
+              break;
+            }
+            charAcc = wEnd + 1;
+          }
+        }
         const si = sentences.indexOf(ctx.s);
         if (si > 0) prev = String(sentences[si - 1].text || '').trim();
       }

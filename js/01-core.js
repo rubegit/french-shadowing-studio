@@ -543,6 +543,160 @@
       });
     };
 
+    window.resolveVocabAudioTiming = function(item, options = {}) {
+      if (!item) return { startTime: 0, duration: 4 };
+
+      const fallbackDur = item.duration || (item.en ? Math.max(2.5, Math.min(8.0, item.en.split(/\s+/).length * 0.45 + 1.0)) : 4);
+      const baseT = (typeof item.t === 'number') ? item.t : 0;
+
+      // 1. Lấy danh sách câu phụ đề (options > sentences hiện tại > getLocalHistory)
+      let sents = options.sentences || (typeof sentences !== 'undefined' && Array.isArray(sentences) ? sentences : null);
+      if ((!sents || !sents.length) && typeof getLocalHistory === 'function' && item.videoId) {
+        try {
+          const hist = getLocalHistory();
+          const h = hist && hist.find((v) => v.videoId === item.videoId && Array.isArray(v.sentences) && v.sentences.length);
+          if (h) sents = h.sentences;
+        } catch (e) {}
+      }
+
+      if (!sents || !sents.length) {
+        return { startTime: baseT, duration: fallbackDur };
+      }
+
+      // 2. Tìm câu tương ứng với từ vựng
+      let s = null;
+      if (baseT > 0) {
+        s = sents.find((st) => typeof st.startTime === 'number' && typeof st.endTime === 'number' && baseT >= st.startTime - 0.5 && baseT <= st.endTime + 0.5);
+        if (!s) {
+          s = sents.find((st) => typeof st.startTime === 'number' && Math.abs(st.startTime - baseT) < 1.5);
+        }
+      }
+
+      const cleanNorm = (str) => String(str || '')
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/['’]/g, '')
+        .replace(/[^a-z0-9]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      const normCtx = cleanNorm(item.en);
+      const normWord = cleanNorm(item.text);
+
+      if (!s && normCtx) {
+        s = sents.find((st) => {
+          const stClean = cleanNorm(st.text);
+          return stClean.includes(normCtx) || normCtx.includes(stClean);
+        });
+      }
+      if (!s && normWord) {
+        s = sents.find((st) => cleanNorm(st.text).includes(normWord));
+      }
+
+      if (!s) {
+        return { startTime: baseT, duration: fallbackDur };
+      }
+
+      const sStart = typeof s.startTime === 'number' ? s.startTime : baseT;
+      const sEnd = typeof s.endTime === 'number' ? s.endTime : (sStart + 5.0);
+      const sTotalDur = Math.max(1.5, sEnd - sStart);
+
+      // 3. Nếu câu có mảng từ chi tiết (s.words)
+      if (Array.isArray(s.words) && s.words.length > 0) {
+        const sTokens = [];
+        s.words.forEach((w, wIdx) => {
+          const parts = cleanNorm(w.word || '').split(' ').filter(Boolean);
+          parts.forEach((p) => sTokens.push({ token: p, wIdx }));
+        });
+
+        // Xác định chuỗi mục tiêu cần dò
+        let targetTokens = [];
+        if (normCtx && normCtx.length > 0 && normCtx !== cleanNorm(s.text)) {
+          targetTokens = normCtx.split(' ').filter(Boolean);
+        } else if (item.he > item.hs && item.en) {
+          targetTokens = cleanNorm(item.en.slice(item.hs, item.he)).split(' ').filter(Boolean);
+        } else if (normWord) {
+          targetTokens = normWord.split(' ').filter(Boolean);
+        }
+
+        let bestStartIdx = -1;
+        let bestEndIdx = -1;
+
+        if (targetTokens.length > 0 && sTokens.length >= targetTokens.length) {
+          // Dò chuỗi liên tiếp
+          for (let i = 0; i <= sTokens.length - targetTokens.length; i++) {
+            let match = true;
+            for (let j = 0; j < targetTokens.length; j++) {
+              const st = sTokens[i + j].token;
+              const tt = targetTokens[j];
+              if (st !== tt && !st.includes(tt) && !tt.includes(st)) {
+                match = false;
+                break;
+              }
+            }
+            if (match) {
+              bestStartIdx = sTokens[i].wIdx;
+              bestEndIdx = sTokens[i + targetTokens.length - 1].wIdx;
+              break;
+            }
+          }
+        }
+
+        // Nếu chưa khớp cả chuỗi, dò theo từ vựng chính (bỏ đại từ/giới từ ngắn nếu có)
+        if (bestStartIdx === -1 && normWord) {
+          const wordTokens = normWord.split(' ').filter((t) => t.length > 2 && !/^(se|s|le|la|les|un|une|des|de|du|d)$/i.test(t));
+          const tokensToCheck = wordTokens.length > 0 ? wordTokens : normWord.split(' ').filter(Boolean);
+          for (let i = 0; i < sTokens.length; i++) {
+            const st = sTokens[i].token;
+            if (tokensToCheck.some((wt) => st.includes(wt) || wt.includes(st))) {
+              bestStartIdx = sTokens[i].wIdx;
+              bestEndIdx = sTokens[i].wIdx;
+              break;
+            }
+          }
+        }
+
+        if (bestStartIdx !== -1 && bestEndIdx !== -1) {
+          const wStart = s.words[bestStartIdx];
+          const wEnd = s.words[bestEndIdx];
+          const exactStart = typeof wStart.startTime === 'number' ? wStart.startTime : sStart;
+          const exactEnd = typeof wEnd.endTime === 'number' ? wEnd.endTime : sEnd;
+
+          // Đệm trước 0.35s và đệm sau 0.5s để nghe trọn vẹn ngữ cảnh tự nhiên
+          const calcStart = Math.max(0, exactStart - 0.35);
+          const calcDur = Math.max(2.0, (exactEnd - calcStart) + 0.5);
+
+          return {
+            startTime: Math.round(calcStart * 100) / 100,
+            duration: Math.round(calcDur * 100) / 100,
+            exactWord: true
+          };
+        }
+      }
+
+      // 4. Nếu không có s.words nhưng có s.text
+      const sClean = cleanNorm(s.text);
+      const searchTarget = (normCtx && normCtx !== sClean) ? normCtx : normWord;
+      const charIdx = searchTarget ? sClean.indexOf(searchTarget) : -1;
+
+      if (charIdx > 0 && sClean.length > 0) {
+        const ratio = charIdx / sClean.length;
+        const estStart = Math.max(sStart, sStart + sTotalDur * ratio - 0.35);
+        const estDur = Math.max(2.5, (sEnd - estStart) + 0.4);
+        return {
+          startTime: Math.round(estStart * 100) / 100,
+          duration: Math.round(estDur * 100) / 100
+        };
+      }
+
+      // 5. Mặc định ở đầu câu: đảm bảo thời lượng đủ nghe hết câu gốc, không bị cắt sớm
+      const coverDur = Math.max(fallbackDur, (sEnd - sStart) + 0.4);
+      return {
+        startTime: sStart,
+        duration: Math.round(coverDur * 100) / 100
+      };
+    };
+
     window.playVocabVideoAudio = function(id, e) {
       if (e) { e.stopPropagation(); e.preventDefault(); }
       const item = getVocab().find((v) => v.id === id);
@@ -566,7 +720,11 @@
       }
 
       const dur = item.duration || (item.en ? Math.max(2.5, Math.min(8.0, item.en.split(/\s+/).length * 0.45 + 1.0)) : 4);
-      window.playVideoAudioSegment(item.videoId, item.t || 0, dur, {
+      const timing = (typeof window.resolveVocabAudioTiming === 'function')
+        ? window.resolveVocabAudioTiming(item)
+        : { startTime: item.t || 0, duration: dur };
+
+      window.playVideoAudioSegment(item.videoId, timing.startTime, timing.duration, {
         onStart: () => { if (btn) btn.classList.add('playing'); },
         onEnd: () => { if (btn) btn.classList.remove('playing'); },
         onError: () => {
@@ -1266,6 +1424,14 @@ function updateMobileMenuActiveItem() {
 }
 
 // Lắng nghe phím ESC để đóng mobile menu
-document.addEventListener('keydown', function (e) {
-  if (e.key === 'Escape') closeMobileMenu();
-});
+if (typeof document !== 'undefined' && document.addEventListener) {
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeMobileMenu();
+  });
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    resolveVocabAudioTiming: (typeof window !== 'undefined' ? window.resolveVocabAudioTiming : null)
+  };
+}
