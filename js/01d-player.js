@@ -60,8 +60,8 @@
         const raw = getRawHistory();
         const prevItem = raw.find(h => h.videoId === item.videoId && !h._deleted);
         const isLib = !item.isText && isLibraryVideo(item.videoId);
-        const userTrans = isLib && (item.userTrans !== undefined ? !!item.userTrans : userTransVid === item.videoId);
-        const userPunct = isLib && (item.userPunct !== undefined ? !!item.userPunct : (typeof userPunctVid !== 'undefined' && userPunctVid === item.videoId));
+        const userTrans = item.userTrans !== undefined ? !!item.userTrans : (userTransVid === item.videoId);
+        const userPunct = item.userPunct !== undefined ? !!item.userPunct : (typeof userPunctVid !== 'undefined' && userPunctVid === item.videoId);
         const keepSentences = !isLib || userTrans || userPunct;   // video thư viện: giữ phụ đề khi là bản dịch hoặc dấu câu/sửa từ của người dùng
         const mergedMeta = Object.assign({}, prevItem && prevItem.meta, item.meta);
         const now = Date.now();

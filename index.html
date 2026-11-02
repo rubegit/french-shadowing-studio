@@ -303,15 +303,24 @@
         </div>
         <div id="pc-corrections-list" class="space-y-1.5 max-h-36 overflow-y-auto pr-1"></div>
         <div id="pc-rejected-box" style="display:none;" class="mt-2 pt-2 border-t border-slate-800 text-[11px] text-slate-400">
-          <div class="text-amber-400/90 font-medium mb-1">Đã từ chối (không an toàn):</div>
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-amber-400/90 font-medium">Đã từ chối (bộ lọc 1:1 không áp dụng):</span>
+            <button type="button" class="text-blue-400 hover:text-blue-300 font-medium underline cursor-pointer" onclick="aiApplyManualMerge()">Ghép toàn bộ chữ chuẩn</button>
+          </div>
           <div id="pc-rejected-list" class="space-y-1 max-h-24 overflow-y-auto"></div>
+          <div class="mt-1.5 text-[10px] text-slate-400 leading-relaxed">
+            * Các từ trên khác biệt quá lớn với ASR. Nếu văn bản dán đã chuẩn 100%, bạn có thể bấm nút <strong>"Ghép toàn bộ chữ chuẩn"</strong> bên dưới để thay thế toàn bộ từ nghe nhầm theo bản chuẩn.
+          </div>
         </div>
       </div>
 
-      <div class="ai-actions mt-3 flex items-center justify-between">
+      <div class="ai-actions mt-3 flex items-center justify-between flex-wrap gap-2">
         <div class="flex items-center gap-2">
           <button type="button" id="pc-apply-btn" class="ai-btn ai-btn-primary" onclick="aiApply('punct-player')">
             <i data-lucide="check"></i><span>Áp dụng</span>
+          </button>
+          <button type="button" id="pc-merge-btn" class="ai-btn ai-btn-ghost text-blue-400 hover:text-blue-300 border border-blue-500/30 text-xs flex items-center gap-1.5" onclick="aiApplyManualMerge()" title="Thay toàn bộ chữ và chia câu theo văn bản dán, mốc thời gian lấy từ ASR">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i><span>Ghép toàn bộ chữ chuẩn</span>
           </button>
           <button type="button" class="ai-btn ai-btn-ghost" onclick="closePunctModal()">Để sau</button>
         </div>
@@ -2856,8 +2865,8 @@
   <script src="js/01-core.js?v=f5cc99a6"></script>
 <script src="js/01b-catalog.js?v=68c0f1d5"></script>
 <script src="js/01c-subtitles.js?v=e68b9e12"></script>
-<script src="js/01d-player.js?v=b4036dd8"></script>
-<script src="js/01e-translate-ai.js?v=c15d6572"></script>
+<script src="js/01d-player.js?v=f0733686"></script>
+<script src="js/01e-translate-ai.js?v=b40a0704"></script>
 <script src="js/01f-lookup.js?v=bb67c688"></script>
 <script src="js/01g-vocab-list.js?v=33434ca6"></script>
 <script src="js/01h-ebook.js?v=a646fc5b"></script>
@@ -2878,7 +2887,7 @@
 <script id="kb-fix" src="js/09-keyboard-fix.js?v=773ef580"></script>
 <script id="own-yt-script" src="js/10-own-video.js?v=5fbca9ea"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/supabase-sync.js?v=a8171778"></script>
+<script src="js/supabase-sync.js?v=c37efa65"></script>
 <script src="js/vocab-practice.js?v=037a971b"></script>
 <script src="js/tcf-exam.js?v=0f958ef4"></script>
 <script src="js/schema-v02.js"></script>
