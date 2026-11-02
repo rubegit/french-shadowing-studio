@@ -104,7 +104,7 @@
   transform: scale(1.05);
 }
 
-/* ---------- Mode Tabs Bar ---------- */
+/* ---------- Mode Navigation & Sandwich Menu (M45) ---------- */
 .vph-tabs-bar {
   display: flex;
   align-items: center;
@@ -116,40 +116,215 @@
   flex-wrap: wrap;
 }
 
-.vph-mode-tabs {
-  display: flex;
-  gap: 6px;
-  background: rgba(2, 6, 23, 0.6);
-  padding: 4px;
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+/* Sandwich Menu Trigger Button */
+.vph-sandwich-menu-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
 }
 
-.vph-tab-btn {
+.vph-sandwich-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(2, 6, 23, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 6px 14px;
+  color: #f8fafc;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+  min-height: 38px;
+}
+
+.vph-sandwich-btn:hover {
+  background: rgba(15, 23, 42, 0.9);
+  border-color: rgba(99, 102, 241, 0.5);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+}
+
+.vph-sandwich-btn.active {
+  background: rgba(30, 41, 59, 0.95);
+  border-color: #6366f1;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25);
+}
+
+.vph-sandwich-icon-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: rgba(99, 102, 241, 0.18);
+  color: #a5b4fc;
+}
+
+.vph-sandwich-btn:hover .vph-sandwich-icon-box {
+  background: rgba(99, 102, 241, 0.32);
+  color: #c7d2fe;
+}
+
+.vph-sandwich-current {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.vph-sandwich-mode-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 13px;
-  border-radius: 10px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #94a3b8;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  transition: all 0.2s ease;
   white-space: nowrap;
 }
 
-.vph-tab-btn:hover {
-  color: #f1f5f9;
-  background: rgba(255, 255, 255, 0.05);
+.vph-sandwich-arrow {
+  color: #94a3b8;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
 }
 
-.vph-tab-btn.active {
+.vph-sandwich-btn.active .vph-sandwich-arrow {
+  transform: rotate(180deg);
+  color: #c7d2fe;
+}
+
+/* Sandwich Dropdown Popover */
+.vph-sandwich-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 1000;
+  min-width: 310px;
+  max-width: calc(100vw - 32px);
+  background: rgba(15, 23, 42, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  padding: 6px;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.vph-sandwich-dropdown.open {
+  display: flex;
+  animation: vphSandwichFadeIn 0.16s ease-out;
+}
+
+@keyframes vphSandwichFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.vph-sandwich-dropdown-header {
+  padding: 8px 10px 6px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 2px;
+}
+
+.vph-sandwich-items {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.vph-sandwich-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #cbd5e1;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.vph-sandwich-item:hover {
+  background: rgba(255, 255, 255, 0.06);
   color: #ffffff;
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+}
+
+.vph-sandwich-item.active {
+  background: rgba(99, 102, 241, 0.16);
+  border-color: rgba(99, 102, 241, 0.4);
+  color: #ffffff;
+}
+
+.vph-sandwich-item-icon {
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+}
+
+.vph-sandwich-item-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.vph-sandwich-item-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #f8fafc;
+  line-height: 1.3;
+}
+
+.vph-sandwich-item.active .vph-sandwich-item-title {
+  color: #a5b4fc;
+}
+
+.vph-sandwich-item-desc {
+  font-size: 11px;
+  color: #94a3b8;
+  line-height: 1.3;
+}
+
+.vph-sandwich-item-check {
+  font-size: 14px;
+  font-weight: 800;
+  color: #34d399;
+  opacity: 0;
+  transition: opacity 0.15s;
+  flex-shrink: 0;
+}
+
+.vph-sandwich-item.active .vph-sandwich-item-check {
+  opacity: 1;
+}
+
+/* Fallback Tab Bar (nếu còn dùng) */
+.vph-mode-tabs {
+  display: none;
 }
 
 .vph-controls-right {
@@ -2152,8 +2327,72 @@ html[data-ui="light"] .vph-font-label {
   color: #64748b;
 }
 
+/* Light Theme: Sandwich Mode Menu */
+html[data-ui="light"] .vph-sandwich-btn {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+html[data-ui="light"] .vph-sandwich-btn:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+html[data-ui="light"] .vph-sandwich-btn.active {
+  background: #f1f5f9;
+  border-color: #6366f1;
+}
+html[data-ui="light"] .vph-sandwich-mode-title {
+  color: #0f172a;
+}
+html[data-ui="light"] .vph-sandwich-dropdown {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.15);
+}
+html[data-ui="light"] .vph-sandwich-dropdown-header {
+  color: #64748b;
+  border-bottom-color: #e2e8f0;
+}
+html[data-ui="light"] .vph-sandwich-item {
+  color: #334155;
+}
+html[data-ui="light"] .vph-sandwich-item:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+html[data-ui="light"] .vph-sandwich-item.active {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1e3a8a;
+}
+html[data-ui="light"] .vph-sandwich-item.active .vph-sandwich-item-title {
+  color: #1d4ed8;
+}
+html[data-ui="light"] .vph-sandwich-item-title {
+  color: #0f172a;
+}
+html[data-ui="light"] .vph-sandwich-item-desc {
+  color: #64748b;
+}
+
 /* Mobile responsive enhancements for Translate Mode & Mode Tabs (380px friendly) */
 @media (max-width: 640px) {
+  .vph-sandwich-menu-wrapper {
+    width: auto;
+  }
+  .vph-sandwich-btn {
+    padding: 5px 10px;
+    min-height: 34px;
+    gap: 8px;
+  }
+  .vph-sandwich-mode-title {
+    font-size: 12px;
+  }
+  .vph-sandwich-dropdown {
+    min-width: 270px;
+    max-width: calc(100vw - 24px);
+    left: 0;
+  }
   .vph-mode-tabs {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;

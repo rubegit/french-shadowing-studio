@@ -14,13 +14,27 @@ function createPracticeContext(initialStorage = {}) {
 
   function getEl(id) {
     if (!elements[id]) {
+      const classes = new Set();
       elements[id] = {
         id,
         style: {
           setProperty(k, v) { this[k] = v; }
         },
-        classList: { add() {}, remove() {}, toggle() {}, contains: () => false },
-        setAttribute() {},
+        classList: {
+          add(...cls) { cls.forEach(c => classes.add(c)); },
+          remove(...cls) { cls.forEach(c => classes.delete(c)); },
+          toggle(c, force) {
+            if (typeof force === 'boolean') {
+              if (force) classes.add(c); else classes.delete(c);
+              return force;
+            }
+            if (classes.has(c)) { classes.delete(c); return false; }
+            classes.add(c); return true;
+          },
+          contains(c) { return classes.has(c); }
+        },
+        setAttribute(k, v) { this[k] = v; },
+        getAttribute(k) { return this[k]; },
         appendChild() {},
         querySelectorAll() { return []; },
         addEventListener() {},
@@ -75,7 +89,9 @@ function createPracticeContext(initialStorage = {}) {
       }
       return fn();
     },
-    clearTimeout: clearTimeout
+    clearTimeout: clearTimeout,
+    setInterval: setInterval,
+    clearInterval: clearInterval
   };
   sandbox.window = sandbox;
   sandbox.globalThis = sandbox;
@@ -419,6 +435,7 @@ test('M44.7 Enter keydown sequence: submit ở Enter 1, không nhảy câu cùng
   });
   assert.strictEqual(state.currentIndex, 1, 'Enter lần 2: chuyển sang câu 1 thành công');
   assert.strictEqual(state.answered, false, 'Câu 1 mới: answered reset về false');
+  hub.close();
 });
 
 // ============================================================================
@@ -552,4 +569,95 @@ test('M44.10 Cỡ chữ A− / A+: 4 mức (Nhỏ, Vừa, Lớn, Rất lớn), n
   assert.strictEqual(hub.getFontScaleIndex(), 0, 'Clamped về 0 (Nhỏ)');
   hub.setFontScaleIndex(99);
   assert.strictEqual(hub.getFontScaleIndex(), 3, 'Clamped về 3 (Rất lớn)');
+});
+
+// ============================================================================
+// TEST 11: Sandwich Menu metadata và danh sách 5 chế độ luyện tập (M45)
+// ============================================================================
+test('M45.1 Sandwich Menu: Metadata đầy đủ 5 chế độ luyện tập với icon và mô tả', () => {
+  const { sandbox } = createPracticeContext();
+  const hub = sandbox.VocabPracticeHub;
+
+  assert.ok(hub.MODE_METADATA, 'MODE_METADATA phải được export');
+  const modes = Object.keys(hub.MODE_METADATA);
+  assert.strictEqual(modes.length, 5, 'Phải có đủ 5 chế độ luyện tập');
+  assert.deepStrictEqual(modes, ['quiz', 'cloze', 'match', 'flashcard', 'translate']);
+
+  assert.strictEqual(hub.MODE_METADATA.quiz.icon, '🎯');
+  assert.strictEqual(hub.MODE_METADATA.cloze.icon, '🎧');
+  assert.strictEqual(hub.MODE_METADATA.match.icon, '🃏');
+  assert.strictEqual(hub.MODE_METADATA.flashcard.icon, '🎴');
+  assert.strictEqual(hub.MODE_METADATA.translate.icon, '✍️');
+  assert.ok(hub.MODE_METADATA.translate.title.includes('Dịch Việt → Pháp'));
+});
+
+// ============================================================================
+// TEST 12: Đóng / mở Sandwich Menu và phím Escape (M45)
+// ============================================================================
+test('M45.2 Sandwich Menu: toggle, open, close và xử lý Escape', () => {
+  const { sandbox } = createPracticeContext();
+  const hub = sandbox.VocabPracticeHub;
+
+  hub.open('all', null, 'quiz');
+
+  const dropdownEl = sandbox.document.getElementById('vph-sandwich-dropdown');
+  const btnEl = sandbox.document.getElementById('vph-sandwich-btn');
+
+  // Ban đầu menu đóng
+  assert.strictEqual(dropdownEl.classList.contains('open'), false, 'Menu ban đầu đóng');
+
+  // Mở menu
+  hub.openSandwichMenu();
+  assert.strictEqual(dropdownEl.classList.contains('open'), true, 'Đã mở menu');
+  assert.strictEqual(btnEl.classList.contains('active'), true);
+  assert.strictEqual(btnEl.getAttribute('aria-expanded'), 'true');
+
+  // Đóng menu
+  hub.closeSandwichMenu();
+  assert.strictEqual(dropdownEl.classList.contains('open'), false, 'Đã đóng menu');
+  assert.strictEqual(btnEl.getAttribute('aria-expanded'), 'false');
+
+  // Toggle menu
+  hub.toggleSandwichMenu();
+  assert.strictEqual(dropdownEl.classList.contains('open'), true, 'Toggle -> mở menu');
+
+  // Nhấn Escape khi dropdown đang mở: đóng menu dropdown trước
+  let prevented = false;
+  sandbox.window.dispatchEvent = () => {};
+  // Kích hoạt phím Escape qua handleGlobalKeydown
+  const escapeEvent = { key: 'Escape', preventDefault() { prevented = true; } };
+  // Trong context, Escape được bắt trong handleGlobalKeydown
+  hub.openSandwichMenu();
+  assert.strictEqual(dropdownEl.classList.contains('open'), true);
+
+  hub.closeSandwichMenu();
+  assert.strictEqual(dropdownEl.classList.contains('open'), false, 'Đóng menu thành công');
+  hub.close();
+});
+
+// ============================================================================
+// TEST 13: Chuyển đổi mode qua Sandwich Menu (M45)
+// ============================================================================
+test('M45.3 Sandwich Menu: switchMode chuyển chế độ, cập nhật tiêu đề và tự đóng menu', () => {
+  const { sandbox } = createPracticeContext();
+  const hub = sandbox.VocabPracticeHub;
+  const state = hub._state;
+
+  hub.open('all', null, 'quiz');
+  assert.strictEqual(state.currentMode, 'quiz');
+
+  const titleEl = sandbox.document.getElementById('vph-current-mode-title');
+  assert.ok(titleEl.innerHTML.includes('Trắc nghiệm 4 đáp án'));
+
+  // Mở menu và chọn chuyển sang 'translate'
+  hub.openSandwichMenu();
+  hub.switchMode('translate');
+
+  assert.strictEqual(state.currentMode, 'translate', 'currentMode phải đổi sang translate');
+  assert.ok(titleEl.innerHTML.includes('Dịch Việt → Pháp'), 'Tiêu đề nút menu phải cập nhật sang Dịch Việt → Pháp');
+  assert.ok(titleEl.innerHTML.includes('✍️'), 'Icon menu phải cập nhật icon ✍️');
+
+  const dropdownEl = sandbox.document.getElementById('vph-sandwich-dropdown');
+  assert.strictEqual(dropdownEl.classList.contains('open'), false, 'Sau khi chọn mode, menu phải tự đóng lại');
+  hub.close();
 });

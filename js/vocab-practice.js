@@ -970,29 +970,78 @@
           </button>
         </div>
 
-        <!-- Mode Navigation Bar -->
+        <!-- Mode Navigation Bar with Sandwich Menu (M45) -->
         <div class="vph-tabs-bar">
-          <div class="vph-mode-tabs">
-            <button type="button" class="vph-tab-btn active" data-mode="quiz">
-              <span class="vph-tab-label-full">🎯 Trắc nghiệm 4 đáp án</span>
-              <span class="vph-tab-label-short">🎯 Trắc nghiệm</span>
+          <div class="vph-sandwich-menu-wrapper" id="vph-sandwich-menu-wrapper">
+            <button type="button" class="vph-sandwich-btn" id="vph-sandwich-btn" aria-haspopup="true" aria-expanded="false" title="Bấm để chọn bài luyện tập">
+              <div class="vph-sandwich-icon-box">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="3" y1="6" x2="21" y2="6"></line>
+                  <line x1="3" y1="12" x2="21" y2="12"></line>
+                  <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+              </div>
+              <div class="vph-sandwich-current">
+                <span class="vph-sandwich-mode-title" id="vph-current-mode-title">
+                  <span class="vph-current-mode-icon">🎯</span> <span>Trắc nghiệm 4 đáp án</span>
+                </span>
+              </div>
+              <svg class="vph-sandwich-arrow" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m6 9 6 6 6-6"/>
+              </svg>
             </button>
-            <button type="button" class="vph-tab-btn" data-mode="cloze">
-              <span class="vph-tab-label-full">🎧 Nghe &amp; Điền từ</span>
-              <span class="vph-tab-label-short">🎧 Điền từ</span>
-            </button>
-            <button type="button" class="vph-tab-btn" data-mode="match">
-              <span class="vph-tab-label-full">🃏 Ghép thẻ nhanh</span>
-              <span class="vph-tab-label-short">🃏 Ghép thẻ</span>
-            </button>
-            <button type="button" class="vph-tab-btn" data-mode="flashcard">
-              <span class="vph-tab-label-full">🎴 Flashcard 3D (SRS)</span>
-              <span class="vph-tab-label-short">🎴 Flashcard</span>
-            </button>
-            <button type="button" class="vph-tab-btn" data-mode="translate">
-              <span class="vph-tab-label-full">✍️ Dịch Việt → Pháp</span>
-              <span class="vph-tab-label-short">✍️ Dịch</span>
-            </button>
+
+            <div class="vph-sandwich-dropdown" id="vph-sandwich-dropdown" role="menu">
+              <div class="vph-sandwich-dropdown-header">
+                <span>Chọn bài luyện tập</span>
+              </div>
+              <div class="vph-sandwich-items">
+                <button type="button" class="vph-sandwich-item vph-tab-btn active" data-mode="quiz" role="menuitem">
+                  <span class="vph-sandwich-item-icon">🎯</span>
+                  <div class="vph-sandwich-item-text">
+                    <div class="vph-sandwich-item-title">Trắc nghiệm 4 đáp án</div>
+                    <div class="vph-sandwich-item-desc">Luyện nhận diện nghĩa từ vựng nhanh</div>
+                  </div>
+                  <span class="vph-sandwich-item-check">✓</span>
+                </button>
+
+                <button type="button" class="vph-sandwich-item vph-tab-btn" data-mode="cloze" role="menuitem">
+                  <span class="vph-sandwich-item-icon">🎧</span>
+                  <div class="vph-sandwich-item-text">
+                    <div class="vph-sandwich-item-title">Nghe &amp; Điền từ</div>
+                    <div class="vph-sandwich-item-desc">Rèn luyện nghe phát âm và chính tả</div>
+                  </div>
+                  <span class="vph-sandwich-item-check">✓</span>
+                </button>
+
+                <button type="button" class="vph-sandwich-item vph-tab-btn" data-mode="match" role="menuitem">
+                  <span class="vph-sandwich-item-icon">🃏</span>
+                  <div class="vph-sandwich-item-text">
+                    <div class="vph-sandwich-item-title">Ghép thẻ nhanh</div>
+                    <div class="vph-sandwich-item-desc">Thử thách tốc độ ghép cặp từ và nghĩa</div>
+                  </div>
+                  <span class="vph-sandwich-item-check">✓</span>
+                </button>
+
+                <button type="button" class="vph-sandwich-item vph-tab-btn" data-mode="flashcard" role="menuitem">
+                  <span class="vph-sandwich-item-icon">🎴</span>
+                  <div class="vph-sandwich-item-text">
+                    <div class="vph-sandwich-item-title">Flashcard 3D (SRS)</div>
+                    <div class="vph-sandwich-item-desc">Ôn tập chủ động ghi nhớ dài hạn</div>
+                  </div>
+                  <span class="vph-sandwich-item-check">✓</span>
+                </button>
+
+                <button type="button" class="vph-sandwich-item vph-tab-btn" data-mode="translate" role="menuitem">
+                  <span class="vph-sandwich-item-icon">✍️</span>
+                  <div class="vph-sandwich-item-text">
+                    <div class="vph-sandwich-item-title">Dịch Việt → Pháp</div>
+                    <div class="vph-sandwich-item-desc">Luyện dịch câu song ngữ phản xạ xuôi</div>
+                  </div>
+                  <span class="vph-sandwich-item-check">✓</span>
+                </button>
+              </div>
+            </div>
           </div>
 
           <div class="vph-controls-right">
@@ -1059,13 +1108,26 @@
 
     // Event listeners
     backdrop.addEventListener('click', (e) => {
+      const wrapper = document.getElementById('vph-sandwich-menu-wrapper');
+      if (wrapper && !wrapper.contains(e.target)) {
+        closeSandwichMenu();
+      }
       if (e.target === backdrop) closeVocabPracticeHub();
     });
 
     document.getElementById('vph-close-btn').addEventListener('click', closeVocabPracticeHub);
 
-    // Mode tab switching
-    backdrop.querySelectorAll('.vph-tab-btn').forEach(btn => {
+    // Sandwich Menu trigger button (M45)
+    const sandwichBtn = document.getElementById('vph-sandwich-btn');
+    if (sandwichBtn) {
+      sandwichBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleSandwichMenu();
+      });
+    }
+
+    // Mode switching from Sandwich Menu items & tabs
+    backdrop.querySelectorAll('.vph-sandwich-item, .vph-tab-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const mode = btn.getAttribute('data-mode');
         switchMode(mode);
@@ -1104,10 +1166,55 @@
     return backdrop;
   }
 
+  // Practice Modes Metadata (M45)
+  const MODE_METADATA = {
+    quiz: { icon: '🎯', title: 'Trắc nghiệm 4 đáp án', desc: 'Luyện nhận diện nghĩa từ vựng nhanh' },
+    cloze: { icon: '🎧', title: 'Nghe & Điền từ', desc: 'Rèn luyện nghe phát âm và chính tả' },
+    match: { icon: '🃏', title: 'Ghép thẻ nhanh', desc: 'Thử thách tốc độ ghép cặp từ và nghĩa' },
+    flashcard: { icon: '🎴', title: 'Flashcard 3D (SRS)', desc: 'Ôn tập chủ động ghi nhớ dài hạn' },
+    translate: { icon: '✍️', title: 'Dịch Việt → Pháp', desc: 'Luyện dịch câu song ngữ phản xạ xuôi' }
+  };
+
+  function toggleSandwichMenu(force) {
+    const dropdown = document.getElementById('vph-sandwich-dropdown');
+    const btn = document.getElementById('vph-sandwich-btn');
+    if (!dropdown || !btn) return;
+    const isOpen = typeof force === 'boolean' ? force : !dropdown.classList.contains('open');
+    dropdown.classList.toggle('open', isOpen);
+    btn.classList.toggle('active', isOpen);
+    btn.setAttribute('aria-expanded', String(isOpen));
+  }
+
+  function openSandwichMenu() {
+    toggleSandwichMenu(true);
+  }
+
+  function closeSandwichMenu() {
+    toggleSandwichMenu(false);
+  }
+
+  function updateModeUi() {
+    const meta = MODE_METADATA[state.currentMode] || MODE_METADATA.quiz;
+    const titleEl = document.getElementById('vph-current-mode-title');
+    if (titleEl) {
+      titleEl.innerHTML = `<span class="vph-current-mode-icon">${meta.icon}</span> <span>${escHtml(meta.title)}</span>`;
+    }
+
+    document.querySelectorAll('.vph-sandwich-item, .vph-tab-btn').forEach(b => {
+      b.classList.toggle('active', b.getAttribute('data-mode') === state.currentMode);
+    });
+  }
+
   function handleGlobalKeydown(e) {
     if (!state.isOpen) return;
 
     if (e.key === 'Escape') {
+      const dropdown = document.getElementById('vph-sandwich-dropdown');
+      if (dropdown && dropdown.classList.contains('open')) {
+        e.preventDefault();
+        closeSandwichMenu();
+        return;
+      }
       closeVocabPracticeHub();
       return;
     }
@@ -1162,13 +1269,11 @@
   }
 
   function switchMode(mode) {
+    if (!MODE_METADATA[mode]) return;
     playSound('click');
     state.currentMode = mode;
-
-    document.querySelectorAll('.vph-tab-btn').forEach(b => {
-      b.classList.toggle('active', b.getAttribute('data-mode') === mode);
-    });
-
+    updateModeUi();
+    closeSandwichMenu();
     startSession();
   }
 
@@ -2853,11 +2958,8 @@
     updateScopeOptions();
     backdrop.classList.add('open');
     applyFontScale(getFontScaleIndex());
-
-    // Cập nhật trạng thái active cho tab hiện tại
-    document.querySelectorAll('.vph-tab-btn').forEach(b => {
-      b.classList.toggle('active', b.getAttribute('data-mode') === state.currentMode);
-    });
+    updateModeUi();
+    closeSandwichMenu();
 
     startSession();
   }
@@ -2865,6 +2967,7 @@
   function closeVocabPracticeHub() {
     stopTimer();
     stopMatchTimer();
+    closeSandwichMenu();
     state.isOpen = false;
     const backdrop = document.getElementById('vph-backdrop');
     if (backdrop) backdrop.classList.remove('open');
@@ -2875,6 +2978,11 @@
     open: openVocabPracticeHub,
     close: closeVocabPracticeHub,
     switchMode: switchMode,
+    toggleSandwichMenu: toggleSandwichMenu,
+    openSandwichMenu: openSandwichMenu,
+    closeSandwichMenu: closeSandwichMenu,
+    updateModeUi: updateModeUi,
+    MODE_METADATA: MODE_METADATA,
     maskGrammarTag: maskGrammarTag,
     formatGrammarBadgeHtml: formatGrammarBadgeHtml,
     extractGrammarTag: extractGrammarTag,
