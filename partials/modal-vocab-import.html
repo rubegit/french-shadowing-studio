@@ -1,0 +1,800 @@
+<!-- Modal Import Từ vựng & Quản lý Dữ liệu (Schema 0.2 - M40/M42) -->
+<style>
+  #fss-import-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(2, 6, 23, 0.82);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    padding: 1rem;
+    box-sizing: border-box;
+  }
+  #fss-import-modal.hidden {
+    display: none !important;
+  }
+  #fss-import-modal-box {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 56rem; /* 896px = max-w-4xl */
+    max-height: calc(100vh - 2rem);
+    max-height: calc(100dvh - 2rem);
+    overflow: hidden;
+    background-color: #0b1329;
+    border: 1px solid rgba(30, 58, 138, 0.8);
+    border-radius: 1rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+    color: #e2e8f0;
+  }
+  #fss-import-modal-header {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1.25rem;
+    border-bottom: 1px solid rgba(30, 58, 138, 0.6);
+    background-color: #070e22;
+  }
+  #fss-import-modal-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding: 1.25rem;
+    background-color: #0b1329;
+  }
+  #fss-import-modal-footer {
+    flex-shrink: 0;
+    border-top: 1px solid rgba(30, 58, 138, 0.6);
+    background-color: #070e22;
+    padding: 0.75rem 1.25rem;
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  }
+  .fss-table-container {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  #fss-import-modal:not(.hidden) ~ #vocab-toast,
+  body.has-import-modal-open #vocab-toast {
+    z-index: 10002;
+    bottom: calc(90px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Bố cục nút dry-run: Canh phải tuyệt đối trên desktop, full-width chuẩn chạm trên mobile */
+  .fss-dryrun-btn-row {
+    display: flex !important;
+    justify-content: flex-end !important;
+    width: 100% !important;
+    padding-top: 0.5rem;
+  }
+  .fss-dryrun-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0.375rem !important;
+    padding: 0.5rem 1.1rem !important;
+    border-radius: 0.5rem !important;
+    background-color: #2563eb !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    font-size: 0.75rem !important;
+    cursor: pointer !important;
+    border: none !important;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35) !important;
+    transition: all 0.15s ease-in-out !important;
+    min-height: 38px !important;
+  }
+  .fss-dryrun-btn:hover {
+    background-color: #1d4ed8 !important;
+    box-shadow: 0 6px 18px rgba(37, 99, 235, 0.45) !important;
+  }
+  @media (max-width: 639px) {
+    .fss-dryrun-btn {
+      width: 100% !important;
+      min-height: 44px !important;
+    }
+  }
+
+  /* =====================================================================
+     MẶC ĐỊNH CHO TOÀN BỘ PHẦN TỬ: TONE TỐI DARK NAVY ĐỒNG NHẤT
+     (Áp dụng khi macOS bật Dark Mode hoặc app ở Dark Theme)
+     ===================================================================== */
+  #fss-import-modal-box {
+    background-color: #0b1329 !important;
+    border: 1px solid rgba(30, 58, 138, 0.8) !important;
+    color: #f1f5f9 !important;
+  }
+  #fss-import-modal-header {
+    background-color: #070e22 !important;
+    border-bottom: 1px solid rgba(30, 58, 138, 0.6) !important;
+  }
+  #fss-import-modal-header h3 {
+    color: #ffffff !important;
+  }
+  #fss-import-modal-header p {
+    color: #94a3b8 !important;
+  }
+  #fss-import-modal-header button {
+    color: #94a3b8 !important;
+  }
+  #fss-import-modal-header button:hover {
+    color: #ffffff !important;
+    background-color: rgba(30, 58, 138, 0.4) !important;
+  }
+  #fss-import-modal-body {
+    background-color: #0b1329 !important;
+  }
+  #fss-import-modal-body label {
+    color: #e2e8f0 !important;
+  }
+  .fss-import-file-btn {
+    background-color: rgba(30, 58, 138, 0.6) !important;
+    border: 1px solid rgba(29, 78, 216, 0.8) !important;
+    color: #bfdbfe !important;
+  }
+  .fss-import-file-btn:hover {
+    background-color: #1e40af !important;
+    color: #ffffff !important;
+  }
+  #fss-import-textarea {
+    background-color: #030712 !important;
+    border: 1px solid rgba(30, 58, 138, 0.8) !important;
+    color: #f8fafc !important;
+  }
+  #fss-import-textarea::placeholder {
+    color: #475569 !important;
+  }
+  #fss-import-textarea:focus {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important;
+  }
+  .fss-textarea-caption {
+    color: #64748b !important;
+  }
+  .fss-staged-pill {
+    background-color: rgba(15, 23, 42, 0.9) !important;
+    border: 1px solid #1e3a8a !important;
+    color: #93c5fd !important;
+  }
+  #fss-import-modal-footer {
+    background-color: #070e22 !important;
+    border-top: 1px solid rgba(30, 58, 138, 0.6) !important;
+  }
+  #fss-import-status-text {
+    color: #94a3b8 !important;
+  }
+  .fss-tab-btn-inactive {
+    background-color: rgba(15, 23, 42, 0.8) !important;
+    border: 1px solid rgba(30, 58, 138, 0.5) !important;
+    color: #94a3b8 !important;
+  }
+  .fss-tab-btn-inactive:hover {
+    background-color: rgba(30, 58, 138, 0.5) !important;
+    color: #ffffff !important;
+  }
+  .fss-btn-cancel {
+    background-color: #1e293b !important;
+    border: 1px solid #334155 !important;
+    color: #cbd5e1 !important;
+  }
+  .fss-btn-cancel:hover {
+    background-color: #334155 !important;
+    color: #ffffff !important;
+  }
+  .fss-btn-backup {
+    background-color: rgba(15, 32, 72, 0.8) !important;
+    border: 1px solid rgba(30, 64, 175, 0.8) !important;
+    color: #93c5fd !important;
+  }
+  .fss-btn-backup:hover {
+    background-color: #1e40af !important;
+    color: #ffffff !important;
+  }
+  #fss-import-sources-breakdown,
+  #fss-import-cloud-sync-box,
+  .fss-preview-card {
+    background-color: #070e22 !important;
+    border: 1px solid rgba(30, 58, 138, 0.6) !important;
+  }
+  .fss-card-header {
+    background-color: #09132e !important;
+    border-bottom: 1px solid rgba(30, 58, 138, 0.6) !important;
+    color: #e2e8f0 !important;
+  }
+  .fss-table thead {
+    background-color: #050b1a !important;
+    color: #94a3b8 !important;
+    border-bottom: 1px solid #172554 !important;
+  }
+  .fss-table tbody tr {
+    border-bottom: 1px solid rgba(23, 37, 84, 0.6) !important;
+  }
+  .fss-table tbody tr:hover {
+    background-color: #0e1a38 !important;
+  }
+  .fss-table td {
+    color: #cbd5e1 !important;
+  }
+  .fss-table td.font-medium,
+  .fss-table td .text-slate-200 {
+    color: #f8fafc !important;
+  }
+  #fss-import-confirm-box-replace {
+    background-color: #060e22 !important;
+    border: 1px solid rgba(217, 119, 6, 0.8) !important;
+  }
+  #fss-import-confirm-box-restore {
+    background-color: #060e22 !important;
+    border: 1px solid rgba(37, 99, 235, 0.8) !important;
+  }
+  #fss-import-confirm-replace-input,
+  #fss-import-confirm-restore-input {
+    background-color: #040814 !important;
+    border: 1px solid #1e3a8a !important;
+    color: #ffffff !important;
+  }
+  #fss-import-overwrite-container {
+    color: #cbd5e1 !important;
+  }
+
+  /* =====================================================================
+     LIGHT MODE OVERRIDES: CHỈ ÁP DỤNG KHI THỰC SỰ LÀ GIAO DIỆN SÁNG
+     1. Khi có data-theme="light" tường minh
+     2. Khi hệ thống ở chế độ sáng và không có dark mode
+     ===================================================================== */
+  @media (prefers-color-scheme: light) {
+    html:not([data-theme="dark"]):not(.dark) #fss-import-modal-box {
+      background-color: #ffffff !important;
+      border: 1px solid #cbd5e1 !important;
+      color: #0f172a !important;
+      box-shadow: 0 25px 60px rgba(15, 23, 42, 0.15) !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) #fss-import-modal-header {
+      background-color: #f8fafc !important;
+      border-bottom: 1px solid #e2e8f0 !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) #fss-import-modal-header h3 {
+      color: #0f172a !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) #fss-import-modal-header p {
+      color: #64748b !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) #fss-import-modal-header button {
+      color: #64748b !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) #fss-import-modal-header button:hover {
+      background-color: rgba(226, 232, 240, 0.8) !important;
+      color: #0f172a !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) #fss-import-modal-body {
+      background-color: #ffffff !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) #fss-import-modal-body label {
+      color: #0f172a !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) .fss-import-file-btn {
+      background-color: #f1f5f9 !important;
+      border-color: #cbd5e1 !important;
+      color: #1e40af !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) .fss-import-file-btn:hover {
+      background-color: #e2e8f0 !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) #fss-import-textarea {
+      background-color: #ffffff !important;
+      border-color: #cbd5e1 !important;
+      color: #0f172a !important;
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) #fss-import-textarea::placeholder {
+      color: #94a3b8 !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) #fss-import-textarea:focus {
+      border-color: #3b82f6 !important;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18) !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) .fss-textarea-caption {
+      color: #64748b !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) .fss-staged-pill {
+      background-color: #eff6ff !important;
+      border-color: #bfdbfe !important;
+      color: #1e40af !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) #fss-import-modal-footer {
+      background-color: #f8fafc !important;
+      border-top-color: #e2e8f0 !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) #fss-import-status-text {
+      color: #64748b !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) .fss-tab-btn-inactive {
+      background-color: #f1f5f9 !important;
+      color: #475569 !important;
+      border-color: #cbd5e1 !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) .fss-tab-btn-inactive:hover {
+      background-color: #e2e8f0 !important;
+      color: #0f172a !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) .fss-btn-cancel {
+      background-color: #f1f5f9 !important;
+      color: #475569 !important;
+      border: 1px solid #cbd5e1 !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) .fss-btn-cancel:hover {
+      background-color: #e2e8f0 !important;
+      color: #0f172a !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) .fss-btn-backup {
+      background-color: #eff6ff !important;
+      color: #1d4ed8 !important;
+      border-color: #bfdbfe !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) .fss-btn-backup:hover {
+      background-color: #dbeafe !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) #fss-import-sources-breakdown,
+    html:not([data-theme="dark"]):not(.dark) #fss-import-cloud-sync-box,
+    html:not([data-theme="dark"]):not(.dark) .fss-preview-card {
+      background-color: #ffffff !important;
+      border-color: #e2e8f0 !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) .fss-card-header {
+      background-color: #f8fafc !important;
+      border-bottom-color: #e2e8f0 !important;
+      color: #0f172a !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) .fss-table thead {
+      background-color: #f1f5f9 !important;
+      color: #475569 !important;
+      border-bottom-color: #e2e8f0 !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) .fss-table tbody tr {
+      border-bottom-color: #f1f5f9 !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) .fss-table tbody tr:hover {
+      background-color: #f8fafc !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) .fss-table td {
+      color: #1e293b !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) .fss-table td.font-medium,
+    html:not([data-theme="dark"]):not(.dark) .fss-table td .text-slate-200 {
+      color: #0f172a !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) #fss-import-confirm-box-replace {
+      background-color: #fffbeb !important;
+      border-color: #f59e0b !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) #fss-import-confirm-box-restore {
+      background-color: #eff6ff !important;
+      border-color: #3b82f6 !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) #fss-import-confirm-replace-input,
+    html:not([data-theme="dark"]):not(.dark) #fss-import-confirm-restore-input {
+      background-color: #ffffff !important;
+      color: #0f172a !important;
+      border-color: #cbd5e1 !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) #fss-import-overwrite-container {
+      color: #334155 !important;
+    }
+  }
+
+  /* Khi người dùng chọn sáng thủ công: html[data-theme="light"] */
+  html[data-theme="light"] #fss-import-modal-box {
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+    box-shadow: 0 25px 60px rgba(15, 23, 42, 0.15) !important;
+  }
+  html[data-theme="light"] #fss-import-modal-header {
+    background-color: #f8fafc !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+  }
+  html[data-theme="light"] #fss-import-modal-header h3 {
+    color: #0f172a !important;
+  }
+  html[data-theme="light"] #fss-import-modal-header p {
+    color: #64748b !important;
+  }
+  html[data-theme="light"] #fss-import-modal-header button {
+    color: #64748b !important;
+  }
+  html[data-theme="light"] #fss-import-modal-header button:hover {
+    background-color: rgba(226, 232, 240, 0.8) !important;
+    color: #0f172a !important;
+  }
+  html[data-theme="light"] #fss-import-modal-body {
+    background-color: #ffffff !important;
+  }
+  html[data-theme="light"] #fss-import-modal-body label {
+    color: #0f172a !important;
+  }
+  html[data-theme="light"] .fss-import-file-btn {
+    background-color: #f1f5f9 !important;
+    border-color: #cbd5e1 !important;
+    color: #1e40af !important;
+  }
+  html[data-theme="light"] .fss-import-file-btn:hover {
+    background-color: #e2e8f0 !important;
+  }
+  html[data-theme="light"] #fss-import-textarea {
+    background-color: #ffffff !important;
+    border-color: #cbd5e1 !important;
+    color: #0f172a !important;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+  }
+  html[data-theme="light"] #fss-import-textarea::placeholder {
+    color: #94a3b8 !important;
+  }
+  html[data-theme="light"] #fss-import-textarea:focus {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18) !important;
+  }
+  html[data-theme="light"] .fss-textarea-caption {
+    color: #64748b !important;
+  }
+  html[data-theme="light"] .fss-staged-pill {
+    background-color: #eff6ff !important;
+    border-color: #bfdbfe !important;
+    color: #1e40af !important;
+  }
+  html[data-theme="light"] #fss-import-modal-footer {
+    background-color: #f8fafc !important;
+    border-top-color: #e2e8f0 !important;
+  }
+  html[data-theme="light"] #fss-import-status-text {
+    color: #64748b !important;
+  }
+  html[data-theme="light"] .fss-tab-btn-inactive {
+    background-color: #f1f5f9 !important;
+    color: #475569 !important;
+    border-color: #cbd5e1 !important;
+  }
+  html[data-theme="light"] .fss-tab-btn-inactive:hover {
+    background-color: #e2e8f0 !important;
+    color: #0f172a !important;
+  }
+  html[data-theme="light"] .fss-btn-cancel {
+    background-color: #f1f5f9 !important;
+    color: #475569 !important;
+    border: 1px solid #cbd5e1 !important;
+  }
+  html[data-theme="light"] .fss-btn-cancel:hover {
+    background-color: #e2e8f0 !important;
+    color: #0f172a !important;
+  }
+  html[data-theme="light"] .fss-btn-backup {
+    background-color: #eff6ff !important;
+    color: #1d4ed8 !important;
+    border-color: #bfdbfe !important;
+  }
+  html[data-theme="light"] .fss-btn-backup:hover {
+    background-color: #dbeafe !important;
+  }
+  html[data-theme="light"] #fss-import-sources-breakdown,
+  html[data-theme="light"] #fss-import-cloud-sync-box,
+  html[data-theme="light"] .fss-preview-card {
+    background-color: #ffffff !important;
+    border-color: #e2e8f0 !important;
+  }
+  html[data-theme="light"] .fss-card-header {
+    background-color: #f8fafc !important;
+    border-bottom-color: #e2e8f0 !important;
+    color: #0f172a !important;
+  }
+  html[data-theme="light"] .fss-table thead {
+    background-color: #f1f5f9 !important;
+    color: #475569 !important;
+    border-bottom-color: #e2e8f0 !important;
+  }
+  html[data-theme="light"] .fss-table tbody tr {
+    border-bottom-color: #f1f5f9 !important;
+  }
+  html[data-theme="light"] .fss-table tbody tr:hover {
+    background-color: #f8fafc !important;
+  }
+  html[data-theme="light"] .fss-table td {
+    color: #1e293b !important;
+  }
+  html[data-theme="light"] .fss-table td.font-medium,
+  html[data-theme="light"] .fss-table td .text-slate-200 {
+    color: #0f172a !important;
+  }
+  html[data-theme="light"] #fss-import-confirm-box-replace {
+    background-color: #fffbeb !important;
+    border-color: #f59e0b !important;
+  }
+  html[data-theme="light"] #fss-import-confirm-box-restore {
+    background-color: #eff6ff !important;
+    border-color: #3b82f6 !important;
+  }
+  html[data-theme="light"] #fss-import-confirm-replace-input,
+  html[data-theme="light"] #fss-import-confirm-restore-input {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    border-color: #cbd5e1 !important;
+  }
+  html[data-theme="light"] #fss-import-overwrite-container {
+    color: #334155 !important;
+  }
+</style>
+
+<div id="fss-import-modal" class="hidden animate-in fade-in duration-150" onmousedown="if (event.target === this) window.closeVocabImportModal();">
+  <div id="fss-import-modal-box">
+    
+    <!-- 1. PHẦN ĐẦU CỐ ĐỊNH (flex-shrink: 0): Tiêu đề + Nút đóng (X) luôn thấy -->
+    <div id="fss-import-modal-header">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-lg bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+        </div>
+        <div>
+          <h3 class="text-sm font-bold text-white flex items-center gap-2">
+            Nạp Từ Vựng & Quản Lý Dữ Liệu
+            <span class="text-[10px] px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/40 font-mono">Schema 0.2</span>
+          </h3>
+          <p class="text-[11px] text-slate-400">Hỗ trợ nhiều nguồn, đối chiếu thông minh và đồng bộ an toàn</p>
+        </div>
+      </div>
+      
+      <button type="button" onclick="window.closeVocabImportModal()" title="Đóng cửa sổ (Esc)" class="w-8 h-8 rounded-lg text-slate-400 hover:text-white hover:bg-blue-900/40 flex items-center justify-center transition cursor-pointer">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+    </div>
+
+    <!-- 2. PHẦN THÂN CUỘN RIÊNG (flex:1; min-height:0; overflow-y:auto; overscroll-behavior:contain) -->
+    <div id="fss-import-modal-body" class="space-y-4 text-xs">
+      
+      <!-- Persistent Cloud Sync Alert (Hiện khi local đã ghi nhưng pushAll thất bại) -->
+      <div id="fss-import-cloud-alert" class="hidden p-4 rounded-xl bg-rose-950/80 border-2 border-rose-600 text-rose-100 space-y-2">
+        <div class="flex items-start gap-2.5">
+          <svg class="w-5 h-5 text-rose-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+          <div class="flex-1 text-[11px] space-y-1">
+            <div class="font-bold text-sm text-rose-200">CẢNH BÁO: LOCAL ĐÃ GHI, NHƯNG ĐẨY LÊN CLOUD THẤT BẠI</div>
+            <p id="fss-import-cloud-alert-msg" class="leading-relaxed"></p>
+            <p class="font-semibold text-rose-300">
+              TUYỆT ĐỐI KHÔNG mở hoặc đăng nhập trên thiết bị khác lúc này. Thiết bị khác chưa cập nhật sẽ tải dữ liệu cũ hoặc đẩy đè lại lên Cloud làm hỏng kho từ vựng.
+            </p>
+          </div>
+          <button type="button" id="fss-import-cloud-retry-btn" onclick="window.retryCloudPush()" class="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shrink-0 cursor-pointer transition shadow">
+            Thử đẩy lại ngay
+          </button>
+        </div>
+      </div>
+
+      <!-- Warning Box cho chế độ REPLACE_ALL -->
+      <div id="fss-import-replace-warning" class="hidden p-3.5 rounded-xl bg-amber-950/40 border border-amber-600/70 text-amber-200 space-y-1.5">
+        <div class="font-bold flex items-center gap-1.5 text-amber-300 text-xs">
+          <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+          <span>CHẾ ĐỘ THAY THẾ TOÀN BỘ KHO TỪ VỰNG</span>
+        </div>
+        <p class="text-[11px] leading-relaxed">
+          Thao tác này sẽ đánh dấu xóa (tombstone) toàn bộ từ vựng hiện có trên thiết bị và đồng bộ xóa lên Cloud. Sau đó chỉ các từ trong đợt nạp này được thêm vào.
+        </p>
+        <p class="text-[11px] text-amber-400 font-medium">
+          Mẹo an toàn: Hãy tải file sao lưu JSON trước khi thực hiện.
+        </p>
+      </div>
+
+      <!-- Info Box cho chế độ RESTORE -->
+      <div id="fss-import-restore-info" class="hidden p-3 rounded-xl bg-blue-950/40 border border-blue-600/60 text-blue-200 text-[11px] leading-relaxed">
+        <strong>Khôi phục từ bản sao lưu JSON:</strong> Chọn file sao lưu dạng mảng <code class="bg-blue-900/60 px-1 py-0.5 rounded font-mono text-[10px]">shadowing_saved_vocab_v1</code> đã tải về trước đó. Toàn bộ tiến trình học SRS, số lần ôn, ngày tạo và các trường mở rộng sẽ được phục hồi chính xác.
+      </div>
+
+      <!-- Khu vực chọn file hoặc dán văn bản (Input Section) -->
+      <div class="space-y-3">
+        <div class="flex items-center justify-between">
+          <label class="font-bold text-slate-200 flex items-center gap-1.5 text-xs">
+            <span>Chọn tệp nguồn hoặc dán nội dung:</span>
+          </label>
+          <div class="flex items-center gap-2">
+            <label for="fss-import-file-input" class="fss-import-file-btn px-2.5 py-1 rounded bg-blue-900/60 hover:bg-blue-800 text-blue-200 border border-blue-700/80 cursor-pointer flex items-center gap-1 transition text-xs">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+              <span>Thêm file .txt / .json</span>
+            </label>
+            <input type="file" id="fss-import-file-input" accept=".txt,.json" multiple class="hidden" onchange="window.handleVocabImportFiles(event)" />
+          </div>
+        </div>
+
+        <!-- Danh sách file đã chọn (Staged Files Pill List) -->
+        <div id="fss-import-staged-files-list" class="flex flex-wrap gap-2 text-[11px] empty:hidden"></div>
+
+        <!-- Khung dán văn bản trực tiếp -->
+        <div class="space-y-1">
+          <textarea id="fss-import-textarea" rows="5" placeholder="Dán nội dung .txt hoặc JSON vào đây...&#10;Ví dụ:&#10;# SOURCE: yt:UoxA5R0tcFA | Bài học 1&#10;213. s'il vous plaît || cụm từ || A1 || [loc.] làm ơn, xin vui lòng&#10;Trong bài: Oui, s'il vous plaît.&#10;VD1: Un café, s'il vous plaît. || Cho tôi một ly cà phê, làm ơn.&#10;..." class="w-full p-3 rounded-lg font-mono text-xs leading-relaxed focus:outline-none transition"></textarea>
+          <div class="flex items-center justify-between text-[11px] text-slate-400 px-1 fss-textarea-caption">
+            <span>Hỗ trợ định dạng .txt (mục mới, dòng ≈ nghi trùng, OCC) hoặc JSON (items, occurrences).</span>
+            <span class="font-mono">UTF-8 NFC</span>
+          </div>
+        </div>
+
+        <!-- Nút kích hoạt Dry-run Preview (Canh phải tuyệt đối trên desktop, full width trên mobile) -->
+        <div class="fss-dryrun-btn-row">
+          <button type="button" id="fss-import-run-btn" onclick="window.runVocabDryRunPreview()" class="fss-dryrun-btn">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+            <span>Chạy đối chiếu & Xem trước (Dry-run)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Staging & Preview Results Container -->
+      <div id="fss-import-preview-results" class="hidden space-y-4 pt-3 border-t border-blue-950/80">
+        
+        <!-- Stats Summary -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center" id="fss-import-stats-grid"></div>
+
+        <!-- Sources Breakdown Table (Container cuộn ngang riêng) -->
+        <div id="fss-import-sources-breakdown" class="hidden rounded-xl border border-blue-900/60 overflow-hidden bg-[#070e22]">
+          <div class="px-3.5 py-2 bg-[#09132e] border-b border-blue-900/60 flex items-center justify-between fss-card-header">
+            <span class="font-bold text-slate-200 text-xs">Thống kê theo từng nguồn (Source Breakdown)</span>
+          </div>
+          <div class="fss-table-container">
+            <table class="w-full text-left text-xs min-w-[500px] fss-table">
+              <thead class="bg-[#050b1a] text-slate-400 uppercase text-[10px] tracking-wider border-b border-blue-950">
+                <tr>
+                  <th class="px-3 py-2">Tên file / Nguồn</th>
+                  <th class="px-3 py-2">Mã nguồn (source_id)</th>
+                  <th class="px-3 py-2 text-center">Số mục mới</th>
+                  <th class="px-3 py-2 text-center">Số occurrences</th>
+                </tr>
+              </thead>
+              <tbody id="fss-import-sources-tbody" class="divide-y divide-blue-950/60"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Lỗi cú pháp / dòng sai quy cách -->
+        <div id="fss-import-errors-box" class="hidden p-3 rounded-xl bg-rose-950/40 border border-rose-800/80 text-rose-200 space-y-1">
+          <div class="font-bold flex items-center gap-1.5 text-rose-300 text-xs">
+            <svg class="w-4 h-4 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <span>Dòng bị bỏ qua do lỗi cú pháp:</span>
+          </div>
+          <ul id="fss-import-errors-list" class="list-disc list-inside text-[11px] space-y-0.5 max-h-24 overflow-y-auto"></ul>
+        </div>
+
+        <!-- Section Xung đột loại (TYPE_COLLISION) -->
+        <div id="fss-import-collisions-section" class="hidden p-3.5 rounded-xl bg-amber-950/30 border border-amber-500/60 space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="font-bold text-amber-300 flex items-center gap-1.5 text-xs">
+              <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+              <span>Phát hiện xung đột loại từ vựng (Bắt buộc chọn để mở khóa ghi)</span>
+            </div>
+            <span id="fss-collision-badge" class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono text-[10px]"></span>
+          </div>
+          <div id="fss-collisions-list" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
+        </div>
+
+        <!-- Section Nghi trùng (SUSPICIOUS) -->
+        <div id="fss-import-suspicious-section" class="hidden p-3.5 rounded-xl bg-purple-950/30 border border-purple-500/60 space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="font-bold text-purple-300 flex items-center gap-1.5 text-xs">
+              <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              <span>Các cặp nghi trùng cần xem xét (Mặc định: Nhập như mục độc lập)</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="window.resolveAllSuspicious('MERGE_EXISTING')" class="text-[10px] text-purple-300 hover:text-white underline cursor-pointer">Gộp tất cả vào mục đã có</button>
+              <button type="button" onclick="window.resolveAllSuspicious('KEEP_SEPARATE')" class="text-[10px] text-purple-300 hover:text-white underline cursor-pointer">Giữ tất cả độc lập</button>
+            </div>
+          </div>
+          <div id="fss-suspicious-list" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
+        </div>
+
+        <!-- Preview Table (Container cuộn ngang riêng) -->
+        <div class="rounded-xl border border-blue-900/60 overflow-hidden bg-[#070e22] fss-preview-card">
+          <div class="px-3.5 py-2 bg-[#09132e] border-b border-blue-900/60 flex items-center justify-between fss-card-header">
+            <span class="font-bold text-slate-200 text-xs">Bảng đối chiếu danh sách mục</span>
+            <span id="fss-preview-count-label" class="text-[11px] text-slate-400"></span>
+          </div>
+          <div class="fss-table-container max-h-64 overflow-y-auto">
+            <table class="w-full text-left text-xs min-w-[540px] fss-table">
+              <thead class="bg-[#050b1a] text-slate-400 uppercase text-[10px] tracking-wider sticky top-0 border-b border-blue-950">
+                <tr>
+                  <th class="px-3 py-2 w-12 text-center">Seq</th>
+                  <th class="px-3 py-2">Từ vựng (FR)</th>
+                  <th class="px-3 py-2 w-24">Phân loại</th>
+                  <th class="px-3 py-2 w-16 text-center">Cấp độ</th>
+                  <th class="px-3 py-2">Nghĩa tiếng Việt</th>
+                  <th class="px-3 py-2 w-28 text-center">Trạng thái</th>
+                </tr>
+              </thead>
+              <tbody id="fss-import-table-body" class="divide-y divide-blue-950/60"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Overwrite options (cho mục ĐÃ CÓ ở mode ADD_SOURCE) -->
+        <div id="fss-import-overwrite-container" class="flex items-center gap-2 text-[11px] text-slate-300 pt-1">
+          <input type="checkbox" id="fss-import-overwrite-checkbox" class="rounded border-blue-900 bg-[#060a17] text-blue-500 focus:ring-0 cursor-pointer" />
+          <label for="fss-import-overwrite-checkbox" class="cursor-pointer">
+            Cập nhật nội dung (nghĩa, ví dụ) cho các mục ĐÃ CÓ (Mặc định giữ nguyên nội dung cũ và SRS, chỉ bổ sung ngữ cảnh mới)
+          </label>
+        </div>
+
+        <!-- Cloud Sync status badge & Local-only option (M43-B) -->
+        <div id="fss-import-cloud-sync-box" class="p-2.5 rounded-xl border border-blue-900/60 bg-[#070e22] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs">
+          <div class="flex items-center gap-2">
+            <span id="fss-cloud-sync-badge" class="px-2 py-0.5 rounded text-[11px] font-semibold flex items-center gap-1.5 bg-blue-500/20 text-blue-300 border border-blue-500/30">
+              <span id="fss-cloud-sync-badge-icon">☁️</span>
+              <span id="fss-cloud-sync-badge-text">Đang kiểm tra kết nối...</span>
+            </span>
+          </div>
+          <div class="flex flex-col gap-0.5">
+            <label class="flex items-center gap-2 cursor-pointer text-[11px] text-slate-300">
+              <input type="checkbox" id="fss-import-local-only-checkbox" class="rounded border-blue-900 bg-[#060a17] text-blue-500 focus:ring-0 cursor-pointer" />
+              <span class="font-medium">Chỉ lưu cục bộ (không đẩy lên Cloud ngay)</span>
+            </label>
+            <span class="text-[10px] text-slate-400 italic ml-5">
+              Chỉ bỏ qua lần đẩy toàn bộ này; nếu đang đăng nhập, các phiên học sau khi SRS đổi vẫn sẽ kích hoạt đồng bộ hẹn giờ.
+            </span>
+          </div>
+        </div>
+
+        <!-- Confirmation Text Boxes for Commit -->
+        <div id="fss-import-confirm-box-replace" class="hidden p-3.5 rounded-xl bg-[#060e22] border border-amber-600/80 space-y-2">
+          <label class="block text-xs font-bold text-amber-300">
+            Xác nhận thay thế toàn bộ kho: Gõ chính xác từ khóa <span class="text-white font-mono bg-amber-950/80 px-2 py-0.5 rounded border border-amber-600">THAY THE</span> để mở khóa ghi
+          </label>
+          <input type="text" id="fss-import-confirm-replace-input" oninput="window.checkCommitUnlock()" placeholder="Gõ THAY THE..." class="w-full sm:w-64 px-3 py-2 rounded-lg bg-[#040814] border border-amber-500/80 text-white font-mono text-xs focus:outline-none focus:border-amber-400" />
+        </div>
+
+        <div id="fss-import-confirm-box-restore" class="hidden p-3.5 rounded-xl bg-[#060e22] border border-blue-600/80 space-y-2">
+          <label class="block text-xs font-bold text-blue-300">
+            Xác nhận khôi phục kho: Gõ chính xác từ khóa <span class="text-white font-mono bg-blue-950/80 px-2 py-0.5 rounded border border-blue-600">KHOI PHUC</span> để mở khóa ghi
+          </label>
+          <input type="text" id="fss-import-confirm-restore-input" oninput="window.checkCommitUnlock()" placeholder="Gõ KHOI PHUC..." class="w-full sm:w-64 px-3 py-2 rounded-lg bg-[#040814] border border-blue-500/80 text-white font-mono text-xs focus:outline-none focus:border-blue-400" />
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- 3. PHẦN CUỐI CỐ ĐỊNH (flex-shrink: 0): Chọn chế độ + Nút xác nhận/ghi/tải sao lưu luôn thấy -->
+    <div id="fss-import-modal-footer" class="space-y-2.5">
+      
+      <!-- Hàng 1: Bộ chọn chế độ (Mode Selector Tabs) -->
+      <div class="flex items-center gap-1.5 border-b border-blue-900/40 pb-2 overflow-x-auto text-xs">
+        <span class="text-[11px] text-slate-400 font-medium shrink-0 mr-1">Chế độ:</span>
+        <button type="button" id="fss-tab-btn-add" onclick="window.switchVocabImportMode('ADD_SOURCE')" class="px-3 py-1.5 rounded-lg font-medium text-xs cursor-pointer transition">
+          1. Thêm nguồn mới (Mặc định)
+        </button>
+        <button type="button" id="fss-tab-btn-replace" onclick="window.switchVocabImportMode('REPLACE_ALL')" class="px-3 py-1.5 rounded-lg font-medium text-xs cursor-pointer transition">
+          2. Thay thế toàn bộ kho
+        </button>
+        <button type="button" id="fss-tab-btn-restore" onclick="window.switchVocabImportMode('RESTORE')" class="px-3 py-1.5 rounded-lg font-medium text-xs cursor-pointer transition">
+          3. Khôi phục từ sao lưu
+        </button>
+      </div>
+
+      <!-- Hàng 2: Trạng thái & Các nút hành động (Tải sao lưu, Hủy bỏ, Xác nhận ghi) -->
+      <div class="flex flex-wrap items-center justify-between gap-2 text-xs">
+        <div id="fss-import-status-text" class="text-slate-400 text-[11px] flex items-center gap-1.5 truncate">
+          <span>Sẵn sàng. Dữ liệu chỉ được ghi sau khi bạn xác nhận.</span>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 ml-auto">
+          <button type="button" id="fss-import-backup-btn" onclick="window.downloadVocabJsonBackup()" class="fss-btn-backup px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 transition cursor-pointer" title="Tải toàn bộ kho từ vựng hiện tại về máy dạng file JSON sao lưu an toàn">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+            <span>Tải file sao lưu JSON</span>
+          </button>
+          <button type="button" onclick="window.closeVocabImportModal()" class="fss-btn-cancel px-4 py-1.5 rounded-lg transition cursor-pointer">
+            Hủy bỏ
+          </button>
+          <button type="button" id="fss-import-commit-btn" disabled onclick="window.executeVocabCommit()" class="px-5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs flex items-center gap-1.5 transition cursor-pointer shadow-lg shadow-emerald-900/30">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            <span id="fss-import-commit-btn-text">Xác nhận ghi vào kho</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>

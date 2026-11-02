@@ -56,6 +56,14 @@ def update_cache_busters(t):
     return re.sub(r'(src|href)="((?:js|css)/[^"?]+)\?v=([^"]*)"', repl, t)
 
 def build():
+    # Đồng bộ duy nhất một nguồn: tools/ -> js/
+    for fn in ['schema-v02.js', 'french-utils.js', 'extract-prompt-template.js']:
+        src = P('tools') / fn
+        if src.exists():
+            (P('js') / fn).write_text(src.read_text(encoding='utf-8'), encoding='utf-8')
+    src_imp = P('tools') / 'vocab-importer.js'
+    if src_imp.exists():
+        (P('js') / '19-vocab-import-preview.js').write_text(src_imp.read_text(encoding='utf-8'), encoding='utf-8')
     src_text = update_cache_busters(SRC.read_text(encoding='utf-8'))
     SRC.write_text(src_text, encoding='utf-8')
     t = src_text; man = json.loads(MAN.read_text(encoding='utf-8'))

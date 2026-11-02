@@ -8,3 +8,7 @@ __pycache__/
 *.pyc
 .agents/**/__pycache__/
 mockup-ref/
+
+# Local backups
+backup/
+

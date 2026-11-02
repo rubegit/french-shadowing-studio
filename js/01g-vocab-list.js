@@ -686,6 +686,17 @@
     async function openVocabVideo(id) {
       const x = getVocab().find((v) => v.id === id);
       if (!x || !x.videoId) return;
+
+      // Rule 1 & 2: Thẻ có t_known === false thì không tua, hiện thông báo
+      if (x.t_known === false) {
+        if (typeof showVocabToast === 'function') {
+          showVocabToast('Từ vựng này chưa căn mốc thời gian trong video', false);
+        } else {
+          alert('Từ vựng này chưa căn mốc thời gian trong video');
+        }
+        return;
+      }
+
       if (x.bookId) { vocabScrollY = window.scrollY; await bkOpenFromVocab(x); return; }
       vocabScrollY = window.scrollY;
       const goPractice = () => {
@@ -729,7 +740,7 @@
 
       // (d) Video YouTube người dùng tự luyện (chưa/không còn lưu trọn bộ phụ đề trên máy):
       // Tuyệt đối KHÔNG mở tab YouTube ngoài! Mở ngay trong player của app, dựng phụ đề từ các câu từ vựng đã lưu.
-      const allMatchingVocab = getVocab().filter((v) => v.videoId === x.videoId && v.en);
+      const allMatchingVocab = getVocab().filter((v) => v.videoId === x.videoId && v.en && v.t_known !== false);
       const mapByTime = new Map();
       allMatchingVocab.forEach((v) => {
         const tKey = Math.round((v.t || 0) * 2) / 2;
@@ -745,7 +756,7 @@
           if (!cur.vi && v.vi) cur.vi = v.vi;
         }
       });
-      if (mapByTime.size === 0 && x.en) {
+      if (mapByTime.size === 0 && x.en && x.t_known !== false) {
         mapByTime.set(0, {
           startTime: Math.max(0, (x.t || 0) - 0.5),
           endTime: (x.t || 0) + 5,
@@ -867,10 +878,11 @@
       const ctx = x.he > x.hs
         ? escHtml(x.en.slice(0, x.hs)) + '<mark class="vocab-hl">' + escHtml(x.en.slice(x.hs, x.he)) + '</mark>' + escHtml(x.en.slice(x.he))
         : escHtml(x.en);
-      const yt = x.videoId ? `https://www.youtube.com/watch?v=${encodeURIComponent(x.videoId)}&t=${Math.max(0, Math.floor((x.t || 0) - 2))}s` : '';
+      const yt = (x.videoId && x.t_known !== false) ? `https://www.youtube.com/watch?v=${encodeURIComponent(x.videoId)}&t=${Math.max(0, Math.floor((x.t || 0) - 2))}s` : (x.videoId ? `https://www.youtube.com/watch?v=${encodeURIComponent(x.videoId)}` : '');
+      const timeStr = (x.t_known === false) ? '(chưa căn mốc)' : formatTime(x.t || 0);
       const src = x.bookId ? `<a href="#" title="Mở lại đúng câu này trong sách" onclick="openVocabVideo('${x.id}'); return false;">📖 ${escHtml(x.videoTitle || 'Sách')}</a>`
         : x.srcUrl ? `<a href="${escHtml(x.srcUrl)}" target="_blank" rel="noopener" title="Mở trang web gốc">🌐 ${escHtml(x.videoTitle || x.srcUrl)}</a>`
-        : x.videoId ? `<a href="javascript:void(0)" title="Mở lại đúng câu này trong Shadowing Studio" onclick="openVocabVideo('${x.id}'); return false;">▶ ${escHtml(x.videoTitle || x.videoId)} · ${formatTime(x.t || 0)}</a>` : '<span></span>';
+        : x.videoId ? `<a href="javascript:void(0)" title="Mở lại đúng câu này trong Shadowing Studio" onclick="openVocabVideo('${x.id}'); return false;">▶ ${escHtml(x.videoTitle || x.videoId)} · ${timeStr}</a>` : '<span></span>';
 
       let wordViBlock;
       if (vocabEditIds.has(x.id)) {
@@ -899,9 +911,10 @@
               </summary>
               <div class="vocab-multi-ctx-body">
                 ${extraContexts.map((c) => {
-                  const cYt = c.videoId ? `https://www.youtube.com/watch?v=${encodeURIComponent(c.videoId)}&t=${Math.max(0, Math.floor((c.t || 0) - 2))}s` : '';
+                  const cYt = (c.videoId && c.t_known !== false) ? `https://www.youtube.com/watch?v=${encodeURIComponent(c.videoId)}&t=${Math.max(0, Math.floor((c.t || 0) - 2))}s` : (c.videoId ? `https://www.youtube.com/watch?v=${encodeURIComponent(c.videoId)}` : '');
+                  const cTimeStr = (c.t_known === false) ? '(chưa căn mốc)' : formatTime(c.t || 0);
                   const cSrc = c.bookId ? `📖 ${escHtml(c.videoTitle || 'Sách')}`
-                    : c.videoId ? `<a href="${cYt}" target="_blank" rel="noopener">▶ ${escHtml(c.videoTitle || c.videoId)} · ${formatTime(c.t || 0)}</a>`
+                    : c.videoId ? `<a href="${cYt}" target="_blank" rel="noopener">▶ ${escHtml(c.videoTitle || c.videoId)} · ${cTimeStr}</a>`
                     : '';
                   return `
                     <div class="vocab-ctx-item">
@@ -1369,11 +1382,11 @@
         const isMain = matchVid(x.videoId, currentVideoId);
         let ctx = null;
         if (isMain && x.en && x.hs !== undefined && x.he !== undefined && x.hs >= 0) {
-          ctx = { en: x.en, hs: x.hs, he: x.he, vi: x.vi };
+          ctx = { en: x.en, hs: x.hs, he: x.he, vi: x.vi, t: x.t, t_known: x.t_known };
         } else if (Array.isArray(x.contexts)) {
           const c = x.contexts.find(function(c) { return matchVid(c.videoId, currentVideoId); });
           if (c && c.en && c.hs !== undefined && c.he !== undefined && c.hs >= 0) {
-            ctx = { en: c.en, hs: c.hs, he: c.he, vi: c.vi };
+            ctx = { en: c.en, hs: c.hs, he: c.he, vi: c.vi, t: c.t, t_known: c.t_known };
           }
         }
         return {
@@ -1432,7 +1445,8 @@
       });
     }
 
-    function buildKeyVocabPrompt() {
+    // Giữ nguyên bản prompt cũ (không xóa) làm dự phòng
+    function buildKeyVocabPromptLegacy() {
       const activeLevels = kvGetLevels();
       const levels = activeLevels.length ? activeLevels : KV_DEFAULT_LEVELS;
 
@@ -1515,12 +1529,56 @@
         + 'VD3: Elle n\'abandonne jamais ses rêves. || Cô ấy không bao giờ từ bỏ ước mơ.\n\n'
         + 'Văn bản tiếng Pháp:\n<<<\n' + aicPlainTranscript(sentences) + '\n>>>';
     }
+
+    // Hàm tạo prompt mới dựa trên khuôn mẫu M41
+    function buildKeyVocabPrompt() {
+      if (typeof window.ExtractPromptTemplate !== 'undefined' && typeof window.ExtractPromptTemplate.generateKeyVocabPrompt === 'function') {
+        var isDaCoChecked = false;
+        var chk = document.getElementById('kv-opt-daco');
+        if (chk && chk.checked) isDaCoChecked = true;
+
+        var activeLevels = kvGetLevels();
+        var levelsStr = activeLevels.length ? activeLevels.join(', ') : KV_DEFAULT_LEVELS.join(', ');
+
+        var vId = (typeof currentVideoId === 'string') ? currentVideoId.trim() : '';
+        if (!vId && typeof currentArticleId === 'string' && currentArticleId.trim()) {
+          vId = 'local:' + currentArticleId.trim();
+        }
+        if (!vId) {
+          return null;
+        }
+
+        var vTitle = (typeof currentVideoTitle === 'string') ? currentVideoTitle : '';
+
+        return window.ExtractPromptTemplate.generateKeyVocabPrompt({
+          videoId: vId,
+          videoTitle: vTitle,
+          levels: levelsStr,
+          types: 'từ, cụm từ, collocation, idiom, slang',
+          mode: 'TEXT',
+          seqStart: 1,
+          suaLoi: '',
+          includeDaCo: isDaCoChecked,
+          transcript: aicPlainTranscript(sentences)
+        });
+      }
+      return buildKeyVocabPromptLegacy();
+    }
     function copyKeyVocabPrompt(btn) {
       if (!sentences.length) {
         showVocabToast('Chưa có nội dung để tạo prompt.', false);
         return;
       }
-      const text = buildKeyVocabPrompt();
+      var text = null;
+      try {
+        text = buildKeyVocabPrompt();
+      } catch (err) {
+        text = null;
+      }
+      if (!text) {
+        showVocabToast('Không có mã nguồn (videoId) hợp lệ để tạo prompt.', false);
+        return;
+      }
       copyTextToClipboard(text).then(() => {
         flashCopied(btn, 1800);
         showVocabToast('✓ Đã copy prompt từ vựng khó vào bộ nhớ tạm!', true);
@@ -1544,7 +1602,51 @@
     }
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeKeyVocabModal(); });
 
+    function kvHandleFileSelect(input) {
+      if (!input || !input.files || !input.files[0]) return;
+      const file = input.files[0];
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const text = e.target.result;
+        const ta = document.getElementById('kv-textarea');
+        if (ta) ta.value = text;
+        const statusEl = document.getElementById('kv-status');
+        aiSetStatus(statusEl, '', 'Đã đọc xong file "' + file.name + '". Bạn có thể bấm "Áp dụng" để xem trước.');
+      };
+      reader.onerror = function () {
+        const statusEl = document.getElementById('kv-status');
+        aiSetStatus(statusEl, 'err', 'Không đọc được file.');
+      };
+      reader.readAsText(file, 'UTF-8');
+      input.value = '';
+    }
+    window.kvHandleFileSelect = kvHandleFileSelect;
+
     function applyKeyVocabAnswer() {
+      const statusEl = document.getElementById('kv-status');
+      const raw = (document.getElementById('kv-textarea').value || '').trim();
+      if (!raw) { aiSetStatus(statusEl, 'err', 'Bạn chưa dán câu trả lời của AI vào ô bên trên.'); return; }
+
+      // M42: Chuyển toàn bộ sang Vocab Importer Preview (Một đường nạp duy nhất)
+      closeKeyVocabModal();
+      const vId = (typeof currentVideoId === 'string') ? currentVideoId.trim() : '';
+      const srcId = vId ? (isTextMode ? 'local:' + vId : 'yt:' + vId) : '';
+      const vTitle = (typeof currentVideoTitle === 'string') ? currentVideoTitle : '';
+      const fileObj = {
+        fileName: vTitle || 'Từ khó AI (' + (vId || 'nguồn mới') + ')',
+        content: raw,
+        source_id: srcId,
+        title: vTitle
+      };
+      if (typeof window.openVocabImportModal === 'function') {
+        window.openVocabImportModal(fileObj, (typeof sentences !== 'undefined' && sentences && sentences.length) ? sentences : null);
+      } else {
+        alert('Không tìm thấy trình nạp từ vựng Vocab Importer.');
+      }
+    }
+
+    // legacy (giữ lại làm dự phòng, giao diện chính đã chuyển sang Vocab Importer)
+    function applyKeyVocabAnswerLegacy() {
       const statusEl = document.getElementById('kv-status');
       const raw = (document.getElementById('kv-textarea').value || '').trim();
       if (!raw) { aiSetStatus(statusEl, 'err', 'Bạn chưa dán câu trả lời của AI vào ô bên trên.'); return; }
@@ -1580,7 +1682,7 @@
       if (typeof renderVocabPage === 'function') renderVocabPage();
     }
 
-    // Tìm câu trong bài chứa từ này (ưu tiên đúng cụm chữ AI chép lại từ bài), để lấy ngữ cảnh + vị trí tô sáng
+    // legacy (giữ lại làm dự phòng): Tìm câu trong bài chứa từ này
     function kvFindContext(it) {
       const escRe = (t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const cands = [it.inText, it.term].filter((x) => x && x.length >= 2);
@@ -1749,6 +1851,26 @@
       if (btn) btn.textContent = isOpen ? 'Đóng' : 'Xem chú giải';
     };
 
+    window.kvJumpToContext = function (id) {
+      const items = kvGet();
+      const it = items.find((x) => x.id === id);
+      if (!it) return;
+      const tKnown = it.ctx ? (it.ctx.t_known !== false) : (it.rawItem ? it.rawItem.t_known !== false : true);
+      if (!tKnown) {
+        if (typeof showVocabToast === 'function') {
+          showVocabToast('Từ vựng này chưa căn mốc thời gian trong video', false);
+        } else {
+          alert('Từ vựng này chưa căn mốc thời gian trong video');
+        }
+        return;
+      }
+      const t = (it.ctx && typeof it.ctx.t === 'number') ? it.ctx.t : (it.rawItem ? it.rawItem.t : 0);
+      if (typeof seekToTime === 'function' && typeof getSentenceIndexForTime === 'function' && sentences && sentences.length) {
+        const s = sentences[getSentenceIndexForTime(t || 0)];
+        seekToTime(Math.max(0, s ? s.startTime : (t || 0)), undefined, true, null, true);
+      }
+    };
+
     window.renderRightPanelKeyVocab = function (filterLevel) {
       if (filterLevel !== undefined) window.rightPanelKvFilter = filterLevel;
       const curFilter = window.rightPanelKvFilter || 'all';
@@ -1787,16 +1909,17 @@
       } else {
         listHtml = items.map((it) => {
           let ctxHtml = '';
+          const unalignedTag = (it.ctx && it.ctx.t_known === false) ? '<span class="text-[10px] text-amber-400 font-normal ml-1">(chưa căn)</span>' : '';
           if (it.ctx && it.ctx.en) {
             const en = String(it.ctx.en || '');
             const hs = it.ctx.hs >= 0 ? it.ctx.hs : 0;
             const he = it.ctx.he > hs ? it.ctx.he : hs;
-            ctxHtml = `<p class="vocab-ctx">${escHtml(en.slice(0, hs))}<mark class="vocab-hl">${escHtml(en.slice(hs, he))}</mark>${escHtml(en.slice(he))}</p>`;
+            ctxHtml = `<p class="vocab-ctx cursor-pointer" onclick="window.kvJumpToContext && window.kvJumpToContext('${it.id}')" title="Bấm để nhảy tới câu này trong bài">${escHtml(en.slice(0, hs))}<mark class="vocab-hl">${escHtml(en.slice(hs, he))}</mark>${escHtml(en.slice(he))}${unalignedTag}</p>`;
           } else {
             const ctx = kvFindContext(it);
             if (ctx) {
               const en = String(ctx.s.text || '');
-              ctxHtml = `<p class="vocab-ctx">${escHtml(en.slice(0, ctx.hs))}<mark class="vocab-hl">${escHtml(en.slice(ctx.hs, ctx.he))}</mark>${escHtml(en.slice(ctx.he))}</p>`;
+              ctxHtml = `<p class="vocab-ctx cursor-pointer" onclick="window.kvJumpToContext && window.kvJumpToContext('${it.id}')" title="Bấm để nhảy tới câu này trong bài">${escHtml(en.slice(0, ctx.hs))}<mark class="vocab-hl">${escHtml(en.slice(ctx.hs, ctx.he))}</mark>${escHtml(en.slice(ctx.he))}</p>`;
             }
           }
           const exHtml = (it.examples || []).map((e) => `<div><p class="vocab-ex-en">${hlExample(String(e.en || ''), it.term)}</p>${e.vi ? `<p class="vocab-ex-vi">${escHtml(e.vi)}</p>` : ''}</div>`).join('');
