@@ -115,29 +115,67 @@
     return Object.assign(translateSkillDefault(), item && item.skills && item.skills.translate ? item.skills.translate : {});
   }
 
-  function translateSkillCompute(s, isCorrect) {
+  const TRANSLATE_SM2_CONSTANTS = {
+    FAIL_EASE_PENALTY: 0.25,
+    NEAR_FAIL_EASE_PENALTY: 0.10,
+    PERFECT_EASE_BONUS: 0.15,
+    MIN_EASE: 1.3,
+    MAX_EASE: 2.8,
+    FAIL_DUE_MS: 10 * 60 * 1000,
+    PERFECT_BONUS_MULTIPLIER: 1.2,
+    HARD_MULTIPLIER: 1.2
+  };
+
+  function translateSkillCompute(s, isCorrect, hintLevel = 0) {
     let { ease, interval, reps } = s;
     const now = Date.now();
 
-    if (!isCorrect) {
-      // Trả lời sai giảm mạnh hơn trắc nghiệm (ease giảm 0.25 thay vì 0.2, reps về 0)
+    // 1. Trả lời sai hoặc xem full đáp án (hintLevel >= 5): Đánh giá Fail
+    if (!isCorrect || hintLevel >= 5) {
       reps = 0;
-      ease = Math.max(1.3, ease - 0.25);
+      ease = Math.max(TRANSLATE_SM2_CONSTANTS.MIN_EASE, ease - TRANSLATE_SM2_CONSTANTS.FAIL_EASE_PENALTY);
       interval = 0;
-      return { ease, interval, reps, due: now + 10 * 60 * 1000, lastReview: now };
+      return { ease, interval, reps, due: now + TRANSLATE_SM2_CONSTANTS.FAIL_DUE_MS, lastReview: now };
     }
 
-    // Trả lời gõ đúng câu dịch tăng interval nhiều hơn trắc nghiệm
+    // 2. Đúng nhưng có dùng gợi ý mức 3 hoặc 4 (Mở từ theo thứ tự / Nghe mẫu): Đánh giá gần trượt
+    if (hintLevel >= 3) {
+      ease = Math.max(TRANSLATE_SM2_CONSTANTS.MIN_EASE, ease - TRANSLATE_SM2_CONSTANTS.NEAR_FAIL_EASE_PENALTY);
+      const currentInterval = Math.max(1, interval);
+      return {
+        ease,
+        interval: currentInterval,
+        reps,
+        due: now + currentInterval * 24 * 60 * 60 * 1000,
+        lastReview: now
+      };
+    }
+
+    // 3. Đúng với gợi ý mức 1 hoặc 2 (Gạch chữ / Chữ cái đầu): Đánh giá Hard
+    if (hintLevel >= 1) {
+      if (reps === 0) interval = 1;
+      else interval = Math.max(1, Math.round(interval * TRANSLATE_SM2_CONSTANTS.HARD_MULTIPLIER));
+      reps += 1;
+      return {
+        ease,
+        interval,
+        reps,
+        due: now + interval * 24 * 60 * 60 * 1000,
+        lastReview: now
+      };
+    }
+
+    // 4. Đúng hoàn toàn không dùng gợi ý (hintLevel === 0): Thăng cấp bình thường (Good / Easy)
     if (reps === 0) interval = 2; // trắc nghiệm là 1
     else if (reps === 1) interval = 4; // trắc nghiệm là 3
-    else interval = Math.max(1, Math.round(interval * ease * 1.2)); // thưởng 1.2x
+    else interval = Math.max(1, Math.round(interval * ease * TRANSLATE_SM2_CONSTANTS.PERFECT_BONUS_MULTIPLIER));
 
-    ease = Math.min(2.8, ease + 0.15);
+    ease = Math.min(TRANSLATE_SM2_CONSTANTS.MAX_EASE, ease + TRANSLATE_SM2_CONSTANTS.PERFECT_EASE_BONUS);
     reps += 1;
     return { ease, interval, reps, due: now + interval * 24 * 60 * 60 * 1000, lastReview: now };
   }
 
-  function updateItemTranslateSkill(itemId, isCorrect) {
+  function updateItemTranslateSkill(itemId, isCorrect, hintLevel = 0) {
     if (!itemId) return null;
     const all = getRawVocabList();
     const item = all.find(v => v.id === itemId);
@@ -145,7 +183,7 @@
 
     item.skills = item.skills || {};
     const current = getTranslateSkill(item);
-    const updated = translateSkillCompute(current, isCorrect);
+    const updated = translateSkillCompute(current, isCorrect, hintLevel);
     item.skills.translate = updated;
 
     // TUYỆT ĐỐI KHÔNG chạm vào item.srs!
@@ -215,8 +253,127 @@
     matchElapsedMs: 0,
 
     // Flashcard state
-    isCardFlipped: false
+    isCardFlipped: false,
+
+    // Translate Mode state
+    translateHintLevel: 0,        // 0: chưa gợi ý, 1: gạch, 2: chữ cái đầu, 3: mở từ theo thứ tự, 4: TTS, >=5: xem đáp án
+    translateRevealedWords: 0,    // Số từ đã mở trọn vẹn ở mức 3
+    translateCanAdvance: false,   // Khóa Enter ngăn tự động bỏ qua khi vừa submit
+    translateAdvancing: false
   };
+
+  // Font Scaling controls (Nhỏ, Vừa, Lớn, Rất lớn)
+  const FONT_SCALE_LEVELS = [0.92, 1.08, 1.24, 1.42];
+  const FONT_SCALE_LABELS = ['Nhỏ', 'Vừa', 'Lớn', 'Rất lớn'];
+  const FONT_SCALE_STORAGE_KEY = 'fss_practice_font_scale';
+
+  function getFontScaleIndex() {
+    try {
+      const saved = localStorage.getItem(FONT_SCALE_STORAGE_KEY);
+      if (saved !== null) {
+        const idx = parseInt(saved, 10);
+        if (!isNaN(idx) && idx >= 0 && idx < FONT_SCALE_LEVELS.length) return idx;
+      }
+    } catch (_) {}
+    return 1; // Mặc định: 'Vừa' (1.08)
+  }
+
+  function setFontScaleIndex(idx) {
+    const clamped = Math.max(0, Math.min(FONT_SCALE_LEVELS.length - 1, idx));
+    try {
+      localStorage.setItem(FONT_SCALE_STORAGE_KEY, String(clamped));
+    } catch (_) {}
+    applyFontScale(clamped);
+    return clamped;
+  }
+
+  function applyFontScale(idx) {
+    const scale = FONT_SCALE_LEVELS[idx] || 1.08;
+    const modal = (typeof document.querySelector === 'function' ? document.querySelector('.vph-modal') : null)
+      || (typeof document.getElementById === 'function' ? document.getElementById('vph-modal') : null);
+    if (modal && modal.style) {
+      if (typeof modal.style.setProperty === 'function') {
+        modal.style.setProperty('--vph-font-scale', String(scale));
+      } else {
+        modal.style['--vph-font-scale'] = String(scale);
+      }
+    }
+    const labelEl = typeof document.getElementById === 'function' ? document.getElementById('vph-font-scale-label') : null;
+    if (labelEl) {
+      labelEl.textContent = FONT_SCALE_LABELS[idx] || 'Vừa';
+    }
+  }
+
+  // Multi-level Sentence Hint Formatter
+  function tokenizeFrenchSentence(sentence) {
+    const tokens = [];
+    const regex = /([a-zA-ZàâäéèêëîïôöùûüçÀÂÄÉÈÊËÎÏÔÖÙÛÜÇ]+)|([^a-zA-ZàâäéèêëîïôöùûüçÀÂÄÉÈÊËÎÏÔÖÙÛÜÇ]+)/g;
+    let match;
+    let wordIndex = 0;
+    while ((match = regex.exec(sentence)) !== null) {
+      if (match[1]) {
+        tokens.push({ text: match[1], isWord: true, wordIndex: wordIndex++ });
+      } else if (match[2]) {
+        tokens.push({ text: match[2], isWord: false });
+      }
+    }
+    return { tokens, totalWords: wordIndex };
+  }
+
+  function countSentenceWords(sentence) {
+    return tokenizeFrenchSentence(sentence || '').totalWords;
+  }
+
+  function formatWordBlanks(word, showFirstLetter) {
+    if (!word) return '';
+    if (word.length === 1) {
+      return showFirstLetter ? word : '_';
+    }
+    if (showFirstLetter) {
+      const rest = Array(word.length - 1).fill('_').join(' ');
+      return `${word[0]} ${rest}`;
+    }
+    return Array(word.length).fill('_').join(' ');
+  }
+
+  function generateSentenceHint(sentence, level, revealedWordsCount = 0) {
+    if (!sentence || level <= 0) return '';
+    const { tokens } = tokenizeFrenchSentence(sentence);
+
+    function isWordFullyRevealed(idx) {
+      if (idx < 0 || idx >= tokens.length) return false;
+      const t = tokens[idx];
+      if (!t || !t.isWord) return false;
+      if (level >= 4) return true;
+      if (level === 3 && typeof t.wordIndex === 'number' && t.wordIndex < revealedWordsCount) return true;
+      return false;
+    }
+
+    return tokens.map((tok, idx) => {
+      if (!tok.isWord) {
+        if (level < 4) {
+          // Tìm từ đứng trước và từ đứng sau khoảng trắng này
+          let prevWordIdx = idx - 1;
+          while (prevWordIdx >= 0 && !tokens[prevWordIdx].isWord) prevWordIdx--;
+          let nextWordIdx = idx + 1;
+          while (nextWordIdx < tokens.length && !tokens[nextWordIdx].isWord) nextWordIdx++;
+
+          const bothRevealed = isWordFullyRevealed(prevWordIdx) && isWordFullyRevealed(nextWordIdx);
+          if (bothRevealed) {
+            return tok.text;
+          }
+          // Khi có từ đang hiển thị dạng gạch rời (_ _), khoảng trắng giữa các từ nhân đôi
+          // để phân biệt rõ ranh giới giữa các từ theo đúng quy cách: "_ _ _  _ _ _ _ _"
+          return tok.text.replace(/ /g, '  ');
+        }
+        return tok.text;
+      }
+      if (level >= 4) return tok.text;
+      if (level === 3 && tok.wordIndex < revealedWordsCount) return tok.text;
+      const showFirst = (level >= 2);
+      return formatWordBlanks(tok.text, showFirst);
+    }).join('');
+  }
 
   // Web Audio Synthesizer for instant offline sound feedback
   let audioCtx = null;
@@ -1000,13 +1157,7 @@
         rateFlashcard('easy');
       }
     } else if (state.currentMode === 'translate') {
-      if (e.key === 'Enter' && state.answered) {
-        const nextBtn = document.getElementById('vph-translate-next-btn');
-        if (nextBtn) {
-          e.preventDefault();
-          nextBtn.click();
-        }
-      }
+      handleTranslateKeydown(e);
     }
   }
 
@@ -2080,6 +2231,10 @@
   // ==================== TRANSLATE MODE ENGINE (M44) ====================
   function renderTranslateQuestion() {
     state.answered = false;
+    state.translateCanAdvance = false;
+    state.translateHintLevel = 0;
+    state.translateRevealedWords = 0;
+
     const body = document.getElementById('vph-body');
     if (!body) return;
 
@@ -2092,6 +2247,7 @@
     const q = state.questions[state.currentIndex];
     const qNum = `Câu ${state.currentIndex + 1} / ${state.questions.length}`;
     const levelBadge = q.item?.level ? `<span class="vph-level-badge">${escHtml(q.item.level)}</span>` : '';
+    const currentScaleIdx = getFontScaleIndex();
 
     const skippedTotal = (state.translateSkippedInfo?.lowReps || 0) + (state.translateSkippedInfo?.noExamples || 0);
     const skippedNotice = skippedTotal > 0 && state.currentIndex === 0
@@ -2103,9 +2259,16 @@
     body.innerHTML = `
       <div class="vph-translate-container">
         ${skippedNotice}
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <span style="font-size:12px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.04em">${qNum}</span>
-          ${levelBadge}
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:12px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.04em">${qNum}</span>
+            ${levelBadge}
+          </div>
+          <div class="vph-font-controls" title="Điều chỉnh cỡ chữ bài luyện">
+            <button type="button" class="vph-font-btn" id="vph-font-dec-btn" title="Giảm cỡ chữ (A−)">A−</button>
+            <span class="vph-font-label" id="vph-font-scale-label">${FONT_SCALE_LABELS[currentScaleIdx]}</span>
+            <button type="button" class="vph-font-btn" id="vph-font-inc-btn" title="Tăng cỡ chữ (A+)">A+</button>
+          </div>
         </div>
 
         <div class="vph-translate-prompt-box">
@@ -2115,6 +2278,7 @@
             <span>💡 Gợi ý từ vựng:</span>
             <span class="vph-hint-pill">${escHtml(q.wordVi || q.frenchWord)}</span>
           </div>
+          <div class="vph-translate-hint-section" id="vph-translate-hint-section"></div>
         </div>
 
         <div style="display:flex; flex-direction:column; gap:8px;">
@@ -2122,7 +2286,7 @@
             id="vph-translate-input"
             class="vph-translate-textarea"
             rows="2"
-            placeholder="Nhập câu tiếng Pháp... (Nhấn Enter để kiểm tra)"
+            placeholder="Nhập câu tiếng Pháp... (Enter: kiểm tra, Shift+Enter: xuống dòng)"
             autocomplete="off"
             autocapitalize="none"
             spellcheck="false"
@@ -2130,23 +2294,36 @@
         </div>
 
         <div class="vph-translate-controls">
-          <div style="display:flex; flex-direction:column; gap:6px;">
-            <label class="vph-toggle-label" title="Khi bật, hệ thống sẽ bỏ qua sự khác nhau về dấu é, è, ê, à... và dấu câu cuối">
-              <input type="checkbox" id="vph-translate-ignore-accents" ${state.translateIgnoreAccents ? 'checked' : ''}>
-              <span>Bỏ qua dấu phụ (accents)</span>
-            </label>
-            <label class="vph-toggle-label" title="Luyện dịch cả những thẻ từ vựng mới học (reps < 2) nhưng đã có câu ví dụ song ngữ">
-              <input type="checkbox" id="vph-translate-include-low-reps" ${state.translateIncludeLowReps ? 'checked' : ''}>
-              <span>Gồm cả thẻ chưa đạt nhận biết (reps &lt; 2)</span>
-            </label>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
+              <button type="button" class="vph-secondary-btn" id="vph-translate-hint-btn" title="Phím tắt: ? hoặc Ctrl+H">
+                <span>💡 Gợi ý (Mức 1/4)</span>
+              </button>
+              <button type="button" class="vph-secondary-btn" id="vph-translate-speak-btn" title="Nghe phát âm tiếng Pháp">
+                <span>🔊 Nghe gợi ý</span>
+              </button>
+              <button type="button" class="vph-secondary-btn" id="vph-translate-reveal-btn" title="Xem đáp án (tính là câu sai)">
+                <span>👁️ Xem đáp án</span>
+              </button>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:6px;">
+              <label class="vph-toggle-label" title="Khi bật, hệ thống sẽ bỏ qua sự khác nhau về dấu é, è, ê, à... và dấu câu cuối">
+                <input type="checkbox" id="vph-translate-ignore-accents" ${state.translateIgnoreAccents ? 'checked' : ''}>
+                <span>Bỏ qua dấu phụ (accents)</span>
+              </label>
+              <label class="vph-toggle-label" title="Luyện dịch cả những thẻ từ vựng mới học (reps < 2) nhưng đã có câu ví dụ song ngữ">
+                <input type="checkbox" id="vph-translate-include-low-reps" ${state.translateIncludeLowReps ? 'checked' : ''}>
+                <span>Gồm cả thẻ chưa đạt nhận biết (reps &lt; 2)</span>
+              </label>
+            </div>
           </div>
 
-          <div style="display:flex; gap:8px;">
+          <div style="display:flex; gap:8px; align-items:flex-start;">
             <button type="button" class="vph-secondary-btn" id="vph-translate-skip-btn">
               <span>Bỏ qua</span>
             </button>
             <button type="button" class="vph-primary-btn" id="vph-translate-submit-btn">
-              <span>Kiểm tra đáp án</span>
+              <span>Kiểm tra (Enter)</span>
             </button>
           </div>
         </div>
@@ -2155,22 +2332,47 @@
       </div>
     `;
 
+    applyFontScale(currentScaleIdx);
+
     const input = document.getElementById('vph-translate-input');
     const toggleAccents = document.getElementById('vph-translate-ignore-accents');
     const toggleLowReps = document.getElementById('vph-translate-include-low-reps');
     const submitBtn = document.getElementById('vph-translate-submit-btn');
     const skipBtn = document.getElementById('vph-translate-skip-btn');
+    const hintBtn = document.getElementById('vph-translate-hint-btn');
+    const speakBtn = document.getElementById('vph-translate-speak-btn');
+    const revealBtn = document.getElementById('vph-translate-reveal-btn');
+    const fontDecBtn = document.getElementById('vph-font-dec-btn');
+    const fontIncBtn = document.getElementById('vph-font-inc-btn');
 
     if (input) {
       input.focus();
-      input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-          e.preventDefault();
-          if (!state.answered) {
-            handleTranslateSubmit();
-          }
-        }
+    }
+
+    if (fontDecBtn) {
+      fontDecBtn.addEventListener('click', () => {
+        setFontScaleIndex(getFontScaleIndex() - 1);
       });
+    }
+
+    if (fontIncBtn) {
+      fontIncBtn.addEventListener('click', () => {
+        setFontScaleIndex(getFontScaleIndex() + 1);
+      });
+    }
+
+    if (hintBtn) {
+      hintBtn.addEventListener('click', handleTranslateHintAdvance);
+    }
+
+    if (speakBtn) {
+      speakBtn.addEventListener('click', () => {
+        speakFrench(q.expectedFr);
+      });
+    }
+
+    if (revealBtn) {
+      revealBtn.addEventListener('click', handleTranslateRevealAnswer);
     }
 
     if (toggleAccents) {
@@ -2192,6 +2394,127 @@
 
     if (skipBtn) {
       skipBtn.addEventListener('click', handleTranslateSkip);
+    }
+  }
+
+  function advanceToNextTranslateQuestion() {
+    if (state.translateAdvancing) return;
+    state.translateAdvancing = true;
+    state.currentIndex++;
+    renderTranslateQuestion();
+    setTimeout(() => {
+      state.translateAdvancing = false;
+    }, 100);
+  }
+
+  function handleTranslateHintAdvance() {
+    if (state.answered) return;
+    const q = state.questions[state.currentIndex];
+    if (!q || !q.expectedFr) return;
+
+    const totalWords = countSentenceWords(q.expectedFr);
+
+    if (state.translateHintLevel === 0) {
+      state.translateHintLevel = 1;
+    } else if (state.translateHintLevel === 1) {
+      state.translateHintLevel = 2;
+    } else if (state.translateHintLevel === 2) {
+      state.translateHintLevel = 3;
+      state.translateRevealedWords = 1;
+    } else if (state.translateHintLevel === 3) {
+      if (state.translateRevealedWords < totalWords) {
+        state.translateRevealedWords++;
+      } else {
+        state.translateHintLevel = 4;
+        speakFrench(q.expectedFr);
+      }
+    } else if (state.translateHintLevel >= 4) {
+      speakFrench(q.expectedFr);
+    }
+
+    updateTranslateHintUI();
+  }
+
+  function updateTranslateHintUI() {
+    const q = state.questions[state.currentIndex];
+    if (!q || !q.expectedFr) return;
+
+    const totalWords = countSentenceWords(q.expectedFr);
+    const hintSec = document.getElementById('vph-translate-hint-section');
+    const hintBtn = document.getElementById('vph-translate-hint-btn');
+
+    if (hintSec) {
+      if (state.translateHintLevel > 0) {
+        const hintText = generateSentenceHint(q.expectedFr, state.translateHintLevel, state.translateRevealedWords);
+        let levelLabel = `Mức ${state.translateHintLevel}/4`;
+        if (state.translateHintLevel === 1) levelLabel += ': Số từ & độ dài';
+        else if (state.translateHintLevel === 2) levelLabel += ': Chữ cái đầu';
+        else if (state.translateHintLevel === 3) levelLabel += `: Mở từ (${state.translateRevealedWords}/${totalWords})`;
+        else if (state.translateHintLevel >= 4) levelLabel += ': Nghe câu mẫu';
+
+        hintSec.innerHTML = `
+          <div class="vph-hint-display">
+            <div style="font-size:11px; text-transform:uppercase; color:#f59e0b; font-weight:700; margin-bottom:4px;">
+              💡 Gợi ý câu (${levelLabel}):
+            </div>
+            <div class="vph-hint-code">${escHtml(hintText)}</div>
+          </div>
+        `;
+      } else {
+        hintSec.innerHTML = '';
+      }
+    }
+
+    if (hintBtn) {
+      let nextLabel = 'Mức 1/4';
+      if (state.translateHintLevel === 1) nextLabel = 'Mức 2/4 (Chữ đầu)';
+      else if (state.translateHintLevel === 2) nextLabel = 'Mức 3/4 (Mở từ)';
+      else if (state.translateHintLevel === 3) {
+        nextLabel = state.translateRevealedWords < totalWords
+          ? `Mở tiếp từ (${state.translateRevealedWords + 1}/${totalWords})`
+          : 'Mức 4/4 (Nghe)';
+      } else if (state.translateHintLevel >= 4) {
+        nextLabel = 'Nghe lại 🔊';
+      }
+      hintBtn.innerHTML = `<span>💡 Gợi ý (${nextLabel})</span>`;
+    }
+  }
+
+  function handleTranslateRevealAnswer() {
+    if (state.answered) return;
+    state.translateHintLevel = 5; // Mức >= 5: Xem đáp án (tính là câu sai)
+    handleTranslateSkip();
+  }
+
+  function handleTranslateKeydown(e) {
+    if (!state.isOpen || state.currentMode !== 'translate') return;
+
+    // Phím tắt gợi ý: Ctrl+H hoặc Cmd+H hoặc phím '?' khi không gõ chữ
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'h' || e.key === 'H')) {
+      e.preventDefault();
+      handleTranslateHintAdvance();
+      return;
+    }
+    if (e.key === '?' && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+      handleTranslateHintAdvance();
+      return;
+    }
+
+    if (e.key !== 'Enter') return;
+
+    // Cho phép Shift+Enter xuống dòng trong textarea
+    if (e.shiftKey) return;
+
+    // Bỏ qua nếu đang gõ bộ gõ tiếng Việt (IME composing) hoặc phím đang giữ lặp lại (repeat)
+    if (e.isComposing || e.keyCode === 229 || e.repeat) return;
+
+    if (!state.answered) {
+      e.preventDefault();
+      handleTranslateSubmit();
+    } else if (state.translateCanAdvance) {
+      e.preventDefault();
+      advanceToNextTranslateQuestion();
     }
   }
 
@@ -2243,6 +2566,8 @@
     const feedbackArea = document.getElementById('vph-translate-feedback');
     const submitBtn = document.getElementById('vph-translate-submit-btn');
     const skipBtn = document.getElementById('vph-translate-skip-btn');
+    const hintBtn = document.getElementById('vph-translate-hint-btn');
+    const revealBtn = document.getElementById('vph-translate-reveal-btn');
     if (!input) return;
 
     const userAnswer = input.value.trim();
@@ -2252,9 +2577,16 @@
     }
 
     state.answered = true;
+    state.translateCanAdvance = false;
+    setTimeout(() => {
+      state.translateCanAdvance = true;
+    }, 180);
+
     input.disabled = true;
     if (submitBtn) submitBtn.style.display = 'none';
     if (skipBtn) skipBtn.style.display = 'none';
+    if (hintBtn) hintBtn.disabled = true;
+    if (revealBtn) revealBtn.disabled = true;
 
     const q = state.questions[state.currentIndex];
     const mode = state.translateIgnoreAccents ? 'lenient' : 'strict';
@@ -2280,24 +2612,31 @@
       if (state.streak > state.maxStreak) state.maxStreak = state.streak;
       updateStatsBar();
 
-      // Cập nhật SM-2 Translate Skill (ĐÚNG)
-      updateItemTranslateSkill(q.item?.id, true);
+      // Cập nhật SM-2 Translate Skill với hintLevel đã dùng
+      updateItemTranslateSkill(q.item?.id, true, state.translateHintLevel);
 
       if (feedbackArea) {
         feedbackArea.innerHTML = `
-          <div class="vph-feedback-box success" style="display:flex; flex-direction:column; gap:6px;">
-            <div style="font-weight:700;">🎉 Chính xác!</div>
-            <div style="font-size:15px; color:#ecfdf5;">${escHtml(q.expectedFr)}</div>
+          <div class="vph-feedback-box success" style="display:flex; flex-direction:column; gap:8px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div style="font-weight:700;">🎉 Chính xác!</div>
+              <button type="button" id="vph-translate-next-btn" class="vph-primary-btn" style="padding:6px 14px; font-size:13px;">
+                <span>Câu tiếp (Enter) ➔</span>
+              </button>
+            </div>
+            <div style="font-size:calc(1.15rem * var(--vph-font-scale, 1.08)); font-weight:600; color:#ecfdf5;">${escHtml(q.expectedFr)}</div>
           </div>
         `;
+        document.getElementById('vph-translate-next-btn')?.addEventListener('click', advanceToNextTranslateQuestion);
       }
 
       speakFrench(q.expectedFr);
 
       setTimeout(() => {
-        state.currentIndex++;
-        renderTranslateQuestion();
-      }, 1800);
+        if (state.answered && state.currentMode === 'translate') {
+          advanceToNextTranslateQuestion();
+        }
+      }, 2000);
     } else {
       playSound('wrong');
       state.streak = 0;
@@ -2308,7 +2647,7 @@
       updateStatsBar();
 
       // Cập nhật SM-2 Translate Skill (SAI)
-      updateItemTranslateSkill(q.item?.id, false);
+      updateItemTranslateSkill(q.item?.id, false, state.translateHintLevel);
 
       const wordDiffHtml = renderWordDiffHtml(userAnswer, q.expectedFr);
 
@@ -2318,18 +2657,18 @@
             <div style="font-weight:700;">Chưa chính xác!</div>
             <div>
               <div style="font-size:11px; text-transform:uppercase; color:#94a3b8; font-weight:700;">Đáp án chuẩn:</div>
-              <div style="font-size:15px; font-weight:600; color:#6ee7b7; margin-top:2px;">${escHtml(q.expectedFr)}</div>
+              <div style="font-size:calc(1.15rem * var(--vph-font-scale, 1.08)); font-weight:600; color:#6ee7b7; margin-top:2px;">${escHtml(q.expectedFr)}</div>
             </div>
             <div>
               <div style="font-size:11px; text-transform:uppercase; color:#94a3b8; font-weight:700;">So sánh chi tiết theo từ:</div>
               <div class="vph-word-diff-box">${wordDiffHtml}</div>
             </div>
-            <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:8px; margin-top:4px;">
+            <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:8px; margin-top:6px;">
               <button type="button" id="vph-accept-alt-btn" class="vph-btn-accept-alt" title="Lưu cách diễn đạt này vào danh sách được chấp nhận cho riêng bạn">
                 💡 Chấp nhận cách nói khác
               </button>
               <button type="button" id="vph-translate-next-btn" class="vph-primary-btn">
-                <span>Tiếp tục (Enter) ➔</span>
+                <span>Câu tiếp (Enter) ➔</span>
               </button>
             </div>
           </div>
@@ -2339,10 +2678,7 @@
           handleAcceptAlternative(q, userAnswer);
         });
 
-        document.getElementById('vph-translate-next-btn')?.addEventListener('click', () => {
-          state.currentIndex++;
-          renderTranslateQuestion();
-        });
+        document.getElementById('vph-translate-next-btn')?.addEventListener('click', advanceToNextTranslateQuestion);
       }
     }
   }
@@ -2363,7 +2699,7 @@
     persistVocabList(all);
 
     // Hồi phục lại điểm và ghi nhận đúng
-    updateItemTranslateSkill(item.id, true);
+    updateItemTranslateSkill(item.id, true, state.translateHintLevel);
     if (state.wrongList.length > 0 && state.wrongList[state.wrongList.length - 1].frenchWord === q.expectedFr) {
       state.wrongList.pop();
     }
@@ -2381,13 +2717,22 @@
   function handleTranslateSkip() {
     if (state.answered) return;
     state.answered = true;
+    state.translateCanAdvance = false;
+    setTimeout(() => {
+      state.translateCanAdvance = true;
+    }, 180);
+
     const input = document.getElementById('vph-translate-input');
     const feedbackArea = document.getElementById('vph-translate-feedback');
     const submitBtn = document.getElementById('vph-translate-submit-btn');
     const skipBtn = document.getElementById('vph-translate-skip-btn');
+    const hintBtn = document.getElementById('vph-translate-hint-btn');
+    const revealBtn = document.getElementById('vph-translate-reveal-btn');
     if (input) input.disabled = true;
     if (submitBtn) submitBtn.style.display = 'none';
     if (skipBtn) skipBtn.style.display = 'none';
+    if (hintBtn) hintBtn.disabled = true;
+    if (revealBtn) revealBtn.disabled = true;
 
     playSound('wrong');
     const q = state.questions[state.currentIndex];
@@ -2398,25 +2743,23 @@
     });
     updateStatsBar();
 
-    // Giảm SM-2
-    updateItemTranslateSkill(q.item?.id, false);
+    // Giảm SM-2 (tính là sai / fail)
+    updateItemTranslateSkill(q.item?.id, false, state.translateHintLevel >= 5 ? 5 : 0);
 
     if (feedbackArea) {
+      const title = state.translateHintLevel >= 5 ? 'Đáp án là:' : 'Đáp án chuẩn là:';
       feedbackArea.innerHTML = `
         <div class="vph-feedback-box error" style="display:flex; flex-direction:column; gap:8px;">
-          <div style="font-weight:700;">Đáp án chuẩn là:</div>
-          <div style="font-size:16px; font-weight:600; color:#6ee7b7;">${escHtml(q.expectedFr)}</div>
+          <div style="font-weight:700;">${title}</div>
+          <div style="font-size:calc(1.15rem * var(--vph-font-scale, 1.08)); font-weight:600; color:#6ee7b7;">${escHtml(q.expectedFr)}</div>
           <div style="margin-top:6px;">
             <button type="button" id="vph-translate-next-btn" class="vph-primary-btn">
-              <span>Tiếp tục (Enter) ➔</span>
+              <span>Câu tiếp (Enter) ➔</span>
             </button>
           </div>
         </div>
       `;
-      document.getElementById('vph-translate-next-btn')?.addEventListener('click', () => {
-        state.currentIndex++;
-        renderTranslateQuestion();
-      });
+      document.getElementById('vph-translate-next-btn')?.addEventListener('click', advanceToNextTranslateQuestion);
     }
 
     speakFrench(q.expectedFr);
@@ -2509,6 +2852,7 @@
     }
     updateScopeOptions();
     backdrop.classList.add('open');
+    applyFontScale(getFontScaleIndex());
 
     // Cập nhật trạng thái active cho tab hiện tại
     document.querySelectorAll('.vph-tab-btn').forEach(b => {
@@ -2540,6 +2884,22 @@
     translateSkillCompute: translateSkillCompute,
     updateItemTranslateSkill: updateItemTranslateSkill,
     getTranslateSkill: getTranslateSkill,
+    formatWordBlanks: formatWordBlanks,
+    generateSentenceHint: generateSentenceHint,
+    countSentenceWords: countSentenceWords,
+    tokenizeFrenchSentence: tokenizeFrenchSentence,
+    getFontScaleIndex: getFontScaleIndex,
+    setFontScaleIndex: setFontScaleIndex,
+    applyFontScale: applyFontScale,
+    FONT_SCALE_LEVELS: FONT_SCALE_LEVELS,
+    FONT_SCALE_LABELS: FONT_SCALE_LABELS,
+    TRANSLATE_SM2_CONSTANTS: TRANSLATE_SM2_CONSTANTS,
+    advanceToNextTranslateQuestion: advanceToNextTranslateQuestion,
+    handleTranslateKeydown: handleTranslateKeydown,
+    handleTranslateSubmit: handleTranslateSubmit,
+    handleTranslateHintAdvance: handleTranslateHintAdvance,
+    handleTranslateRevealAnswer: handleTranslateRevealAnswer,
+    _state: state,
     TRANSLATE_MIN_RECOGNITION_REPS: TRANSLATE_MIN_RECOGNITION_REPS,
     TRANSLATE_DEFAULT_INCLUDE_LOW_REPS: TRANSLATE_DEFAULT_INCLUDE_LOW_REPS
   };

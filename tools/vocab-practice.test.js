@@ -16,15 +16,19 @@ function createPracticeContext(initialStorage = {}) {
     if (!elements[id]) {
       elements[id] = {
         id,
-        style: {},
+        style: {
+          setProperty(k, v) { this[k] = v; }
+        },
         classList: { add() {}, remove() {}, toggle() {}, contains: () => false },
         setAttribute() {},
         appendChild() {},
         querySelectorAll() { return []; },
         addEventListener() {},
+        focus() {},
         value: '',
         textContent: '',
-        innerHTML: ''
+        innerHTML: '',
+        disabled: false
       };
     }
     return elements[id];
@@ -46,6 +50,10 @@ function createPracticeContext(initialStorage = {}) {
       readyState: 'complete',
       addEventListener() {},
       getElementById(id) { return getEl(id); },
+      querySelector(sel) {
+        if (sel === '.vph-modal') return getEl('vph-modal');
+        return null;
+      },
       querySelectorAll() { return []; },
       createElement() {
         return {
@@ -61,7 +69,13 @@ function createPracticeContext(initialStorage = {}) {
     Date: Date,
     Math: Math,
     console: console,
-    setTimeout: (fn) => fn()
+    setTimeout: (fn, delay) => {
+      if (typeof delay === 'number' && delay > 0) {
+        return setTimeout(fn, delay);
+      }
+      return fn();
+    },
+    clearTimeout: clearTimeout
   };
   sandbox.window = sandbox;
   sandbox.globalThis = sandbox;
@@ -301,4 +315,241 @@ test('M44.6 Bài dịch với dữ liệu thực từ backup/yt-aMx0d42wzBs.txt 
   assert.ok(q0.promptVi && q0.promptVi.length > 0, 'promptVi phải có nội dung tiếng Việt');
   assert.ok(q0.expectedFr && q0.expectedFr.length > 0, 'expectedFr phải có nội dung tiếng Pháp');
   assert.ok(q0.wordVi && q0.wordVi.length > 0, 'wordVi làm gợi ý');
+});
+
+// ============================================================================
+// TEST 7: Chuỗi sự kiện phím Enter, lọc IME composing, repeat, Shift+Enter
+// ============================================================================
+test('M44.7 Enter keydown sequence: submit ở Enter 1, không nhảy câu cùng event tick, advance ở Enter 2', () => {
+  const mockItems = [
+    {
+      id: 'item_1',
+      text: 'maison',
+      wordVi: 'ngôi nhà',
+      srs: { reps: 2 },
+      examples: [{ fr: 'J\'ai acheté une maison.', vi: 'Tôi đã mua một ngôi nhà.' }]
+    },
+    {
+      id: 'item_2',
+      text: 'chat',
+      wordVi: 'con mèo',
+      srs: { reps: 2 },
+      examples: [{ fr: 'Le chat dort.', vi: 'Con mèo đang ngủ.' }]
+    }
+  ];
+
+  const { sandbox } = createPracticeContext({
+    shadowing_saved_vocab_v1: JSON.stringify(mockItems)
+  });
+  const hub = sandbox.VocabPracticeHub;
+  const state = hub._state;
+
+  // Mở Hub với mode translate
+  hub.open('all', null, 'translate');
+  assert.strictEqual(state.currentIndex, 0, 'Bắt đầu ở câu 0');
+  assert.strictEqual(state.answered, false, 'Chưa trả lời');
+
+  const inputEl = sandbox.document.getElementById('vph-translate-input');
+  assert.ok(inputEl, 'Textarea dịch phải tồn tại');
+
+  // 1. Phím Enter khi đang gõ IME tiếng Việt (isComposing = true hoặc keyCode = 229) -> BỎ QUA
+  let prevented = false;
+  hub.handleTranslateKeydown({
+    key: 'Enter',
+    isComposing: true,
+    preventDefault() { prevented = true; }
+  });
+  assert.strictEqual(state.answered, false, 'IME composing: không được submit');
+  assert.strictEqual(prevented, false);
+
+  hub.handleTranslateKeydown({
+    key: 'Enter',
+    keyCode: 229,
+    preventDefault() { prevented = true; }
+  });
+  assert.strictEqual(state.answered, false, 'keyCode 229: không được submit');
+
+  // 2. Shift+Enter -> Cho phép xuống dòng trong textarea, không submit
+  hub.handleTranslateKeydown({
+    key: 'Enter',
+    shiftKey: true,
+    preventDefault() { prevented = true; }
+  });
+  assert.strictEqual(state.answered, false, 'Shift+Enter: không submit');
+
+  // 3. Phím giữ lặp lại (repeat = true) -> BỎ QUA
+  hub.handleTranslateKeydown({
+    key: 'Enter',
+    repeat: true,
+    preventDefault() { prevented = true; }
+  });
+  assert.strictEqual(state.answered, false, 'repeat: không submit');
+
+  // 4. Nhấn Enter lần 1 (người học đã nhập câu trả lời) -> KIỂM TRA ĐÁP ÁN
+  inputEl.value = 'J\'ai acheté une maison.';
+  hub.handleTranslateKeydown({
+    key: 'Enter',
+    preventDefault() { prevented = true; }
+  });
+
+  assert.strictEqual(state.answered, true, 'Enter 1: đã kiểm tra đáp án');
+  assert.strictEqual(state.translateCanAdvance, false, 'Vừa kiểm tra: translateCanAdvance bị khóa (false)');
+  assert.strictEqual(state.currentIndex, 0, 'Enter 1: TUYỆT ĐỐI KHÔNG được nhảy sang câu tiếp ngay cùng lúc');
+
+  // 5. Sự kiện bubbling hoặc nhấn ngay tức thì khi translateCanAdvance chưa mở -> KHÔNG nhảy câu
+  hub.handleTranslateKeydown({
+    key: 'Enter',
+    preventDefault() {}
+  });
+  assert.strictEqual(state.currentIndex, 0, 'Bubbling event cùng lúc: vẫn ở câu 0');
+
+  // 6. Nhấn giữ lặp lại sau khi đã submit -> KHÔNG nhảy câu
+  state.translateCanAdvance = true; // Giả lập đã qua độ trễ an toàn
+  hub.handleTranslateKeydown({
+    key: 'Enter',
+    repeat: true,
+    preventDefault() {}
+  });
+  assert.strictEqual(state.currentIndex, 0, 'repeat sau khi chấm: không nhảy câu');
+
+  // 7. Nhấn Enter lần 2 (một lần nhấn phím MỚI, translateCanAdvance = true) -> CHUYỂN CÂU TIẾP
+  hub.handleTranslateKeydown({
+    key: 'Enter',
+    preventDefault() {}
+  });
+  assert.strictEqual(state.currentIndex, 1, 'Enter lần 2: chuyển sang câu 1 thành công');
+  assert.strictEqual(state.answered, false, 'Câu 1 mới: answered reset về false');
+});
+
+// ============================================================================
+// TEST 8: Bộ định dạng gợi ý theo mức (Level 1..4, chữ cái đầu, mở từ, dấu nháy)
+// ============================================================================
+test('M44.8 Hint engine: định dạng chính xác số từ, gạch, chữ cái đầu, dấu nháy với "J\'ai acheté une maison."', () => {
+  const { sandbox } = createPracticeContext();
+  const hub = sandbox.VocabPracticeHub;
+
+  const sentence = 'J\'ai acheté une maison.';
+
+  // Tổng số từ: 5 từ ('J', 'ai', 'acheté', 'une', 'maison')
+  const wordCount = hub.countSentenceWords(sentence);
+  assert.strictEqual(wordCount, 5, 'Phải đếm đúng 5 từ');
+
+  // Mức 1: Gạch theo độ dài từng từ, giữ nguyên dấu nháy và dấu chấm
+  // J (1) -> _, ' -> ', ai (2) -> _ _, acheté (6) -> _ _ _ _ _ _, une (3) -> _ _ _, maison (6) -> _ _ _ _ _ _
+  const hint1 = hub.generateSentenceHint(sentence, 1);
+  assert.strictEqual(hint1, '_\'_ _  _ _ _ _ _ _  _ _ _  _ _ _ _ _ _.', 'Mức 1 phải giữ dấu nháy và gạch đúng độ dài');
+
+  // Mức 2: Chữ cái đầu của mỗi từ
+  // J -> J, ' -> ', ai -> a _, acheté -> a _ _ _ _ _, une -> u _ _, maison -> m _ _ _ _ _
+  const hint2 = hub.generateSentenceHint(sentence, 2);
+  assert.strictEqual(hint2, 'J\'a _  a _ _ _ _ _  u _ _  m _ _ _ _ _.', 'Mức 2 hiện chữ cái đầu của mỗi từ');
+
+  // Mức 3: Mở thêm từng từ theo thứ tự
+  // Mở 1 từ đầu tiên ('J')
+  const hint3_1 = hub.generateSentenceHint(sentence, 3, 1);
+  assert.strictEqual(hint3_1, 'J\'a _  a _ _ _ _ _  u _ _  m _ _ _ _ _.', 'Mức 3 mở 1 từ');
+
+  // Mở 2 từ đầu tiên ('J' và 'ai')
+  const hint3_2 = hub.generateSentenceHint(sentence, 3, 2);
+  assert.strictEqual(hint3_2, 'J\'ai  a _ _ _ _ _  u _ _  m _ _ _ _ _.', 'Mức 3 mở 2 từ: J\'ai đầy đủ');
+
+  // Mở 3 từ ('J', 'ai', 'acheté')
+  const hint3_3 = hub.generateSentenceHint(sentence, 3, 3);
+  assert.strictEqual(hint3_3, 'J\'ai acheté  u _ _  m _ _ _ _ _.', 'Mức 3 mở 3 từ: J\'ai acheté đầy đủ');
+
+  // Mở toàn bộ 5 từ
+  const hint3_5 = hub.generateSentenceHint(sentence, 3, 5);
+  assert.strictEqual(hint3_5, 'J\'ai acheté une maison.', 'Mức 3 mở hết 5 từ');
+
+  // Mức 4: Trả về câu đầy đủ để phát âm
+  const hint4 = hub.generateSentenceHint(sentence, 4);
+  assert.strictEqual(hint4, 'J\'ai acheté une maison.');
+});
+
+// ============================================================================
+// TEST 9: SM-2 Translate Skill với ma trận phạt theo mức gợi ý
+// ============================================================================
+test('M44.9 SM-2 Translate Skill: phạt theo mức gợi ý, không chạm item.srs', () => {
+  const { sandbox } = createPracticeContext();
+  const hub = sandbox.VocabPracticeHub;
+
+  // 1. Không dùng gợi ý (Mức 0) & Đúng: Thăng cấp bình thường (reps 0->2, reps 1->4)
+  const s0 = { ease: 2.5, interval: 0, reps: 0 };
+  const r0 = hub.translateSkillCompute(s0, true, 0);
+  assert.strictEqual(r0.reps, 1);
+  assert.strictEqual(r0.interval, 2, 'Mức 0 đúng lần đầu: interval = 2');
+  assert.strictEqual(r0.ease, 2.65, 'Mức 0 đúng: ease +0.15');
+
+  const r1 = hub.translateSkillCompute(r0, true, 0);
+  assert.strictEqual(r1.reps, 2);
+  assert.strictEqual(r1.interval, 4, 'Mức 0 đúng lần hai: interval = 4');
+  assert.strictEqual(r1.ease, 2.8, 'Mức 0 đúng: ease đạt max 2.8');
+
+  // 2. Dùng gợi ý Mức 1 hoặc 2 & Đúng: Đánh giá Hard
+  // reps 0 -> 1 (thay vì 2), ease KHÔNG ĐỔI, reps + 1
+  const s_hard0 = { ease: 2.5, interval: 0, reps: 0 };
+  const r_hard1 = hub.translateSkillCompute(s_hard0, true, 1);
+  assert.strictEqual(r_hard1.reps, 1);
+  assert.strictEqual(r_hard1.interval, 1, 'Mức 1-2 đúng lần đầu: interval = 1 ngày');
+  assert.strictEqual(r_hard1.ease, 2.5, 'Mức 1-2 đúng: ease giữ nguyên');
+
+  const r_hard2 = hub.translateSkillCompute(r_hard1, true, 2);
+  assert.strictEqual(r_hard2.reps, 2);
+  assert.strictEqual(r_hard2.interval, 1, 'Mức 1-2 đúng lần hai: interval * 1.2 = 1');
+  assert.strictEqual(r_hard2.ease, 2.5, 'Mức 1-2: ease vẫn không đổi');
+
+  // 3. Dùng gợi ý Mức 3 hoặc 4 & Đúng: Đánh giá Gần trượt (Near-fail)
+  // interval không tăng, giữ nguyên reps, ease giảm 0.1
+  const s_nearFail = { ease: 2.5, interval: 6, reps: 3 };
+  const r_nf3 = hub.translateSkillCompute(s_nearFail, true, 3);
+  assert.strictEqual(r_nf3.reps, 3, 'Mức 3-4: reps giữ nguyên 3');
+  assert.strictEqual(r_nf3.interval, 6, 'Mức 3-4: interval giữ nguyên không tăng');
+  assert.strictEqual(r_nf3.ease, 2.4, 'Mức 3-4: ease giảm 0.1 (2.5 -> 2.4)');
+
+  const r_nf4 = hub.translateSkillCompute(s_nearFail, true, 4);
+  assert.strictEqual(r_nf4.reps, 3);
+  assert.strictEqual(r_nf4.interval, 6);
+  assert.strictEqual(r_nf4.ease, 2.4);
+
+  // 4. Mức >= 5 (Xem đáp án) HOẶC trả lời Sai: Đánh giá Trượt (Fail)
+  // reps = 0, interval = 0, ease giảm 0.25
+  const s_fail = { ease: 2.5, interval: 6, reps: 3 };
+  const r_fail = hub.translateSkillCompute(s_fail, false, 0);
+  assert.strictEqual(r_fail.reps, 0, 'Sai: reps về 0');
+  assert.strictEqual(r_fail.interval, 0, 'Sai: interval về 0');
+  assert.strictEqual(r_fail.ease, 2.25, 'Sai: ease giảm 0.25 (2.5 -> 2.25)');
+
+  const r_reveal = hub.translateSkillCompute(s_fail, true, 5);
+  assert.strictEqual(r_reveal.reps, 0, 'Xem đáp án (mức 5): tính là trượt, reps = 0');
+  assert.strictEqual(r_reveal.interval, 0, 'Xem đáp án: interval = 0');
+  assert.strictEqual(r_reveal.ease, 2.25, 'Xem đáp án: ease giảm 0.25');
+});
+
+// ============================================================================
+// TEST 10: Điều khiển cỡ chữ A− / A+ và lưu nhớ localStorage
+// ============================================================================
+test('M44.10 Cỡ chữ A− / A+: 4 mức (Nhỏ, Vừa, Lớn, Rất lớn), nhớ localStorage fss_practice_font_scale', () => {
+  const { sandbox } = createPracticeContext();
+  const hub = sandbox.VocabPracticeHub;
+
+  // 1. Mặc định khi chưa lưu là mức 1 ('Vừa', scale 1.08)
+  assert.strictEqual(hub.getFontScaleIndex(), 1, 'Mặc định là index 1 (Vừa)');
+
+  // 2. Chuyển sang mức 2 ('Lớn')
+  const newIdx = hub.setFontScaleIndex(2);
+  assert.strictEqual(newIdx, 2);
+  assert.strictEqual(sandbox.localStorage.getItem('fss_practice_font_scale'), '2');
+  assert.strictEqual(hub.getFontScaleIndex(), 2);
+
+  // 3. Chuyển sang mức 3 ('Rất lớn')
+  hub.setFontScaleIndex(3);
+  assert.strictEqual(hub.getFontScaleIndex(), 3);
+  assert.strictEqual(hub.FONT_SCALE_LABELS[3], 'Rất lớn');
+  assert.strictEqual(hub.FONT_SCALE_LEVELS[3], 1.42);
+
+  // 4. Kiểm tra giới hạn biên (clamping): không vượt quá [0, 3]
+  hub.setFontScaleIndex(-5);
+  assert.strictEqual(hub.getFontScaleIndex(), 0, 'Clamped về 0 (Nhỏ)');
+  hub.setFontScaleIndex(99);
+  assert.strictEqual(hub.getFontScaleIndex(), 3, 'Clamped về 3 (Rất lớn)');
 });

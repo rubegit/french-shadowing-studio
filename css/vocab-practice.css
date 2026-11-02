@@ -27,6 +27,7 @@
 }
 
 .vph-modal {
+  --vph-font-scale: 1.08;
   width: 100%;
   max-width: 760px;
   max-height: 94vh;
@@ -1935,14 +1936,14 @@
 }
 
 .vph-translate-prompt-text {
-  font-size: 17px;
+  font-size: calc(1.15rem * var(--vph-font-scale, 1.08));
   font-weight: 600;
   color: #f8fafc;
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 .vph-translate-hint {
-  font-size: 13px;
+  font-size: calc(0.9rem * var(--vph-font-scale, 1.08));
   color: #94a3b8;
   margin-top: 10px;
   display: flex;
@@ -1962,6 +1963,69 @@
   border: 1px solid rgba(59, 130, 246, 0.3);
 }
 
+.vph-translate-hint-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.vph-hint-display {
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: calc(1.05rem * var(--vph-font-scale, 1.08));
+  line-height: 1.6;
+  color: #e2e8f0;
+}
+
+.vph-hint-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #fcd34d;
+}
+
+.vph-font-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.vph-font-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #cbd5e1;
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.vph-font-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+
+.vph-font-label {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 600;
+  min-width: 48px;
+  text-align: center;
+}
+
+.vph-key-hint {
+  font-size: 11px;
+  opacity: 0.8;
+  font-weight: 500;
+  margin-left: 4px;
+  display: inline-block;
+}
+
 .vph-translate-textarea {
   width: 100%;
   box-sizing: border-box;
@@ -1970,7 +2034,7 @@
   border-radius: 12px;
   padding: 12px 14px;
   color: #fff;
-  font-size: 15px;
+  font-size: calc(1.1rem * var(--vph-font-scale, 1.08));
   line-height: 1.5;
   outline: none;
   transition: border-color 0.15s, box-shadow 0.15s;
@@ -2010,7 +2074,7 @@
   background: rgba(0, 0, 0, 0.35);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 8px;
-  font-size: 14px;
+  font-size: calc(1.0rem * var(--vph-font-scale, 1.08));
   line-height: 1.6;
   word-break: break-word;
 }
@@ -2070,6 +2134,22 @@ html[data-ui="light"] .vph-translate-textarea {
 html[data-ui="light"] .vph-word-diff-box {
   background: #f1f5f9;
   border-color: #e2e8f0;
+}
+html[data-ui="light"] .vph-hint-display {
+  background: #fffbeb;
+  border-color: #fde68a;
+  color: #78350f;
+}
+html[data-ui="light"] .vph-hint-code {
+  color: #b45309;
+}
+html[data-ui="light"] .vph-font-btn {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #334155;
+}
+html[data-ui="light"] .vph-font-label {
+  color: #64748b;
 }
 
 /* Mobile responsive enhancements for Translate Mode & Mode Tabs (380px friendly) */
