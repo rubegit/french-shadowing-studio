@@ -748,3 +748,190 @@ test('12. Hoàn tác cả ca 1:1 và ca gộp (est-ce → est ce: tách 2 từ, 
   assert.strictEqual(histAfter[0].userPunct, undefined, 'Cờ userPunct đã được dọn sạch khỏi bản ghi lịch sử');
 });
 
+test('13. Test Node 2 thiết bị: A sửa rồi hoàn tác, B đồng bộ với Cloud (chạy 2 ca: Cloud mới hơn / B local mới hơn)', () => {
+  const syncCode = fs.readFileSync(path.join(__dirname, '../js/supabase-sync.js'), 'utf8');
+  const match = syncCode.match(/function mergeHistoryLists\(localHist, cloudHist\) \{[\s\S]*?\n  \}/);
+  assert.ok(match, 'Tìm thấy mergeHistoryLists');
+  const fnMerge = new Function('localHist', 'cloudHist', match[0] + '\n return mergeHistoryLists(localHist, cloudHist);');
+
+  const vidId = 'lib_vid_revert_test';
+  const sentEdited = [
+    {
+      id: 1, startTime: 0, endTime: 2.0, text: 'Tu as raison.',
+      words: [
+        { word: 'Tu', startTime: 0, endTime: 0.5 },
+        { word: 'as', asr_original: 'a', corrected: true, startTime: 0.6, endTime: 1.0 },
+        { word: 'raison.', startTime: 1.1, endTime: 1.8 }
+      ]
+    }
+  ];
+
+  // Bước 1: Thiết bị A đã sửa (userPunct: true) và đẩy lên cloud (updatedAt = 1000)
+  // Bước 2: Thiết bị B đồng bộ về -> B lưu localItemB có userPunct: true, sentences đã sửa
+  const localItemB_step2 = {
+    videoId: vidId, title: 'Thư viện mẫu', duration: 120, lib: true,
+    userPunct: true, sentences: sentEdited, updatedAt: 1000
+  };
+
+  // Bước 3: Thiết bị A hoàn tác (updatedAt = 2000).
+  // A gọi pcRevertAsrOriginal: userPunct trở thành undefined (sau JSON thành mất trường),
+  // và đối với video thư viện, saveToLocalHistory / cleanHistory sẽ dọn sentences thành []
+  const cloudItemA_reverted = JSON.parse(JSON.stringify({
+    videoId: vidId, title: 'Thư viện mẫu', duration: 120, lib: true,
+    userPunct: undefined, sentences: [], updatedAt: 2000
+  }));
+
+  // Ca 1: Cloud mới hơn Local B (cUpTime = 2000 > lUpTime = 1000)
+  const res1 = fnMerge([localItemB_step2], [cloudItemA_reverted]);
+  const itemB1 = res1.merged.find(h => h.videoId === vidId);
+  const b1HasCorrected = itemB1 && itemB1.sentences && itemB1.sentences.some(s => s.words && s.words.some(w => w.corrected));
+  const pushBackCloud1 = res1.merged.filter(h => h && (!h.lib || h.userTrans || h.isText || (h.sentences && h.sentences.length)));
+  const cloud1HasCorrected = pushBackCloud1.some(h => h.videoId === vidId && h.sentences && h.sentences.some(s => s.words && s.words.some(w => w.corrected)));
+
+  console.log('\n--- Test 13: Ca 1 - A hoàn tác đẩy Cloud (cUpTime=2000), B sync từ Cloud (lUpTime=1000) ---');
+  console.log('B có bản hoàn tác hay bản sửa quay lại?:', b1HasCorrected ? 'BẢN SỬA QUAY LẠI (bị đảo ngược hoàn tác!)' : 'BẢN HOÀN TÁC');
+  console.log('B có userPunct không?:', itemB1.userPunct ? 'CÓ (userPunct = ' + itemB1.userPunct + ')' : 'KHÔNG');
+  console.log('Cloud sau khi B đẩy lại là bản nào?:', cloud1HasCorrected ? 'BẢN SỬA (w.corrected=true)' : 'BẢN HOÀN TÁC');
+
+  // Ca 2: Local B mới hơn Cloud (ví dụ B mở xem video lúc t=3000 > t=2000)
+  const localItemB_newer = JSON.parse(JSON.stringify(localItemB_step2));
+  localItemB_newer.updatedAt = 3000;
+  const res2 = fnMerge([localItemB_newer], [cloudItemA_reverted]);
+  const itemB2 = res2.merged.find(h => h.videoId === vidId);
+  const b2HasCorrected = itemB2 && itemB2.sentences && itemB2.sentences.some(s => s.words && s.words.some(w => w.corrected));
+  const pushBackCloud2 = res2.merged.filter(h => h && (!h.lib || h.userTrans || h.isText || (h.sentences && h.sentences.length)));
+  const cloud2HasCorrected = pushBackCloud2.some(h => h.videoId === vidId && h.sentences && h.sentences.some(s => s.words && s.words.some(w => w.corrected)));
+
+  console.log('\n--- Test 13: Ca 2 - Local B mới hơn Cloud (lUpTime=3000 > cUpTime=2000) ---');
+  console.log('B có bản hoàn tác hay bản sửa quay lại?:', b2HasCorrected ? 'BẢN SỬA QUAY LẠI' : 'BẢN HOÀN TÁC');
+  console.log('B có userPunct không?:', itemB2.userPunct ? 'CÓ (userPunct = ' + itemB2.userPunct + ')' : 'KHÔNG');
+  console.log('Cloud sau khi B đẩy lại là bản nào?:', cloud2HasCorrected ? 'BẢN SỬA (w.corrected=true)' : 'BẢN HOÀN TÁC');
+});
+
+test('14. Test Node toàn diện cơ chế userPunctRevertedAt / userPunctAt (4a, 4b, 4c, 4d)', () => {
+  const syncCode = fs.readFileSync(path.join(__dirname, '../js/supabase-sync.js'), 'utf8');
+  const match = syncCode.match(/function mergeHistoryLists\(localHist, cloudHist\) \{[\s\S]*?\n  \}/);
+  assert.ok(match, 'Tìm thấy mergeHistoryLists');
+  const fnMerge = new Function('localHist', 'cloudHist', match[0] + '\n return mergeHistoryLists(localHist, cloudHist);');
+
+  const vidLib = 'lib_vid_revert_full';
+  const sentEdited = [
+    {
+      id: 1, startTime: 0, endTime: 2.0, text: 'Tu as raison.',
+      words: [
+        { word: 'Tu', startTime: 0, endTime: 0.5 },
+        { word: 'as', asr_original: 'a', corrected: true, startTime: 0.6, endTime: 1.0 },
+        { word: 'raison.', startTime: 1.1, endTime: 1.8 }
+      ]
+    }
+  ];
+  const sentAsr = [
+    {
+      id: 1, startTime: 0, endTime: 2.0, text: 'Tu a raison.',
+      words: [
+        { word: 'Tu', startTime: 0, endTime: 0.5 },
+        { word: 'a', startTime: 0.6, endTime: 1.0 },
+        { word: 'raison.', startTime: 1.1, endTime: 1.8 }
+      ]
+    }
+  ];
+
+  // 4a. A hoàn tác (userPunctRevertedAt=2000), B còn bản sửa (userPunct=true, userPunctAt=1000)
+  // Chiều 1: Cloud A mới hơn Local B (cUpTime=2000 > lUpTime=1000)
+  const localB_4a1 = {
+    videoId: vidLib, title: 'Video Thư Viện', lib: true,
+    userPunct: true, userPunctAt: 1000, sentences: sentEdited, updatedAt: 1000
+  };
+  const cloudA_4a1 = {
+    videoId: vidLib, title: 'Video Thư Viện', lib: true,
+    userPunctRevertedAt: 2000, sentences: [], updatedAt: 2000
+  };
+  const res4a1 = fnMerge([localB_4a1], [cloudA_4a1]);
+  const item4a1 = res4a1.merged.find(h => h.videoId === vidLib);
+  const pushBack4a1 = res4a1.merged.filter(h => h && (!h.lib || h.userTrans || h.isText || (h.sentences && h.sentences.length)));
+  const cloudStillReverted1 = !pushBack4a1.some(h => h.videoId === vidLib && h.userPunct);
+
+  console.log('\n--- 4a. Chiều 1: Cloud A hoàn tác (cUpTime=2000), Local B cũ (lUpTime=1000) ---');
+  console.log('B có userPunct không?:', !!item4a1.userPunct);
+  console.log('B có sentences rỗng không?:', !item4a1.sentences || item4a1.sentences.length === 0);
+  console.log('Cloud sau khi B đẩy lại vẫn là hoàn tác?:', cloudStillReverted1);
+
+  // Chiều 2: Local B mới hơn Cloud A (lUpTime=3000 > cUpTime=2000)
+  const localB_4a2 = {
+    videoId: vidLib, title: 'Video Thư Viện', lib: true,
+    userPunct: true, userPunctAt: 1000, sentences: sentEdited, updatedAt: 3000
+  };
+  const res4a2 = fnMerge([localB_4a2], [cloudA_4a1]);
+  const item4a2 = res4a2.merged.find(h => h.videoId === vidLib);
+  const pushBack4a2 = res4a2.merged.filter(h => h && (!h.lib || h.userTrans || h.isText || (h.sentences && h.sentences.length)));
+  const cloudStillReverted2 = !pushBack4a2.some(h => h.videoId === vidLib && h.userPunct);
+
+  console.log('\n--- 4a. Chiều 2: Local B mới hơn Cloud (lUpTime=3000 > cUpTime=2000) ---');
+  console.log('B có userPunct không?:', !!item4a2.userPunct);
+  console.log('B có sentences rỗng không?:', !item4a2.sentences || item4a2.sentences.length === 0);
+  console.log('Cloud sau khi B đẩy lại vẫn là hoàn tác?:', cloudStillReverted2);
+
+  // 4b. Hoàn tác rồi sửa lại ở A (userPunctAt=3000 > userPunctRevertedAt=2000), B còn bản hoàn tác
+  const cloudA_reEdit = {
+    videoId: vidLib, title: 'Video Thư Viện', lib: true,
+    userPunct: true, userPunctAt: 3000, sentences: sentEdited, updatedAt: 3000
+  };
+  const localB_reverted = {
+    videoId: vidLib, title: 'Video Thư Viện', lib: true,
+    userPunctRevertedAt: 2000, sentences: [], updatedAt: 2000
+  };
+  const res4b = fnMerge([localB_reverted], [cloudA_reEdit]);
+  const item4b = res4b.merged.find(h => h.videoId === vidLib);
+  console.log('\n--- 4b. Hoàn tác rồi sửa lại ở A: Bản sửa mới thắng ---');
+  console.log('B nhận userPunct=true?:', item4b.userPunct === true);
+  console.log('B nhận sentences sửa?:', !!(item4b.sentences && item4b.sentences[0]?.words[1]?.corrected));
+
+  // 4c. Hoàn tác ở A, B chưa từng sửa (userPunct false/undefined)
+  const localB_clean = {
+    videoId: vidLib, title: 'Video Thư Viện', lib: true,
+    userPunct: false, sentences: [], updatedAt: 500
+  };
+  const res4c = fnMerge([localB_clean], [cloudA_4a1]);
+  const item4c = res4c.merged.find(h => h.videoId === vidLib);
+  console.log('\n--- 4c. Hoàn tác ở A, B chưa từng sửa ---');
+  console.log('B không hồi sinh gì, userPunct?:', !!item4c.userPunct);
+  console.log('Sentences rỗng?:', !item4c.sentences || item4c.sentences.length === 0);
+
+  // 4d. Video dán link (không phải thư viện: lib=false) hoàn tác: sentences về ASR
+  const vidCustom = 'custom_vid_123';
+  const localB_custom = {
+    videoId: vidCustom, title: 'Video Dán Link', lib: false,
+    userPunct: true, userPunctAt: 1000, sentences: sentEdited, updatedAt: 1000
+  };
+  const cloudA_customRevert = {
+    videoId: vidCustom, title: 'Video Dán Link', lib: false,
+    userPunctRevertedAt: 2000, sentences: sentAsr, updatedAt: 2000
+  };
+  const res4d = fnMerge([localB_custom], [cloudA_customRevert]);
+  const item4d = res4d.merged.find(h => h.videoId === vidCustom);
+  const isAsr = item4d && item4d.sentences && item4d.sentences[0]?.text === 'Tu a raison.' && !item4d.sentences[0]?.words[1]?.corrected;
+  console.log('\n--- 4d. Video dán link hoàn tác: sentences về ASR ---');
+  console.log('Sentences về đúng bản ASR gốc?:', isAsr);
+  console.log('userPunct bị xóa?:', !item4d.userPunct);
+
+  // Assertions
+  assert.strictEqual(item4a1.userPunct, undefined, '4a1: userPunct phải undefined');
+  assert.strictEqual(item4a1.sentences.length, 0, '4a1: sentences thư viện phải rỗng');
+  assert.strictEqual(cloudStillReverted1, true, '4a1: Cloud vẫn là hoàn tác');
+
+  assert.strictEqual(item4a2.userPunct, undefined, '4a2: userPunct phải undefined');
+  assert.strictEqual(item4a2.sentences.length, 0, '4a2: sentences thư viện phải rỗng');
+  assert.strictEqual(cloudStillReverted2, true, '4a2: Cloud vẫn là hoàn tác');
+
+  assert.strictEqual(item4b.userPunct, true, '4b: userPunct phải true khi sửa lại sau hoàn tác');
+  assert.strictEqual(item4b.sentences[0].words[1].corrected, true, '4b: sentences sửa phải thắng');
+
+  assert.strictEqual(item4c.userPunct, undefined, '4c: không hồi sinh userPunct');
+  assert.strictEqual(item4c.sentences.length, 0, '4c: sentences rỗng');
+
+  assert.strictEqual(isAsr, true, '4d: sentences dán link về đúng bản ASR');
+  assert.strictEqual(item4d.userPunct, undefined, '4d: userPunct dán link bị xóa');
+});
+
+
+

@@ -354,24 +354,67 @@
           }
         } else {
           // Cả hai cùng active: áp dụng Last-Write-Wins (LWW) theo updatedAt
+          var lRevAt = Number(lH.userPunctRevertedAt) || 0;
+          var cRevAt = Number(cH.userPunctRevertedAt) || 0;
+          var maxRevAt = Math.max(lRevAt, cRevAt);
+
+          var lPunctAt = Number(lH.userPunctAt) || (lH.userPunct ? lUpTime : 0);
+          var cPunctAt = Number(cH.userPunctAt) || (cH.userPunct ? cUpTime : 0);
+          var maxPunctAt = Math.max(lPunctAt, cPunctAt);
+
+          var isPunctRevertWinner = false;
+          var revertItem = null;
+          if (maxRevAt > 0 || maxPunctAt > 0) {
+            if (maxRevAt >= maxPunctAt) {
+              isPunctRevertWinner = true;
+              revertItem = lRevAt >= cRevAt ? lH : cH;
+            }
+          }
+
           if (lUpTime >= cUpTime) {
             // Local mới hơn hoặc bằng: Local làm gốc
             var mergedL = Object.assign({}, cH, lH);
-            if ((!lH.sentences || !lH.sentences.length) && (cH.sentences && cH.sentences.length)) {
-              mergedL.sentences = cH.sentences;
+            if (!isPunctRevertWinner) {
+              if ((!lH.sentences || !lH.sentences.length) && (cH.sentences && cH.sentences.length)) {
+                mergedL.sentences = cH.sentences;
+              }
+              if (!lH.userPunct && cH.userPunct) mergedL.userPunct = cH.userPunct;
+              if (maxPunctAt > maxRevAt && maxRevAt > 0) {
+                mergedL.userPunct = true;
+                mergedL.userPunctAt = maxPunctAt;
+                delete mergedL.userPunctRevertedAt;
+              }
+            } else {
+              delete mergedL.userPunct;
+              delete mergedL.userPunctAt;
+              mergedL.userPunctRevertedAt = maxRevAt;
+              if (mergedL.lib) mergedL.sentences = [];
+              else mergedL.sentences = (revertItem && revertItem.sentences) ? revertItem.sentences : [];
             }
             if (!lH.userTrans && cH.userTrans) mergedL.userTrans = cH.userTrans;
-            if (!lH.userPunct && cH.userPunct) mergedL.userPunct = cH.userPunct;
             map.set(cH.videoId, mergedL);
             if (lUpTime > cUpTime) hasLocalNew = true;
           } else {
             // Cloud mới hơn: Cloud làm gốc
             var mergedC = Object.assign({}, lH, cH);
-            if ((!cH.sentences || !cH.sentences.length) && (lH.sentences && lH.sentences.length)) {
-              mergedC.sentences = lH.sentences;
+            if (!isPunctRevertWinner) {
+              if ((!cH.sentences || !cH.sentences.length) && (lH.sentences && lH.sentences.length)) {
+                mergedC.sentences = lH.sentences;
+              }
+              if (!cH.userPunct && lH.userPunct) mergedC.userPunct = lH.userPunct;
+              if (maxPunctAt > maxRevAt && maxRevAt > 0) {
+                mergedC.userPunct = true;
+                mergedC.userPunctAt = maxPunctAt;
+                delete mergedC.userPunctRevertedAt;
+              }
+            } else {
+              delete mergedC.userPunct;
+              delete mergedC.userPunctAt;
+              mergedC.userPunctRevertedAt = maxRevAt;
+              if (mergedC.lib) mergedC.sentences = [];
+              else mergedC.sentences = (revertItem && revertItem.sentences) ? revertItem.sentences : [];
             }
             if (!cH.userTrans && lH.userTrans) mergedC.userTrans = lH.userTrans;
-            if (!cH.userPunct && lH.userPunct) mergedC.userPunct = lH.userPunct;
             map.set(cH.videoId, mergedC);
             hasCloudNew = true;
           }
