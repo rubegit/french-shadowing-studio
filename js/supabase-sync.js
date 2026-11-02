@@ -358,8 +358,8 @@
           var cRevAt = Number(cH.userPunctRevertedAt) || 0;
           var maxRevAt = Math.max(lRevAt, cRevAt);
 
-          var lPunctAt = Number(lH.userPunctAt) || (lH.userPunct ? lUpTime : 0);
-          var cPunctAt = Number(cH.userPunctAt) || (cH.userPunct ? cUpTime : 0);
+          var lPunctAt = Number(lH.userPunctAt) || 0;
+          var cPunctAt = Number(cH.userPunctAt) || 0;
           var maxPunctAt = Math.max(lPunctAt, cPunctAt);
 
           var isPunctRevertWinner = false;

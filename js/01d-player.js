@@ -72,6 +72,13 @@
         // Dọn tombstone hết hạn
         history = history.filter(h => !h._deleted || (h._deletedAt && (now - h._deletedAt) < HIST_TOMBSTONE_TTL));
 
+        const userPunctAt = userPunct
+          ? (item.userPunctAt !== undefined ? item.userPunctAt : (prevItem && prevItem.userPunctAt))
+          : undefined;
+        const userPunctRevertedAt = !userPunct
+          ? (item.userPunctRevertedAt !== undefined ? item.userPunctRevertedAt : (prevItem && prevItem.userPunctRevertedAt))
+          : undefined;
+
         history.unshift({
           videoId: item.videoId,
           title: item.title || `YouTube Video (${item.videoId})`,
@@ -79,10 +86,12 @@
           meta: Object.keys(mergedMeta).length ? mergedMeta : undefined,   // tên kênh / lượt xem của video import từ extension
           format: item.format || 'srt',
           isText: !!item.isText,
-          sentences: keepSentences ? item.sentences : [],
+          sentences: keepSentences ? (item.sentences !== undefined ? item.sentences : (prevItem && prevItem.sentences) || []) : [],
           lib: isLib ? true : undefined,
           userTrans: userTrans ? true : undefined,
           userPunct: userPunct ? true : undefined,
+          userPunctAt: userPunctAt,
+          userPunctRevertedAt: userPunctRevertedAt,
           updatedAt: now
         });
         if (sharedNoSaveId && item.videoId === sharedNoSaveId) return;   // đang xem bản được chia sẻ: không ghi đè dữ liệu riêng của mình

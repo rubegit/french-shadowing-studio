@@ -933,5 +933,166 @@ test('14. Test Node toàn diện cơ chế userPunctRevertedAt / userPunctAt (4a
   assert.strictEqual(item4d.userPunct, undefined, '4d: userPunct dán link bị xóa');
 });
 
+test('15. Test dữ liệu cũ: userPunct=true không có userPunctAt khi merge với userPunctRevertedAt', () => {
+  const syncCode = fs.readFileSync(path.join(__dirname, '../js/supabase-sync.js'), 'utf8');
+  const match = syncCode.match(/function mergeHistoryLists\(localHist, cloudHist\) \{[\s\S]*?\n  \}/);
+  assert.ok(match, 'Tìm thấy mergeHistoryLists');
+  const fnMerge = new Function('localHist', 'cloudHist', match[0] + '\n return mergeHistoryLists(localHist, cloudHist);');
+
+  const vid = 'lib_vid_legacy_test';
+  const sentEdited = [{ id: 1, text: 'Tu as raison.', words: [{ word: 'as', corrected: true, asr_original: 'a' }] }];
+
+  // Ca 1: Bản ghi cũ tạo từ Giai đoạn 2 (có userPunct: true, nhưng KHÔNG CÓ userPunctAt).
+  // Sửa thật lúc t=1000. Nhưng người dùng mở/xem video lúc t=3000 -> updatedAt nhảy lên 3000.
+  // Bản kia hoàn tác lúc t=2000 (userPunctRevertedAt=2000).
+  // Vì t_sửa_thật (1000) < t_hoàn_tác (2000) < t_mở_video (3000).
+  const legacyEdited = {
+    videoId: vid, lib: true, userPunct: true, // KHÔNG CÓ userPunctAt
+    sentences: sentEdited, updatedAt: 3000
+  };
+  const revertedCloud = {
+    videoId: vid, lib: true, userPunctRevertedAt: 2000,
+    sentences: [], updatedAt: 2000
+  };
+
+  const res1 = fnMerge([legacyEdited], [revertedCloud]);
+  const item1 = res1.merged.find(h => h.videoId === vid);
+
+  console.log('\n--- Test 15: Ca 1 - Dữ liệu cũ có updatedAt=3000 do mở video > userPunctRevertedAt=2000 > t_sửa=1000 ---');
+  console.log('userPunct của kết quả:', item1.userPunct);
+  console.log('sentences có w.corrected không?:', !!(item1.sentences && item1.sentences[0]?.words?.[0]?.corrected));
+  console.log('Bên nào thắng?:', item1.userPunct ? 'BẢN SỬA CŨ THẮNG' : 'BẢN HOÀN TÁC THẮNG');
+
+  // Ca 2: Dữ liệu cũ chưa từng mở lại video (updatedAt = t_sửa = 1000 < userPunctRevertedAt = 2000)
+  const legacyNoOpen = {
+    videoId: vid, lib: true, userPunct: true, // KHÔNG CÓ userPunctAt
+    sentences: sentEdited, updatedAt: 1000
+  };
+  const res2 = fnMerge([legacyNoOpen], [revertedCloud]);
+  const item2 = res2.merged.find(h => h.videoId === vid);
+
+  console.log('\n--- Test 15: Ca 2 - Dữ liệu cũ chưa mở video (updatedAt=1000 < userPunctRevertedAt=2000) ---');
+  console.log('userPunct của kết quả:', item2.userPunct);
+  console.log('sentences rỗng?:', !item2.sentences || item2.sentences.length === 0);
+  console.log('Bên nào thắng?:', item2.userPunct ? 'BẢN SỬA CŨ THẮNG' : 'BẢN HOÀN TÁC THẮNG (Tombstone thắng chuẩn)');
+
+  // Ca 3: Hai bên đều có bản sửa cũ không mốc (userPunct: true, không có userPunctAt), không ai hoàn tác
+  const legacyLocal = {
+    videoId: vid, lib: true, userPunct: true,
+    sentences: sentEdited, updatedAt: 3000
+  };
+  const legacyCloud = {
+    videoId: vid, lib: true, userPunct: true,
+    sentences: sentEdited, updatedAt: 2000
+  };
+  const res3 = fnMerge([legacyLocal], [legacyCloud]);
+  const item3 = res3.merged.find(h => h.videoId === vid);
+
+  console.log('\n--- Test 15: Ca 3 - Hai bên đều có bản sửa cũ không mốc, không ai hoàn tác ---');
+  console.log('userPunct được giữ?:', item3.userPunct === true);
+  console.log('sentences được giữ?:', !!(item3.sentences && item3.sentences[0]?.words?.[0]?.corrected));
+
+  // Kỳ vọng theo logic mới: mốc sửa chỉ lấy từ userPunctAt (không có thì mốc = 0)
+  assert.strictEqual(item1.userPunct, undefined, 'Ca 1: userPunctAt=0 < userPunctRevertedAt=2000 nên tombstone hoàn tác thắng');
+  assert.strictEqual(item1.sentences.length, 0, 'Ca 1: sentences thư viện rỗng');
+
+  assert.strictEqual(item2.userPunct, undefined, 'Ca 2: userPunctAt=0 < userPunctRevertedAt=2000 nên tombstone hoàn tác thắng');
+  assert.strictEqual(item2.sentences.length, 0, 'Ca 2: sentences thư viện rỗng');
+
+  assert.strictEqual(item3.userPunct, true, 'Ca 3: Giữ nguyên bản sửa cũ khi không ai hoàn tác');
+  assert.strictEqual(item3.sentences[0].words[0].corrected, true, 'Ca 3: Giữ nguyên sentences sửa');
+});
+
+test('16. Test 01d-player saveToLocalHistory: lưu tiến độ nhiều lần không làm rơi userPunctAt và userPunctRevertedAt', () => {
+  const codePlayer = fs.readFileSync(path.join(__dirname, '../js/01d-player.js'), 'utf8');
+
+  const store = {};
+  const mockLocalStorage = {
+    getItem: (k) => store[k] || null,
+    setItem: (k, v) => { store[k] = String(v); }
+  };
+  const dummyEl = new MockHTMLInputElement();
+  Object.assign(dummyEl, {
+    addEventListener: () => {}, removeEventListener: () => {},
+    classList: { add: () => {}, remove: () => {}, toggle: () => {} },
+    style: {}, innerHTML: '', textContent: '', focus: () => {}, remove: () => {},
+    appendChild: () => dummyEl, querySelector: () => dummyEl, querySelectorAll: () => [], closest: () => dummyEl
+  });
+  const sandbox = {
+    console, Set, Map, Math, String, Array, Date, Infinity, parseFloat, parseInt, Boolean,
+    localStorage: mockLocalStorage,
+    categoryStructure: { 'A1': { 'lib_vid_persist_test': 'Test Video' } },
+    hiddenVideoMap: {}, hiddenVideoList: [],
+    sharedNoSaveId: null,
+    getVocab: () => [],
+    aicHasTranslation: () => false,
+    inputUrl: dummyEl, startBtn: dummyEl, parseErrorMessage: dummyEl, parseErrorAlert: dummyEl, fileStatusBadge: dummyEl,
+    HTMLInputElement: MockHTMLInputElement,
+    requestAnimationFrame: (cb) => setTimeout(cb, 0), cancelAnimationFrame: () => {},
+    setTimeout: () => 1, clearTimeout: () => {},
+    document: {
+      body: dummyEl, createElement: () => dummyEl, getElementById: () => dummyEl,
+      querySelector: () => dummyEl, querySelectorAll: () => [],
+      addEventListener: () => {}, removeEventListener: () => {}
+    },
+    window: { ensureYouTubeIframeApi: () => {}, addEventListener: () => {}, removeEventListener: () => {} }
+  };
+
+  const fnPlayer = new Function('sandbox', 'with(sandbox) {\n' + codePlayer + '\n return { saveToLocalHistory, getLocalHistory, setUserPunctVid: (v) => { userPunctVid = v; } }; }');
+  const { saveToLocalHistory, getLocalHistory, setUserPunctVid } = fnPlayer(sandbox);
+
+  const vid = 'lib_vid_persist_test';
+  const sent = [{ id: 1, text: 'Test', words: [{ word: 'Test' }] }];
+
+  // 1. Áp dụng sửa dấu câu: gắn cờ userPunctVid và truyền userPunct: true, userPunctAt: 1000
+  setUserPunctVid(vid);
+  saveToLocalHistory({
+    videoId: vid, title: 'Test Video', duration: 100, format: 'json3',
+    sentences: sent, userPunct: true, userPunctAt: 1000
+  });
+
+  let h1 = getLocalHistory()[0];
+  assert.strictEqual(h1.userPunct, true);
+  assert.strictEqual(h1.userPunctAt, 1000);
+  assert.strictEqual(h1.userPunctRevertedAt, undefined);
+
+  // 2. Lưu tiến độ nhiều lần khi đang xem (không truyền userPunctAt/userPunctRevertedAt)
+  saveToLocalHistory({ videoId: vid, title: 'Test Video', duration: 100, format: 'json3' });
+  let h2 = getLocalHistory()[0];
+  assert.strictEqual(h2.userPunct, true, 'userPunct vẫn còn sau lưu tiến độ lần 1');
+  assert.strictEqual(h2.userPunctAt, 1000, 'userPunctAt không bị rơi sau lưu tiến độ lần 1');
+  assert.strictEqual(h2.userPunctRevertedAt, undefined);
+
+  saveToLocalHistory({ videoId: vid, title: 'Test Video', duration: 100, format: 'json3' });
+  let h3 = getLocalHistory()[0];
+  assert.strictEqual(h3.userPunct, true, 'userPunct vẫn còn sau lưu tiến độ lần 2');
+  assert.strictEqual(h3.userPunctAt, 1000, 'userPunctAt không bị rơi sau lưu tiến độ lần 2');
+
+  // 3. Hoàn tác: truyền userPunct: false, userPunctRevertedAt: 2000
+  setUserPunctVid('');
+  saveToLocalHistory({
+    videoId: vid, title: 'Test Video', duration: 100, format: 'json3',
+    sentences: [], userPunct: false, userPunctRevertedAt: 2000
+  });
+
+  let h4 = getLocalHistory()[0];
+  assert.strictEqual(h4.userPunct, undefined, 'userPunct bị xóa sau hoàn tác');
+  assert.strictEqual(h4.userPunctAt, undefined, 'userPunctAt bị xóa sau hoàn tác');
+  assert.strictEqual(h4.userPunctRevertedAt, 2000, 'userPunctRevertedAt được ghi nhận');
+
+  // 4. Lưu tiến độ nhiều lần sau khi hoàn tác: userPunctRevertedAt không bị rơi!
+  saveToLocalHistory({ videoId: vid, title: 'Test Video', duration: 100, format: 'json3' });
+  let h5 = getLocalHistory()[0];
+  assert.strictEqual(h5.userPunct, undefined);
+  assert.strictEqual(h5.userPunctAt, undefined);
+  assert.strictEqual(h5.userPunctRevertedAt, 2000, 'userPunctRevertedAt không bị rơi sau lưu tiến độ lần 1');
+
+  saveToLocalHistory({ videoId: vid, title: 'Test Video', duration: 100, format: 'json3' });
+  let h6 = getLocalHistory()[0];
+  assert.strictEqual(h6.userPunctRevertedAt, 2000, 'userPunctRevertedAt không bị rơi sau lưu tiến độ lần 2');
+});
+
+
+
 
 

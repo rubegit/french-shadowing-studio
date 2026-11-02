@@ -638,12 +638,15 @@
         sentences = res.sentences;
         userPunctVid = currentVideoId || '';
         if (currentVideoId) {
-          const rawHist = typeof getRawHistory === 'function' ? getRawHistory() : (typeof getLocalHistory === 'function' ? getLocalHistory() : []);
-          const curItem = rawHist && rawHist.find((h) => h.videoId === currentVideoId);
-          if (curItem) {
-            curItem.userPunctAt = Date.now();
-            delete curItem.userPunctRevertedAt;
-          }
+          saveToLocalHistory({
+            videoId: currentVideoId,
+            format: subtitleFormat,
+            isText: isTextMode,
+            sentences: sentences,
+            userPunct: true,
+            userPunctAt: Date.now(),
+            userPunctRevertedAt: undefined
+          });
         }
         aiAfterSentencesChangedInPlayer();
         updateBilingualButton();
@@ -720,7 +723,6 @@
       const isLib = typeof isLibraryVideo === 'function' ? isLibraryVideo(currentVideoId) : false;
       const isUserPunct = isLib && typeof userPunctVid !== 'undefined' && userPunctVid === currentVideoId;
       const userPunct = isUserPunct ? true : (existing ? existing.userPunct : undefined);
-      const now = Date.now();
       saveToLocalHistory({
         videoId: currentVideoId,
         title: currentVideoTitle || (existing && existing.title) || `Video ${currentVideoId}`,
@@ -728,41 +730,8 @@
         format: subtitleFormat,
         isText: isTextMode,
         sentences: sentences,
-        userPunct: userPunct,
-        userPunctAt: userPunct ? ((existing && existing.userPunctAt) || now) : undefined,
-        userPunctRevertedAt: userPunct ? undefined : (existing ? existing.userPunctRevertedAt : undefined)
+        userPunct: userPunct
       });
-    }
-
-    // Đảm bảo saveToLocalHistory bảo toàn các cờ userPunctAt và userPunctRevertedAt
-    if (typeof saveToLocalHistory === 'function') {
-      const _origSaveToLocalHistory = saveToLocalHistory;
-      window.saveToLocalHistory = saveToLocalHistory = function (item) {
-        const rawBefore = typeof getRawHistory === 'function' ? getRawHistory() : [];
-        const prev = rawBefore && rawBefore.find((h) => h.videoId === item.videoId && !h._deleted);
-        _origSaveToLocalHistory(item);
-        try {
-          const rawAfter = typeof getRawHistory === 'function' ? getRawHistory() : [];
-          const saved = rawAfter && rawAfter.find((h) => h.videoId === item.videoId && !h._deleted);
-          if (saved) {
-            if (item.userPunctAt !== undefined) {
-              if (item.userPunctAt) saved.userPunctAt = item.userPunctAt;
-              else delete saved.userPunctAt;
-            } else if (prev && prev.userPunctAt && saved.userPunct) {
-              saved.userPunctAt = prev.userPunctAt;
-            }
-
-            if (item.userPunctRevertedAt !== undefined) {
-              if (item.userPunctRevertedAt) saved.userPunctRevertedAt = item.userPunctRevertedAt;
-              else delete saved.userPunctRevertedAt;
-            } else if (prev && prev.userPunctRevertedAt && !saved.userPunct) {
-              saved.userPunctRevertedAt = prev.userPunctRevertedAt;
-            }
-            const sk = typeof STORAGE_KEY !== 'undefined' ? STORAGE_KEY : 'shadowing_master_user_history';
-            localStorage.setItem(sk, JSON.stringify(rawAfter));
-          }
-        } catch (e) {}
-      };
     }
 
     function aiAfterSentencesChangedInPlayer() {
@@ -969,23 +938,15 @@
       const now = Date.now();
       const isLib = typeof isLibraryVideo === 'function' ? isLibraryVideo(currentVideoId) : false;
       if (currentVideoId) {
-        const hist = typeof getRawHistory === 'function' ? getRawHistory() : (typeof getLocalHistory === 'function' ? getLocalHistory() : []);
-        const item = hist && hist.find((h) => h.videoId === currentVideoId);
-        if (item) {
-          item.userPunctRevertedAt = now;
-          delete item.userPunct;
-          delete item.userPunctAt;
-          if (isLib) {
-            item.sentences = [];
-          } else {
-            item.sentences = sentences;
-          }
-          item.updatedAt = now;
-          try {
-            const sk = typeof STORAGE_KEY !== 'undefined' ? STORAGE_KEY : 'shadowing_master_user_history';
-            localStorage.setItem(sk, JSON.stringify(hist));
-          } catch (e) {}
-        }
+        saveToLocalHistory({
+          videoId: currentVideoId,
+          format: subtitleFormat,
+          isText: isTextMode,
+          sentences: isLib ? [] : sentences,
+          userPunct: false,
+          userPunctAt: undefined,
+          userPunctRevertedAt: now
+        });
       }
       aiAfterSentencesChangedInPlayer();
       closePunctModal();
