@@ -434,3 +434,181 @@ test('9. F5 giả lập: video thư viện có cờ userPunct được giữ tro
   assert.strictEqual(getUserPunctVid(), 'lib_vid_1', 'Cờ userPunctVid được khôi phục');
 });
 
+test('10. Đồng bộ Cloud đa thiết bị: mergeHistoryLists khi thiết bị B mở video thư viện (chạy cả 2 ca: local mới hơn / cloud mới hơn)', () => {
+  const syncCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'supabase-sync.js'), 'utf8');
+  const match = syncCode.match(/function mergeHistoryLists\(localHist, cloudHist\) \{[\s\S]*?\n  \}/);
+  assert.ok(match, 'Tìm thấy mergeHistoryLists');
+  const fnMerge = new Function('localHist', 'cloudHist', match[0] + '\n return mergeHistoryLists(localHist, cloudHist);');
+
+  const sentA = [
+    {
+      id: 1, startTime: 0, endTime: 3.0, text: 'Tu as raison.',
+      words: [
+        { word: 'Tu', startTime: 0, endTime: 0.5 },
+        { word: 'as', asr_original: 'a', corrected: true, startTime: 0.6, endTime: 1.0 },
+        { word: 'raison', startTime: 1.1, endTime: 1.8 }
+      ]
+    }
+  ];
+
+  // TH1: Local B mới hơn Cloud A (B vừa mở video lúc t=2000 > t=1000, có userPunct: false)
+  const cloudItem1 = {
+    videoId: 'lib_vid_1', title: 'Thư viện mẫu', duration: 120, lib: true,
+    sentences: sentA, userPunct: true, updatedAt: 1000
+  };
+  const localItemB1 = JSON.parse(JSON.stringify({
+    videoId: 'lib_vid_1', title: 'Thư viện mẫu', duration: 120, lib: true,
+    userPunct: false, sentences: [], updatedAt: 2000
+  }));
+
+  const res1 = fnMerge([localItemB1], [cloudItem1]);
+  const itemB1 = res1.merged[0];
+  const b1HasSentences = itemB1.sentences && itemB1.sentences.length > 0;
+  const b1HasCorrected = b1HasSentences && itemB1.sentences[0].words[1].word === 'as' && itemB1.sentences[0].words[1].corrected === true;
+  const pushBackCloud1 = res1.merged.filter(h => h && (!h.lib || h.userTrans || h.isText || (h.sentences && h.sentences.length)));
+  const cloud1HasSentences = pushBackCloud1.length > 0 && pushBackCloud1[0].sentences.length > 0;
+
+  console.log('\n--- TH1: Local B mới hơn Cloud (lUpTime = 2000 > cUpTime = 1000, local B userPunct: false) ---');
+  console.log('B còn phụ đề đã sửa:', b1HasCorrected ? 'CÓ (từ: as, w.corrected=true)' : 'KHÔNG');
+  console.log('B còn cờ userPunct:', itemB1.userPunct ? 'CÓ (userPunct=true)' : 'KHÔNG');
+  console.log('Cloud sau khi B đẩy lại còn bản sửa:', cloud1HasSentences ? 'CÓ' : 'KHÔNG');
+
+  assert.strictEqual(itemB1.userPunct, true, 'TH1: userPunct được bảo vệ thành true dù localItemB có userPunct: false');
+  assert.strictEqual(b1HasCorrected, true, 'TH1: B nhận được sentences có w.corrected từ Cloud');
+  assert.strictEqual(cloud1HasSentences, true, 'TH1: Cloud sau khi B đẩy lại vẫn còn bản sửa do có sentences');
+
+  // TH2: Cloud A mới hơn Local B (A vừa sửa xong lúc t=2000 > t=1000, local B userPunct: false)
+  const cloudItem2 = {
+    videoId: 'lib_vid_1', title: 'Thư viện mẫu', duration: 120, lib: true,
+    sentences: sentA, userPunct: true, updatedAt: 2000
+  };
+  const localItemB2 = JSON.parse(JSON.stringify({
+    videoId: 'lib_vid_1', title: 'Thư viện mẫu', duration: 120, lib: true,
+    userPunct: false, sentences: [], updatedAt: 1000
+  }));
+
+  const res2 = fnMerge([localItemB2], [cloudItem2]);
+  const itemB2 = res2.merged[0];
+  const b2HasSentences = itemB2.sentences && itemB2.sentences.length > 0;
+  const b2HasCorrected = b2HasSentences && itemB2.sentences[0].words[1].word === 'as' && itemB2.sentences[0].words[1].corrected === true;
+  const pushBackCloud2 = res2.merged.filter(h => h && (!h.lib || h.userTrans || h.isText || (h.sentences && h.sentences.length)));
+  const cloud2HasSentences = pushBackCloud2.length > 0 && pushBackCloud2[0].sentences.length > 0;
+
+  console.log('\n--- TH2: Cloud A mới hơn Local B (cUpTime = 2000 > lUpTime = 1000, local B userPunct: false) ---');
+  console.log('B còn phụ đề đã sửa:', b2HasCorrected ? 'CÓ (từ: as, w.corrected=true)' : 'KHÔNG');
+  console.log('B còn cờ userPunct:', itemB2.userPunct ? 'CÓ (userPunct=true)' : 'KHÔNG');
+  console.log('Cloud sau khi B đẩy lại còn bản sửa:', cloud2HasSentences ? 'CÓ' : 'KHÔNG');
+
+  assert.strictEqual(itemB2.userPunct, true, 'TH2: userPunct được bảo vệ thành true dù localItemB có userPunct: false');
+  assert.strictEqual(b2HasCorrected, true, 'TH2: B nhận được sentences có w.corrected từ Cloud');
+  assert.strictEqual(cloud2HasSentences, true, 'TH2: Cloud vẫn giữ được bản sửa');
+});
+
+test('11. Test nối tiếp: sau merge, B gọi loadFromHistory rồi saveToLocalHistory; sentences đã sửa vẫn được giữ và không bị cleanHistory loại', () => {
+  const store = {};
+  const mockLocalStorage = {
+    getItem: (k) => store[k] || null,
+    setItem: (k, v) => { store[k] = String(v); }
+  };
+
+  const dummyEl = new MockHTMLInputElement();
+  Object.assign(dummyEl, {
+    addEventListener: () => {}, removeEventListener: () => {},
+    classList: { add: () => {}, remove: () => {}, toggle: () => {} },
+    style: {}, innerHTML: '', textContent: '', focus: () => {}, remove: () => {},
+    appendChild: () => dummyEl, querySelector: () => dummyEl, querySelectorAll: () => [], closest: () => dummyEl
+  });
+
+  const codePlayer = fs.readFileSync(path.join(__dirname, '..', 'js', '01d-player.js'), 'utf8');
+
+  const sandbox = {
+    console, Set, Map, Math, String, Array, Date, Infinity, parseFloat, parseInt, Boolean,
+    localStorage: mockLocalStorage,
+    STORAGE_KEY: 'fss_history_test_11',
+    categoryStructure: { 'A1': { 'lib_vid_1': 'Thư viện mẫu' } },
+    hiddenVideoMap: {}, hiddenVideoList: [],
+    currentVideoId: '', currentVideoTitle: '', sentences: [], subtitleFormat: '',
+    currentSentenceIndex: 0, isTextMode: false, userTransVid: '', userPunctVid: '',
+    pendingSeekTime: null,
+    aicHasTranslation: () => false,
+    aiClone: (x) => JSON.parse(JSON.stringify(x)),
+    selectCategoryVideo: () => {},
+    captureHomeState: () => {},
+    inputUrl: dummyEl, startBtn: dummyEl, parseErrorMessage: dummyEl, parseErrorAlert: dummyEl,
+    fileStatusBadge: dummyEl, checkStartReady: () => {}, resetPlaybackTrackingState: () => {},
+    initYouTubePlayer: () => {}, renderSubtitleList: () => {},
+    parseYouTubeId: (url) => (url && url.includes('lib_vid_1') ? 'lib_vid_1' : null),
+    resetSubtitleSearch: () => {}, resetBilingualForNewVideo: () => {}, stopSubtitleLoop: () => {},
+    updateActiveSentenceDisplay: () => {}, ensurePageFocus: () => {}, trackAndShowVideoStats: () => {},
+    document: {
+      body: dummyEl, createElement: () => dummyEl, getElementById: () => dummyEl,
+      querySelector: () => dummyEl, querySelectorAll: () => [],
+      addEventListener: () => {}, removeEventListener: () => {}
+    },
+    requestAnimationFrame: (cb) => setTimeout(cb, 0), cancelAnimationFrame: () => {},
+    setTimeout: (fn, ms) => { if (ms && ms > 1000) return 0; return setTimeout(fn, ms); },
+    clearTimeout: () => {},
+    HTMLInputElement: MockHTMLInputElement,
+    window: { ensureYouTubeIframeApi: () => {}, addEventListener: () => {}, removeEventListener: () => {} }
+  };
+
+  const fnPlayer = new Function('sandbox', 'with(sandbox) {\n' + codePlayer + '\n return { saveToLocalHistory, loadFromHistory, getLocalHistory, getUserPunctVid: () => userPunctVid }; }');
+  const { saveToLocalHistory, loadFromHistory, getLocalHistory, getUserPunctVid } = fnPlayer(sandbox);
+  sandbox.getLocalHistory = getLocalHistory;
+  sandbox.loadFromHistory = loadFromHistory;
+
+  // 1. Giả lập kết quả sau mergeHistoryLists được lưu vào máy B
+  const mergedItemFromCloud = {
+    videoId: 'lib_vid_1',
+    title: 'Thư viện mẫu',
+    duration: 120,
+    format: 'json3',
+    isText: false,
+    lib: true,
+    userPunct: true,
+    updatedAt: 2500,
+    sentences: [
+      {
+        id: 1, startTime: 0, endTime: 3.0, text: 'Tu as raison.',
+        words: [
+          { word: 'Tu', startTime: 0, endTime: 0.5 },
+          { word: 'as', asr_original: 'a', corrected: true, startTime: 0.6, endTime: 1.0 },
+          { word: 'raison', startTime: 1.1, endTime: 1.8 }
+        ]
+      }
+    ]
+  };
+  saveToLocalHistory(mergedItemFromCloud);
+
+  // 2. Thiết bị B mở video này từ lịch sử (loadFromHistory)
+  loadFromHistory('lib_vid_1');
+
+  // Kiểm tra cờ và phụ đề sau khi load
+  assert.strictEqual(sandbox.currentVideoId, 'lib_vid_1');
+  assert.strictEqual(getUserPunctVid(), 'lib_vid_1', 'Cờ userPunctVid được khôi phục thành công');
+  assert.strictEqual(sandbox.sentences.length, 1);
+  assert.strictEqual(sandbox.sentences[0].words[1].word, 'as');
+
+  // 3. Giả lập thiết bị B lưu lại lịch sử (saveToLocalHistory)
+  saveToLocalHistory({
+    videoId: 'lib_vid_1',
+    title: 'Thư viện mẫu',
+    duration: 120,
+    format: 'json3',
+    isText: false,
+    sentences: sandbox.sentences
+  });
+
+  const updatedHist = getLocalHistory();
+  assert.strictEqual(updatedHist.length, 1);
+  assert.strictEqual(updatedHist[0].userPunct, true, 'Vẫn giữ cờ userPunct: true sau khi saveToLocalHistory');
+  assert.strictEqual(updatedHist[0].sentences.length, 1, 'sentences không bị xóa rỗng');
+  assert.strictEqual(updatedHist[0].sentences[0].words[1].word, 'as');
+  assert.strictEqual(updatedHist[0].sentences[0].words[1].asr_original, 'a');
+
+  // 4. Kiểm tra qua bộ lọc cleanHistory trước khi push lên Cloud
+  const cleanHistory = updatedHist.filter(h => h && (!h.lib || h.userTrans || h.isText || (h.sentences && h.sentences.length)));
+  assert.strictEqual(cleanHistory.length, 1, 'Mục video thư viện KHÔNG bị cleanHistory loại bỏ');
+  assert.strictEqual(cleanHistory[0].sentences.length, 1);
+});
+

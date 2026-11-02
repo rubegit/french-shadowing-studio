@@ -361,6 +361,7 @@
               mergedL.sentences = cH.sentences;
             }
             if (!lH.userTrans && cH.userTrans) mergedL.userTrans = cH.userTrans;
+            if (!lH.userPunct && cH.userPunct) mergedL.userPunct = cH.userPunct;
             map.set(cH.videoId, mergedL);
             if (lUpTime > cUpTime) hasLocalNew = true;
           } else {
@@ -370,6 +371,7 @@
               mergedC.sentences = lH.sentences;
             }
             if (!cH.userTrans && lH.userTrans) mergedC.userTrans = lH.userTrans;
+            if (!cH.userPunct && lH.userPunct) mergedC.userPunct = lH.userPunct;
             map.set(cH.videoId, mergedC);
             hasCloudNew = true;
           }
