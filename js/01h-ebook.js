@@ -1913,7 +1913,7 @@
           if (/^\/(vocab|guide|donate|book|read)(\/|$)/.test(t)) needLib = false;
           else if (parts[1] === 'watch') {
             let id = parts[2] || ''; try { id = decodeURIComponent(id); } catch (e) {}
-            try { const it = getLocalHistory().find((x) => x.videoId === id && !x.isText); needLib = !(it && it.sentences && it.sentences.length && it.userTrans === true); } catch (e) {}
+            try { const it = getLocalHistory().find((x) => x.videoId === id && !x.isText); needLib = !(it && it.sentences && it.sentences.length && (it.userTrans === true || it.userPunct === true)); } catch (e) {}
           }
           if (needLib) { try { await catPromise; } catch (e) {} }
           if (!/^#\//.test(location.hash)) { ready = true; unhide(); return; }

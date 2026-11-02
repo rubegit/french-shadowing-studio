@@ -16,7 +16,9 @@
     // Chỉ lưu phụ đề vào localStorage khi người dùng TỰ nạp bản dịch song ngữ (server chưa có, hoặc họ xóa bản của server rồi nạp bản mới).
     // Với video thư viện còn lại, lịch sử chỉ giữ một "thẻ" gọn (id, tiêu đề, thời lượng, sentences: []) để hàng "Video Bạn Đã Luyện Gần Đây" vẫn hiện.
     let userTransVid = '';       // videoId đang có bản dịch song ngữ do NGƯỜI DÙNG tự nạp
+    let userPunctVid = '';       // videoId đang có phụ đề sửa câu/từ do NGƯỜI DÙNG tự áp dụng
     let pendingUserVi = false;   // người dùng vừa tự nạp phụ đề/bản dịch ở màn hình nhập, chờ startPractice gắn cờ theo videoId
+    let pendingUserPunct = false;
 
     function isLibraryVideo(vid) {
       if (vid && hiddenVideoMap[vid]) return true;   // video ẩn (catalog_<nguồn>.json) cũng coi là video của trang: lịch sử chỉ giữ thẻ gọn
@@ -30,7 +32,7 @@
         const hist = getLocalHistory();
         let changed = false;
         hist.forEach((h) => {
-          if (h.isText || h.userTrans === true || !isLibraryVideo(h.videoId)) return;
+          if (h.isText || h.userTrans === true || h.userPunct === true || !isLibraryVideo(h.videoId)) return;
           if (h.sentences && h.sentences.length && !aicHasTranslation(h.sentences)) { h.sentences = []; h.lib = true; changed = true; }
         });
         if (changed) localStorage.setItem(STORAGE_KEY, JSON.stringify(hist));
@@ -59,7 +61,8 @@
         const prevItem = raw.find(h => h.videoId === item.videoId && !h._deleted);
         const isLib = !item.isText && isLibraryVideo(item.videoId);
         const userTrans = isLib && (item.userTrans !== undefined ? !!item.userTrans : userTransVid === item.videoId);
-        const keepSentences = !isLib || userTrans;   // video thư viện: chỉ giữ phụ đề khi là bản dịch của người dùng
+        const userPunct = isLib && (item.userPunct !== undefined ? !!item.userPunct : (typeof userPunctVid !== 'undefined' && userPunctVid === item.videoId));
+        const keepSentences = !isLib || userTrans || userPunct;   // video thư viện: giữ phụ đề khi là bản dịch hoặc dấu câu/sửa từ của người dùng
         const mergedMeta = Object.assign({}, prevItem && prevItem.meta, item.meta);
         const now = Date.now();
         const HIST_TOMBSTONE_TTL = 30 * 24 * 60 * 60 * 1000;
@@ -69,6 +72,13 @@
         // Dọn tombstone hết hạn
         history = history.filter(h => !h._deleted || (h._deletedAt && (now - h._deletedAt) < HIST_TOMBSTONE_TTL));
 
+        const userPunctAt = userPunct
+          ? (item.userPunctAt !== undefined ? item.userPunctAt : (prevItem && prevItem.userPunctAt))
+          : undefined;
+        const userPunctRevertedAt = !userPunct
+          ? (item.userPunctRevertedAt !== undefined ? item.userPunctRevertedAt : (prevItem && prevItem.userPunctRevertedAt))
+          : undefined;
+
         history.unshift({
           videoId: item.videoId,
           title: item.title || `YouTube Video (${item.videoId})`,
@@ -76,9 +86,12 @@
           meta: Object.keys(mergedMeta).length ? mergedMeta : undefined,   // tên kênh / lượt xem của video import từ extension
           format: item.format || 'srt',
           isText: !!item.isText,
-          sentences: keepSentences ? item.sentences : [],
+          sentences: keepSentences ? (item.sentences !== undefined ? item.sentences : (prevItem && prevItem.sentences) || []) : [],
           lib: isLib ? true : undefined,
           userTrans: userTrans ? true : undefined,
+          userPunct: userPunct ? true : undefined,
+          userPunctAt: userPunctAt,
+          userPunctRevertedAt: userPunctRevertedAt,
           updatedAt: now
         });
         if (sharedNoSaveId && item.videoId === sharedNoSaveId) return;   // đang xem bản được chia sẻ: không ghi đè dữ liệu riêng của mình
@@ -233,10 +246,13 @@
       const history = getLocalHistory();
       const item = history.find(h => h.videoId === videoId);
       if (!item) return;
-      // Video thư viện (không có bản dịch riêng của người dùng) -> tải mới từ server thay vì dùng dữ liệu lưu trên máy
-      if (!item.isText && (isLibraryVideo(videoId) || item.lib === true) && item.userTrans !== true) { selectCategoryVideo(videoId, item.title, (typeof libCatState !== 'undefined' && libCatState && libCatState.cat === LIB_RECENT) ? 'hp-' : 'hist-'); return; }
+      // Video thư viện (không có bản dịch riêng và không có sửa câu/từ riêng của người dùng) -> tải mới từ server thay vì dùng dữ liệu lưu trên máy
+      if (!item.isText && (isLibraryVideo(videoId) || item.lib === true) && item.userTrans !== true && item.userPunct !== true) { selectCategoryVideo(videoId, item.title, (typeof libCatState !== 'undefined' && libCatState && libCatState.cat === LIB_RECENT) ? 'hp-' : 'hist-'); return; }
       if (!item.sentences || item.sentences.length === 0) return;
-      if (!item.isText) userTransVid = item.userTrans === true ? videoId : '';
+      if (!item.isText) {
+        userTransVid = item.userTrans === true ? videoId : '';
+        userPunctVid = item.userPunct === true ? videoId : '';
+      }
 
       // Bài văn bản đã lưu -> mở lại ở chế độ luyện văn bản (giữ nguyên cả bản dịch song ngữ)
       if (item.isText) {
@@ -455,6 +471,7 @@
       currentVideoId = parseYouTubeId(inputUrl.value);
       if (!currentVideoId || sentences.length === 0) return;
       if (pendingUserVi) { userTransVid = currentVideoId; pendingUserVi = false; }   // người dùng tự nạp phụ đề có bản dịch cho video này
+      if (pendingUserPunct) { userPunctVid = currentVideoId; pendingUserPunct = false; }   // người dùng tự nạp phụ đề sửa câu/từ cho video này
 
       // Kiểm tra nếu video này từng có bản dịch song ngữ cũ được lưu mà bản hiện tại chưa có dịch
       if (typeof getArchivedTranslation === 'function' && typeof aicHasTranslation === 'function' && !aicHasTranslation(sentences)) {

@@ -292,11 +292,32 @@
         <i data-lucide="copy"></i><span>Copy prompt</span>
       </button>
       <textarea id="pc-textarea" class="ai-textarea" spellcheck="false" placeholder="Dán câu trả lời của AI vào đây (có thể dán nguyên cả codebox hoặc toàn bộ phản hồi)..."></textarea>
-      <div class="ai-actions">
-        <button type="button" class="ai-btn ai-btn-primary" onclick="aiApply('punct-player')">
-          <i data-lucide="check"></i><span>Áp dụng</span>
+      
+      <!-- Khung xem trước đề xuất sửa từ của AI -->
+      <div id="pc-corrections-box" style="display:none;" class="mt-3 p-3 rounded-lg bg-slate-900/90 border border-slate-700/80 text-xs">
+        <div class="font-semibold text-slate-200 mb-2 flex items-center justify-between">
+          <span>Xem trước sửa từ ASR (<span id="pc-corr-count">0</span> đề xuất):</span>
+          <label class="text-[11px] text-blue-400 cursor-pointer flex items-center gap-1">
+            <input type="checkbox" id="pc-toggle-all-corr" checked onchange="window.pcToggleAllCorrections(this.checked)" /> Chọn tất cả
+          </label>
+        </div>
+        <div id="pc-corrections-list" class="space-y-1.5 max-h-36 overflow-y-auto pr-1"></div>
+        <div id="pc-rejected-box" style="display:none;" class="mt-2 pt-2 border-t border-slate-800 text-[11px] text-slate-400">
+          <div class="text-amber-400/90 font-medium mb-1">Đã từ chối (không an toàn):</div>
+          <div id="pc-rejected-list" class="space-y-1 max-h-24 overflow-y-auto"></div>
+        </div>
+      </div>
+
+      <div class="ai-actions mt-3 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <button type="button" id="pc-apply-btn" class="ai-btn ai-btn-primary" onclick="aiApply('punct-player')">
+            <i data-lucide="check"></i><span>Áp dụng</span>
+          </button>
+          <button type="button" class="ai-btn ai-btn-ghost" onclick="closePunctModal()">Để sau</button>
+        </div>
+        <button type="button" id="pc-revert-btn" style="display:none;" class="ai-btn ai-btn-ghost text-amber-400 hover:text-amber-300 text-xs" onclick="window.pcRevertAsrOriginal()" title="Khôi phục toàn bộ các từ đã sửa về chữ ASR ban đầu">
+          <i data-lucide="rotate-ccw"></i><span>Khôi phục từ gốc ASR</span>
         </button>
-        <button type="button" class="ai-btn ai-btn-ghost" onclick="closePunctModal()">Để sau</button>
       </div>
       <div id="pc-status" class="ai-status"></div>
     </div>
@@ -2833,13 +2854,13 @@
   </div>
 
   <script src="js/01-core.js?v=f5cc99a6"></script>
-<script src="js/01b-catalog.js?v=70d9318e"></script>
-<script src="js/01c-subtitles.js?v=cca0d801"></script>
-<script src="js/01d-player.js?v=2ce38552"></script>
-<script src="js/01e-translate-ai.js?v=88c80ec8"></script>
+<script src="js/01b-catalog.js?v=68c0f1d5"></script>
+<script src="js/01c-subtitles.js?v=e68b9e12"></script>
+<script src="js/01d-player.js?v=b4036dd8"></script>
+<script src="js/01e-translate-ai.js?v=c15d6572"></script>
 <script src="js/01f-lookup.js?v=bb67c688"></script>
 <script src="js/01g-vocab-list.js?v=33434ca6"></script>
-<script src="js/01h-ebook.js?v=cb54eb78"></script>
+<script src="js/01h-ebook.js?v=a646fc5b"></script>
 
   <script src="js/02-pv-helper.js?v=d2adcc44"></script>
   <script id="pv-script" src="js/03-practice-engine.js?v=a8f2225b"></script>
@@ -2857,7 +2878,7 @@
 <script id="kb-fix" src="js/09-keyboard-fix.js?v=773ef580"></script>
 <script id="own-yt-script" src="js/10-own-video.js?v=5fbca9ea"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/supabase-sync.js?v=9dee7d6a"></script>
+<script src="js/supabase-sync.js?v=a8171778"></script>
 <script src="js/vocab-practice.js?v=037a971b"></script>
 <script src="js/tcf-exam.js?v=0f958ef4"></script>
 <script src="js/schema-v02.js"></script>

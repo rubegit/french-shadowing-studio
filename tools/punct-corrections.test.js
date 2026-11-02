@@ -1,0 +1,1098 @@
+/**
+ * French Shadowing Studio - Punctuation & Word Corrections Test Suite
+ */
+
+const test = require('node:test');
+const assert = require('node:assert');
+const fs = require('fs');
+const path = require('path');
+
+class MockHTMLInputElement {}
+Object.defineProperty(MockHTMLInputElement.prototype, 'value', {
+  configurable: true,
+  get() { return this._value || ''; },
+  set(v) { this._value = v; }
+});
+
+function createSubtitlesEnv() {
+  const filePath = path.join(__dirname, '..', 'js', '01c-subtitles.js');
+  const code = fs.readFileSync(filePath, 'utf8');
+  const sandbox = {
+    console,
+    Set,
+    Map,
+    Math,
+    String,
+    Array,
+    Date,
+    Infinity,
+    parseFloat,
+    parseInt,
+    Boolean,
+    requestAnimationFrame: (cb) => setTimeout(cb, 0),
+    cancelAnimationFrame: () => {},
+    setTimeout,
+    clearTimeout,
+    HTMLInputElement: MockHTMLInputElement,
+    window: {
+      addEventListener: () => {},
+      removeEventListener: () => {}
+    }
+  };
+  const fn = new Function('sandbox', 'with(sandbox) {\n' + code + '\n return { applyPunctuationFromAi, aicRestoreAsrOriginal, aicAdoptPunct }; }');
+  return fn(sandbox);
+}
+
+test('1. Sửa từ 1:1 hợp lệ: "tu a" → "tu as" (từ ngắn trong allowlist)', () => {
+  const { applyPunctuationFromAi } = createSubtitlesEnv();
+  const sents = [
+    {
+      id: 1, startTime: 0, endTime: 4.0, text: 'bonjour je suis content tu a raison mon ami',
+      words: [
+        { word: 'bonjour', startTime: 0.0, endTime: 0.5 },
+        { word: 'je', startTime: 0.6, endTime: 0.8 },
+        { word: 'suis', startTime: 0.9, endTime: 1.2 },
+        { word: 'content', startTime: 1.3, endTime: 1.8 },
+        { word: 'tu', startTime: 2.0, endTime: 2.3 },
+        { word: 'a', startTime: 2.4, endTime: 2.7 },
+        { word: 'raison', startTime: 2.8, endTime: 3.4 },
+        { word: 'mon', startTime: 3.5, endTime: 3.7 },
+        { word: 'ami', startTime: 3.8, endTime: 4.0 }
+      ]
+    }
+  ];
+  const aiText = 'Bonjour, je suis content, tu as raison mon ami.';
+  const res = applyPunctuationFromAi(sents, aiText, { lineChunks: false });
+  assert.strictEqual(res.ok, true, 'Xử lý thành công');
+  
+  const w = res.sentences[0].words[5];
+  assert.strictEqual(w.word, 'as', 'Từ phải được sửa thành "as"');
+  assert.strictEqual(w.asr_original, 'a', 'Giữ chữ gốc ASR là "a"');
+  assert.strictEqual(w.corrected, true, 'Đánh dấu w.corrected = true');
+  assert.strictEqual(res.candidateCorrections.length, 1, 'Có 1 đề xuất sửa từ');
+  assert.strictEqual(res.candidateCorrections[0].asrWord, 'a');
+  assert.strictEqual(res.candidateCorrections[0].aiWord, 'as');
+});
+
+test('2. Chuẩn hóa nháy âm: "cest" → "c\'est" (cùng norm_key)', () => {
+  const { applyPunctuationFromAi } = createSubtitlesEnv();
+  const sents = [
+    {
+      id: 1, startTime: 0, endTime: 3.0, text: 'bonjour cest vrai mon ami cest clair',
+      words: [
+        { word: 'bonjour', startTime: 0.0, endTime: 0.5 },
+        { word: 'cest', startTime: 0.6, endTime: 0.9 },
+        { word: 'vrai', startTime: 1.0, endTime: 1.5 },
+        { word: 'mon', startTime: 1.6, endTime: 1.8 },
+        { word: 'ami', startTime: 1.9, endTime: 2.2 },
+        { word: 'cest', startTime: 2.3, endTime: 2.6 },
+        { word: 'clair', startTime: 2.7, endTime: 3.0 }
+      ]
+    }
+  ];
+  const aiText = 'Bonjour, c\'est vrai mon ami, c\'est clair.';
+  const res = applyPunctuationFromAi(sents, aiText, { lineChunks: false });
+  assert.strictEqual(res.ok, true);
+  const w1 = res.sentences[0].words[1];
+  assert.strictEqual(w1.word, "c'est");
+  assert.strictEqual(w1.asr_original, 'cest');
+  assert.strictEqual(w1.corrected, true);
+});
+
+test('3. Nối gạch nối: "est ce" → "est-ce" (gộp 2 từ ASR trùng 100% chữ cái)', () => {
+  const { applyPunctuationFromAi } = createSubtitlesEnv();
+  const sents = [
+    {
+      id: 1, startTime: 0, endTime: 3.0, text: 'bonjour est ce que tu viens mon cher ami',
+      words: [
+        { word: 'bonjour', startTime: 0.0, endTime: 0.5 },
+        { word: 'est', startTime: 0.6, endTime: 0.9 },
+        { word: 'ce', startTime: 1.0, endTime: 1.3 },
+        { word: 'que', startTime: 1.4, endTime: 1.7 },
+        { word: 'tu', startTime: 1.8, endTime: 2.0 },
+        { word: 'viens', startTime: 2.1, endTime: 2.4 },
+        { word: 'mon', startTime: 2.5, endTime: 2.6 },
+        { word: 'cher', startTime: 2.7, endTime: 2.8 },
+        { word: 'ami', startTime: 2.9, endTime: 3.0 }
+      ]
+    }
+  ];
+  const aiText = 'Bonjour, est-ce que tu viens mon cher ami ?';
+  const res = applyPunctuationFromAi(sents, aiText, { lineChunks: false });
+  assert.strictEqual(res.ok, true);
+  const wEstCe = res.sentences[0].words[1];
+  assert.strictEqual(wEstCe.word, 'est-ce');
+  assert.strictEqual(wEstCe.asr_original, 'est ce');
+  assert.strictEqual(wEstCe.corrected, true);
+  assert.strictEqual(wEstCe.startTime, 0.6);
+  assert.strictEqual(wEstCe.endTime, 1.3, 'Bao trọn thời gian của cả 2 từ gốc');
+});
+
+test('4. Sửa dấu thanh tiếng Pháp: "e" → "é" (chỉ khác accents)', () => {
+  const { applyPunctuationFromAi } = createSubtitlesEnv();
+  const sents = [
+    {
+      id: 1, startTime: 0, endTime: 3.0, text: 'il a regarde le film hier soir chez moi',
+      words: [
+        { word: 'il', startTime: 0.0, endTime: 0.3 },
+        { word: 'a', startTime: 0.4, endTime: 0.6 },
+        { word: 'regarde', startTime: 0.7, endTime: 1.2 },
+        { word: 'le', startTime: 1.3, endTime: 1.5 },
+        { word: 'film', startTime: 1.6, endTime: 1.9 },
+        { word: 'hier', startTime: 2.0, endTime: 2.3 },
+        { word: 'soir', startTime: 2.4, endTime: 2.6 },
+        { word: 'chez', startTime: 2.7, endTime: 2.8 },
+        { word: 'moi', startTime: 2.9, endTime: 3.0 }
+      ]
+    }
+  ];
+  const aiText = 'Il a regardé le film hier soir chez moi.';
+  const res = applyPunctuationFromAi(sents, aiText, { lineChunks: false });
+  assert.strictEqual(res.ok, true);
+  const wRegarde = res.sentences[0].words[2];
+  assert.strictEqual(wRegarde.word, 'regardé');
+  assert.strictEqual(wRegarde.asr_original, 'regarde');
+  assert.strictEqual(wRegarde.corrected, true);
+});
+
+test('5. Từ ngắn bị CHẶN: "le" → "la", "un" → "une"', () => {
+  const { applyPunctuationFromAi } = createSubtitlesEnv();
+  const sents = [
+    {
+      id: 1, startTime: 0, endTime: 3.0, text: 'je vois le pomme et un table dans le salon',
+      words: [
+        { word: 'je', startTime: 0.0, endTime: 0.3 },
+        { word: 'vois', startTime: 0.4, endTime: 0.7 },
+        { word: 'le', startTime: 0.8, endTime: 1.0 },
+        { word: 'pomme', startTime: 1.1, endTime: 1.5 },
+        { word: 'et', startTime: 1.6, endTime: 1.8 },
+        { word: 'un', startTime: 1.9, endTime: 2.1 },
+        { word: 'table', startTime: 2.2, endTime: 2.5 },
+        { word: 'dans', startTime: 2.6, endTime: 2.7 },
+        { word: 'le', startTime: 2.8, endTime: 2.9 },
+        { word: 'salon', startTime: 3.0, endTime: 3.3 }
+      ]
+    }
+  ];
+  // AI cố đổi "le" thành "la", "un" thành "une"
+  const aiText = 'Je vois la pomme et une table dans le salon.';
+  const res = applyPunctuationFromAi(sents, aiText, { lineChunks: false });
+  assert.strictEqual(res.ok, true);
+  
+  const wLe = res.sentences[0].words[2];
+  assert.strictEqual(wLe.word, 'le', 'Từ "le" không được đổi thành "la"');
+  assert.strictEqual(wLe.corrected, undefined);
+
+  const wUn = res.sentences[0].words[5];
+  assert.strictEqual(wUn.word, 'un', 'Từ "un" không được đổi thành "une"');
+  assert.strictEqual(wUn.corrected, undefined);
+
+  assert.strictEqual(res.rejectedCorrections.length, 2, 'Có 2 đề xuất bị từ chối');
+  assert.strictEqual(res.rejectedCorrections[0].asrWord, 'le');
+  assert.strictEqual(res.rejectedCorrections[0].aiWord, 'la');
+  assert.strictEqual(res.rejectedCorrections[1].asrWord, 'un');
+  assert.strictEqual(res.rejectedCorrections[1].aiWord, 'une');
+});
+
+test('6. Tách/chèn/bỏ giữ nguyên chữ ASR', () => {
+  const { applyPunctuationFromAi } = createSubtitlesEnv();
+  const sents = [
+    {
+      id: 1, startTime: 0, endTime: 4.0, text: 'bonjour euh je vais bien merci beaucoup mon cher ami',
+      words: [
+        { word: 'bonjour', startTime: 0.0, endTime: 0.5 },
+        { word: 'euh', startTime: 0.6, endTime: 0.8 },
+        { word: 'je', startTime: 0.9, endTime: 1.2 },
+        { word: 'vais', startTime: 1.3, endTime: 1.6 },
+        { word: 'bien', startTime: 1.7, endTime: 2.0 },
+        { word: 'merci', startTime: 2.1, endTime: 2.4 },
+        { word: 'beaucoup', startTime: 2.5, endTime: 2.8 },
+        { word: 'mon', startTime: 2.9, endTime: 3.1 },
+        { word: 'cher', startTime: 3.2, endTime: 3.4 },
+        { word: 'ami', startTime: 3.5, endTime: 4.0 }
+      ]
+    }
+  ];
+  // AI bỏ "euh", chèn thêm từ "oui" ở đầu
+  const aiText = 'Oui bonjour, je vais bien, merci beaucoup mon cher ami.';
+  const res = applyPunctuationFromAi(sents, aiText, { lineChunks: false });
+  assert.strictEqual(res.ok, true);
+  
+  // Từ "euh" mà AI bỏ vẫn phải được giữ lại
+  const words = res.sentences[0].words;
+  assert.strictEqual(words.some(w => w.word.startsWith('euh')), true, 'Từ "euh" của ASR vẫn được giữ lại');
+  // Từ "oui" mà AI tự chèn không được chèn vào
+  assert.strictEqual(words[0].word.toLowerCase().startsWith('bonjour'), true, 'Không nhận từ chèn bừa');
+});
+
+test('7. Hoàn tác từ asr_original về lại chữ gốc ASR (giữ nguyên dấu câu)', () => {
+  const { applyPunctuationFromAi, aicRestoreAsrOriginal } = createSubtitlesEnv();
+  const sents = [
+    {
+      id: 1, startTime: 0, endTime: 4.0, text: 'bonjour je suis content tu a raison mon cher ami',
+      words: [
+        { word: 'bonjour', startTime: 0.0, endTime: 0.5 },
+        { word: 'je', startTime: 0.6, endTime: 0.8 },
+        { word: 'suis', startTime: 0.9, endTime: 1.2 },
+        { word: 'content', startTime: 1.3, endTime: 1.8 },
+        { word: 'tu', startTime: 2.0, endTime: 2.3 },
+        { word: 'a', startTime: 2.4, endTime: 2.7 },
+        { word: 'raison', startTime: 2.8, endTime: 3.4 },
+        { word: 'mon', startTime: 3.5, endTime: 3.6 },
+        { word: 'cher', startTime: 3.7, endTime: 3.8 },
+        { word: 'ami', startTime: 3.9, endTime: 4.0 }
+      ]
+    }
+  ];
+  const aiText = 'Bonjour, je suis content, tu as raison mon cher ami.';
+  const res = applyPunctuationFromAi(sents, aiText, { lineChunks: false });
+  assert.strictEqual(res.sentences[0].words[5].word, 'as');
+
+  // Gọi hoàn tác
+  const restored = aicRestoreAsrOriginal(res.sentences);
+  const wRestored = restored[0].words[5];
+  assert.strictEqual(wRestored.word, 'a', 'Đã hoàn tác về chữ "a"');
+  assert.strictEqual(wRestored.corrected, undefined, 'Bỏ cờ corrected');
+  assert.strictEqual(wRestored.asr_original, undefined, 'Bỏ trường asr_original');
+});
+
+test('8. aicPlainTranscript xuất mỗi câu một dòng (\\n) và generateKeyVocabPrompt giữ nguyên \\n', () => {
+  const filePath = path.join(__dirname, '..', 'js', '01c-subtitles.js');
+  const code = fs.readFileSync(filePath, 'utf8');
+  const sandbox = { console, Set, Map, Math, String, Array, Date, Infinity, parseFloat, parseInt, Boolean, window: {} };
+  const fn = new Function('sandbox', 'with(sandbox) {\n' + code + '\n return { aicPlainTranscript }; }');
+  const { aicPlainTranscript } = fn(sandbox);
+
+  const { generateKeyVocabPrompt } = require('./extract-prompt-template.js');
+
+  const sents = [
+    { id: 1, text: 'Bonjour tout le monde.' },
+    { id: 2, text: 'Comment allez-vous aujourd\'hui ?' },
+    { id: 3, text: 'Très bien, merci.' }
+  ];
+
+  const plain = aicPlainTranscript(sents);
+  const expected = 'Bonjour tout le monde.\nComment allez-vous aujourd\'hui ?\nTrès bien, merci.';
+  assert.strictEqual(plain, expected, 'aicPlainTranscript phải xuất mỗi câu một dòng (\\n)');
+
+  const prompt = generateKeyVocabPrompt({
+    videoId: 'dwt1yeNtKeQ',
+    videoTitle: 'Test Video',
+    transcript: plain
+  });
+
+  assert.ok(prompt.includes('<<<VAN_BAN\n' + expected + '\n>>>'), 'Prompt phải bảo toàn các dấu \\n giữa các câu');
+});
+
+test('9. F5 giả lập: video thư viện có cờ userPunct được giữ trong lịch sử và openVideo ưu tiên dùng phụ đề đã lưu', async () => {
+  const store = {};
+  const mockLocalStorage = {
+    getItem: (k) => store[k] || null,
+    setItem: (k, v) => { store[k] = String(v); }
+  };
+
+  const dummyEl = new MockHTMLInputElement();
+  Object.assign(dummyEl, {
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    classList: { add: () => {}, remove: () => {}, toggle: () => {} },
+    style: {},
+    innerHTML: '',
+    textContent: '',
+    focus: () => {},
+    remove: () => {},
+    appendChild: () => dummyEl,
+    querySelector: () => dummyEl,
+    querySelectorAll: () => [],
+    closest: () => dummyEl
+  });
+
+  const codePlayer = fs.readFileSync(path.join(__dirname, '..', 'js', '01d-player.js'), 'utf8');
+  let selectedCategoryVideoCalled = false;
+
+  const sandbox = {
+    console,
+    Set,
+    Map,
+    Math,
+    String,
+    Array,
+    Date,
+    Infinity,
+    parseFloat,
+    parseInt,
+    Boolean,
+    localStorage: mockLocalStorage,
+    STORAGE_KEY: 'fss_history_test',
+    categoryStructure: { 'A1': { 'lib_vid_1': 'Thư viện mẫu' } },
+    hiddenVideoMap: {},
+    hiddenVideoList: [],
+    currentVideoId: '',
+    currentVideoTitle: '',
+    sentences: [],
+    subtitleFormat: '',
+    currentSentenceIndex: 0,
+    isTextMode: false,
+    userTransVid: '',
+    userPunctVid: '',
+    pendingSeekTime: null,
+    aicHasTranslation: () => false,
+    aiClone: (x) => JSON.parse(JSON.stringify(x)),
+    selectCategoryVideo: () => { selectedCategoryVideoCalled = true; },
+    captureHomeState: () => {},
+    inputUrl: dummyEl,
+    startBtn: dummyEl,
+    parseErrorMessage: dummyEl,
+    parseErrorAlert: dummyEl,
+    fileStatusBadge: dummyEl,
+    checkStartReady: () => {},
+    resetPlaybackTrackingState: () => {},
+    initYouTubePlayer: () => {},
+    renderSubtitleList: () => {},
+    parseYouTubeId: (url) => (url && url.includes('lib_vid_1') ? 'lib_vid_1' : null),
+    resetSubtitleSearch: () => {},
+    resetBilingualForNewVideo: () => {},
+    stopSubtitleLoop: () => {},
+    updateActiveSentenceDisplay: () => {},
+    ensurePageFocus: () => {},
+    trackAndShowVideoStats: () => {},
+    document: {
+      body: dummyEl,
+      createElement: () => dummyEl,
+      getElementById: () => dummyEl,
+      querySelector: () => dummyEl,
+      querySelectorAll: () => [],
+      addEventListener: () => {},
+      removeEventListener: () => {}
+    },
+    requestAnimationFrame: (cb) => setTimeout(cb, 0),
+    cancelAnimationFrame: () => {},
+    setTimeout: (fn, ms) => { if (ms && ms > 1000) return 0; return setTimeout(fn, ms); },
+    clearTimeout: () => {},
+    HTMLInputElement: MockHTMLInputElement,
+    window: {
+      ensureYouTubeIframeApi: () => {},
+      addEventListener: () => {},
+      removeEventListener: () => {}
+    }
+  };
+
+  const fnPlayer = new Function('sandbox', 'with(sandbox) {\n' + codePlayer + '\n return { saveToLocalHistory, loadFromHistory, getLocalHistory, getUserPunctVid: () => userPunctVid }; }');
+  const { saveToLocalHistory, loadFromHistory, getLocalHistory, getUserPunctVid } = fnPlayer(sandbox);
+  sandbox.getLocalHistory = getLocalHistory;
+  sandbox.loadFromHistory = loadFromHistory;
+
+  // 1. Áp dụng thêm dấu câu/sửa từ cho video thư viện và lưu vào lịch sử
+  const mockSentences = [
+    {
+      id: 1, startTime: 0, endTime: 3.0, text: 'Tu as raison mon ami.',
+      words: [
+        { word: 'Tu', startTime: 0, endTime: 0.5 },
+        { word: 'as', asr_original: 'a', corrected: true, startTime: 0.6, endTime: 1.0 },
+        { word: 'raison', startTime: 1.1, endTime: 1.8 }
+      ]
+    }
+  ];
+
+  saveToLocalHistory({
+    videoId: 'lib_vid_1',
+    title: 'Thư viện mẫu',
+    duration: 120,
+    format: 'json3',
+    isText: false,
+    sentences: mockSentences,
+    userPunct: true
+  });
+
+  // 2. Kiểm tra dữ liệu được lưu trong lịch sử
+  const hist = getLocalHistory();
+  assert.strictEqual(hist.length, 1, 'Lịch sử có 1 mục');
+  assert.strictEqual(hist[0].videoId, 'lib_vid_1');
+  assert.strictEqual(hist[0].userPunct, true, 'Đã lưu cờ userPunct: true');
+  assert.strictEqual(hist[0].sentences.length, 1, 'Mảng sentences không bị xóa rỗng');
+  assert.strictEqual(hist[0].sentences[0].words[1].word, 'as');
+  assert.strictEqual(hist[0].sentences[0].words[1].asr_original, 'a');
+
+  // 3. Giả lập F5: openVideo tìm trong getLocalHistory rồi gọi loadFromHistory
+  const codeEbook = fs.readFileSync(path.join(__dirname, '..', 'js', '01h-ebook.js'), 'utf8');
+  // Trích hàm openVideo để test logic
+  const matchOpenVideo = codeEbook.match(/async function openVideo\(id\) \{[\s\S]*?return false;\s*\}/);
+  assert.ok(matchOpenVideo, 'Tìm thấy hàm openVideo trong 01h-ebook.js');
+
+  const fnOpenVideo = new Function('sandbox', 'with(sandbox) {\n' + matchOpenVideo[0] + '\n return openVideo; }');
+  const openVideo = fnOpenVideo(sandbox);
+
+  sandbox.vis = (screen) => screen === 'screen-practice';
+
+  await openVideo('lib_vid_1');
+
+  // Kiểm tra loadFromHistory đã mở trực tiếp phụ đề đã lưu, KHÔNG tải lại từ server qua selectCategoryVideo
+  assert.strictEqual(selectedCategoryVideoCalled, false, 'Không được gọi selectCategoryVideo khi đã có userPunct: true');
+  assert.strictEqual(sandbox.currentVideoId, 'lib_vid_1');
+  assert.strictEqual(sandbox.sentences.length, 1);
+  assert.strictEqual(sandbox.sentences[0].words[1].word, 'as', 'Phụ đề đã sửa vẫn nguyên vẹn sau khi F5');
+  assert.strictEqual(getUserPunctVid(), 'lib_vid_1', 'Cờ userPunctVid được khôi phục');
+});
+
+test('10. Đồng bộ Cloud đa thiết bị: mergeHistoryLists khi thiết bị B mở video thư viện (chạy cả 2 ca: local mới hơn / cloud mới hơn)', () => {
+  const syncCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'supabase-sync.js'), 'utf8');
+  const match = syncCode.match(/function mergeHistoryLists\(localHist, cloudHist\) \{[\s\S]*?\n  \}/);
+  assert.ok(match, 'Tìm thấy mergeHistoryLists');
+  const fnMerge = new Function('localHist', 'cloudHist', match[0] + '\n return mergeHistoryLists(localHist, cloudHist);');
+
+  const sentA = [
+    {
+      id: 1, startTime: 0, endTime: 3.0, text: 'Tu as raison.',
+      words: [
+        { word: 'Tu', startTime: 0, endTime: 0.5 },
+        { word: 'as', asr_original: 'a', corrected: true, startTime: 0.6, endTime: 1.0 },
+        { word: 'raison', startTime: 1.1, endTime: 1.8 }
+      ]
+    }
+  ];
+
+  // TH1: Local B mới hơn Cloud A (B vừa mở video lúc t=2000 > t=1000, có userPunct: false)
+  const cloudItem1 = {
+    videoId: 'lib_vid_1', title: 'Thư viện mẫu', duration: 120, lib: true,
+    sentences: sentA, userPunct: true, updatedAt: 1000
+  };
+  const localItemB1 = JSON.parse(JSON.stringify({
+    videoId: 'lib_vid_1', title: 'Thư viện mẫu', duration: 120, lib: true,
+    userPunct: false, sentences: [], updatedAt: 2000
+  }));
+
+  const res1 = fnMerge([localItemB1], [cloudItem1]);
+  const itemB1 = res1.merged[0];
+  const b1HasSentences = itemB1.sentences && itemB1.sentences.length > 0;
+  const b1HasCorrected = b1HasSentences && itemB1.sentences[0].words[1].word === 'as' && itemB1.sentences[0].words[1].corrected === true;
+  const pushBackCloud1 = res1.merged.filter(h => h && (!h.lib || h.userTrans || h.isText || (h.sentences && h.sentences.length)));
+  const cloud1HasSentences = pushBackCloud1.length > 0 && pushBackCloud1[0].sentences.length > 0;
+
+  console.log('\n--- TH1: Local B mới hơn Cloud (lUpTime = 2000 > cUpTime = 1000, local B userPunct: false) ---');
+  console.log('B còn phụ đề đã sửa:', b1HasCorrected ? 'CÓ (từ: as, w.corrected=true)' : 'KHÔNG');
+  console.log('B còn cờ userPunct:', itemB1.userPunct ? 'CÓ (userPunct=true)' : 'KHÔNG');
+  console.log('Cloud sau khi B đẩy lại còn bản sửa:', cloud1HasSentences ? 'CÓ' : 'KHÔNG');
+
+  assert.strictEqual(itemB1.userPunct, true, 'TH1: userPunct được bảo vệ thành true dù localItemB có userPunct: false');
+  assert.strictEqual(b1HasCorrected, true, 'TH1: B nhận được sentences có w.corrected từ Cloud');
+  assert.strictEqual(cloud1HasSentences, true, 'TH1: Cloud sau khi B đẩy lại vẫn còn bản sửa do có sentences');
+
+  // TH2: Cloud A mới hơn Local B (A vừa sửa xong lúc t=2000 > t=1000, local B userPunct: false)
+  const cloudItem2 = {
+    videoId: 'lib_vid_1', title: 'Thư viện mẫu', duration: 120, lib: true,
+    sentences: sentA, userPunct: true, updatedAt: 2000
+  };
+  const localItemB2 = JSON.parse(JSON.stringify({
+    videoId: 'lib_vid_1', title: 'Thư viện mẫu', duration: 120, lib: true,
+    userPunct: false, sentences: [], updatedAt: 1000
+  }));
+
+  const res2 = fnMerge([localItemB2], [cloudItem2]);
+  const itemB2 = res2.merged[0];
+  const b2HasSentences = itemB2.sentences && itemB2.sentences.length > 0;
+  const b2HasCorrected = b2HasSentences && itemB2.sentences[0].words[1].word === 'as' && itemB2.sentences[0].words[1].corrected === true;
+  const pushBackCloud2 = res2.merged.filter(h => h && (!h.lib || h.userTrans || h.isText || (h.sentences && h.sentences.length)));
+  const cloud2HasSentences = pushBackCloud2.length > 0 && pushBackCloud2[0].sentences.length > 0;
+
+  console.log('\n--- TH2: Cloud A mới hơn Local B (cUpTime = 2000 > lUpTime = 1000, local B userPunct: false) ---');
+  console.log('B còn phụ đề đã sửa:', b2HasCorrected ? 'CÓ (từ: as, w.corrected=true)' : 'KHÔNG');
+  console.log('B còn cờ userPunct:', itemB2.userPunct ? 'CÓ (userPunct=true)' : 'KHÔNG');
+  console.log('Cloud sau khi B đẩy lại còn bản sửa:', cloud2HasSentences ? 'CÓ' : 'KHÔNG');
+
+  assert.strictEqual(itemB2.userPunct, true, 'TH2: userPunct được bảo vệ thành true dù localItemB có userPunct: false');
+  assert.strictEqual(b2HasCorrected, true, 'TH2: B nhận được sentences có w.corrected từ Cloud');
+  assert.strictEqual(cloud2HasSentences, true, 'TH2: Cloud vẫn giữ được bản sửa');
+});
+
+test('11. Test nối tiếp: sau merge, B gọi loadFromHistory rồi saveToLocalHistory; sentences đã sửa vẫn được giữ và không bị cleanHistory loại', () => {
+  const store = {};
+  const mockLocalStorage = {
+    getItem: (k) => store[k] || null,
+    setItem: (k, v) => { store[k] = String(v); }
+  };
+
+  const dummyEl = new MockHTMLInputElement();
+  Object.assign(dummyEl, {
+    addEventListener: () => {}, removeEventListener: () => {},
+    classList: { add: () => {}, remove: () => {}, toggle: () => {} },
+    style: {}, innerHTML: '', textContent: '', focus: () => {}, remove: () => {},
+    appendChild: () => dummyEl, querySelector: () => dummyEl, querySelectorAll: () => [], closest: () => dummyEl
+  });
+
+  const codePlayer = fs.readFileSync(path.join(__dirname, '..', 'js', '01d-player.js'), 'utf8');
+
+  const sandbox = {
+    console, Set, Map, Math, String, Array, Date, Infinity, parseFloat, parseInt, Boolean,
+    localStorage: mockLocalStorage,
+    STORAGE_KEY: 'fss_history_test_11',
+    categoryStructure: { 'A1': { 'lib_vid_1': 'Thư viện mẫu' } },
+    hiddenVideoMap: {}, hiddenVideoList: [],
+    currentVideoId: '', currentVideoTitle: '', sentences: [], subtitleFormat: '',
+    currentSentenceIndex: 0, isTextMode: false, userTransVid: '', userPunctVid: '',
+    pendingSeekTime: null,
+    aicHasTranslation: () => false,
+    aiClone: (x) => JSON.parse(JSON.stringify(x)),
+    selectCategoryVideo: () => {},
+    captureHomeState: () => {},
+    inputUrl: dummyEl, startBtn: dummyEl, parseErrorMessage: dummyEl, parseErrorAlert: dummyEl,
+    fileStatusBadge: dummyEl, checkStartReady: () => {}, resetPlaybackTrackingState: () => {},
+    initYouTubePlayer: () => {}, renderSubtitleList: () => {},
+    parseYouTubeId: (url) => (url && url.includes('lib_vid_1') ? 'lib_vid_1' : null),
+    resetSubtitleSearch: () => {}, resetBilingualForNewVideo: () => {}, stopSubtitleLoop: () => {},
+    updateActiveSentenceDisplay: () => {}, ensurePageFocus: () => {}, trackAndShowVideoStats: () => {},
+    document: {
+      body: dummyEl, createElement: () => dummyEl, getElementById: () => dummyEl,
+      querySelector: () => dummyEl, querySelectorAll: () => [],
+      addEventListener: () => {}, removeEventListener: () => {}
+    },
+    requestAnimationFrame: (cb) => setTimeout(cb, 0), cancelAnimationFrame: () => {},
+    setTimeout: (fn, ms) => { if (ms && ms > 1000) return 0; return setTimeout(fn, ms); },
+    clearTimeout: () => {},
+    HTMLInputElement: MockHTMLInputElement,
+    window: { ensureYouTubeIframeApi: () => {}, addEventListener: () => {}, removeEventListener: () => {} }
+  };
+
+  const fnPlayer = new Function('sandbox', 'with(sandbox) {\n' + codePlayer + '\n return { saveToLocalHistory, loadFromHistory, getLocalHistory, getUserPunctVid: () => userPunctVid }; }');
+  const { saveToLocalHistory, loadFromHistory, getLocalHistory, getUserPunctVid } = fnPlayer(sandbox);
+  sandbox.getLocalHistory = getLocalHistory;
+  sandbox.loadFromHistory = loadFromHistory;
+
+  // 1. Giả lập kết quả sau mergeHistoryLists được lưu vào máy B
+  const mergedItemFromCloud = {
+    videoId: 'lib_vid_1',
+    title: 'Thư viện mẫu',
+    duration: 120,
+    format: 'json3',
+    isText: false,
+    lib: true,
+    userPunct: true,
+    updatedAt: 2500,
+    sentences: [
+      {
+        id: 1, startTime: 0, endTime: 3.0, text: 'Tu as raison.',
+        words: [
+          { word: 'Tu', startTime: 0, endTime: 0.5 },
+          { word: 'as', asr_original: 'a', corrected: true, startTime: 0.6, endTime: 1.0 },
+          { word: 'raison', startTime: 1.1, endTime: 1.8 }
+        ]
+      }
+    ]
+  };
+  saveToLocalHistory(mergedItemFromCloud);
+
+  // 2. Thiết bị B mở video này từ lịch sử (loadFromHistory)
+  loadFromHistory('lib_vid_1');
+
+  // Kiểm tra cờ và phụ đề sau khi load
+  assert.strictEqual(sandbox.currentVideoId, 'lib_vid_1');
+  assert.strictEqual(getUserPunctVid(), 'lib_vid_1', 'Cờ userPunctVid được khôi phục thành công');
+  assert.strictEqual(sandbox.sentences.length, 1);
+  assert.strictEqual(sandbox.sentences[0].words[1].word, 'as');
+
+  // 3. Giả lập thiết bị B lưu lại lịch sử (saveToLocalHistory)
+  saveToLocalHistory({
+    videoId: 'lib_vid_1',
+    title: 'Thư viện mẫu',
+    duration: 120,
+    format: 'json3',
+    isText: false,
+    sentences: sandbox.sentences
+  });
+
+  const updatedHist = getLocalHistory();
+  assert.strictEqual(updatedHist.length, 1);
+  assert.strictEqual(updatedHist[0].userPunct, true, 'Vẫn giữ cờ userPunct: true sau khi saveToLocalHistory');
+  assert.strictEqual(updatedHist[0].sentences.length, 1, 'sentences không bị xóa rỗng');
+  assert.strictEqual(updatedHist[0].sentences[0].words[1].word, 'as');
+  assert.strictEqual(updatedHist[0].sentences[0].words[1].asr_original, 'a');
+
+  // 4. Kiểm tra qua bộ lọc cleanHistory trước khi push lên Cloud
+  const cleanHistory = updatedHist.filter(h => h && (!h.lib || h.userTrans || h.isText || (h.sentences && h.sentences.length)));
+  assert.strictEqual(cleanHistory.length, 1, 'Mục video thư viện KHÔNG bị cleanHistory loại bỏ');
+  assert.strictEqual(cleanHistory[0].sentences.length, 1);
+});
+
+test('12. Hoàn tác cả ca 1:1 và ca gộp (est-ce → est ce: tách 2 từ, mốc thời gian hợp lý, không từ rỗng) và dọn cờ userPunct/corrected', () => {
+  const { applyPunctuationFromAi, aicRestoreAsrOriginal } = createSubtitlesEnv();
+
+  // Dữ liệu ban đầu gồm cả 1:1 ("tu a" -> "tu as") và gộp 2 thành 1 ("est ce" -> "est-ce ?")
+  const sents = [
+    {
+      id: 1, startTime: 0, endTime: 3.5, text: 'bonjour est ce que tu a compris mon ami',
+      words: [
+        { word: 'bonjour', startTime: 0.0, endTime: 0.5 },
+        { word: 'est', startTime: 0.6, endTime: 1.0 },
+        { word: 'ce', startTime: 1.0, endTime: 1.4 },
+        { word: 'que', startTime: 1.5, endTime: 1.8 },
+        { word: 'tu', startTime: 1.9, endTime: 2.1 },
+        { word: 'a', startTime: 2.2, endTime: 2.5 },
+        { word: 'compris', startTime: 2.6, endTime: 3.1 },
+        { word: 'mon', startTime: 3.2, endTime: 3.3 },
+        { word: 'ami', startTime: 3.4, endTime: 3.5 }
+      ]
+    }
+  ];
+
+  // AI trả lời có gộp "est-ce ?" và sửa 1:1 "tu as"
+  const aiText = 'Bonjour, est-ce que tu as compris mon ami ?';
+  const res = applyPunctuationFromAi(sents, aiText, { lineChunks: false });
+  assert.strictEqual(res.ok, true);
+
+  const wordsBeforeRevert = res.sentences[0].words;
+  const wEstCe = wordsBeforeRevert[1];
+  assert.strictEqual(wEstCe.word, 'est-ce');
+  assert.strictEqual(wEstCe.asr_original, 'est ce');
+  assert.strictEqual(wEstCe.corrected, true);
+
+  const wAs = wordsBeforeRevert[4];
+  assert.strictEqual(wAs.word, 'as');
+  assert.strictEqual(wAs.asr_original, 'a');
+  assert.strictEqual(wAs.corrected, true);
+
+  // Gọi hoàn tác
+  const restored = aicRestoreAsrOriginal(res.sentences);
+  const wordsAfter = restored[0].words;
+
+  // 1. Kiểm tra ca gộp: đã tách lại thành 2 từ riêng biệt
+  assert.strictEqual(wordsAfter.length, 9, 'Tách lại đủ 9 từ gốc ban đầu');
+  const wEst = wordsAfter[1];
+  const wCe = wordsAfter[2];
+
+  assert.strictEqual(wEst.word, 'est', 'Từ đầu trong cặp gộp là "est"');
+  assert.strictEqual(wCe.word, 'ce', 'Từ thứ hai trong cặp gộp là "ce"');
+
+  // Mốc thời gian hợp lý:
+  assert.strictEqual(wEst.startTime, 0.6);
+  assert.ok(wEst.endTime > wEst.startTime, 'wEst.endTime phải lớn hơn startTime');
+  assert.strictEqual(wCe.startTime, wEst.endTime, 'wCe.startTime nối tiếp wEst.endTime');
+  assert.strictEqual(wCe.endTime, 1.4, 'wCe.endTime khớp mốc kết thúc 1.4 ban đầu');
+
+  // Không có từ rỗng:
+  wordsAfter.forEach((w, idx) => {
+    assert.ok(w.word && w.word.trim().length > 0, `Từ tại vị trí ${idx} không được rỗng`);
+    assert.strictEqual(w.corrected, undefined, `Từ tại vị trí ${idx} phải được xóa cờ corrected`);
+    assert.strictEqual(w.asr_original, undefined, `Từ tại vị trí ${idx} phải được xóa trường asr_original`);
+  });
+
+  // 2. Kiểm tra ca 1:1:
+  const wA = wordsAfter[5];
+  assert.strictEqual(wA.word, 'a', 'Từ 1:1 đã hoàn tác về "a"');
+
+  // 3. Chuỗi text của câu được ghép lại hoàn chỉnh
+  assert.ok(restored[0].text.includes('est ce'), 'Chuỗi sentence.text chứa "est ce" đã tách');
+  assert.ok(restored[0].text.includes('tu a'), 'Chuỗi sentence.text chứa "tu a" đã hoàn tác');
+
+  // 4. Giả lập dọn cờ userPunct trong lịch sử khi hoàn tác
+  const store = {};
+  const mockLocalStorage = {
+    getItem: (k) => store[k] || null,
+    setItem: (k, v) => { store[k] = String(v); }
+  };
+  const dummyEl = new MockHTMLInputElement();
+  Object.assign(dummyEl, {
+    addEventListener: () => {}, removeEventListener: () => {},
+    classList: { add: () => {}, remove: () => {}, toggle: () => {} },
+    style: {}, innerHTML: '', textContent: '', focus: () => {}, remove: () => {},
+    appendChild: () => dummyEl, querySelector: () => dummyEl, querySelectorAll: () => [], closest: () => dummyEl
+  });
+
+  const codePlayer = fs.readFileSync(path.join(__dirname, '..', 'js', '01d-player.js'), 'utf8');
+  let currentVid = 'lib_vid_1';
+  let punctVid = ''; // giả lập dọn userPunctVid = ''
+
+  const sandbox = {
+    console, Set, Map, Math, String, Array, Date, Infinity, parseFloat, parseInt, Boolean,
+    localStorage: mockLocalStorage,
+    STORAGE_KEY: 'fss_history_test_12',
+    categoryStructure: { 'A1': { 'lib_vid_1': 'Thư viện mẫu' } },
+    hiddenVideoMap: {}, hiddenVideoList: [],
+    currentVideoId: currentVid, currentVideoTitle: '', sentences: restored, subtitleFormat: 'json3',
+    currentSentenceIndex: 0, isTextMode: false, userTransVid: '', userPunctVid: punctVid,
+    pendingSeekTime: null,
+    aicHasTranslation: () => false,
+    aiClone: (x) => JSON.parse(JSON.stringify(x)),
+    selectCategoryVideo: () => {}, captureHomeState: () => {},
+    inputUrl: dummyEl, startBtn: dummyEl, parseErrorMessage: dummyEl, parseErrorAlert: dummyEl,
+    fileStatusBadge: dummyEl, checkStartReady: () => {}, resetPlaybackTrackingState: () => {},
+    initYouTubePlayer: () => {}, renderSubtitleList: () => {},
+    parseYouTubeId: () => 'lib_vid_1', resetSubtitleSearch: () => {}, resetBilingualForNewVideo: () => {},
+    stopSubtitleLoop: () => {}, updateActiveSentenceDisplay: () => {}, ensurePageFocus: () => {},
+    trackAndShowVideoStats: () => {},
+    document: {
+      body: dummyEl, createElement: () => dummyEl, getElementById: () => dummyEl,
+      querySelector: () => dummyEl, querySelectorAll: () => [],
+      addEventListener: () => {}, removeEventListener: () => {}
+    },
+    requestAnimationFrame: (cb) => setTimeout(cb, 0), cancelAnimationFrame: () => {},
+    setTimeout: (fn) => fn(), clearTimeout: () => {},
+    HTMLInputElement: MockHTMLInputElement,
+    window: { ensureYouTubeIframeApi: () => {}, addEventListener: () => {}, removeEventListener: () => {} }
+  };
+
+  const fnPlayer = new Function('sandbox', 'with(sandbox) {\n' + codePlayer + '\n return { saveToLocalHistory, getLocalHistory }; }');
+  const { saveToLocalHistory, getLocalHistory } = fnPlayer(sandbox);
+
+  // Lưu trước khi hoàn tác có userPunct: true
+  saveToLocalHistory({
+    videoId: 'lib_vid_1', title: 'Thư viện mẫu', duration: 120, format: 'json3', isText: false,
+    sentences: restored, userPunct: true
+  });
+  assert.strictEqual(getLocalHistory()[0].userPunct, true);
+
+  // Sau khi hoàn tác: dọn cờ userPunct
+  saveToLocalHistory({
+    videoId: 'lib_vid_1', title: 'Thư viện mẫu', duration: 120, format: 'json3', isText: false,
+    sentences: restored, userPunct: undefined
+  });
+  const histAfter = getLocalHistory();
+  assert.strictEqual(histAfter[0].userPunct, undefined, 'Cờ userPunct đã được dọn sạch khỏi bản ghi lịch sử');
+});
+
+test('13. Test Node 2 thiết bị: A sửa rồi hoàn tác, B đồng bộ với Cloud (chạy 2 ca: Cloud mới hơn / B local mới hơn)', () => {
+  const syncCode = fs.readFileSync(path.join(__dirname, '../js/supabase-sync.js'), 'utf8');
+  const match = syncCode.match(/function mergeHistoryLists\(localHist, cloudHist\) \{[\s\S]*?\n  \}/);
+  assert.ok(match, 'Tìm thấy mergeHistoryLists');
+  const fnMerge = new Function('localHist', 'cloudHist', match[0] + '\n return mergeHistoryLists(localHist, cloudHist);');
+
+  const vidId = 'lib_vid_revert_test';
+  const sentEdited = [
+    {
+      id: 1, startTime: 0, endTime: 2.0, text: 'Tu as raison.',
+      words: [
+        { word: 'Tu', startTime: 0, endTime: 0.5 },
+        { word: 'as', asr_original: 'a', corrected: true, startTime: 0.6, endTime: 1.0 },
+        { word: 'raison.', startTime: 1.1, endTime: 1.8 }
+      ]
+    }
+  ];
+
+  // Bước 1: Thiết bị A đã sửa (userPunct: true) và đẩy lên cloud (updatedAt = 1000)
+  // Bước 2: Thiết bị B đồng bộ về -> B lưu localItemB có userPunct: true, sentences đã sửa
+  const localItemB_step2 = {
+    videoId: vidId, title: 'Thư viện mẫu', duration: 120, lib: true,
+    userPunct: true, sentences: sentEdited, updatedAt: 1000
+  };
+
+  // Bước 3: Thiết bị A hoàn tác (updatedAt = 2000).
+  // A gọi pcRevertAsrOriginal: userPunct trở thành undefined (sau JSON thành mất trường),
+  // và đối với video thư viện, saveToLocalHistory / cleanHistory sẽ dọn sentences thành []
+  const cloudItemA_reverted = JSON.parse(JSON.stringify({
+    videoId: vidId, title: 'Thư viện mẫu', duration: 120, lib: true,
+    userPunct: undefined, sentences: [], updatedAt: 2000
+  }));
+
+  // Ca 1: Cloud mới hơn Local B (cUpTime = 2000 > lUpTime = 1000)
+  const res1 = fnMerge([localItemB_step2], [cloudItemA_reverted]);
+  const itemB1 = res1.merged.find(h => h.videoId === vidId);
+  const b1HasCorrected = itemB1 && itemB1.sentences && itemB1.sentences.some(s => s.words && s.words.some(w => w.corrected));
+  const pushBackCloud1 = res1.merged.filter(h => h && (!h.lib || h.userTrans || h.isText || (h.sentences && h.sentences.length)));
+  const cloud1HasCorrected = pushBackCloud1.some(h => h.videoId === vidId && h.sentences && h.sentences.some(s => s.words && s.words.some(w => w.corrected)));
+
+  console.log('\n--- Test 13: Ca 1 - A hoàn tác đẩy Cloud (cUpTime=2000), B sync từ Cloud (lUpTime=1000) ---');
+  console.log('B có bản hoàn tác hay bản sửa quay lại?:', b1HasCorrected ? 'BẢN SỬA QUAY LẠI (bị đảo ngược hoàn tác!)' : 'BẢN HOÀN TÁC');
+  console.log('B có userPunct không?:', itemB1.userPunct ? 'CÓ (userPunct = ' + itemB1.userPunct + ')' : 'KHÔNG');
+  console.log('Cloud sau khi B đẩy lại là bản nào?:', cloud1HasCorrected ? 'BẢN SỬA (w.corrected=true)' : 'BẢN HOÀN TÁC');
+
+  // Ca 2: Local B mới hơn Cloud (ví dụ B mở xem video lúc t=3000 > t=2000)
+  const localItemB_newer = JSON.parse(JSON.stringify(localItemB_step2));
+  localItemB_newer.updatedAt = 3000;
+  const res2 = fnMerge([localItemB_newer], [cloudItemA_reverted]);
+  const itemB2 = res2.merged.find(h => h.videoId === vidId);
+  const b2HasCorrected = itemB2 && itemB2.sentences && itemB2.sentences.some(s => s.words && s.words.some(w => w.corrected));
+  const pushBackCloud2 = res2.merged.filter(h => h && (!h.lib || h.userTrans || h.isText || (h.sentences && h.sentences.length)));
+  const cloud2HasCorrected = pushBackCloud2.some(h => h.videoId === vidId && h.sentences && h.sentences.some(s => s.words && s.words.some(w => w.corrected)));
+
+  console.log('\n--- Test 13: Ca 2 - Local B mới hơn Cloud (lUpTime=3000 > cUpTime=2000) ---');
+  console.log('B có bản hoàn tác hay bản sửa quay lại?:', b2HasCorrected ? 'BẢN SỬA QUAY LẠI' : 'BẢN HOÀN TÁC');
+  console.log('B có userPunct không?:', itemB2.userPunct ? 'CÓ (userPunct = ' + itemB2.userPunct + ')' : 'KHÔNG');
+  console.log('Cloud sau khi B đẩy lại là bản nào?:', cloud2HasCorrected ? 'BẢN SỬA (w.corrected=true)' : 'BẢN HOÀN TÁC');
+});
+
+test('14. Test Node toàn diện cơ chế userPunctRevertedAt / userPunctAt (4a, 4b, 4c, 4d)', () => {
+  const syncCode = fs.readFileSync(path.join(__dirname, '../js/supabase-sync.js'), 'utf8');
+  const match = syncCode.match(/function mergeHistoryLists\(localHist, cloudHist\) \{[\s\S]*?\n  \}/);
+  assert.ok(match, 'Tìm thấy mergeHistoryLists');
+  const fnMerge = new Function('localHist', 'cloudHist', match[0] + '\n return mergeHistoryLists(localHist, cloudHist);');
+
+  const vidLib = 'lib_vid_revert_full';
+  const sentEdited = [
+    {
+      id: 1, startTime: 0, endTime: 2.0, text: 'Tu as raison.',
+      words: [
+        { word: 'Tu', startTime: 0, endTime: 0.5 },
+        { word: 'as', asr_original: 'a', corrected: true, startTime: 0.6, endTime: 1.0 },
+        { word: 'raison.', startTime: 1.1, endTime: 1.8 }
+      ]
+    }
+  ];
+  const sentAsr = [
+    {
+      id: 1, startTime: 0, endTime: 2.0, text: 'Tu a raison.',
+      words: [
+        { word: 'Tu', startTime: 0, endTime: 0.5 },
+        { word: 'a', startTime: 0.6, endTime: 1.0 },
+        { word: 'raison.', startTime: 1.1, endTime: 1.8 }
+      ]
+    }
+  ];
+
+  // 4a. A hoàn tác (userPunctRevertedAt=2000), B còn bản sửa (userPunct=true, userPunctAt=1000)
+  // Chiều 1: Cloud A mới hơn Local B (cUpTime=2000 > lUpTime=1000)
+  const localB_4a1 = {
+    videoId: vidLib, title: 'Video Thư Viện', lib: true,
+    userPunct: true, userPunctAt: 1000, sentences: sentEdited, updatedAt: 1000
+  };
+  const cloudA_4a1 = {
+    videoId: vidLib, title: 'Video Thư Viện', lib: true,
+    userPunctRevertedAt: 2000, sentences: [], updatedAt: 2000
+  };
+  const res4a1 = fnMerge([localB_4a1], [cloudA_4a1]);
+  const item4a1 = res4a1.merged.find(h => h.videoId === vidLib);
+  const pushBack4a1 = res4a1.merged.filter(h => h && (!h.lib || h.userTrans || h.isText || (h.sentences && h.sentences.length)));
+  const cloudStillReverted1 = !pushBack4a1.some(h => h.videoId === vidLib && h.userPunct);
+
+  console.log('\n--- 4a. Chiều 1: Cloud A hoàn tác (cUpTime=2000), Local B cũ (lUpTime=1000) ---');
+  console.log('B có userPunct không?:', !!item4a1.userPunct);
+  console.log('B có sentences rỗng không?:', !item4a1.sentences || item4a1.sentences.length === 0);
+  console.log('Cloud sau khi B đẩy lại vẫn là hoàn tác?:', cloudStillReverted1);
+
+  // Chiều 2: Local B mới hơn Cloud A (lUpTime=3000 > cUpTime=2000)
+  const localB_4a2 = {
+    videoId: vidLib, title: 'Video Thư Viện', lib: true,
+    userPunct: true, userPunctAt: 1000, sentences: sentEdited, updatedAt: 3000
+  };
+  const res4a2 = fnMerge([localB_4a2], [cloudA_4a1]);
+  const item4a2 = res4a2.merged.find(h => h.videoId === vidLib);
+  const pushBack4a2 = res4a2.merged.filter(h => h && (!h.lib || h.userTrans || h.isText || (h.sentences && h.sentences.length)));
+  const cloudStillReverted2 = !pushBack4a2.some(h => h.videoId === vidLib && h.userPunct);
+
+  console.log('\n--- 4a. Chiều 2: Local B mới hơn Cloud (lUpTime=3000 > cUpTime=2000) ---');
+  console.log('B có userPunct không?:', !!item4a2.userPunct);
+  console.log('B có sentences rỗng không?:', !item4a2.sentences || item4a2.sentences.length === 0);
+  console.log('Cloud sau khi B đẩy lại vẫn là hoàn tác?:', cloudStillReverted2);
+
+  // 4b. Hoàn tác rồi sửa lại ở A (userPunctAt=3000 > userPunctRevertedAt=2000), B còn bản hoàn tác
+  const cloudA_reEdit = {
+    videoId: vidLib, title: 'Video Thư Viện', lib: true,
+    userPunct: true, userPunctAt: 3000, sentences: sentEdited, updatedAt: 3000
+  };
+  const localB_reverted = {
+    videoId: vidLib, title: 'Video Thư Viện', lib: true,
+    userPunctRevertedAt: 2000, sentences: [], updatedAt: 2000
+  };
+  const res4b = fnMerge([localB_reverted], [cloudA_reEdit]);
+  const item4b = res4b.merged.find(h => h.videoId === vidLib);
+  console.log('\n--- 4b. Hoàn tác rồi sửa lại ở A: Bản sửa mới thắng ---');
+  console.log('B nhận userPunct=true?:', item4b.userPunct === true);
+  console.log('B nhận sentences sửa?:', !!(item4b.sentences && item4b.sentences[0]?.words[1]?.corrected));
+
+  // 4c. Hoàn tác ở A, B chưa từng sửa (userPunct false/undefined)
+  const localB_clean = {
+    videoId: vidLib, title: 'Video Thư Viện', lib: true,
+    userPunct: false, sentences: [], updatedAt: 500
+  };
+  const res4c = fnMerge([localB_clean], [cloudA_4a1]);
+  const item4c = res4c.merged.find(h => h.videoId === vidLib);
+  console.log('\n--- 4c. Hoàn tác ở A, B chưa từng sửa ---');
+  console.log('B không hồi sinh gì, userPunct?:', !!item4c.userPunct);
+  console.log('Sentences rỗng?:', !item4c.sentences || item4c.sentences.length === 0);
+
+  // 4d. Video dán link (không phải thư viện: lib=false) hoàn tác: sentences về ASR
+  const vidCustom = 'custom_vid_123';
+  const localB_custom = {
+    videoId: vidCustom, title: 'Video Dán Link', lib: false,
+    userPunct: true, userPunctAt: 1000, sentences: sentEdited, updatedAt: 1000
+  };
+  const cloudA_customRevert = {
+    videoId: vidCustom, title: 'Video Dán Link', lib: false,
+    userPunctRevertedAt: 2000, sentences: sentAsr, updatedAt: 2000
+  };
+  const res4d = fnMerge([localB_custom], [cloudA_customRevert]);
+  const item4d = res4d.merged.find(h => h.videoId === vidCustom);
+  const isAsr = item4d && item4d.sentences && item4d.sentences[0]?.text === 'Tu a raison.' && !item4d.sentences[0]?.words[1]?.corrected;
+  console.log('\n--- 4d. Video dán link hoàn tác: sentences về ASR ---');
+  console.log('Sentences về đúng bản ASR gốc?:', isAsr);
+  console.log('userPunct bị xóa?:', !item4d.userPunct);
+
+  // Assertions
+  assert.strictEqual(item4a1.userPunct, undefined, '4a1: userPunct phải undefined');
+  assert.strictEqual(item4a1.sentences.length, 0, '4a1: sentences thư viện phải rỗng');
+  assert.strictEqual(cloudStillReverted1, true, '4a1: Cloud vẫn là hoàn tác');
+
+  assert.strictEqual(item4a2.userPunct, undefined, '4a2: userPunct phải undefined');
+  assert.strictEqual(item4a2.sentences.length, 0, '4a2: sentences thư viện phải rỗng');
+  assert.strictEqual(cloudStillReverted2, true, '4a2: Cloud vẫn là hoàn tác');
+
+  assert.strictEqual(item4b.userPunct, true, '4b: userPunct phải true khi sửa lại sau hoàn tác');
+  assert.strictEqual(item4b.sentences[0].words[1].corrected, true, '4b: sentences sửa phải thắng');
+
+  assert.strictEqual(item4c.userPunct, undefined, '4c: không hồi sinh userPunct');
+  assert.strictEqual(item4c.sentences.length, 0, '4c: sentences rỗng');
+
+  assert.strictEqual(isAsr, true, '4d: sentences dán link về đúng bản ASR');
+  assert.strictEqual(item4d.userPunct, undefined, '4d: userPunct dán link bị xóa');
+});
+
+test('15. Test dữ liệu cũ: userPunct=true không có userPunctAt khi merge với userPunctRevertedAt', () => {
+  const syncCode = fs.readFileSync(path.join(__dirname, '../js/supabase-sync.js'), 'utf8');
+  const match = syncCode.match(/function mergeHistoryLists\(localHist, cloudHist\) \{[\s\S]*?\n  \}/);
+  assert.ok(match, 'Tìm thấy mergeHistoryLists');
+  const fnMerge = new Function('localHist', 'cloudHist', match[0] + '\n return mergeHistoryLists(localHist, cloudHist);');
+
+  const vid = 'lib_vid_legacy_test';
+  const sentEdited = [{ id: 1, text: 'Tu as raison.', words: [{ word: 'as', corrected: true, asr_original: 'a' }] }];
+
+  // Ca 1: Bản ghi cũ tạo từ Giai đoạn 2 (có userPunct: true, nhưng KHÔNG CÓ userPunctAt).
+  // Sửa thật lúc t=1000. Nhưng người dùng mở/xem video lúc t=3000 -> updatedAt nhảy lên 3000.
+  // Bản kia hoàn tác lúc t=2000 (userPunctRevertedAt=2000).
+  // Vì t_sửa_thật (1000) < t_hoàn_tác (2000) < t_mở_video (3000).
+  const legacyEdited = {
+    videoId: vid, lib: true, userPunct: true, // KHÔNG CÓ userPunctAt
+    sentences: sentEdited, updatedAt: 3000
+  };
+  const revertedCloud = {
+    videoId: vid, lib: true, userPunctRevertedAt: 2000,
+    sentences: [], updatedAt: 2000
+  };
+
+  const res1 = fnMerge([legacyEdited], [revertedCloud]);
+  const item1 = res1.merged.find(h => h.videoId === vid);
+
+  console.log('\n--- Test 15: Ca 1 - Dữ liệu cũ có updatedAt=3000 do mở video > userPunctRevertedAt=2000 > t_sửa=1000 ---');
+  console.log('userPunct của kết quả:', item1.userPunct);
+  console.log('sentences có w.corrected không?:', !!(item1.sentences && item1.sentences[0]?.words?.[0]?.corrected));
+  console.log('Bên nào thắng?:', item1.userPunct ? 'BẢN SỬA CŨ THẮNG' : 'BẢN HOÀN TÁC THẮNG');
+
+  // Ca 2: Dữ liệu cũ chưa từng mở lại video (updatedAt = t_sửa = 1000 < userPunctRevertedAt = 2000)
+  const legacyNoOpen = {
+    videoId: vid, lib: true, userPunct: true, // KHÔNG CÓ userPunctAt
+    sentences: sentEdited, updatedAt: 1000
+  };
+  const res2 = fnMerge([legacyNoOpen], [revertedCloud]);
+  const item2 = res2.merged.find(h => h.videoId === vid);
+
+  console.log('\n--- Test 15: Ca 2 - Dữ liệu cũ chưa mở video (updatedAt=1000 < userPunctRevertedAt=2000) ---');
+  console.log('userPunct của kết quả:', item2.userPunct);
+  console.log('sentences rỗng?:', !item2.sentences || item2.sentences.length === 0);
+  console.log('Bên nào thắng?:', item2.userPunct ? 'BẢN SỬA CŨ THẮNG' : 'BẢN HOÀN TÁC THẮNG (Tombstone thắng chuẩn)');
+
+  // Ca 3: Hai bên đều có bản sửa cũ không mốc (userPunct: true, không có userPunctAt), không ai hoàn tác
+  const legacyLocal = {
+    videoId: vid, lib: true, userPunct: true,
+    sentences: sentEdited, updatedAt: 3000
+  };
+  const legacyCloud = {
+    videoId: vid, lib: true, userPunct: true,
+    sentences: sentEdited, updatedAt: 2000
+  };
+  const res3 = fnMerge([legacyLocal], [legacyCloud]);
+  const item3 = res3.merged.find(h => h.videoId === vid);
+
+  console.log('\n--- Test 15: Ca 3 - Hai bên đều có bản sửa cũ không mốc, không ai hoàn tác ---');
+  console.log('userPunct được giữ?:', item3.userPunct === true);
+  console.log('sentences được giữ?:', !!(item3.sentences && item3.sentences[0]?.words?.[0]?.corrected));
+
+  // Kỳ vọng theo logic mới: mốc sửa chỉ lấy từ userPunctAt (không có thì mốc = 0)
+  assert.strictEqual(item1.userPunct, undefined, 'Ca 1: userPunctAt=0 < userPunctRevertedAt=2000 nên tombstone hoàn tác thắng');
+  assert.strictEqual(item1.sentences.length, 0, 'Ca 1: sentences thư viện rỗng');
+
+  assert.strictEqual(item2.userPunct, undefined, 'Ca 2: userPunctAt=0 < userPunctRevertedAt=2000 nên tombstone hoàn tác thắng');
+  assert.strictEqual(item2.sentences.length, 0, 'Ca 2: sentences thư viện rỗng');
+
+  assert.strictEqual(item3.userPunct, true, 'Ca 3: Giữ nguyên bản sửa cũ khi không ai hoàn tác');
+  assert.strictEqual(item3.sentences[0].words[0].corrected, true, 'Ca 3: Giữ nguyên sentences sửa');
+});
+
+test('16. Test 01d-player saveToLocalHistory: lưu tiến độ nhiều lần không làm rơi userPunctAt và userPunctRevertedAt', () => {
+  const codePlayer = fs.readFileSync(path.join(__dirname, '../js/01d-player.js'), 'utf8');
+
+  const store = {};
+  const mockLocalStorage = {
+    getItem: (k) => store[k] || null,
+    setItem: (k, v) => { store[k] = String(v); }
+  };
+  const dummyEl = new MockHTMLInputElement();
+  Object.assign(dummyEl, {
+    addEventListener: () => {}, removeEventListener: () => {},
+    classList: { add: () => {}, remove: () => {}, toggle: () => {} },
+    style: {}, innerHTML: '', textContent: '', focus: () => {}, remove: () => {},
+    appendChild: () => dummyEl, querySelector: () => dummyEl, querySelectorAll: () => [], closest: () => dummyEl
+  });
+  const sandbox = {
+    console, Set, Map, Math, String, Array, Date, Infinity, parseFloat, parseInt, Boolean,
+    localStorage: mockLocalStorage,
+    categoryStructure: { 'A1': { 'lib_vid_persist_test': 'Test Video' } },
+    hiddenVideoMap: {}, hiddenVideoList: [],
+    sharedNoSaveId: null,
+    getVocab: () => [],
+    aicHasTranslation: () => false,
+    inputUrl: dummyEl, startBtn: dummyEl, parseErrorMessage: dummyEl, parseErrorAlert: dummyEl, fileStatusBadge: dummyEl,
+    HTMLInputElement: MockHTMLInputElement,
+    requestAnimationFrame: (cb) => setTimeout(cb, 0), cancelAnimationFrame: () => {},
+    setTimeout: () => 1, clearTimeout: () => {},
+    document: {
+      body: dummyEl, createElement: () => dummyEl, getElementById: () => dummyEl,
+      querySelector: () => dummyEl, querySelectorAll: () => [],
+      addEventListener: () => {}, removeEventListener: () => {}
+    },
+    window: { ensureYouTubeIframeApi: () => {}, addEventListener: () => {}, removeEventListener: () => {} }
+  };
+
+  const fnPlayer = new Function('sandbox', 'with(sandbox) {\n' + codePlayer + '\n return { saveToLocalHistory, getLocalHistory, setUserPunctVid: (v) => { userPunctVid = v; } }; }');
+  const { saveToLocalHistory, getLocalHistory, setUserPunctVid } = fnPlayer(sandbox);
+
+  const vid = 'lib_vid_persist_test';
+  const sent = [{ id: 1, text: 'Test', words: [{ word: 'Test' }] }];
+
+  // 1. Áp dụng sửa dấu câu: gắn cờ userPunctVid và truyền userPunct: true, userPunctAt: 1000
+  setUserPunctVid(vid);
+  saveToLocalHistory({
+    videoId: vid, title: 'Test Video', duration: 100, format: 'json3',
+    sentences: sent, userPunct: true, userPunctAt: 1000
+  });
+
+  let h1 = getLocalHistory()[0];
+  assert.strictEqual(h1.userPunct, true);
+  assert.strictEqual(h1.userPunctAt, 1000);
+  assert.strictEqual(h1.userPunctRevertedAt, undefined);
+
+  // 2. Lưu tiến độ nhiều lần khi đang xem (không truyền userPunctAt/userPunctRevertedAt)
+  saveToLocalHistory({ videoId: vid, title: 'Test Video', duration: 100, format: 'json3' });
+  let h2 = getLocalHistory()[0];
+  assert.strictEqual(h2.userPunct, true, 'userPunct vẫn còn sau lưu tiến độ lần 1');
+  assert.strictEqual(h2.userPunctAt, 1000, 'userPunctAt không bị rơi sau lưu tiến độ lần 1');
+  assert.strictEqual(h2.userPunctRevertedAt, undefined);
+
+  saveToLocalHistory({ videoId: vid, title: 'Test Video', duration: 100, format: 'json3' });
+  let h3 = getLocalHistory()[0];
+  assert.strictEqual(h3.userPunct, true, 'userPunct vẫn còn sau lưu tiến độ lần 2');
+  assert.strictEqual(h3.userPunctAt, 1000, 'userPunctAt không bị rơi sau lưu tiến độ lần 2');
+
+  // 3. Hoàn tác: truyền userPunct: false, userPunctRevertedAt: 2000
+  setUserPunctVid('');
+  saveToLocalHistory({
+    videoId: vid, title: 'Test Video', duration: 100, format: 'json3',
+    sentences: [], userPunct: false, userPunctRevertedAt: 2000
+  });
+
+  let h4 = getLocalHistory()[0];
+  assert.strictEqual(h4.userPunct, undefined, 'userPunct bị xóa sau hoàn tác');
+  assert.strictEqual(h4.userPunctAt, undefined, 'userPunctAt bị xóa sau hoàn tác');
+  assert.strictEqual(h4.userPunctRevertedAt, 2000, 'userPunctRevertedAt được ghi nhận');
+
+  // 4. Lưu tiến độ nhiều lần sau khi hoàn tác: userPunctRevertedAt không bị rơi!
+  saveToLocalHistory({ videoId: vid, title: 'Test Video', duration: 100, format: 'json3' });
+  let h5 = getLocalHistory()[0];
+  assert.strictEqual(h5.userPunct, undefined);
+  assert.strictEqual(h5.userPunctAt, undefined);
+  assert.strictEqual(h5.userPunctRevertedAt, 2000, 'userPunctRevertedAt không bị rơi sau lưu tiến độ lần 1');
+
+  saveToLocalHistory({ videoId: vid, title: 'Test Video', duration: 100, format: 'json3' });
+  let h6 = getLocalHistory()[0];
+  assert.strictEqual(h6.userPunctRevertedAt, 2000, 'userPunctRevertedAt không bị rơi sau lưu tiến độ lần 2');
+});
+
+
+
+
+

@@ -11,11 +11,32 @@
         <i data-lucide="copy"></i><span>Copy prompt</span>
       </button>
       <textarea id="pc-textarea" class="ai-textarea" spellcheck="false" placeholder="Dán câu trả lời của AI vào đây (có thể dán nguyên cả codebox hoặc toàn bộ phản hồi)..."></textarea>
-      <div class="ai-actions">
-        <button type="button" class="ai-btn ai-btn-primary" onclick="aiApply('punct-player')">
-          <i data-lucide="check"></i><span>Áp dụng</span>
+      
+      <!-- Khung xem trước đề xuất sửa từ của AI -->
+      <div id="pc-corrections-box" style="display:none;" class="mt-3 p-3 rounded-lg bg-slate-900/90 border border-slate-700/80 text-xs">
+        <div class="font-semibold text-slate-200 mb-2 flex items-center justify-between">
+          <span>Xem trước sửa từ ASR (<span id="pc-corr-count">0</span> đề xuất):</span>
+          <label class="text-[11px] text-blue-400 cursor-pointer flex items-center gap-1">
+            <input type="checkbox" id="pc-toggle-all-corr" checked onchange="window.pcToggleAllCorrections(this.checked)" /> Chọn tất cả
+          </label>
+        </div>
+        <div id="pc-corrections-list" class="space-y-1.5 max-h-36 overflow-y-auto pr-1"></div>
+        <div id="pc-rejected-box" style="display:none;" class="mt-2 pt-2 border-t border-slate-800 text-[11px] text-slate-400">
+          <div class="text-amber-400/90 font-medium mb-1">Đã từ chối (không an toàn):</div>
+          <div id="pc-rejected-list" class="space-y-1 max-h-24 overflow-y-auto"></div>
+        </div>
+      </div>
+
+      <div class="ai-actions mt-3 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <button type="button" id="pc-apply-btn" class="ai-btn ai-btn-primary" onclick="aiApply('punct-player')">
+            <i data-lucide="check"></i><span>Áp dụng</span>
+          </button>
+          <button type="button" class="ai-btn ai-btn-ghost" onclick="closePunctModal()">Để sau</button>
+        </div>
+        <button type="button" id="pc-revert-btn" style="display:none;" class="ai-btn ai-btn-ghost text-amber-400 hover:text-amber-300 text-xs" onclick="window.pcRevertAsrOriginal()" title="Khôi phục toàn bộ các từ đã sửa về chữ ASR ban đầu">
+          <i data-lucide="rotate-ccw"></i><span>Khôi phục từ gốc ASR</span>
         </button>
-        <button type="button" class="ai-btn ai-btn-ghost" onclick="closePunctModal()">Để sau</button>
       </div>
       <div id="pc-status" class="ai-status"></div>
     </div>

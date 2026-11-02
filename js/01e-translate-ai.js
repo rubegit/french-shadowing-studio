@@ -576,16 +576,86 @@
       if (!res.ok) { if (keptOld) sentences = keptOld; aiSetStatus(st, 'err', res.error); return; }
       // Người dùng tự nạp bản dịch song ngữ -> với video thư viện, đây là trường hợp được phép lưu vào localStorage
       if (isTrans) { if (kind === 'trans-player') userTransVid = currentVideoId || ''; else pendingUserVi = true; }
+      if (kind === 'punct') { if (typeof pendingUserPunct !== 'undefined') pendingUserPunct = true; }
 
       if (kind === 'punct-player') {
+        if (!_pcPendingState) {
+          // Lần bấm đầu tiên: nếu có từ đề xuất sửa thì hiện danh sách xem trước
+          if (res.candidateCorrections && res.candidateCorrections.length > 0) {
+            _pcPendingState = { text: text, res: res };
+            const box = document.getElementById('pc-corrections-box');
+            const countEl = document.getElementById('pc-corr-count');
+            const listEl = document.getElementById('pc-corrections-list');
+            const rejBox = document.getElementById('pc-rejected-box');
+            const rejList = document.getElementById('pc-rejected-list');
+            if (box && listEl) {
+              if (countEl) countEl.textContent = res.candidateCorrections.length;
+              listEl.innerHTML = res.candidateCorrections.map((c) => `
+                <label class="flex items-center gap-2 p-1.5 rounded bg-slate-800/60 hover:bg-slate-800 text-slate-200 cursor-pointer">
+                  <input type="checkbox" value="${escHtml(c.id)}" checked class="rounded border-slate-600 text-blue-500" />
+                  <span class="font-mono text-rose-400 line-through">${escHtml(c.asrWord)}</span>
+                  <span class="text-slate-400">→</span>
+                  <span class="font-mono text-emerald-400 font-medium">${escHtml(c.aiWord)}</span>
+                  <span class="text-[10px] text-slate-400 ml-auto">(${escHtml(c.reason)})</span>
+                </label>
+              `).join('');
+              box.style.display = '';
+            }
+            if (rejBox && rejList) {
+              if (res.rejectedCorrections && res.rejectedCorrections.length > 0) {
+                rejList.innerHTML = res.rejectedCorrections.map((r) => `
+                  <div class="flex items-center gap-1.5 p-1 rounded bg-slate-950/40 text-slate-400 font-mono text-[10px]">
+                    <span class="text-slate-500 line-through">${escHtml(r.asrWord)}</span>
+                    <span>↛</span>
+                    <span class="text-slate-500">${escHtml(r.aiWord)}</span>
+                    <span class="text-[9px] text-amber-500/80 ml-auto">(${escHtml(r.reason)})</span>
+                  </div>
+                `).join('');
+                rejBox.style.display = '';
+              } else {
+                rejBox.style.display = 'none';
+              }
+            }
+            const btn = document.getElementById('pc-apply-btn');
+            if (btn) {
+              const sp = btn.querySelector('span');
+              if (sp) sp.textContent = `Xác nhận áp dụng (${res.candidateCorrections.length} từ sửa)`;
+            }
+            aiSetStatus(st, '', 'Vui lòng kiểm tra các từ AI đề xuất sửa trước khi áp dụng.');
+            return;
+          }
+        } else {
+          // Lần bấm thứ 2: người dùng đã duyệt danh sách checkbox
+          const cbs = document.querySelectorAll('#pc-corrections-list input[type="checkbox"]:checked');
+          const approvedIds = new Set(Array.from(cbs).map((cb) => cb.value));
+          res = applyPunctuationFromAi(sentences, _pcPendingState.text, {
+            lineChunks: !isTextMode,
+            approvedCorrectionIds: approvedIds
+          });
+          resetPunctModalPreview();
+        }
+
         sentences = res.sentences;
+        userPunctVid = currentVideoId || '';
+        if (currentVideoId) {
+          saveToLocalHistory({
+            videoId: currentVideoId,
+            format: subtitleFormat,
+            isText: isTextMode,
+            sentences: sentences,
+            userPunct: true,
+            userPunctAt: Date.now(),
+            userPunctRevertedAt: undefined
+          });
+        }
         aiAfterSentencesChangedInPlayer();
         updateBilingualButton();
         if (res.stats.tailPct < 98) {
           aiSetStatus(st, 'warn', `✓ Đã thêm dấu câu cho khoảng ${res.stats.tailPct}% bài (${res.stats.sentenceCount} câu). AI mới trả lời một phần: nhắn AI "Tiếp tục", dán nối phần tiếp theo vào ô trên rồi bấm Áp dụng lại.`);
         } else {
           closePunctModal();
-          showVocabToast(`Đã thêm dấu câu: ${res.stats.sentenceCount} câu`, false);
+          const corrCount = res.candidateCorrections ? res.candidateCorrections.length : 0;
+          showVocabToast(`Đã thêm dấu câu: ${res.stats.sentenceCount} câu${corrCount ? ` (sửa ${corrCount} từ)` : ''}`, false);
         }
         return;
       }
@@ -650,13 +720,17 @@
     function persistSentencesToHistory() {
       if (!currentVideoId) return;
       const existing = getLocalHistory().find((h) => h.videoId === currentVideoId);
+      const isLib = typeof isLibraryVideo === 'function' ? isLibraryVideo(currentVideoId) : false;
+      const isUserPunct = isLib && typeof userPunctVid !== 'undefined' && userPunctVid === currentVideoId;
+      const userPunct = isUserPunct ? true : (existing ? existing.userPunct : undefined);
       saveToLocalHistory({
         videoId: currentVideoId,
         title: currentVideoTitle || (existing && existing.title) || `Video ${currentVideoId}`,
         duration: existing ? existing.duration : 0,
         format: subtitleFormat,
         isText: isTextMode,
-        sentences: sentences
+        sentences: sentences,
+        userPunct: userPunct
       });
     }
 
@@ -815,18 +889,72 @@
     }
 
     // ---------- Cửa sổ "Thêm dấu câu" ----------
+    let _pcPendingState = null;
+
+    function resetPunctModalPreview() {
+      _pcPendingState = null;
+      const box = document.getElementById('pc-corrections-box');
+      if (box) box.style.display = 'none';
+      const rejBox = document.getElementById('pc-rejected-box');
+      if (rejBox) rejBox.style.display = 'none';
+      const btn = document.getElementById('pc-apply-btn');
+      if (btn) {
+        const sp = btn.querySelector('span');
+        if (sp) sp.textContent = 'Áp dụng';
+      }
+    }
+
+    window.pcToggleAllCorrections = function (checked) {
+      const cbs = document.querySelectorAll('#pc-corrections-list input[type="checkbox"]');
+      cbs.forEach((cb) => { cb.checked = !!checked; });
+    };
+
     function openPunctModal() {
       const modal = document.getElementById('punct-modal');
       if (!modal) return;
       if (!sentences.length) { alert('Chưa có phụ đề để tạo prompt.'); return; }
-      document.getElementById('pc-textarea').value = '';
+      const ta = document.getElementById('pc-textarea');
+      if (ta) {
+        ta.value = '';
+        if (!ta._punctInputBound) {
+          ta.addEventListener('input', resetPunctModalPreview);
+          ta._punctInputBound = true;
+        }
+      }
       resetCopyButtons();
+      resetPunctModalPreview();
+      const hasCorrected = sentences.some((s) => s.words && s.words.some((w) => w.corrected));
+      const revertBtn = document.getElementById('pc-revert-btn');
+      if (revertBtn) revertBtn.style.display = hasCorrected ? '' : 'none';
       aiSetStatus(document.getElementById('pc-status'), '', '');
       modal.classList.add('open');
       if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
     }
 
+    window.pcRevertAsrOriginal = function() {
+      if (!confirm('Khôi phục toàn bộ các từ đã sửa về chữ ASR ban đầu (vẫn giữ nguyên các dấu câu đã ngắt)?')) return;
+      sentences = aicRestoreAsrOriginal(sentences);
+      if (typeof userPunctVid !== 'undefined') userPunctVid = '';
+      const now = Date.now();
+      const isLib = typeof isLibraryVideo === 'function' ? isLibraryVideo(currentVideoId) : false;
+      if (currentVideoId) {
+        saveToLocalHistory({
+          videoId: currentVideoId,
+          format: subtitleFormat,
+          isText: isTextMode,
+          sentences: isLib ? [] : sentences,
+          userPunct: false,
+          userPunctAt: undefined,
+          userPunctRevertedAt: now
+        });
+      }
+      aiAfterSentencesChangedInPlayer();
+      closePunctModal();
+      showVocabToast('Đã khôi phục toàn bộ từ gốc ASR', false);
+    };
+
     function closePunctModal() {
+      resetPunctModalPreview();
       const modal = document.getElementById('punct-modal');
       if (modal) modal.classList.remove('open');
     }
