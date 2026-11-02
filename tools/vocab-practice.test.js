@@ -572,23 +572,25 @@ test('M44.10 Cỡ chữ A− / A+: 4 mức (Nhỏ, Vừa, Lớn, Rất lớn), n
 });
 
 // ============================================================================
-// TEST 11: Sandwich Menu metadata và danh sách 5 chế độ luyện tập (M45)
+// TEST 11: Sandwich Menu metadata và danh sách 6 chế độ luyện tập (M45, M46)
 // ============================================================================
-test('M45.1 Sandwich Menu: Metadata đầy đủ 5 chế độ luyện tập với icon và mô tả', () => {
+test('M45.1 Sandwich Menu: Metadata đầy đủ 6 chế độ luyện tập với icon và mô tả', () => {
   const { sandbox } = createPracticeContext();
   const hub = sandbox.VocabPracticeHub;
 
   assert.ok(hub.MODE_METADATA, 'MODE_METADATA phải được export');
   const modes = Object.keys(hub.MODE_METADATA);
-  assert.strictEqual(modes.length, 5, 'Phải có đủ 5 chế độ luyện tập');
-  assert.deepStrictEqual(modes, ['quiz', 'cloze', 'match', 'flashcard', 'translate']);
+  assert.strictEqual(modes.length, 6, 'Phải có đủ 6 chế độ luyện tập');
+  assert.deepStrictEqual(modes, ['quiz', 'cloze', 'match', 'flashcard', 'translate', 'reorder']);
 
   assert.strictEqual(hub.MODE_METADATA.quiz.icon, '🎯');
   assert.strictEqual(hub.MODE_METADATA.cloze.icon, '🎧');
   assert.strictEqual(hub.MODE_METADATA.match.icon, '🃏');
   assert.strictEqual(hub.MODE_METADATA.flashcard.icon, '🎴');
   assert.strictEqual(hub.MODE_METADATA.translate.icon, '✍️');
+  assert.strictEqual(hub.MODE_METADATA.reorder.icon, '🧩');
   assert.ok(hub.MODE_METADATA.translate.title.includes('Dịch Việt → Pháp'));
+  assert.ok(hub.MODE_METADATA.reorder.title.includes('Sắp xếp câu'));
 });
 
 // ============================================================================
@@ -764,5 +766,358 @@ test('M44.15 TRANSLATE_SM2_CONFIG: gom đủ tất cả hằng số cấu hình 
   assert.strictEqual(cfg.PERFECT_BONUS_MULTIPLIER, 1.2);
   assert.strictEqual(cfg.HARD_INITIAL_INTERVAL, 1);
   assert.strictEqual(cfg.HARD_MULTIPLIER, 1.2);
+  assert.strictEqual(cfg.FAIL_DUE_MS, 10 * 60 * 1000);
+});
+
+// ============================================================================
+// TEST 16: M46 - Tokenizer tokenizeFrenchForReorder
+// ============================================================================
+test('M46.1 Tokenizer: chuẩn hóa nháy, khoảng trắng, tách dấu câu, định danh token riêng, viết thường từ đầu, kiểm tra giới hạn 3-15 từ', () => {
+  const { sandbox } = createPracticeContext();
+  const hub = sandbox.VocabPracticeHub;
+
+  // 1. "J'ai acheté une maison."
+  const r1 = hub.tokenizeFrenchForReorder("J'ai acheté une maison.");
+  assert.strictEqual(r1.valid, true);
+  assert.strictEqual(r1.count, 4);
+  assert.strictEqual(r1.punct, '.');
+  assert.strictEqual(r1.tokens[0].displayText, "j'ai", "Chữ đầu 'J'ai' viết thường thành 'j'ai' để không lộ từ đầu");
+  assert.strictEqual(r1.tokens[0].text, "J'ai");
+  assert.strictEqual(r1.tokens[3].text, "maison");
+
+  // 2. "Qu'est-ce que tu fais ?"
+  const r2 = hub.tokenizeFrenchForReorder("Qu'est-ce que tu fais ?");
+  assert.strictEqual(r2.valid, true);
+  assert.strictEqual(r2.count, 4);
+  assert.strictEqual(r2.punct, '?');
+  assert.strictEqual(r2.tokens[0].displayText, "qu'est-ce");
+
+  // 3. "S'il vous plaît, un café."
+  const r3 = hub.tokenizeFrenchForReorder("S'il vous plaît, un café.");
+  assert.strictEqual(r3.valid, true);
+  assert.strictEqual(r3.count, 5);
+  assert.strictEqual(r3.punct, '.');
+  assert.strictEqual(r3.tokens[0].displayText, "s'il");
+
+  // 4. "peut-être" (1 token < 3) -> không hợp lệ
+  const r4 = hub.tokenizeFrenchForReorder("peut-être");
+  assert.strictEqual(r4.valid, false);
+  assert.strictEqual(r4.reason, 'too_short');
+
+  // 5. Câu có hai từ trùng "de": "Il a dit de venir de bonne heure."
+  const r5 = hub.tokenizeFrenchForReorder("Il a dit de venir de bonne heure.");
+  assert.strictEqual(r5.valid, true);
+  assert.strictEqual(r5.count, 8);
+  assert.strictEqual(r5.tokens[3].text, "de");
+  assert.strictEqual(r5.tokens[5].text, "de");
+  assert.notStrictEqual(r5.tokens[3].id, r5.tokens[5].id, "Hai từ 'de' phải có id riêng biệt ('tok_3' và 'tok_5')");
+
+  // 6. "Oui, merci." (2 tokens < 3) -> không hợp lệ
+  const r6 = hub.tokenizeFrenchForReorder("Oui, merci.");
+  assert.strictEqual(r6.valid, false);
+  assert.strictEqual(r6.reason, 'too_short');
+
+  // 7. Câu > 15 tokens: "Pas le temps de faire la grasse matinée quand on a des enfants en bas âge." (16 tokens)
+  const r7 = hub.tokenizeFrenchForReorder("Pas le temps de faire la grasse matinée quand on a des enfants en bas âge.");
+  assert.strictEqual(r7.valid, false);
+  assert.strictEqual(r7.reason, 'too_long');
+  assert.strictEqual(r7.count, 16);
+
+  // 8. Tên riêng đầu câu giữ nguyên chữ hoa: "Paris est magnifique."
+  const r8 = hub.tokenizeFrenchForReorder("Paris est magnifique.");
+  assert.strictEqual(r8.valid, true);
+  assert.strictEqual(r8.tokens[0].displayText, "Paris", "Tên riêng Paris phải giữ nguyên chữ hoa");
+
+  // 9. Dấu nháy cong ’ chuẩn hóa thành '
+  const r9 = hub.tokenizeFrenchForReorder("C’est la vie.");
+  assert.strictEqual(r9.valid, true);
+  assert.strictEqual(r9.tokens[0].text, "C'est");
+});
+
+// ============================================================================
+// TEST 17: M46 - buildReorderSession với dữ liệu thật yt-aMx0d42wzBs.txt
+// ============================================================================
+test('M46.2 buildReorderSession: lọc đúng điều kiện 3-15 từ, công tắc reps, và chọn ngẫu nhiên ví dụ hợp lệ', () => {
+  const { sandbox } = createPracticeContext();
+  const hub = sandbox.VocabPracticeHub;
+  const SchemaV02 = require('./schema-v02.js');
+  const fileContent = fs.readFileSync(path.join(__dirname, '../backup/yt-aMx0d42wzBs.txt'), 'utf-8');
+  const staged = SchemaV02.stageMultiSourceImport([{ fileName: 'yt-aMx0d42wzBs.txt', content: fileContent }]);
+  const committed = SchemaV02.commitStagedImport(staged, 'ADD_SOURCE', {}, []);
+  const realItems = committed.updatedVocabList;
+
+  // 1. Khi bật includeLowReps: tất cả 37 thẻ đều có ví dụ hợp lệ 3-15 từ
+  const s1 = hub.buildReorderSession(realItems, { includeLowReps: true });
+  assert.strictEqual(s1.eligibleCount, 37, 'Toàn bộ 37 thẻ phải đủ điều kiện sắp xếp câu');
+  assert.strictEqual(s1.questions.length, 10, 'Phiên session tối đa 10 câu');
+  assert.ok(s1.questions[0].tokens.length >= 3 && s1.questions[0].tokens.length <= 15);
+  assert.ok(s1.questions[0].shuffledTokens.length === s1.questions[0].tokens.length);
+
+  // 2. Khi tắt includeLowReps (thẻ mới nạp reps = 0 < 2): 0 thẻ đủ điều kiện
+  const s2 = hub.buildReorderSession(realItems, { includeLowReps: false });
+  assert.strictEqual(s2.eligibleCount, 0);
+  assert.strictEqual(s2.skippedLowReps, 37);
+  assert.strictEqual(s2.questions.length, 0);
+});
+
+// ============================================================================
+// TEST 18: M46 - Chấm điểm, so sánh chuỗi ghép và hiển thị token đúng/sai
+// ============================================================================
+test('M46.3 Chấm điểm & so sánh: ghép chuỗi, chấp nhận 2 token trùng chữ ở vị trí tương đương, đánh dấu correct-pos / misplaced-pos', () => {
+  const { sandbox } = createPracticeContext();
+  const hub = sandbox.VocabPracticeHub;
+  const state = hub._state;
+
+  const mockItem = {
+    id: 'test_reorder_1',
+    text: 'venir',
+    examples: [{ fr: 'Il a dit de venir de bonne heure.', vi: 'Anh ấy bảo đến sớm.' }]
+  };
+
+  hub.open('all', null, 'reorder');
+  state.questions = hub.buildReorderSession([mockItem], { includeLowReps: true }).questions;
+  state.currentIndex = 0;
+  hub.renderReorderQuestion();
+
+  const q = state.questions[0];
+  const expectedTokens = q.tokens;
+
+  // Ca 1: Ghép đúng 100% (dùng token đúng thứ tự)
+  state.reorderSelectedTokens = [...expectedTokens];
+  state.reorderBankTokens = [];
+  hub.handleReorderSubmit();
+
+  assert.strictEqual(state.answered, true, 'Đã chấm câu');
+  assert.strictEqual(state.score, 10, 'Đúng được cộng 10 điểm');
+  const fbOk = sandbox.document.getElementById('vph-reorder-feedback');
+  assert.match(fbOk.innerHTML, /Chính xác/, 'Feedback hiện Chính xác');
+
+  // Ca 2: Câu có 2 từ 'de' ('tok_3' và 'tok_5'). Đổi chỗ 2 token này cho nhau:
+  // Chuỗi ghép vẫn là "Il a dit de venir de bonne heure" -> Vẫn PHẢI CHẤM ĐÚNG!
+  state.answered = false;
+  state.score = 0;
+  const swappedTokens = [...expectedTokens];
+  const tok3 = swappedTokens[3];
+  const tok5 = swappedTokens[5];
+  assert.strictEqual(tok3.text, 'de');
+  assert.strictEqual(tok5.text, 'de');
+  swappedTokens[3] = tok5;
+  swappedTokens[5] = tok3;
+
+  state.reorderSelectedTokens = swappedTokens;
+  state.reorderBankTokens = [];
+  hub.handleReorderSubmit();
+
+  assert.strictEqual(state.answered, true);
+  assert.strictEqual(state.score, 10, 'Đổi chỗ hai từ trùng chữ vẫn được chấm đúng vì chuỗi ghép khớp chuẩn');
+
+  // Ca 3: Ghép sai thứ tự -> báo sai, hiện câu chuẩn
+  state.answered = false;
+  state.score = 0;
+  const wrongOrderTokens = [...expectedTokens].reverse();
+  state.reorderSelectedTokens = wrongOrderTokens;
+  state.reorderBankTokens = [];
+  hub.handleReorderSubmit();
+
+  assert.strictEqual(state.answered, true);
+  assert.strictEqual(state.score, 0, 'Sai không được điểm');
+  assert.strictEqual(state.wrongList.length, 1);
+  const fbWrong = sandbox.document.getElementById('vph-reorder-feedback');
+  assert.match(fbWrong.innerHTML, /Chưa chính xác/);
+  assert.match(fbWrong.innerHTML, /Il a dit de venir de bonne heure\./);
+
+  hub.close();
+});
+
+// ============================================================================
+// TEST 19: M46 - Xử lý phím Enter & Chặn chấm khi chưa đặt đủ token
+// ============================================================================
+test('M46.4 Enter key sequence: chưa đủ token thì báo "Chưa đủ từ" và không chấm; đủ token thì chấm và sang câu tiếp', () => {
+  const { sandbox } = createPracticeContext();
+  const hub = sandbox.VocabPracticeHub;
+  const state = hub._state;
+
+  const mockItem = {
+    id: 'test_reorder_2',
+    text: 'maison',
+    examples: [{ fr: "J'ai acheté một maison.", vi: 'Tôi đã mua một ngôi nhà.' }]
+  };
+
+  hub.open('all', null, 'reorder');
+  state.questions = hub.buildReorderSession([mockItem], { includeLowReps: true }).questions;
+  state.currentIndex = 0;
+  hub.renderReorderQuestion();
+
+  const submitBtn = sandbox.document.getElementById('vph-reorder-submit-btn');
+
+  // 1. Chưa chọn từ nào -> bấm Enter
+  hub.handleReorderKeydown({ key: 'Enter', preventDefault() {} });
+
+  assert.strictEqual(state.answered, false, 'Chưa đặt đủ token tuyệt đối KHÔNG được đánh dấu answered');
+  assert.strictEqual(state.reorderCanAdvance, false);
+  const fb1 = sandbox.document.getElementById('vph-reorder-feedback');
+  assert.match(fb1.innerHTML, /Chưa đủ từ/, 'Hiện thông báo cảnh báo "Chưa đủ từ"');
+  assert.match(submitBtn.innerHTML, /Kiểm tra/, 'Nhãn nút vẫn là Kiểm tra');
+
+  // 2. Chọn một nửa số token -> bấm Enter
+  state.reorderSelectedTokens = [state.reorderCurrentTokens[0]];
+  hub.handleReorderKeydown({ key: 'Enter', preventDefault() {} });
+
+  assert.strictEqual(state.answered, false, 'Vẫn chưa đủ token -> không chấm');
+  assert.match(fb1.innerHTML, /Chưa đủ từ/);
+
+  // 3. Chọn đủ tất cả token -> bấm Enter (Lần 1: Chấm điểm)
+  state.reorderSelectedTokens = [...state.reorderCurrentTokens];
+  state.reorderBankTokens = [];
+  hub.handleReorderKeydown({ key: 'Enter', preventDefault() {} });
+
+  assert.strictEqual(state.answered, true, 'Đã đặt đủ token -> Enter chấm bài');
+  assert.strictEqual(state.reorderCanAdvance, true);
+  assert.match(submitBtn.innerHTML, /Câu tiếp theo/, 'Nhãn nút chuyển sang Câu tiếp theo (Enter)');
+
+  // 4. Enter lần 2: chuyển sang câu tiếp theo
+  const mockItem2 = {
+    id: 'test_reorder_2b',
+    text: 'porte',
+    examples: [{ fr: "Fermez la porte s'il vous plaît.", vi: 'Làm ơn đóng cửa lại.' }]
+  };
+  state.questions = hub.buildReorderSession([mockItem, mockItem2], { includeLowReps: true }).questions;
+  state.currentIndex = 0;
+  state.answered = true;
+  state.reorderCanAdvance = true;
+  hub.handleReorderKeydown({ key: 'Enter', preventDefault() {} });
+  assert.strictEqual(state.currentIndex, 1, 'Enter lần 2 chuyển sang câu 2');
+
+  // 5. Kiểm tra bảo vệ bộ gõ tiếng Việt (isComposing / repeat)
+  state.answered = false;
+  hub.handleReorderKeydown({ key: 'Enter', isComposing: true, preventDefault() {} });
+  assert.strictEqual(state.answered, false, 'isComposing bị bỏ qua');
+
+  hub.handleReorderKeydown({ key: 'Enter', repeat: true, preventDefault() {} });
+  assert.strictEqual(state.answered, false, 'repeat bị bỏ qua');
+
+  hub.close();
+});
+
+// ============================================================================
+// TEST 20: M46 - Thao tác phím số 1–9 và Backspace
+// ============================================================================
+test('M46.5 Bàn phím desktop: phím 1–9 chọn token trong Word Bank, Backspace lùi token', () => {
+  const { sandbox } = createPracticeContext();
+  const hub = sandbox.VocabPracticeHub;
+  const state = hub._state;
+
+  const mockItem = {
+    id: 'test_reorder_3',
+    text: 'café',
+    examples: [{ fr: "Je voudrais un café.", vi: 'Tôi muốn một ly cà phê.' }]
+  };
+
+  hub.open('all', null, 'reorder');
+  state.questions = hub.buildReorderSession([mockItem], { includeLowReps: true }).questions;
+  state.currentIndex = 0;
+  hub.renderReorderQuestion();
+
+  const total = state.reorderBankTokens.length;
+  assert.strictEqual(total, 4);
+
+  // 1. Nhấn phím '1': chọn token đầu tiên trong Word Bank
+  const firstTokenId = state.reorderBankTokens[0].id;
+  hub.handleReorderKeydown({ key: '1', preventDefault() {} });
+
+  assert.strictEqual(state.reorderSelectedTokens.length, 1);
+  assert.strictEqual(state.reorderSelectedTokens[0].id, firstTokenId);
+  assert.strictEqual(state.reorderBankTokens.length, total - 1);
+
+  // 2. Nhấn phím '2': chọn token thứ 2 trong số token còn lại
+  const secondTokenId = state.reorderBankTokens[1].id;
+  hub.handleReorderKeydown({ key: '2', preventDefault() {} });
+
+  assert.strictEqual(state.reorderSelectedTokens.length, 2);
+  assert.strictEqual(state.reorderSelectedTokens[1].id, secondTokenId);
+  assert.strictEqual(state.reorderBankTokens.length, total - 2);
+
+  // 3. Nhấn phím Backspace: lùi token vừa chọn
+  hub.handleReorderKeydown({ key: 'Backspace', preventDefault() {} });
+
+  assert.strictEqual(state.reorderSelectedTokens.length, 1, 'Lùi 1 token về lại Word Bank');
+  assert.strictEqual(state.reorderBankTokens.length, total - 1);
+
+  hub.close();
+});
+
+// ============================================================================
+// TEST 21: M46 - Gợi ý đa mức & Tính toán thuật toán SM-2 (skills.reorder)
+// ============================================================================
+test('M46.6 Gợi ý & SM-2: mức 0 thưởng ease +0.10, mức 1 giữ ease, mức 2 gần trượt (giữ reps/interval, ease -0.10), mức 3 tính sai', () => {
+  const { sandbox } = createPracticeContext();
+  const hub = sandbox.VocabPracticeHub;
+
+  // 1. Mức 0 (Không gợi ý): Đúng hoàn hảo -> ease +0.10, reps + 1
+  const s0 = { ease: 2.5, interval: 0, reps: 0 };
+  const r0 = hub.reorderSkillCompute(s0, true, 0);
+  assert.strictEqual(r0.ease, 2.60, 'ease tăng +0.10 khi đúng hoàn toàn');
+  assert.strictEqual(r0.reps, 1);
+  assert.strictEqual(r0.interval, 2, 'Lần 1 interval = 2 ngày');
+
+  // Lần 2 đúng không gợi ý
+  const r0_2 = hub.reorderSkillCompute(r0, true, 0);
+  assert.strictEqual(r0_2.ease, 2.70);
+  assert.strictEqual(r0_2.reps, 2);
+  assert.strictEqual(r0_2.interval, 4, 'Lần 2 interval = 4 ngày');
+
+  // 2. Mức 1 (Đánh số mờ 1-2 từ đầu): ease giữ nguyên (+0.00), reps + 1
+  const s1 = { ease: 2.5, interval: 4, reps: 2 };
+  const r1 = hub.reorderSkillCompute(s1, true, 1);
+  assert.strictEqual(r1.ease, 2.50, 'ease giữ nguyên khi dùng gợi ý mức 1');
+  assert.strictEqual(r1.reps, 3);
+  assert.strictEqual(r1.interval, Math.round(4 * 1.2), 'interval tăng nhẹ theo HINT1_MULTIPLIER');
+
+  // 3. Mức 2 (Ghim 50% từ đầu): Gần trượt (khớp bài dịch: giữ nguyên reps và interval, ease -0.10)
+  const s2 = { ease: 2.5, interval: 7, reps: 3 };
+  const r2 = hub.reorderSkillCompute(s2, true, 2);
+  assert.strictEqual(r2.ease, 2.40, 'ease bị trừ 0.10 khi gần trượt');
+  assert.strictEqual(r2.reps, 3, 'reps GIỮ NGUYÊN khi gần trượt');
+  assert.strictEqual(r2.interval, 7, 'interval GIỮ NGUYÊN khi gần trượt');
+
+  // 4. Mức 3 (Xem câu mẫu tiếng Pháp): Tính là Xem đáp án (sai / fail)
+  const s3 = { ease: 2.5, interval: 7, reps: 3 };
+  const r3 = hub.reorderSkillCompute(s3, true, 3);
+  assert.strictEqual(r3.ease, 2.25, 'ease bị trừ 0.25');
+  assert.strictEqual(r3.reps, 0, 'reps reset về 0');
+  assert.strictEqual(r3.interval, 0, 'interval reset về 0');
+  assert.ok(r3.due > Date.now(), 'Lên lịch ôn lại sau 10 phút');
+
+  // 5. Trả lời sai (isCorrect = false): Tính là fail
+  const rFail = hub.reorderSkillCompute(s3, false, 0);
+  assert.strictEqual(rFail.ease, 2.25);
+  assert.strictEqual(rFail.reps, 0);
+  assert.strictEqual(rFail.interval, 0);
+});
+
+// ============================================================================
+// TEST 22: M46 - REORDER_SM2_CONFIG cấu hình đầy đủ
+// ============================================================================
+test('M46.7 REORDER_SM2_CONFIG: gom đủ tất cả hằng số cấu hình SM-2 sắp xếp câu ở đầu file', () => {
+  const { sandbox } = createPracticeContext();
+  const hub = sandbox.VocabPracticeHub;
+
+  assert.ok(hub.REORDER_SM2_CONFIG, 'REORDER_SM2_CONFIG phải tồn tại');
+  const cfg = hub.REORDER_SM2_CONFIG;
+
+  assert.strictEqual(cfg.MIN_RECOGNITION_REPS, 2);
+  assert.strictEqual(cfg.DEFAULT_INCLUDE_LOW_REPS, true);
+  assert.strictEqual(cfg.MIN_TOKENS, 3);
+  assert.strictEqual(cfg.MAX_TOKENS, 15);
+  assert.strictEqual(cfg.DEFAULT_EASE, 2.5);
+  assert.strictEqual(cfg.MIN_EASE, 1.3);
+  assert.strictEqual(cfg.MAX_EASE, 2.8);
+  assert.strictEqual(cfg.PERFECT_EASE_BONUS, 0.10);
+  assert.strictEqual(cfg.NEAR_FAIL_EASE_PENALTY, 0.10);
+  assert.strictEqual(cfg.FAIL_EASE_PENALTY, 0.25);
+  assert.strictEqual(cfg.PERFECT_INITIAL_INTERVAL_REP0, 2);
+  assert.strictEqual(cfg.PERFECT_INITIAL_INTERVAL_REP1, 4);
+  assert.strictEqual(cfg.PERFECT_BONUS_MULTIPLIER, 1.2);
+  assert.strictEqual(cfg.HINT1_MULTIPLIER, 1.2);
   assert.strictEqual(cfg.FAIL_DUE_MS, 10 * 60 * 1000);
 });

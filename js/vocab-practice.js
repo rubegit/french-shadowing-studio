@@ -94,6 +94,36 @@
   const TRANSLATE_MIN_RECOGNITION_REPS = TRANSLATE_SM2_CONFIG.MIN_RECOGNITION_REPS;
   const TRANSLATE_DEFAULT_INCLUDE_LOW_REPS = TRANSLATE_SM2_CONFIG.DEFAULT_INCLUDE_LOW_REPS;
 
+  // ==================== CẤU HÌNH THUẬT TOÁN SM-2 BÀI SẮP XẾP CÂU (skills.reorder) ====================
+  const REORDER_SM2_CONFIG = {
+    // Ngưỡng mở bài & công tắc
+    MIN_RECOGNITION_REPS: 2,          // Ngưỡng reps nhận diện tối thiểu khi tắt công tắc
+    DEFAULT_INCLUDE_LOW_REPS: true,   // Bật mặc định khi app chưa release
+
+    // Giới hạn độ dài câu
+    MIN_TOKENS: 3,
+    MAX_TOKENS: 15,
+
+    // Hệ số điều chỉnh độ dễ (Ease Factor)
+    DEFAULT_EASE: 2.5,
+    MIN_EASE: 1.3,
+    MAX_EASE: 2.8,
+    PERFECT_EASE_BONUS: 0.10,         // Tăng ease khi đúng hoàn toàn không gợi ý (+0.10) - nhỏ hơn bài dịch 0.15 vì có gợi ý trực quan từ các chip
+    NEAR_FAIL_EASE_PENALTY: 0.10,     // Giảm ease khi dùng gợi ý mức 2 (ghim 50% từ) (-0.10)
+    FAIL_EASE_PENALTY: 0.25,          // Giảm ease khi dùng gợi ý mức 3 (xem đáp án) hoặc sai (-0.25)
+
+    // Khoảng cách ôn (Interval - ngày) khi đúng hoàn hảo (Mức 0)
+    PERFECT_INITIAL_INTERVAL_REP0: 2, // Lần 1 đúng: 2 ngày
+    PERFECT_INITIAL_INTERVAL_REP1: 4, // Lần 2 đúng: 4 ngày
+    PERFECT_BONUS_MULTIPLIER: 1.2,     // Hệ số thưởng các lần tiếp theo (interval * ease * 1.2)
+
+    // Khoảng cách ôn khi đúng có gợi ý mức 1 (đánh số mờ)
+    HINT1_MULTIPLIER: 1.2,
+
+    // Hẹn giờ ôn lại khi sai / xem đáp án
+    FAIL_DUE_MS: 10 * 60 * 1000       // 10 phút
+  };
+
   // ==================== SPACED REPETITION (SM-2) CORE ====================
   function srsDefault() {
     return { ease: 2.5, interval: 0, reps: 0, due: 0, lastReview: null };
@@ -208,6 +238,84 @@
     return updated;
   }
 
+  function reorderSkillDefault() {
+    return { ease: 2.5, interval: 0, reps: 0, due: 0, lastReview: null };
+  }
+
+  function getReorderSkill(item) {
+    if (!item) return reorderSkillDefault();
+    const skills = item.skills || {};
+    return Object.assign(reorderSkillDefault(), skills.reorder || {});
+  }
+
+  function reorderSkillCompute(s, isCorrect, hintLevel = 0) {
+    let { ease, interval, reps } = s;
+    const now = Date.now();
+    const cfg = REORDER_SM2_CONFIG;
+
+    // 1. Trả lời sai HOẶC xem câu mẫu (hintLevel >= 3): Tính là Fail
+    if (!isCorrect || hintLevel >= 3) {
+      reps = 0;
+      ease = Math.max(cfg.MIN_EASE, ease - cfg.FAIL_EASE_PENALTY);
+      interval = 0;
+      return { ease, interval, reps, due: now + cfg.FAIL_DUE_MS, lastReview: now };
+    }
+
+    // 2. Đúng nhưng dùng gợi ý mức 2 (Ghim 50% từ đầu): Gần trượt (khớp bài dịch: giữ nguyên reps và interval, ease -0.10)
+    if (hintLevel === 2) {
+      ease = Math.max(cfg.MIN_EASE, ease - cfg.NEAR_FAIL_EASE_PENALTY);
+      const currentInterval = Math.max(1, interval);
+      return {
+        ease,
+        interval: currentInterval,
+        reps,
+        due: now + currentInterval * 24 * 60 * 60 * 1000,
+        lastReview: now
+      };
+    }
+
+    // 3. Đúng có dùng gợi ý mức 1 (Đánh số mờ 1-2 từ đầu): Giữ ease (+0.00), interval tăng nhẹ
+    if (hintLevel === 1) {
+      reps = reps + 1;
+      let nextInterval = 1;
+      if (reps === 1) nextInterval = cfg.PERFECT_INITIAL_INTERVAL_REP0;
+      else if (reps === 2) nextInterval = cfg.PERFECT_INITIAL_INTERVAL_REP1;
+      else nextInterval = Math.max(1, Math.round(interval * cfg.HINT1_MULTIPLIER));
+      return {
+        ease,
+        interval: nextInterval,
+        reps,
+        due: now + nextInterval * 24 * 60 * 60 * 1000,
+        lastReview: now
+      };
+    }
+
+    // 4. Đúng hoàn toàn không gợi ý (hintLevel === 0): Thưởng ease +0.10, reps + 1
+    if (reps === 0) interval = cfg.PERFECT_INITIAL_INTERVAL_REP0;
+    else if (reps === 1) interval = cfg.PERFECT_INITIAL_INTERVAL_REP1;
+    else interval = Math.max(1, Math.round(interval * ease * cfg.PERFECT_BONUS_MULTIPLIER));
+
+    ease = Math.min(cfg.MAX_EASE, ease + cfg.PERFECT_EASE_BONUS);
+    reps += 1;
+    return { ease, interval, reps, due: now + interval * 24 * 60 * 60 * 1000, lastReview: now };
+  }
+
+  function updateItemReorderSkill(itemId, isCorrect, hintLevel = 0) {
+    if (!itemId) return null;
+    const all = getRawVocabList();
+    const item = all.find(v => v.id === itemId);
+    if (!item) return null;
+
+    item.skills = item.skills || {};
+    const current = getReorderSkill(item);
+    const updated = reorderSkillCompute(current, isCorrect, hintLevel);
+    item.skills.reorder = updated;
+
+    // TUYỆT ĐỐI KHÔNG chạm vào item.srs!
+    persistVocabList(all);
+    return updated;
+  }
+
   function srsFormatDelta(ms) {
     const mins = Math.round(ms / 60000);
     if (mins < 60) return `${Math.max(1, mins)}p`;
@@ -234,7 +342,7 @@
   // Global Hub State
   const state = {
     isOpen: false,
-    currentMode: 'quiz', // 'quiz' | 'cloze' | 'match' | 'flashcard' | 'translate'
+    currentMode: 'quiz', // 'quiz' | 'cloze' | 'match' | 'flashcard' | 'translate' | 'reorder'
     m3SubMode: 'match',  // 'match' | 'flashcard' (giữ tương thích)
     scope: 'all',
     level: 'all',        // CEFR level filter: 'all' | 'A1' | 'A2' | 'A2+' | 'B1' | 'B2' | 'C1' | 'C2'
@@ -242,6 +350,14 @@
     translateIgnoreAccents: false, // Tùy chọn bỏ qua dấu phụ cho bài Dịch Việt -> Pháp
     translateIncludeLowReps: TRANSLATE_DEFAULT_INCLUDE_LOW_REPS, // Công tắc: gồm cả thẻ reps < 2
     translateSkippedInfo: { lowReps: 0, noExamples: 0 },
+    reorderIncludeLowReps: REORDER_SM2_CONFIG.DEFAULT_INCLUDE_LOW_REPS, // Công tắc: gồm cả thẻ reps < 2
+    reorderSkippedInfo: { lowReps: 0, noExamples: 0 },
+    reorderBankTokens: [],
+    reorderSelectedTokens: [],
+    reorderCurrentTokens: [],
+    reorderPunct: '',
+    reorderHintLevel: 0,
+    reorderCanAdvance: false,
     items: [],
     questions: [],
     currentIndex: 0,
@@ -339,6 +455,59 @@
 
   function countSentenceWords(sentence) {
     return tokenizeFrenchSentence(sentence || '').totalWords;
+  }
+
+  // Tokenizer cho Bài luyện Sắp xếp câu (M46)
+  const FRENCH_PROPER_NOUNS = new Set([
+    'France', 'Paris', 'Marie', 'Pierre', 'Jean', 'Paul', 'Marc', 'Luc',
+    'Vietnam', 'Hanoï', 'Saigon', 'Lyon', 'Marseille', 'Bordeaux', 'Nice', 'Toulouse'
+  ]);
+
+  function tokenizeFrenchForReorder(sentence) {
+    if (!sentence || typeof sentence !== 'string') {
+      return { tokens: [], punct: '', valid: false, reason: 'empty', count: 0 };
+    }
+
+    // 1. Chuẩn hóa nháy cong ’ -> ' và khoảng trắng trước ? ! : ;
+    let text = sentence.replace(/[\u2018\u2019]/g, "'");
+    text = text.replace(/[\u00A0\s]+([?!:;])/g, ' $1').trim();
+
+    // 2. Tách dấu câu kết thúc (. ? ! ...)
+    let punct = '';
+    const punctMatch = text.match(/([.?!…]+)$/);
+    if (punctMatch) {
+      punct = punctMatch[1];
+      text = text.slice(0, -punct.length).trim();
+    }
+
+    // 3. Tách từ theo khoảng trắng
+    const rawWords = text.split(/\s+/).filter(Boolean);
+
+    if (rawWords.length < REORDER_SM2_CONFIG.MIN_TOKENS) {
+      return { tokens: [], punct: punct, valid: false, reason: 'too_short', count: rawWords.length };
+    }
+    if (rawWords.length > REORDER_SM2_CONFIG.MAX_TOKENS) {
+      return { tokens: [], punct: punct, valid: false, reason: 'too_long', count: rawWords.length };
+    }
+
+    const tokens = rawWords.map((word, idx) => {
+      let displayText = word;
+      if (idx === 0) {
+        // Nếu không phải tên riêng thì viết thường chữ cái đầu tiên để không lộ từ đầu
+        const cleanWord = word.replace(/[,\u2019'].*$/, '');
+        if (!FRENCH_PROPER_NOUNS.has(cleanWord) && !FRENCH_PROPER_NOUNS.has(word)) {
+          displayText = word.charAt(0).toLowerCase() + word.slice(1);
+        }
+      }
+      return {
+        id: 'tok_' + idx,
+        origIndex: idx,
+        text: word,
+        displayText: displayText
+      };
+    });
+
+    return { tokens: tokens, punct: punct, valid: true, count: tokens.length };
   }
 
   function formatWordBlanks(word, showFirstLetter) {
@@ -1189,7 +1358,8 @@
     cloze: { icon: '🎧', title: 'Nghe & Điền từ', desc: 'Rèn luyện nghe phát âm và chính tả' },
     match: { icon: '🃏', title: 'Ghép thẻ nhanh', desc: 'Thử thách tốc độ ghép cặp từ và nghĩa' },
     flashcard: { icon: '🎴', title: 'Flashcard 3D (SRS)', desc: 'Ôn tập chủ động ghi nhớ dài hạn' },
-    translate: { icon: '✍️', title: 'Dịch Việt → Pháp', desc: 'Luyện dịch câu song ngữ phản xạ xuôi' }
+    translate: { icon: '✍️', title: 'Dịch Việt → Pháp', desc: 'Luyện dịch câu song ngữ phản xạ xuôi' },
+    reorder: { icon: '🧩', title: 'Sắp xếp câu', desc: 'Chạm các thẻ từ để ghép thành câu tiếng Pháp hoàn chỉnh' }
   };
 
   function toggleSandwichMenu(force) {
@@ -1282,6 +1452,8 @@
       }
     } else if (state.currentMode === 'translate') {
       handleTranslateKeydown(e);
+    } else if (state.currentMode === 'reorder') {
+      handleReorderKeydown(e);
     }
   }
 
@@ -1460,6 +1632,19 @@
       state.questions = sessionData.questions;
       updateStatsBar();
       renderTranslateQuestion();
+    } else if (state.currentMode === 'reorder') {
+      const sessionData = buildReorderSession(items);
+      state.reorderSkippedInfo = {
+        lowReps: sessionData.skippedLowReps,
+        noExamples: sessionData.skippedNoExamples
+      };
+      if (sessionData.questions.length === 0) {
+        renderNoReorderEligibleScreen(sessionData);
+        return;
+      }
+      state.questions = sessionData.questions;
+      updateStatsBar();
+      renderReorderQuestion();
     }
   }
 
@@ -2889,6 +3074,546 @@
     speakFrench(q.expectedFr);
   }
 
+  // ==================== BÀI LUYỆN SẮP XẾP CÂU (SENTENCE REORDERING - M46) ====================
+  function buildReorderSession(scopedItems, options) {
+    const includeLowReps = (options && typeof options.includeLowReps === 'boolean')
+      ? options.includeLowReps
+      : (typeof state !== 'undefined' && typeof state.reorderIncludeLowReps === 'boolean'
+          ? state.reorderIncludeLowReps
+          : REORDER_SM2_CONFIG.DEFAULT_INCLUDE_LOW_REPS);
+
+    const sourceList = scopedItems.length > 0 ? scopedItems : CURATED_FALLBACK_VOCAB;
+    let skippedLowReps = 0;
+    let skippedNoExamples = 0;
+
+    const eligible = [];
+    sourceList.forEach(item => {
+      if (!item) return;
+      const reps = (item.srs && typeof item.srs.reps === 'number') ? item.srs.reps : 0;
+      if (!includeLowReps && reps < REORDER_SM2_CONFIG.MIN_RECOGNITION_REPS) {
+        skippedLowReps++;
+        return;
+      }
+
+      const validExamples = (Array.isArray(item.examples) ? item.examples : []).filter(ex => {
+        if (!ex || !ex.fr || !String(ex.fr).trim() || !ex.vi || !String(ex.vi).trim()) return false;
+        const tok = tokenizeFrenchForReorder(String(ex.fr).trim());
+        return tok.valid;
+      });
+
+      if (validExamples.length === 0) {
+        skippedNoExamples++;
+        return;
+      }
+
+      eligible.push({
+        item: item,
+        examples: validExamples
+      });
+    });
+
+    const shuffled = [...eligible].sort(() => Math.random() - 0.5);
+    const sessionSize = Math.min(10, Math.max(5, shuffled.length));
+    const targetSubset = shuffled.slice(0, sessionSize);
+
+    const questions = targetSubset.map((entry, qIndex) => {
+      const { item, examples } = entry;
+      const chosen = examples[Math.floor(Math.random() * examples.length)];
+      const tokRes = tokenizeFrenchForReorder(chosen.fr.trim());
+
+      const bankShuffled = [...tokRes.tokens].sort(() => Math.random() - 0.5);
+      if (bankShuffled.length >= 3 && bankShuffled.every((t, i) => t.origIndex === i)) {
+        const tmp = bankShuffled[0];
+        bankShuffled[0] = bankShuffled[1];
+        bankShuffled[1] = tmp;
+      }
+
+      return {
+        id: item.id || `reorder_${qIndex}`,
+        item: item,
+        promptVi: chosen.vi.trim(),
+        expectedFr: chosen.fr.trim(),
+        tokens: tokRes.tokens,
+        shuffledTokens: bankShuffled,
+        punct: tokRes.punct,
+        wordVi: item.wordVi || item.vi || '',
+        frenchWord: item.text || item.fr || ''
+      };
+    });
+
+    return {
+      questions: questions,
+      eligibleCount: eligible.length,
+      skippedLowReps: skippedLowReps,
+      skippedNoExamples: skippedNoExamples
+    };
+  }
+
+  function renderReorderQuestion() {
+    state.answered = false;
+    state.reorderCanAdvance = false;
+    state.reorderHintLevel = 0;
+
+    const body = document.getElementById('vph-body');
+    if (!body) return;
+
+    if (state.currentIndex >= state.questions.length) {
+      renderDoneScreen();
+      return;
+    }
+
+    updateStatsBar();
+    const q = state.questions[state.currentIndex];
+    state.reorderCurrentTokens = q.tokens;
+    state.reorderBankTokens = [...q.shuffledTokens];
+    state.reorderSelectedTokens = [];
+    state.reorderPunct = q.punct;
+
+    const qNum = `Câu ${state.currentIndex + 1} / ${state.questions.length}`;
+    const levelBadge = q.item?.level ? `<span class="vph-level-badge">${escHtml(q.item.level)}</span>` : '';
+    const currentScaleIdx = getFontScaleIndex();
+
+    const skippedTotal = (state.reorderSkippedInfo?.lowReps || 0) + (state.reorderSkippedInfo?.noExamples || 0);
+    const skippedNotice = skippedTotal > 0 && state.currentIndex === 0
+      ? `<div style="font-size:11px; color:#94a3b8; margin-bottom:8px; text-align:center;">
+           ℹ️ Đã tự động bỏ qua ${skippedTotal} thẻ (chưa đạt reps ≥ ${REORDER_SM2_CONFIG.MIN_RECOGNITION_REPS} hoặc câu ví dụ không nằm trong khoảng 3–15 từ).
+         </div>`
+      : '';
+
+    body.innerHTML = `
+      <div class="vph-reorder-container">
+        ${skippedNotice}
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:12px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.04em">${qNum}</span>
+            ${levelBadge}
+          </div>
+          <div class="vph-font-controls" title="Điều chỉnh cỡ chữ bài luyện">
+            <button type="button" class="vph-font-btn" id="vph-font-dec-btn" title="Giảm cỡ chữ (A−)">A−</button>
+            <span class="vph-font-label" id="vph-font-scale-label">${FONT_SCALE_LABELS[currentScaleIdx]}</span>
+            <button type="button" class="vph-font-btn" id="vph-font-inc-btn" title="Tăng cỡ chữ (A+)">A+</button>
+          </div>
+        </div>
+
+        <div class="vph-translate-prompt-box">
+          <div class="vph-translate-prompt-label">Sắp xếp các từ tiếng Pháp sau thành câu hoàn chỉnh:</div>
+          <div class="vph-translate-prompt-text">“${escHtml(q.promptVi)}”</div>
+          <div class="vph-translate-hint">
+            <span>💡 Từ trọng tâm:</span>
+            <span class="vph-hint-pill">${escHtml(q.wordVi || q.frenchWord)}</span>
+          </div>
+          <div class="vph-translate-hint-section" id="vph-reorder-hint-section"></div>
+        </div>
+
+        <!-- Answer Zone (Vùng ghép câu) -->
+        <div class="vph-reorder-zone-card">
+          <div class="vph-reorder-zone-header">
+            <span>Câu đang ghép:</span>
+            <div style="display:flex; gap:6px;">
+              <button type="button" class="vph-font-btn" id="vph-reorder-undo-btn" title="Lùi 1 từ (Phím Backspace)">⌫ Lùi</button>
+              <button type="button" class="vph-font-btn" id="vph-reorder-clear-btn" title="Xóa hết để ghép lại">↺ Xóa hết</button>
+            </div>
+          </div>
+          <div class="vph-reorder-answer-zone" id="vph-reorder-answer-zone"></div>
+        </div>
+
+        <!-- Word Bank (Ngân hàng từ) -->
+        <div class="vph-reorder-zone-card">
+          <div class="vph-reorder-zone-header">
+            <span>Ngân hàng từ (Bấm vào từ hoặc bấm phím số 1–9):</span>
+          </div>
+          <div class="vph-reorder-word-bank" id="vph-reorder-word-bank"></div>
+        </div>
+
+        <!-- Controls -->
+        <div class="vph-translate-controls">
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
+              <button type="button" class="vph-secondary-btn" id="vph-reorder-hint-btn" title="Gợi ý: Ctrl+/ hoặc phím '?'">
+                <span>💡 Gợi ý (Mức 1/3)</span>
+              </button>
+              <button type="button" class="vph-secondary-btn" id="vph-reorder-speak-btn" title="Nghe phát âm câu tiếng Pháp">
+                <span>🔊 Nghe câu</span>
+              </button>
+              <button type="button" class="vph-secondary-btn" id="vph-reorder-reveal-btn" title="Xem đáp án chuẩn (tính là câu sai)">
+                <span>👁️ Xem đáp án</span>
+              </button>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:6px;">
+              <label class="vph-toggle-label" title="Luyện sắp xếp cả những thẻ từ vựng mới học (reps < 2) có câu ví dụ song ngữ 3–15 từ">
+                <input type="checkbox" id="vph-reorder-include-low-reps" ${state.reorderIncludeLowReps ? 'checked' : ''}>
+                <span>Gồm cả thẻ chưa đạt nhận biết (reps &lt; 2)</span>
+              </label>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:8px; align-items:flex-start;">
+            <button type="button" class="vph-secondary-btn" id="vph-reorder-skip-btn">
+              <span>Bỏ qua</span>
+            </button>
+            <button type="button" class="vph-primary-btn" id="vph-reorder-submit-btn">
+              <span>Kiểm tra (Enter)</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="vph-reorder-feedback" style="min-height:24px;"></div>
+      </div>
+    `;
+
+    applyFontScale(currentScaleIdx);
+
+    const decBtn = document.getElementById('vph-font-dec-btn');
+    const incBtn = document.getElementById('vph-font-inc-btn');
+    if (decBtn) decBtn.onclick = () => setFontScaleIndex(getFontScaleIndex() - 1);
+    if (incBtn) incBtn.onclick = () => setFontScaleIndex(getFontScaleIndex() + 1);
+
+    const undoBtn = document.getElementById('vph-reorder-undo-btn');
+    const clearBtn = document.getElementById('vph-reorder-clear-btn');
+    if (undoBtn) undoBtn.onclick = handleReorderUndo;
+    if (clearBtn) clearBtn.onclick = handleReorderClear;
+
+    const hintBtn = document.getElementById('vph-reorder-hint-btn');
+    const speakBtn = document.getElementById('vph-reorder-speak-btn');
+    const revealBtn = document.getElementById('vph-reorder-reveal-btn');
+    const submitBtn = document.getElementById('vph-reorder-submit-btn');
+    const skipBtn = document.getElementById('vph-reorder-skip-btn');
+    const toggleLowReps = document.getElementById('vph-reorder-include-low-reps');
+
+    if (hintBtn) hintBtn.onclick = handleReorderHintAdvance;
+    if (speakBtn) speakBtn.onclick = () => speakFrench(q.expectedFr);
+    if (revealBtn) revealBtn.onclick = handleReorderRevealAnswer;
+    if (submitBtn) {
+      submitBtn.onclick = () => {
+        if (!state.answered) handleReorderSubmit();
+        else if (state.reorderCanAdvance) advanceToNextReorderQuestion();
+      };
+    }
+    if (skipBtn) skipBtn.onclick = () => advanceToNextReorderQuestion();
+    if (toggleLowReps) {
+      toggleLowReps.onchange = (e) => {
+        state.reorderIncludeLowReps = e.target.checked;
+        startSession();
+      };
+    }
+
+    renderReorderZones();
+  }
+
+  function renderReorderZones() {
+    const answerZone = document.getElementById('vph-reorder-answer-zone');
+    const wordBank = document.getElementById('vph-reorder-word-bank');
+    if (!answerZone || !wordBank) return;
+
+    // 1. Render Answer Zone
+    if (state.reorderSelectedTokens.length === 0) {
+      answerZone.className = 'vph-reorder-answer-zone';
+      answerZone.innerHTML = `<span class="vph-reorder-empty-prompt">Chạm vào các từ bên dưới (hoặc bấm phím số 1–9) để ghép câu...</span>`;
+    } else {
+      answerZone.className = 'vph-reorder-answer-zone has-tokens';
+      let chipsHtml = state.reorderSelectedTokens.map((t, idx) => {
+        let posClass = '';
+        if (state.answered) {
+          const expectedTok = state.reorderCurrentTokens[idx];
+          const isMatch = expectedTok && !!(normalizeTranslateAnswer(t.text, expectedTok.text)?.isCorrect);
+          posClass = isMatch ? 'correct-pos' : 'misplaced-pos';
+        }
+        return `<button type="button" class="vph-reorder-chip in-answer ${posClass}" data-id="${t.id}" onclick="window.VocabPracticeHub.handleReorderTokenDeselect('${t.id}')">
+                  ${escHtml(t.displayText || t.text)}
+                </button>`;
+      }).join('');
+
+      const punctChip = state.reorderPunct
+        ? `<span class="vph-reorder-punct-chip">${escHtml(state.reorderPunct)}</span>`
+        : '';
+      answerZone.innerHTML = chipsHtml + punctChip;
+    }
+
+    // 2. Render Word Bank
+    if (state.reorderBankTokens.length === 0) {
+      wordBank.innerHTML = `<span style="color:#64748b; font-size:12px; font-style:italic;">(Đã đưa hết các từ lên câu đang ghép)</span>`;
+    } else {
+      wordBank.innerHTML = state.reorderBankTokens.map((t, idx) => {
+        const keyBadge = idx < 9 ? `<span class="vph-reorder-key-badge">${idx + 1}</span>` : '';
+        const isHintWord = state.reorderHintLevel >= 1 && t.origIndex < 2;
+        const hintStar = isHintWord ? `<span class="vph-reorder-hint-star" title="Từ số ${t.origIndex + 1} trong câu">⭐${t.origIndex + 1} </span>` : '';
+        return `<button type="button" class="vph-reorder-chip" data-id="${t.id}" onclick="window.VocabPracticeHub.handleReorderTokenSelect('${t.id}')">
+                  ${keyBadge}${hintStar}${escHtml(t.displayText || t.text)}
+                </button>`;
+      }).join('');
+    }
+  }
+
+  function handleReorderTokenSelect(tokenId) {
+    if (state.answered) return;
+    const idx = state.reorderBankTokens.findIndex(t => t.id === tokenId);
+    if (idx < 0) return;
+    const token = state.reorderBankTokens.splice(idx, 1)[0];
+    state.reorderSelectedTokens.push(token);
+
+    const fb = document.getElementById('vph-reorder-feedback');
+    if (fb && typeof fb.querySelector === 'function' && fb.querySelector('.vph-reorder-warning')) {
+      fb.innerHTML = '';
+    }
+
+    playSound('click');
+    renderReorderZones();
+  }
+
+  function handleReorderTokenDeselect(tokenId) {
+    if (state.answered) return;
+    const idx = state.reorderSelectedTokens.findIndex(t => t.id === tokenId);
+    if (idx < 0) return;
+    const token = state.reorderSelectedTokens.splice(idx, 1)[0];
+    state.reorderBankTokens.push(token);
+
+    playSound('click');
+    renderReorderZones();
+  }
+
+  function handleReorderUndo() {
+    if (state.answered || state.reorderSelectedTokens.length === 0) return;
+    const token = state.reorderSelectedTokens.pop();
+    state.reorderBankTokens.push(token);
+    playSound('click');
+    renderReorderZones();
+  }
+
+  function handleReorderClear() {
+    if (state.answered || state.reorderSelectedTokens.length === 0) return;
+    state.reorderBankTokens = [...state.reorderBankTokens, ...state.reorderSelectedTokens];
+    state.reorderSelectedTokens = [];
+    playSound('click');
+    renderReorderZones();
+  }
+
+  function handleReorderSubmit() {
+    if (state.answered) return;
+    const q = state.questions[state.currentIndex];
+    if (!q) return;
+
+    const fb = document.getElementById('vph-reorder-feedback');
+    const submitBtn = document.getElementById('vph-reorder-submit-btn');
+
+    // 1. Kiểm tra đã đặt đủ token chưa
+    if (state.reorderSelectedTokens.length < state.reorderCurrentTokens.length) {
+      if (fb) {
+        fb.innerHTML = `<div class="vph-reorder-warning">⚠️ Chưa đủ từ. Vui lòng chọn hết các từ còn lại trong ngân hàng từ (${state.reorderSelectedTokens.length} / ${state.reorderCurrentTokens.length}).</div>`;
+      }
+      if (submitBtn) {
+        submitBtn.innerHTML = `<span>Kiểm tra (Enter)</span>`;
+      }
+      return;
+    }
+
+    // 2. Chấm bằng cách ghép chuỗi và so sánh không phân biệt hoa/thường
+    state.answered = true;
+    state.reorderCanAdvance = true;
+
+    const userJoined = state.reorderSelectedTokens.map(t => t.text).join(' ');
+    const expectedJoined = state.reorderCurrentTokens.map(t => t.text).join(' ');
+    const checkRes = normalizeTranslateAnswer(userJoined, expectedJoined);
+    const isCorrect = !!(checkRes && checkRes.isCorrect);
+
+    if (isCorrect) {
+      state.score += 10;
+      state.streak += 1;
+      if (state.streak > state.maxStreak) state.maxStreak = state.streak;
+      playSound('correct');
+
+      updateItemReorderSkill(q.item?.id, true, state.reorderHintLevel);
+
+      if (fb) {
+        fb.innerHTML = `
+          <div class="vph-diff-box" style="border-color:rgba(16,185,129,0.5); background:rgba(16,185,129,0.1); color:#4ade80;">
+            <div style="font-weight:700; margin-bottom:2px;">✓ Chính xác! Bạn đã ghép đúng thứ tự câu.</div>
+          </div>
+        `;
+      }
+    } else {
+      state.streak = 0;
+      state.wrongList.push({
+        frenchWord: q.expectedFr,
+        vietnameseMeaning: q.promptVi
+      });
+      playSound('wrong');
+
+      updateItemReorderSkill(q.item?.id, false, state.reorderHintLevel);
+
+      if (fb) {
+        fb.innerHTML = `
+          <div class="vph-diff-box" style="border-color:rgba(239,68,68,0.5); background:rgba(239,68,68,0.1);">
+            <div style="color:#f87171; font-weight:700; margin-bottom:4px;">✕ Chưa chính xác.</div>
+            <div style="color:#cbd5e1; font-size:13px;">Đáp án chuẩn: <strong style="color:#4ade80;">${escHtml(q.expectedFr)}</strong></div>
+          </div>
+        `;
+      }
+    }
+
+    if (submitBtn) {
+      submitBtn.innerHTML = `<span>Câu tiếp theo (Enter)</span>`;
+      submitBtn.classList.add('vph-pulse');
+    }
+
+    renderReorderZones();
+  }
+
+  function advanceToNextReorderQuestion() {
+    state.currentIndex += 1;
+    if (state.currentIndex >= state.questions.length) {
+      renderDoneScreen();
+    } else {
+      renderReorderQuestion();
+    }
+  }
+
+  function handleReorderHintAdvance() {
+    if (state.answered) return;
+    const q = state.questions[state.currentIndex];
+    if (!q) return;
+
+    const hintBtn = document.getElementById('vph-reorder-hint-btn');
+    const hintSection = document.getElementById('vph-reorder-hint-section');
+
+    if (state.reorderHintLevel === 0) {
+      state.reorderHintLevel = 1;
+      if (hintBtn) hintBtn.innerHTML = `<span>💡 Gợi ý (Mức 2/3: Ghim 50%)</span>`;
+      if (hintSection) {
+        hintSection.innerHTML = `
+          <div style="font-size:12px; color:#fbbf24; margin-top:6px;">
+            💡 Đã đánh dấu ⭐1, ⭐2 cho 1–2 từ mở đầu câu trong ngân hàng từ.
+          </div>
+        `;
+      }
+      renderReorderZones();
+    } else if (state.reorderHintLevel === 1) {
+      state.reorderHintLevel = 2;
+      if (hintBtn) hintBtn.innerHTML = `<span>💡 Gợi ý (Mức 3/3: Xem câu mẫu)</span>`;
+
+      const halfCount = Math.max(1, Math.floor(state.reorderCurrentTokens.length / 2));
+      const pinnedTokens = state.reorderCurrentTokens.slice(0, halfCount);
+      const pinnedIds = new Set(pinnedTokens.map(t => t.id));
+
+      state.reorderSelectedTokens = [...pinnedTokens];
+      state.reorderBankTokens = q.tokens.filter(t => !pinnedIds.has(t.id)).sort(() => Math.random() - 0.5);
+
+      if (hintSection) {
+        hintSection.innerHTML = `
+          <div style="font-size:12px; color:#fbbf24; margin-top:6px;">
+            💡 Đã ghim sẵn ${halfCount} từ đầu tiên vào đúng vị trí câu đang ghép.
+          </div>
+        `;
+      }
+      renderReorderZones();
+    } else if (state.reorderHintLevel === 2) {
+      handleReorderRevealAnswer();
+    }
+  }
+
+  function handleReorderRevealAnswer() {
+    if (state.answered) return;
+    const q = state.questions[state.currentIndex];
+    if (!q) return;
+
+    state.reorderHintLevel = 3;
+    const hintSection = document.getElementById('vph-reorder-hint-section');
+    const hintBtn = document.getElementById('vph-reorder-hint-btn');
+
+    if (hintBtn) hintBtn.innerHTML = `<span>💡 Đã mở câu mẫu</span>`;
+    if (hintSection) {
+      hintSection.innerHTML = `
+        <div class="vph-diff-box" style="border-color:#f59e0b; background:rgba(245,158,11,0.1); margin-top:8px;">
+          <span style="color:#fbbf24; font-weight:700;">Câu mẫu tiếng Pháp:</span>
+          <strong style="color:#ffffff; margin-left:4px;">${escHtml(q.expectedFr)}</strong>
+        </div>
+      `;
+    }
+    state.reorderSelectedTokens = [...state.reorderCurrentTokens];
+    state.reorderBankTokens = [];
+    renderReorderZones();
+  }
+
+  function handleReorderKeydown(e) {
+    if (!state.isOpen || state.currentMode !== 'reorder') return;
+
+    if (e.ctrlKey && !e.metaKey && (e.key === '/' || e.code === 'Slash')) {
+      e.preventDefault();
+      handleReorderHintAdvance();
+      return;
+    }
+    if (e.key === '?' && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+      handleReorderHintAdvance();
+      return;
+    }
+
+    if (e.isComposing || e.keyCode === 229 || e.repeat) return;
+
+    if (!state.answered && e.key >= '1' && e.key <= '9') {
+      const idx = parseInt(e.key, 10) - 1;
+      if (idx >= 0 && idx < state.reorderBankTokens.length) {
+        e.preventDefault();
+        handleReorderTokenSelect(state.reorderBankTokens[idx].id);
+        return;
+      }
+    }
+
+    if (!state.answered && e.key === 'Backspace' && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+      handleReorderUndo();
+      return;
+    }
+
+    if (e.key === 'Enter') {
+      if (!state.answered) {
+        e.preventDefault();
+        handleReorderSubmit();
+      } else if (state.reorderCanAdvance) {
+        e.preventDefault();
+        advanceToNextReorderQuestion();
+      }
+    }
+  }
+
+  function renderNoReorderEligibleScreen(sessionData) {
+    const body = document.getElementById('vph-body');
+    if (!body) return;
+
+    const enableLowRepsBtnHtml = (sessionData.skippedLowReps > 0 && !state.reorderIncludeLowReps)
+      ? `<button type="button" class="vph-primary-btn" id="vph-enable-reorder-low-reps-btn" style="background:#2563eb; color:#fff;">
+           <span>⚡ Bật "Gồm cả thẻ reps &lt; 2" (${sessionData.skippedLowReps} thẻ)</span>
+         </button>`
+      : '';
+
+    body.innerHTML = `
+      <div class="vph-empty">
+        <div class="vph-empty-icon">🧩</div>
+        <h3 class="vph-empty-title">Chưa có thẻ từ vựng đủ điều kiện sắp xếp câu</h3>
+        <p class="vph-empty-desc" style="max-width:520px; margin:0 auto 16px auto; line-height:1.6;">
+          Bài luyện <b>Sắp xếp câu</b> yêu cầu thẻ có câu ví dụ song ngữ (Pháp - Việt) với độ dài từ 3 đến 15 từ.
+          ${sessionData.skippedLowReps > 0 ? `<br>Hiện có <b>${sessionData.skippedLowReps}</b> thẻ chưa đạt reps ≥ ${REORDER_SM2_CONFIG.MIN_RECOGNITION_REPS}.` : ''}
+          ${sessionData.skippedNoExamples > 0 ? `<br>Có <b>${sessionData.skippedNoExamples}</b> thẻ thiếu ví dụ song ngữ 3–15 từ.` : ''}
+        </p>
+        <div class="vph-actions-row">
+          ${enableLowRepsBtnHtml}
+          <button type="button" class="vph-primary-btn" id="vph-switch-to-flashcard-from-reorder-btn">
+            <span>🎴 Học Flashcard</span>
+          </button>
+          <button type="button" class="vph-secondary-btn" id="vph-switch-to-quiz-from-reorder-btn">
+            <span>🎯 Luyện Trắc nghiệm</span>
+          </button>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('vph-enable-reorder-low-reps-btn')?.addEventListener('click', () => {
+      state.reorderIncludeLowReps = true;
+      startSession();
+    });
+    document.getElementById('vph-switch-to-flashcard-from-reorder-btn')?.addEventListener('click', () => switchMode('flashcard'));
+    document.getElementById('vph-switch-to-quiz-from-reorder-btn')?.addEventListener('click', () => switchMode('quiz'));
+  }
+
   // ==================== COMPLETION SUMMARY SCREEN ====================
   function renderDoneScreen() {
     stopTimer();
@@ -2971,7 +3696,7 @@
     state.isOpen = true;
     state.scope = scope || 'all';
     if (level) state.level = level;
-    if (initialMode && ['quiz', 'cloze', 'match', 'flashcard', 'translate'].includes(initialMode)) {
+    if (initialMode && MODE_METADATA[initialMode]) {
       state.currentMode = initialMode;
     }
     updateScopeOptions();
@@ -3027,6 +3752,23 @@
     handleTranslateSubmit: handleTranslateSubmit,
     handleTranslateHintAdvance: handleTranslateHintAdvance,
     handleTranslateRevealAnswer: handleTranslateRevealAnswer,
+    REORDER_SM2_CONFIG: REORDER_SM2_CONFIG,
+    reorderSkillCompute: reorderSkillCompute,
+    getReorderSkill: getReorderSkill,
+    updateItemReorderSkill: updateItemReorderSkill,
+    tokenizeFrenchForReorder: tokenizeFrenchForReorder,
+    buildReorderSession: buildReorderSession,
+    renderReorderQuestion: renderReorderQuestion,
+    renderReorderZones: renderReorderZones,
+    handleReorderTokenSelect: handleReorderTokenSelect,
+    handleReorderTokenDeselect: handleReorderTokenDeselect,
+    handleReorderUndo: handleReorderUndo,
+    handleReorderClear: handleReorderClear,
+    handleReorderSubmit: handleReorderSubmit,
+    advanceToNextReorderQuestion: advanceToNextReorderQuestion,
+    handleReorderHintAdvance: handleReorderHintAdvance,
+    handleReorderRevealAnswer: handleReorderRevealAnswer,
+    handleReorderKeydown: handleReorderKeydown,
     _state: state,
     TRANSLATE_MIN_RECOGNITION_REPS: TRANSLATE_MIN_RECOGNITION_REPS,
     TRANSLATE_DEFAULT_INCLUDE_LOW_REPS: TRANSLATE_DEFAULT_INCLUDE_LOW_REPS
