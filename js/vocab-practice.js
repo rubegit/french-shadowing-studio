@@ -63,9 +63,36 @@
     });
   }
 
-  // Spaced Repetition configuration constants
-  const TRANSLATE_MIN_RECOGNITION_REPS = 2; // Điều kiện độ nhận biết (reps >= 2) để mở bài luyện dịch
-  const TRANSLATE_DEFAULT_INCLUDE_LOW_REPS = true; // Công tắc: Mặc định bật khi app chưa release
+  // ==================== CẤU HÌNH THUẬT TOÁN SM-2 BÀI DỊCH (skills.translate) ====================
+  const TRANSLATE_SM2_CONFIG = {
+    // Ngưỡng mở bài & công tắc
+    MIN_RECOGNITION_REPS: 2,          // Ngưỡng reps nhận diện tối thiểu khi tắt công tắc
+    DEFAULT_INCLUDE_LOW_REPS: true,   // Bật mặc định khi app chưa release
+
+    // Hệ số điều chỉnh độ dễ (Ease Factor)
+    DEFAULT_EASE: 2.5,
+    MIN_EASE: 1.3,
+    MAX_EASE: 2.8,
+    PERFECT_EASE_BONUS: 0.15,         // Tăng ease khi đúng hoàn toàn không gợi ý (+0.15)
+    NEAR_FAIL_EASE_PENALTY: 0.10,     // Giảm ease khi đúng nhưng dùng gợi ý mức 3-4 (-0.10)
+    FAIL_EASE_PENALTY: 0.25,          // Giảm ease khi sai hoặc xem đáp án (-0.25)
+
+    // Khoảng cách ôn (Interval - ngày) khi đúng hoàn hảo (Mức 0)
+    PERFECT_INITIAL_INTERVAL_REP0: 2, // Lần 1 đúng: 2 ngày
+    PERFECT_INITIAL_INTERVAL_REP1: 4, // Lần 2 đúng: 4 ngày
+    PERFECT_BONUS_MULTIPLIER: 1.2,     // Hệ số thưởng các lần tiếp theo (interval * ease * 1.2)
+
+    // Khoảng cách ôn khi dùng gợi ý mức 1-2 (Hard)
+    HARD_INITIAL_INTERVAL: 1,          // Lần 1 đúng với gợi ý mức 1-2: 1 ngày
+    HARD_MULTIPLIER: 1.2,              // Hệ số nhân cho các lần sau (interval * 1.2)
+
+    // Hẹn giờ ôn lại khi trượt
+    FAIL_DUE_MS: 10 * 60 * 1000        // 10 phút
+  };
+
+  const TRANSLATE_SM2_CONSTANTS = TRANSLATE_SM2_CONFIG;
+  const TRANSLATE_MIN_RECOGNITION_REPS = TRANSLATE_SM2_CONFIG.MIN_RECOGNITION_REPS;
+  const TRANSLATE_DEFAULT_INCLUDE_LOW_REPS = TRANSLATE_SM2_CONFIG.DEFAULT_INCLUDE_LOW_REPS;
 
   // ==================== SPACED REPETITION (SM-2) CORE ====================
   function srsDefault() {
@@ -108,39 +135,29 @@
 
   // ==================== SKILLS: TRANSLATE (SM-2 CHUYÊN BIỆT CHO DỊCH VIỆT -> PHÁP) ====================
   function translateSkillDefault() {
-    return { ease: 2.5, interval: 0, reps: 0, due: 0, lastReview: null };
+    return { ease: TRANSLATE_SM2_CONFIG.DEFAULT_EASE, interval: 0, reps: 0, due: 0, lastReview: null };
   }
 
   function getTranslateSkill(item) {
     return Object.assign(translateSkillDefault(), item && item.skills && item.skills.translate ? item.skills.translate : {});
   }
 
-  const TRANSLATE_SM2_CONSTANTS = {
-    FAIL_EASE_PENALTY: 0.25,
-    NEAR_FAIL_EASE_PENALTY: 0.10,
-    PERFECT_EASE_BONUS: 0.15,
-    MIN_EASE: 1.3,
-    MAX_EASE: 2.8,
-    FAIL_DUE_MS: 10 * 60 * 1000,
-    PERFECT_BONUS_MULTIPLIER: 1.2,
-    HARD_MULTIPLIER: 1.2
-  };
-
   function translateSkillCompute(s, isCorrect, hintLevel = 0) {
     let { ease, interval, reps } = s;
     const now = Date.now();
+    const cfg = TRANSLATE_SM2_CONFIG;
 
     // 1. Trả lời sai hoặc xem full đáp án (hintLevel >= 5): Đánh giá Fail
     if (!isCorrect || hintLevel >= 5) {
       reps = 0;
-      ease = Math.max(TRANSLATE_SM2_CONSTANTS.MIN_EASE, ease - TRANSLATE_SM2_CONSTANTS.FAIL_EASE_PENALTY);
+      ease = Math.max(cfg.MIN_EASE, ease - cfg.FAIL_EASE_PENALTY);
       interval = 0;
-      return { ease, interval, reps, due: now + TRANSLATE_SM2_CONSTANTS.FAIL_DUE_MS, lastReview: now };
+      return { ease, interval, reps, due: now + cfg.FAIL_DUE_MS, lastReview: now };
     }
 
     // 2. Đúng nhưng có dùng gợi ý mức 3 hoặc 4 (Mở từ theo thứ tự / Nghe mẫu): Đánh giá gần trượt
     if (hintLevel >= 3) {
-      ease = Math.max(TRANSLATE_SM2_CONSTANTS.MIN_EASE, ease - TRANSLATE_SM2_CONSTANTS.NEAR_FAIL_EASE_PENALTY);
+      ease = Math.max(cfg.MIN_EASE, ease - cfg.NEAR_FAIL_EASE_PENALTY);
       const currentInterval = Math.max(1, interval);
       return {
         ease,
@@ -153,8 +170,8 @@
 
     // 3. Đúng với gợi ý mức 1 hoặc 2 (Gạch chữ / Chữ cái đầu): Đánh giá Hard
     if (hintLevel >= 1) {
-      if (reps === 0) interval = 1;
-      else interval = Math.max(1, Math.round(interval * TRANSLATE_SM2_CONSTANTS.HARD_MULTIPLIER));
+      if (reps === 0) interval = cfg.HARD_INITIAL_INTERVAL;
+      else interval = Math.max(1, Math.round(interval * cfg.HARD_MULTIPLIER));
       reps += 1;
       return {
         ease,
@@ -166,11 +183,11 @@
     }
 
     // 4. Đúng hoàn toàn không dùng gợi ý (hintLevel === 0): Thăng cấp bình thường (Good / Easy)
-    if (reps === 0) interval = 2; // trắc nghiệm là 1
-    else if (reps === 1) interval = 4; // trắc nghiệm là 3
-    else interval = Math.max(1, Math.round(interval * ease * TRANSLATE_SM2_CONSTANTS.PERFECT_BONUS_MULTIPLIER));
+    if (reps === 0) interval = cfg.PERFECT_INITIAL_INTERVAL_REP0;
+    else if (reps === 1) interval = cfg.PERFECT_INITIAL_INTERVAL_REP1;
+    else interval = Math.max(1, Math.round(interval * ease * cfg.PERFECT_BONUS_MULTIPLIER));
 
-    ease = Math.min(TRANSLATE_SM2_CONSTANTS.MAX_EASE, ease + TRANSLATE_SM2_CONSTANTS.PERFECT_EASE_BONUS);
+    ease = Math.min(cfg.MAX_EASE, ease + cfg.PERFECT_EASE_BONUS);
     reps += 1;
     return { ease, interval, reps, due: now + interval * 24 * 60 * 60 * 1000, lastReview: now };
   }
@@ -2401,7 +2418,7 @@
         <div class="vph-translate-controls">
           <div style="display:flex; flex-direction:column; gap:8px;">
             <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
-              <button type="button" class="vph-secondary-btn" id="vph-translate-hint-btn" title="Phím tắt: ? hoặc Ctrl+H">
+              <button type="button" class="vph-secondary-btn" id="vph-translate-hint-btn" title="Gợi ý: Ctrl+/ trong ô gõ, hoặc '?' khi không gõ">
                 <span>💡 Gợi ý (Mức 1/4)</span>
               </button>
               <button type="button" class="vph-secondary-btn" id="vph-translate-speak-btn" title="Nghe phát âm tiếng Pháp">
@@ -2594,12 +2611,14 @@
   function handleTranslateKeydown(e) {
     if (!state.isOpen || state.currentMode !== 'translate') return;
 
-    // Phím tắt gợi ý: Ctrl+H hoặc Cmd+H hoặc phím '?' khi không gõ chữ
-    if ((e.ctrlKey || e.metaKey) && (e.key === 'h' || e.key === 'H')) {
+    // Phím tắt gợi ý:
+    // 1. Trong ô gõ (hoặc bất kỳ đâu): Ctrl+/ (chỉ phím Control, không dùng Cmd để tránh xung đột hệ thống macOS)
+    if (e.ctrlKey && !e.metaKey && (e.key === '/' || e.code === 'Slash')) {
       e.preventDefault();
       handleTranslateHintAdvance();
       return;
     }
+    // 2. Khi không focus ô gõ/textarea: phím '?'
     if (e.key === '?' && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
       e.preventDefault();
       handleTranslateHintAdvance();
@@ -3001,6 +3020,7 @@
     applyFontScale: applyFontScale,
     FONT_SCALE_LEVELS: FONT_SCALE_LEVELS,
     FONT_SCALE_LABELS: FONT_SCALE_LABELS,
+    TRANSLATE_SM2_CONFIG: TRANSLATE_SM2_CONFIG,
     TRANSLATE_SM2_CONSTANTS: TRANSLATE_SM2_CONSTANTS,
     advanceToNextTranslateQuestion: advanceToNextTranslateQuestion,
     handleTranslateKeydown: handleTranslateKeydown,

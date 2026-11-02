@@ -661,3 +661,108 @@ test('M45.3 Sandwich Menu: switchMode chuyển chế độ, cập nhật tiêu �
   assert.strictEqual(dropdownEl.classList.contains('open'), false, 'Sau khi chọn mode, menu phải tự đóng lại');
   hub.close();
 });
+
+// ============================================================================
+// TEST 14: Phím tắt gợi ý: Ctrl+/ và '?' (tránh xung đột macOS Cmd+H/Cmd+/)
+// ============================================================================
+test('M44.14 Phím tắt gợi ý: Ctrl+/ kích hoạt gợi ý; Cmd không kích hoạt; phím ? kích hoạt khi không focus', () => {
+  const mockItems = [
+    {
+      id: 'item_1',
+      text: 'maison',
+      wordVi: 'ngôi nhà',
+      srs: { reps: 2 },
+      examples: [{ fr: 'J\'ai acheté une maison.', vi: 'Tôi đã mua một ngôi nhà.' }]
+    }
+  ];
+
+  const { sandbox } = createPracticeContext({
+    shadowing_saved_vocab_v1: JSON.stringify(mockItems)
+  });
+  const hub = sandbox.VocabPracticeHub;
+  const state = hub._state;
+
+  hub.open('all', null, 'translate');
+  assert.strictEqual(state.translateHintLevel, 0, 'Ban đầu chưa có gợi ý');
+
+  // 1. Phím Cmd+/ hoặc Cmd+H (trên Mac) -> KHÔNG kích hoạt gợi ý
+  let prevented = false;
+  hub.handleTranslateKeydown({
+    key: '/',
+    ctrlKey: false,
+    metaKey: true,
+    preventDefault() { prevented = true; }
+  });
+  assert.strictEqual(state.translateHintLevel, 0, 'Cmd+/ không kích hoạt');
+
+  hub.handleTranslateKeydown({
+    key: 'h',
+    ctrlKey: true,
+    metaKey: true,
+    preventDefault() { prevented = true; }
+  });
+  assert.strictEqual(state.translateHintLevel, 0, 'Cmd+H / Ctrl+Cmd+H không kích hoạt');
+
+  // 2. Phím Ctrl+/ (phím Control) -> Kích hoạt gợi ý lên Mức 1
+  hub.handleTranslateKeydown({
+    key: '/',
+    ctrlKey: true,
+    metaKey: false,
+    preventDefault() { prevented = true; }
+  });
+  assert.strictEqual(state.translateHintLevel, 1, 'Ctrl+/ kích hoạt lên Mức 1');
+  assert.strictEqual(prevented, true);
+
+  // 3. Phím Ctrl+/ lần nữa -> Kích hoạt lên Mức 2
+  hub.handleTranslateKeydown({
+    key: '/',
+    ctrlKey: true,
+    metaKey: false,
+    preventDefault() {}
+  });
+  assert.strictEqual(state.translateHintLevel, 2, 'Ctrl+/ tiếp kích hoạt lên Mức 2');
+
+  // 4. Phím '?' khi không focus ô gõ -> Kích hoạt lên Mức 3
+  sandbox.document.activeElement = null; // không focus ô input
+  hub.handleTranslateKeydown({
+    key: '?',
+    preventDefault() {}
+  });
+  assert.strictEqual(state.translateHintLevel, 3, 'Phím ? kích hoạt lên Mức 3');
+
+  // 5. Phím '?' khi đang gõ trong textarea -> KHÔNG kích hoạt (để người học gõ dấu hỏi bình thường)
+  sandbox.document.activeElement = { tagName: 'TEXTAREA' };
+  hub.handleTranslateKeydown({
+    key: '?',
+    preventDefault() {}
+  });
+  assert.strictEqual(state.translateHintLevel, 3, 'Phím ? trong textarea không kích hoạt');
+
+  hub.close();
+});
+
+// ============================================================================
+// TEST 15: Kiểm tra đối tượng gom cấu hình TRANSLATE_SM2_CONFIG
+// ============================================================================
+test('M44.15 TRANSLATE_SM2_CONFIG: gom đủ tất cả hằng số cấu hình SM-2 dịch ở đầu file', () => {
+  const { sandbox } = createPracticeContext();
+  const hub = sandbox.VocabPracticeHub;
+
+  assert.ok(hub.TRANSLATE_SM2_CONFIG, 'TRANSLATE_SM2_CONFIG phải tồn tại');
+  const cfg = hub.TRANSLATE_SM2_CONFIG;
+
+  assert.strictEqual(cfg.MIN_RECOGNITION_REPS, 2);
+  assert.strictEqual(cfg.DEFAULT_INCLUDE_LOW_REPS, true);
+  assert.strictEqual(cfg.DEFAULT_EASE, 2.5);
+  assert.strictEqual(cfg.MIN_EASE, 1.3);
+  assert.strictEqual(cfg.MAX_EASE, 2.8);
+  assert.strictEqual(cfg.PERFECT_EASE_BONUS, 0.15);
+  assert.strictEqual(cfg.NEAR_FAIL_EASE_PENALTY, 0.10);
+  assert.strictEqual(cfg.FAIL_EASE_PENALTY, 0.25);
+  assert.strictEqual(cfg.PERFECT_INITIAL_INTERVAL_REP0, 2);
+  assert.strictEqual(cfg.PERFECT_INITIAL_INTERVAL_REP1, 4);
+  assert.strictEqual(cfg.PERFECT_BONUS_MULTIPLIER, 1.2);
+  assert.strictEqual(cfg.HARD_INITIAL_INTERVAL, 1);
+  assert.strictEqual(cfg.HARD_MULTIPLIER, 1.2);
+  assert.strictEqual(cfg.FAIL_DUE_MS, 10 * 60 * 1000);
+});
