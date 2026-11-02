@@ -146,6 +146,7 @@
       };
       // Hai bản đều BẮT ĐẦU khớp nhau ngay từ đầu (>= 5 từ liên tiếp): chọn luôn, kẻo cụm dài hơn ở phía sau (>= 8 từ) kéo điểm bắt đầu
       // đi muộn và làm mất phần mở đầu (ví dụ phụ đề người làm thiếu 1 chữ "of" ở câu đầu -> 8 từ đầu bị bỏ khỏi phép đối chiếu).
+      if (O.length > 0 && A.length > 0 && O[0] !== "" && O[0] === A[0]) return { i0: 0, j0: 0 };
       return tryFind([5], 12, 3)
           || tryFind([8, 6, 5, 4], 150)      // cụm dài, gần đầu
           || tryFind([3], 40)                // cụm 3 từ chỉ tin khi rất gần đầu
@@ -252,6 +253,69 @@
       return lead + (core || origWord) + trail;
     }
 
+    // Dỡ bỏ dấu thanh tiếng Pháp để so sánh gốc chữ cái
+    function aicStripAccents(s) {
+      return String(s || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/œ/g, 'oe')
+        .replace(/æ/g, 'ae');
+    }
+
+    // Khoảng cách Levenshtein đơn giản
+    function aicLevenshtein(a, b) {
+      if (a === b) return 0;
+      const la = a.length, lb = b.length;
+      if (!la) return lb;
+      if (!lb) return la;
+      let prev = new Array(lb + 1);
+      let curr = new Array(lb + 1);
+      for (let j = 0; j <= lb; j++) prev[j] = j;
+      for (let i = 1; i <= la; i++) {
+        curr[0] = i;
+        const ca = a.charCodeAt(i - 1);
+        for (let j = 1; j <= lb; j++) {
+          const cb = b.charCodeAt(j - 1);
+          const cost = (ca === cb) ? 0 : 1;
+          curr[j] = Math.min(prev[j] + 1, curr[j - 1] + 1, prev[j - 1] + cost);
+        }
+        const tmp = prev; prev = curr; curr = tmp;
+      }
+      return prev[lb];
+    }
+
+    // Danh sách cặp từ ngắn (<= 3 ký tự) được phép thay thế (đồng âm / đồng tự / lỗi ASR phổ biến tiếng Pháp)
+    const AIC_SHORT_WORD_ALLOWLIST = new Set([
+      'a|as', 'as|a', 'a|a', 'et|est', 'est|et', 'et|es', 'es|et', 'est|es', 'es|est',
+      'ce|se', 'se|ce', 'ces|ses', 'ses|ces', 'sa|ca', 'ca|sa', 'son|sont', 'sont|son',
+      'on|ont', 'ont|on', 'ou|ou', 'ou|ou', 'la|la', 'la|la', 'du|du', 'du|du', 'sur|sur'
+    ]);
+
+    // Kiểm tra xem từ AI sửa cho ASR có đạt độ tương đồng an toàn hay không
+    function aicIsAcceptableCorrection(asrNorm, aiNorm) {
+      if (!asrNorm || !aiNorm || asrNorm === aiNorm) return { ok: false, reason: 'Giống nhau' };
+      const asrRaw = aicStripAccents(asrNorm);
+      const aiRaw = aicStripAccents(aiNorm);
+      // 1. Chỉ khác nhau dấu thanh (accents: e ↔ é, a ↔ à...)
+      if (asrRaw === aiRaw) return { ok: true, reason: 'Khác dấu thanh' };
+      const minLen = Math.min(asrNorm.length, aiNorm.length);
+      const maxLen = Math.max(asrNorm.length, aiNorm.length);
+      // 2. Từ ngắn (<= 3 ký tự): chỉ nhận trong allowlist đã định
+      if (minLen <= 3) {
+        const key = asrRaw + '|' + aiRaw;
+        if (AIC_SHORT_WORD_ALLOWLIST.has(key)) return { ok: true, reason: 'Cặp từ ngắn cho phép' };
+        return { ok: false, reason: 'Từ ngắn ngoài danh mục cho phép' };
+      }
+      // 3. Từ trung bình và dài (> 3 ký tự): kiểm tra độ dài và Levenshtein
+      const lenDiff = Math.abs(asrNorm.length - aiNorm.length);
+      if (lenDiff > 2) return { ok: false, reason: 'Độ dài chênh lệch quá lớn' };
+      const dist = aicLevenshtein(asrRaw, aiRaw);
+      if (maxLen <= 6 && dist <= 1) return { ok: true, reason: 'Chênh lệch 1 ký tự' };
+      if (maxLen > 6 && dist <= 2) return { ok: true, reason: 'Chênh lệch <= 2 ký tự' };
+      return { ok: false, reason: 'Độ khác biệt quá lớn' };
+    }
+
     function aicSplitLongWords(words, maxW) {
       if (words.length <= maxW) return [words];
       let best = -1, bestDist = Infinity;
@@ -330,16 +394,75 @@
         // Bản dịch song ngữ: từ gốc mà AI đã lược bỏ và là tiếng ngập ngừng (um, uh...) hoặc nhãn trong ngoặc vuông ([Music]...) thì bỏ hẳn, không giữ lại
         if (map[i] === -1 && opts && opts.dropFillers && (MC_HESITATIONS.has(ow.norm) || /^\[[^\]]*\]$/.test(ow.w))) continue;
         let text, endTime = ow.e, joinNext = false;
+        let isCorr = false, asrOrig = null;
+
         if (map[i] >= 0) {
           const t = tokens[map[i]];
-          if (merge[i]) { text = t.text; endTime = flat[i + merge[i] - 1].e; }
-          else if (t.norm === ow.norm) text = t.text;
-          else text = aicAdoptPunct(ow.w, t.text);
+          if (merge[i] > 1) {
+            // Gộp nhiều từ ASR thành 1 từ AI (ví dụ: est ce -> est-ce)
+            const asrJoined = flat.slice(i, i + merge[i]).map(x => x.w).join(' ');
+            const asrJoinedNorm = flat.slice(i, i + merge[i]).map(x => x.norm).join('');
+            if (asrJoinedNorm === t.norm) {
+              const corrId = 'corr_' + i;
+              const isApproved = !opts || !opts.approvedCorrectionIds || opts.approvedCorrectionIds.has(corrId);
+              if (isApproved) {
+                text = t.text;
+                isCorr = true;
+                asrOrig = asrJoined;
+                endTime = flat[i + merge[i] - 1].e;
+              } else {
+                text = asrJoined;
+                endTime = flat[i + merge[i] - 1].e;
+              }
+              if (opts && opts.candidateCorrections) {
+                opts.candidateCorrections.push({ id: corrId, index: i, asrWord: asrJoined, aiWord: t.text, reason: 'Nối từ gạch nối / nháy', safe: true });
+              }
+            } else {
+              text = asrJoined;
+              endTime = flat[i + merge[i] - 1].e;
+              if (opts && opts.rejectedCorrections) {
+                opts.rejectedCorrections.push({ id: 'rej_' + i, index: i, asrWord: asrJoined, aiWord: t.text, reason: 'Gộp nhiều từ khác chữ bị chặn', safe: false });
+              }
+            }
+          } else if (t.norm === ow.norm) {
+            // Cùng norm: nếu chữ cái hiển thị khác nhau (ví dụ cest -> c'est) thì ghi nhận là sửa nháy/ký tự
+            text = t.text;
+            if (ow.w.toLowerCase() !== t.text.toLowerCase()) {
+              isCorr = true;
+              asrOrig = ow.w;
+            }
+          } else {
+            // t.norm !== ow.norm: AI thay thế 1:1 từ khác chữ cái
+            const chk = aicIsAcceptableCorrection(ow.norm, t.norm);
+            const corrId = 'corr_' + i;
+            if (chk.ok) {
+              const isApproved = !opts || !opts.approvedCorrectionIds || opts.approvedCorrectionIds.has(corrId);
+              if (isApproved) {
+                text = t.text;
+                isCorr = true;
+                asrOrig = ow.w;
+              } else {
+                text = aicAdoptPunct(ow.w, t.text);
+              }
+              if (opts && opts.candidateCorrections) {
+                opts.candidateCorrections.push({ id: corrId, index: i, asrWord: ow.w, aiWord: t.text, reason: chk.reason, safe: true });
+              }
+            } else {
+              text = aicAdoptPunct(ow.w, t.text);
+              if (opts && opts.rejectedCorrections) {
+                opts.rejectedCorrections.push({ id: 'rej_' + i, index: i, asrWord: ow.w, aiWord: t.text, reason: chk.reason, safe: false });
+              }
+            }
+          }
           joinNext = t.joinNext;
         } else {
           text = (ow.auto && !gapUnit[i]) ? ow.w.replace(/[.?!]+$/, '') : ow.w;
         }
         const w = { word: text, startTime: ow.s, endTime };
+        if (isCorr && asrOrig != null) {
+          w.asr_original = asrOrig;
+          w.corrected = true;
+        }
         if (joinNext) w.joinNext = true;
         if (ow.mk) w.mk = ow.mk;
         const u = unit[i];
@@ -396,7 +519,7 @@
       return result;
     }
 
-    function aicRun(sents, tokens, unitVi, mode, unitGrp, sourceWordsByUnit) {
+    function aicRun(sents, tokens, unitVi, mode, unitGrp, sourceWordsByUnit, customRebuildOpts) {
       const flat = aicFlatten(sents);
       const n = flat.length;
       if (!n) return { ok: false, error: 'Chưa có phụ đề để xử lý.' };
@@ -420,7 +543,8 @@
         };
       }
       const dropFillers = mode === 'trans' ? { dropFillers: true, sourceWordsByUnit } : null;
-      const sentences = aicRebuild(flat, tokens, al, unitVi, mode === 'punct' ? { splitLong: 50 } : dropFillers, unitGrp);
+      const rebuildOpts = customRebuildOpts || (mode === 'punct' ? { splitLong: 50 } : dropFillers);
+      const sentences = aicRebuild(flat, tokens, al, unitVi, rebuildOpts, unitGrp);
       const tailWords = n - 1 - lastMapped;
       return {
         ok: true,
@@ -435,6 +559,24 @@
           translated: sentences.filter((x) => x.vi).length
         }
       };
+    }
+
+    // Hoàn tác các từ đã được sửa về lại chữ gốc của ASR (giữ nguyên dấu câu)
+    function aicRestoreAsrOriginal(sents) {
+      if (!Array.isArray(sents)) return sents;
+      sents.forEach((s) => {
+        if (Array.isArray(s.words)) {
+          s.words.forEach((w) => {
+            if (w.corrected && w.asr_original != null) {
+              w.word = aicAdoptPunct(w.asr_original, w.word);
+              delete w.corrected;
+              delete w.asr_original;
+            }
+          });
+          s.text = aicComposeText(s.words);
+        }
+      });
+      return sents;
     }
 
     // (1) THÊM DẤU CÂU: câu trả lời của AI là văn bản tiếng Pháp đã có dấu câu.
@@ -465,7 +607,20 @@
       if (sentEnds < Math.max(1, Math.floor(tokens.length / 60))) {
         return { ok: false, error: 'Câu trả lời của AI gần như không có dấu kết thúc câu (. ? !) nên chưa thể chia câu. Hãy nhờ AI thêm dấu câu đầy đủ rồi dán lại.' };
       }
-      return aicRun(sents, tokens, null, 'punct', lineChunks ? unitGrp : undefined);
+      const candidateCorrections = [];
+      const rejectedCorrections = [];
+      const rebuildOpts = {
+        splitLong: 50,
+        candidateCorrections: candidateCorrections,
+        rejectedCorrections: rejectedCorrections,
+        approvedCorrectionIds: opts && opts.approvedCorrectionIds
+      };
+      const res = aicRun(sents, tokens, null, 'punct', lineChunks ? unitGrp : undefined, undefined, rebuildOpts);
+      if (res.ok) {
+        res.candidateCorrections = candidateCorrections;
+        res.rejectedCorrections = rejectedCorrections;
+      }
+      return res;
     }
 
     // ==================== GHÉP PHỤ ĐỀ THỦ CÔNG (NGƯỜI LÀM) VÀO PHỤ ĐỀ TỰ ĐỘNG (WORD-LEVEL) ====================
@@ -1098,4 +1253,10 @@
       window.addEventListener('touchend', onEnd);
       window.addEventListener('touchcancel', onEnd);
     }
+
+    if (typeof window !== 'undefined') {
+      window.aicRestoreAsrOriginal = aicRestoreAsrOriginal;
+      window.applyPunctuationFromAi = applyPunctuationFromAi;
+    }
+
 
