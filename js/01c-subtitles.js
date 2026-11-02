@@ -1089,16 +1089,20 @@
       return total ? punct / total : 1;
     }
 
-    // Transcript thuần văn bản để đưa vào prompt (không timecode). Bỏ dấu chấm app tự chèn.
+    // Transcript thuần văn bản để đưa vào prompt (không timecode), mỗi câu một dòng (\n). Bỏ dấu chấm app tự chèn.
     function aicPlainTranscript(sents) {
-      let out = '';
-      (sents || []).forEach((s) => {
+      if (!Array.isArray(sents) || !sents.length) return '';
+      const lines = [];
+      sents.forEach((s) => {
         const ws = s.words && s.words.length ? s.words : String(s.text || '').split(/\s+/).filter(Boolean).map((w) => ({ word: w }));
+        let line = '';
         ws.forEach((w) => {
-          out += (w.autoPunct ? w.word.replace(/[.?!]+$/, '') : w.word) + (w.joinNext ? '' : ' ');
+          line += (w.autoPunct ? w.word.replace(/[.?!]+$/, '') : w.word) + (w.joinNext ? '' : ' ');
         });
+        const trimmed = line.trim();
+        if (trimmed) lines.push(trimmed);
       });
-      return out.trim();
+      return lines.join('\n');
     }
 
     function aicHasTranslation(sents) {

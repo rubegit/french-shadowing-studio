@@ -287,8 +287,12 @@ Quy tắc điền trường JSON:
 
     var cleanTranscript = (options.transcript || '')
       .replace(/\[[^\]\n]{1,30}\]/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
+      .split('\n')
+      .map(function (line) {
+        return line.replace(/[^\S\n]+/g, ' ').trim();
+      })
+      .filter(Boolean)
+      .join('\n');
 
     var dataMap = {
       MODE: options.mode || 'TEXT',
