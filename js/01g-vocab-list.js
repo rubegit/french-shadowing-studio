@@ -830,10 +830,10 @@
     }
     let vocabOpenExamples = new Set();   // các thẻ đang mở phần "ví dụ" (giữ nguyên khi vẽ lại danh sách)
     function vocabExamplesHtml(x) {
-      const ex = Array.isArray(x.examples) ? x.examples.filter((e) => e && e.en) : [];
+      const ex = Array.isArray(x.examples) ? x.examples.filter((e) => e && (e.fr || e.en)) : [];
       if (!ex.length) return '';
       const open = vocabOpenExamples.has(x.id);
-      const items = ex.map((e) => `<div><p class="vocab-ex-en">${hlExample(String(e.en), x.text)}</p>${e.vi ? `<p class="vocab-ex-vi">${escHtml(e.vi)}</p>` : ''}</div>`).join('');
+      const items = ex.map((e) => `<div><p class="vocab-ex-en">${hlExample(String(e.fr || e.en || ''), x.text)}</p>${e.vi ? `<p class="vocab-ex-vi">${escHtml(e.vi)}</p>` : ''}</div>`).join('');
       return `<button type="button" class="vocab-more-btn" id="vex-btn-${x.id}" onclick="toggleVocabExamples('${x.id}')">${open ? 'Ẩn ví dụ' : `Xem thêm ví dụ (${ex.length})`}</button>
         <div class="vocab-examples" id="vex-${x.id}" ${open ? '' : 'hidden'}>${items}</div>`;
     }
@@ -1086,7 +1086,7 @@
             if (mm) { en = body.slice(0, mm.index); vi = body.slice(mm.index + mm[0].length); }
           }
           en = unq(en); vi = unq(vi);
-          if (en) cur.examples.push({ en: en, vi: vi });
+          if (en) cur.examples.push({ fr: en, en: en, vi: vi });
           return;
         }
         const it = /^(?:Trong bài|Trong văn bản|In the text|In text|Source)\s*[:：]\s*(.+)$/i.exec(line);
@@ -1922,7 +1922,7 @@
               ctxHtml = `<p class="vocab-ctx cursor-pointer" onclick="window.kvJumpToContext && window.kvJumpToContext('${it.id}')" title="Bấm để nhảy tới câu này trong bài">${escHtml(en.slice(0, ctx.hs))}<mark class="vocab-hl">${escHtml(en.slice(ctx.hs, ctx.he))}</mark>${escHtml(en.slice(ctx.he))}</p>`;
             }
           }
-          const exHtml = (it.examples || []).map((e) => `<div><p class="vocab-ex-en">${hlExample(String(e.en || ''), it.term)}</p>${e.vi ? `<p class="vocab-ex-vi">${escHtml(e.vi)}</p>` : ''}</div>`).join('');
+          const exHtml = (it.examples || []).map((e) => `<div><p class="vocab-ex-en">${hlExample(String(e.fr || e.en || ''), it.term)}</p>${e.vi ? `<p class="vocab-ex-vi">${escHtml(e.vi)}</p>` : ''}</div>`).join('');
           const lvlBadge = it.level ? `<span class="vocab-level-badge level-${escHtml(it.level.toLowerCase().replace('+', 'plus'))}">${escHtml(it.level)}</span>` : '';
           return `
             <article class="vocab-card kv-panel-card" data-kv-term="${escHtml(it.term)}" data-kv-id="${escHtml(it.id)}">
