@@ -17,11 +17,25 @@
   var lastCommittedList = null; // dùng cho nút thử đẩy lại cloud nếu pushAll lỗi
   var hasDownloadedBackupInSession = false; // đánh dấu đã tải file sao lưu trong phiên modal này
 
+  // Hằng số cấu hình: Bắt buộc tải sao lưu trước khi Thay thế / Khôi phục
+  // Mặc định false khi app chưa release (thuận tiện nạp thử & nghiệm thu nhanh)
+  var REQUIRE_BACKUP_BEFORE_REPLACE = false;
+
   window.getBackupSessionStatus = function () {
     return hasDownloadedBackupInSession;
   };
   window.setBackupSessionStatus = function (val) {
     hasDownloadedBackupInSession = !!val;
+    if (typeof window.checkCommitUnlock === 'function') {
+      window.checkCommitUnlock();
+    }
+  };
+
+  window.getRequireBackupBeforeReplace = function () {
+    return REQUIRE_BACKUP_BEFORE_REPLACE;
+  };
+  window.setRequireBackupBeforeReplace = function (val) {
+    REQUIRE_BACKUP_BEFORE_REPLACE = !!val;
     if (typeof window.checkCommitUnlock === 'function') {
       window.checkCommitUnlock();
     }
@@ -551,7 +565,7 @@
     if (currentMode === 'RESTORE') {
       var restoreInput = document.getElementById('fss-import-confirm-restore-input');
       var tokenOk = restoreInput && restoreInput.value.trim() === 'KHOI PHUC';
-      if (!hasDownloadedBackupInSession) {
+      if (REQUIRE_BACKUP_BEFORE_REPLACE && !hasDownloadedBackupInSession) {
         commitBtn.disabled = true;
         if (statusText) statusText.textContent = 'Chặn khôi phục: Cần tải file sao lưu JSON trong phiên này trước khi khôi phục.';
         return;
@@ -597,9 +611,9 @@
       }
     }
 
-    // Kiểm tra cho REPLACE_ALL: phải tải sao lưu trước và gõ đúng "THAY THE"
+    // Kiểm tra cho REPLACE_ALL: khi bật REQUIRE_BACKUP_BEFORE_REPLACE phải tải sao lưu trước; và luôn phải gõ đúng "THAY THE"
     if (currentMode === 'REPLACE_ALL') {
-      if (!hasDownloadedBackupInSession) {
+      if (REQUIRE_BACKUP_BEFORE_REPLACE && !hasDownloadedBackupInSession) {
         commitBtn.disabled = true;
         if (statusText) statusText.textContent = 'Chặn thay thế: Cần tải file sao lưu JSON trong phiên này trước khi thay thế.';
         return;

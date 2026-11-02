@@ -873,7 +873,7 @@ test('M42.10 (c) nội dung không có header: dùng source_id video đang mở 
 // =========================================================================
 
 function setupImporterVm(initialStorage = {}) {
-  const code = fs.readFileSync(path.join(__dirname, 'vocab-importer.js'), 'utf-8');
+  const code = fs.readFileSync(path.join(__dirname, '../js/19-vocab-import-preview.js'), 'utf-8');
   const store = Object.assign({}, initialStorage);
   const elements = {};
   function getEl(id) {
@@ -955,52 +955,77 @@ function setupImporterVm(initialStorage = {}) {
   return { sandbox, elements, store, downloadedBlobs, getEl };
 }
 
-test('C1: Khóa nút ghi ở Thay thế và Khôi phục khi chưa tải sao lưu trong phiên; Mở ở Thêm nguồn', () => {
+test('C1: REQUIRE_BACKUP_BEFORE_REPLACE kiểm soát yêu cầu sao lưu (mặc định false khi chưa release, true sau release)', () => {
   const { sandbox, getEl } = setupImporterVm();
 
-  // 1. Chế độ RESTORE: có token "KHOI PHUC" nhưng chưa tải backup -> nút bị khóa
+  // A. MẶC ĐỊNH (REQUIRE_BACKUP_BEFORE_REPLACE = false): Không bắt buộc tải backup
+  assert.strictEqual(sandbox.getRequireBackupBeforeReplace(), false, 'Mặc định khi chưa release phải là false');
+
+  // 1. RESTORE: gõ "KHOI PHUC", chưa tải backup -> Vẫn mở khóa bình thường
   sandbox.switchVocabImportMode('RESTORE');
   getEl('fss-import-confirm-restore-input').value = 'KHOI PHUC';
   sandbox.setBackupSessionStatus(false);
   sandbox.checkCommitUnlock();
-  assert.strictEqual(getEl('fss-import-commit-btn').disabled, true, 'RESTORE: nút ghi phải bị khóa khi chưa tải backup');
-  assert.match(getEl('fss-import-status-text').textContent, /Chặn khôi phục/);
+  assert.strictEqual(getEl('fss-import-commit-btn').disabled, false, 'Mặc định false: RESTORE mở ngay khi có token');
 
-  // 2. Chế độ REPLACE_ALL: có staged item, có token "THAY THE" nhưng chưa tải backup -> nút bị khóa
+  // 2. REPLACE_ALL: gõ "THAY THE", chưa tải backup -> Vẫn mở khóa bình thường
   sandbox.switchVocabImportMode('REPLACE_ALL');
   getEl('fss-import-confirm-replace-input').value = 'THAY THE';
   getEl('fss-import-textarea').value = '1. pomme || từ || A1 || [n.f.] quả táo\nTrong bài: J\'aime la pomme.';
   sandbox.runVocabDryRunPreview();
   sandbox.setBackupSessionStatus(false);
   sandbox.checkCommitUnlock();
-  assert.strictEqual(getEl('fss-import-commit-btn').disabled, true, 'REPLACE_ALL: nút ghi phải bị khóa khi chưa tải backup');
+  assert.strictEqual(getEl('fss-import-commit-btn').disabled, false, 'Mặc định false: REPLACE_ALL mở ngay khi có token');
+
+  // B. KHI BẬT (REQUIRE_BACKUP_BEFORE_REPLACE = true): Bắt buộc tải backup
+  sandbox.setRequireBackupBeforeReplace(true);
+
+  // 3. RESTORE khi bật: chưa tải backup -> Bị khóa
+  sandbox.switchVocabImportMode('RESTORE');
+  sandbox.setBackupSessionStatus(false);
+  sandbox.checkCommitUnlock();
+  assert.strictEqual(getEl('fss-import-commit-btn').disabled, true, 'Bật true: RESTORE bị khóa khi chưa tải backup');
+  assert.match(getEl('fss-import-status-text').textContent, /Chặn khôi phục/);
+
+  // 4. REPLACE_ALL khi bật: chưa tải backup -> Bị khóa
+  sandbox.switchVocabImportMode('REPLACE_ALL');
+  sandbox.setBackupSessionStatus(false);
+  sandbox.checkCommitUnlock();
+  assert.strictEqual(getEl('fss-import-commit-btn').disabled, true, 'Bật true: REPLACE_ALL bị khóa khi chưa tải backup');
   assert.match(getEl('fss-import-status-text').textContent, /Chặn thay thế/);
 
-  // 3. Chế độ ADD_SOURCE: không yêu cầu tải sao lưu
+  // 5. Chế độ ADD_SOURCE: luôn mở, không bao giờ đòi sao lưu
   sandbox.switchVocabImportMode('ADD_SOURCE');
   sandbox.checkCommitUnlock();
-  assert.strictEqual(getEl('fss-import-commit-btn').disabled, false, 'ADD_SOURCE: nút ghi mở bình thường, không đòi sao lưu');
+  assert.strictEqual(getEl('fss-import-commit-btn').disabled, false, 'ADD_SOURCE: luôn mở bình thường');
 });
 
-test('C2: Tải sao lưu mở khóa nút ghi trong phiên', () => {
+test('C2: Khi REQUIRE_BACKUP_BEFORE_REPLACE = true, tải sao lưu mở khóa nút ghi trong phiên', () => {
   const { sandbox, getEl } = setupImporterVm({
     shadowing_saved_vocab_v1: JSON.stringify([{ id: 'word:pomme', text: 'pomme', type: 'word' }])
   });
 
-  // RESTORE mode
+  // Bật yêu cầu sao lưu
+  sandbox.setRequireBackupBeforeReplace(true);
+
+  // RESTORE mode: ban đầu bị khóa
   sandbox.switchVocabImportMode('RESTORE');
   getEl('fss-import-confirm-restore-input').value = 'KHOI PHUC';
   sandbox.checkCommitUnlock();
   assert.strictEqual(getEl('fss-import-commit-btn').disabled, true);
 
-  // Tải sao lưu
+  // Tải sao lưu -> Mở khóa
   sandbox.downloadVocabJsonBackup();
   assert.strictEqual(sandbox.getBackupSessionStatus(), true, 'downloadVocabJsonBackup phải set status = true');
   assert.strictEqual(getEl('fss-import-commit-btn').disabled, false, 'Nút ghi phải mở sau khi tải sao lưu');
 
-  // Mở lại modal: reset session status
+  // Mở lại modal: reset session status -> Lại bị khóa cho đến khi tải lại
   sandbox.openVocabImportModal();
   assert.strictEqual(sandbox.getBackupSessionStatus(), false, 'openVocabImportModal phải reset session status');
+  sandbox.switchVocabImportMode('RESTORE');
+  getEl('fss-import-confirm-restore-input').value = 'KHOI PHUC';
+  sandbox.checkCommitUnlock();
+  assert.strictEqual(getEl('fss-import-commit-btn').disabled, true, 'Phiên mới khi bật cấu hình vẫn yêu cầu tải lại sao lưu');
 });
 
 test('C3: File sao lưu chứa metadata (tổng số mục, active, tombstone, exportedAt) và restoreFlatBackup đọc lại được', () => {
