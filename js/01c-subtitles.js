@@ -835,17 +835,12 @@
         const gapM = [];
         for (let j = a.j + 1; j < nx.j; j++) gapM.push(j);
 
-        const useManualGap = gapM.length >= 3 || (gapM.length > 0 && gapA.length < 7);
-        if (useManualGap) {
+        if (gapM.length > 0) {
           const gm = gapM.map((j) => toks[j]);
-          // Đoạn ASR dài hơn đoạn người làm và có tiếng đệm (you know, I mean, um...) ở đầu/cuối: tách ra giữ lại, phần còn lại mới thay bằng chữ người làm
-          let ga = gapA, lead = [], trail = [];
-          if (gapA.length > gapM.length) { const p = mcPeelFillers(gapA, flat, gapM.length); ga = p.rest; lead = p.lead; trail = p.trail; }
-          pushKept(lead, a.j, gapM[0]);
-          if (ga.length) {
-            // ASR có các từ ở đây (nhưng không khớp chữ): dùng đúng khoảng thời gian đó cho các từ người làm
-            const times = mcSpread(gm, flat[ga[0]].s, flat[ga[ga.length - 1]].e);
-            gapM.forEach((j, q) => items.push(manualItem(j, times[q].s, times[q].e, flat[ga[0]].sent)));
+          if (gapA.length) {
+            // ASR có các từ ở đây (bị nghe nhầm): dùng đúng khoảng thời gian đó cho các từ chuẩn, không nhồi từ ASR
+            const times = mcSpread(gm, flat[gapA[0]].s, flat[gapA[gapA.length - 1]].e);
+            gapM.forEach((j, q) => items.push(manualItem(j, times[q].s, times[q].e, flat[gapA[0]].sent)));
           } else {
             // ASR bỏ sót hẳn từ này: "mượn" thời gian của từ khớp liền trước + khoảng trống phía sau
             const gapTime = Math.max(0, flat[nx.i0].s - cur.e);
@@ -854,12 +849,9 @@
             cur.s = times[0].s; cur.e = times[0].e;
             gapM.forEach((j, q) => items.push(manualItem(j, times[q + 1].s, times[q + 1].e, cur.sent)));
           }
-          pushKept(trail, gapM[gapM.length - 1], nx.j);
           inserted += gapM.length;
         } else if (gapA.length >= 7) {
-          gapA.forEach(pushAsr);   // người làm cắt bớt lời nói -> vẫn giữ phần ASR nghe được
-        } else if (gapA.length) {
-          pushKept(gapA, a.j, nx.j);   // vài từ ASR người làm không viết (you know, um, lặp từ...) nhưng người nói có nói -> GIỮ
+          gapA.forEach(pushAsr);   // người làm cắt bớt đoạn nói dài -> vẫn giữ phần ASR nghe được
         }
       }
 
