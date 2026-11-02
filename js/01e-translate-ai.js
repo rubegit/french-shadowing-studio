@@ -721,7 +721,7 @@
       if (!currentVideoId) return;
       const existing = getLocalHistory().find((h) => h.videoId === currentVideoId);
       const isLib = typeof isLibraryVideo === 'function' ? isLibraryVideo(currentVideoId) : false;
-      const isUserPunct = isLib && typeof userPunctVid !== 'undefined' && userPunctVid === currentVideoId;
+      const isUserPunct = typeof userPunctVid !== 'undefined' && userPunctVid === currentVideoId;
       const userPunct = isUserPunct ? true : (existing ? existing.userPunct : undefined);
       saveToLocalHistory({
         videoId: currentVideoId,
@@ -909,6 +909,69 @@
       cbs.forEach((cb) => { cb.checked = !!checked; });
     };
 
+    const _asrRawSentencesBackupMap = {};
+
+    function aiApplyManualMerge() {
+      const ta = document.getElementById('pc-textarea');
+      const st = document.getElementById('pc-status');
+      const rawText = (ta && ta.value || (_pcPendingState && _pcPendingState.text) || '').trim();
+      if (!sentences.length) { aiSetStatus(st, 'err', 'Chưa có phụ đề để áp dụng.'); return; }
+      if (!rawText) { aiSetStatus(st, 'err', 'Bạn chưa dán nội dung transcript đã biên tập vào ô bên trên.'); return; }
+
+      let textToParse = rawText;
+      const cbMatch = String(rawText || '').match(/```[a-z]*\s*\n([\s\S]*?)\n```/i);
+      if (cbMatch) textToParse = cbMatch[1];
+
+      let res;
+      try {
+        res = mergeManualIntoAsr(sentences, textToParse);
+      } catch (e) {
+        console.error(e);
+        res = { ok: false, error: 'Có lỗi khi ghép phụ đề: ' + e.message };
+      }
+
+      if (!res || !res.ok || !res.sentences || !res.sentences.length) {
+        aiSetStatus(st, 'err', (res && res.error) || 'Không thể ghép phụ đề. Vui lòng kiểm tra lại văn bản dán.');
+        return;
+      }
+
+      if (currentVideoId && !_asrRawSentencesBackupMap[currentVideoId]) {
+        _asrRawSentencesBackupMap[currentVideoId] = aiClone(sentences);
+      }
+
+      // Đánh dấu các từ để nhận diện đã sửa
+      res.sentences.forEach((s) => {
+        if (Array.isArray(s.words)) {
+          s.words.forEach((w) => {
+            if (!w.autoPunct) {
+              w.corrected = true;
+              if (w.asr_original == null) w.asr_original = w.word;
+            }
+          });
+        }
+      });
+
+      sentences = res.sentences;
+      userPunctVid = currentVideoId || '';
+      const now = Date.now();
+      if (currentVideoId) {
+        saveToLocalHistory({
+          videoId: currentVideoId,
+          format: subtitleFormat,
+          isText: isTextMode,
+          sentences: sentences,
+          userPunct: true,
+          userPunctAt: now,
+          userPunctRevertedAt: undefined
+        });
+      }
+      aiAfterSentencesChangedInPlayer();
+      updateBilingualButton();
+      closePunctModal();
+      showVocabToast(`Đã ghép phụ đề chuẩn: ${res.sentences.length} câu`, false);
+    }
+    window.aiApplyManualMerge = aiApplyManualMerge;
+
     function openPunctModal() {
       const modal = document.getElementById('punct-modal');
       if (!modal) return;
@@ -923,7 +986,9 @@
       }
       resetCopyButtons();
       resetPunctModalPreview();
-      const hasCorrected = sentences.some((s) => s.words && s.words.some((w) => w.corrected));
+      const hasCorrected = (typeof userPunctVid !== 'undefined' && userPunctVid === currentVideoId) ||
+        (currentVideoId && !!_asrRawSentencesBackupMap[currentVideoId]) ||
+        sentences.some((s) => s.words && s.words.some((w) => w.corrected));
       const revertBtn = document.getElementById('pc-revert-btn');
       if (revertBtn) revertBtn.style.display = hasCorrected ? '' : 'none';
       aiSetStatus(document.getElementById('pc-status'), '', '');
@@ -933,7 +998,12 @@
 
     window.pcRevertAsrOriginal = function() {
       if (!confirm('Khôi phục toàn bộ các từ đã sửa về chữ ASR ban đầu (vẫn giữ nguyên các dấu câu đã ngắt)?')) return;
-      sentences = aicRestoreAsrOriginal(sentences);
+      if (currentVideoId && _asrRawSentencesBackupMap[currentVideoId]) {
+        sentences = aiClone(_asrRawSentencesBackupMap[currentVideoId]);
+        delete _asrRawSentencesBackupMap[currentVideoId];
+      } else {
+        sentences = aicRestoreAsrOriginal(sentences);
+      }
       if (typeof userPunctVid !== 'undefined') userPunctVid = '';
       const now = Date.now();
       const isLib = typeof isLibraryVideo === 'function' ? isLibraryVideo(currentVideoId) : false;
