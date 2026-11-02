@@ -612,3 +612,139 @@ test('11. Test nối tiếp: sau merge, B gọi loadFromHistory rồi saveToLoca
   assert.strictEqual(cleanHistory[0].sentences.length, 1);
 });
 
+test('12. Hoàn tác cả ca 1:1 và ca gộp (est-ce → est ce: tách 2 từ, mốc thời gian hợp lý, không từ rỗng) và dọn cờ userPunct/corrected', () => {
+  const { applyPunctuationFromAi, aicRestoreAsrOriginal } = createSubtitlesEnv();
+
+  // Dữ liệu ban đầu gồm cả 1:1 ("tu a" -> "tu as") và gộp 2 thành 1 ("est ce" -> "est-ce ?")
+  const sents = [
+    {
+      id: 1, startTime: 0, endTime: 3.5, text: 'bonjour est ce que tu a compris mon ami',
+      words: [
+        { word: 'bonjour', startTime: 0.0, endTime: 0.5 },
+        { word: 'est', startTime: 0.6, endTime: 1.0 },
+        { word: 'ce', startTime: 1.0, endTime: 1.4 },
+        { word: 'que', startTime: 1.5, endTime: 1.8 },
+        { word: 'tu', startTime: 1.9, endTime: 2.1 },
+        { word: 'a', startTime: 2.2, endTime: 2.5 },
+        { word: 'compris', startTime: 2.6, endTime: 3.1 },
+        { word: 'mon', startTime: 3.2, endTime: 3.3 },
+        { word: 'ami', startTime: 3.4, endTime: 3.5 }
+      ]
+    }
+  ];
+
+  // AI trả lời có gộp "est-ce ?" và sửa 1:1 "tu as"
+  const aiText = 'Bonjour, est-ce que tu as compris mon ami ?';
+  const res = applyPunctuationFromAi(sents, aiText, { lineChunks: false });
+  assert.strictEqual(res.ok, true);
+
+  const wordsBeforeRevert = res.sentences[0].words;
+  const wEstCe = wordsBeforeRevert[1];
+  assert.strictEqual(wEstCe.word, 'est-ce');
+  assert.strictEqual(wEstCe.asr_original, 'est ce');
+  assert.strictEqual(wEstCe.corrected, true);
+
+  const wAs = wordsBeforeRevert[4];
+  assert.strictEqual(wAs.word, 'as');
+  assert.strictEqual(wAs.asr_original, 'a');
+  assert.strictEqual(wAs.corrected, true);
+
+  // Gọi hoàn tác
+  const restored = aicRestoreAsrOriginal(res.sentences);
+  const wordsAfter = restored[0].words;
+
+  // 1. Kiểm tra ca gộp: đã tách lại thành 2 từ riêng biệt
+  assert.strictEqual(wordsAfter.length, 9, 'Tách lại đủ 9 từ gốc ban đầu');
+  const wEst = wordsAfter[1];
+  const wCe = wordsAfter[2];
+
+  assert.strictEqual(wEst.word, 'est', 'Từ đầu trong cặp gộp là "est"');
+  assert.strictEqual(wCe.word, 'ce', 'Từ thứ hai trong cặp gộp là "ce"');
+
+  // Mốc thời gian hợp lý:
+  assert.strictEqual(wEst.startTime, 0.6);
+  assert.ok(wEst.endTime > wEst.startTime, 'wEst.endTime phải lớn hơn startTime');
+  assert.strictEqual(wCe.startTime, wEst.endTime, 'wCe.startTime nối tiếp wEst.endTime');
+  assert.strictEqual(wCe.endTime, 1.4, 'wCe.endTime khớp mốc kết thúc 1.4 ban đầu');
+
+  // Không có từ rỗng:
+  wordsAfter.forEach((w, idx) => {
+    assert.ok(w.word && w.word.trim().length > 0, `Từ tại vị trí ${idx} không được rỗng`);
+    assert.strictEqual(w.corrected, undefined, `Từ tại vị trí ${idx} phải được xóa cờ corrected`);
+    assert.strictEqual(w.asr_original, undefined, `Từ tại vị trí ${idx} phải được xóa trường asr_original`);
+  });
+
+  // 2. Kiểm tra ca 1:1:
+  const wA = wordsAfter[5];
+  assert.strictEqual(wA.word, 'a', 'Từ 1:1 đã hoàn tác về "a"');
+
+  // 3. Chuỗi text của câu được ghép lại hoàn chỉnh
+  assert.ok(restored[0].text.includes('est ce'), 'Chuỗi sentence.text chứa "est ce" đã tách');
+  assert.ok(restored[0].text.includes('tu a'), 'Chuỗi sentence.text chứa "tu a" đã hoàn tác');
+
+  // 4. Giả lập dọn cờ userPunct trong lịch sử khi hoàn tác
+  const store = {};
+  const mockLocalStorage = {
+    getItem: (k) => store[k] || null,
+    setItem: (k, v) => { store[k] = String(v); }
+  };
+  const dummyEl = new MockHTMLInputElement();
+  Object.assign(dummyEl, {
+    addEventListener: () => {}, removeEventListener: () => {},
+    classList: { add: () => {}, remove: () => {}, toggle: () => {} },
+    style: {}, innerHTML: '', textContent: '', focus: () => {}, remove: () => {},
+    appendChild: () => dummyEl, querySelector: () => dummyEl, querySelectorAll: () => [], closest: () => dummyEl
+  });
+
+  const codePlayer = fs.readFileSync(path.join(__dirname, '..', 'js', '01d-player.js'), 'utf8');
+  let currentVid = 'lib_vid_1';
+  let punctVid = ''; // giả lập dọn userPunctVid = ''
+
+  const sandbox = {
+    console, Set, Map, Math, String, Array, Date, Infinity, parseFloat, parseInt, Boolean,
+    localStorage: mockLocalStorage,
+    STORAGE_KEY: 'fss_history_test_12',
+    categoryStructure: { 'A1': { 'lib_vid_1': 'Thư viện mẫu' } },
+    hiddenVideoMap: {}, hiddenVideoList: [],
+    currentVideoId: currentVid, currentVideoTitle: '', sentences: restored, subtitleFormat: 'json3',
+    currentSentenceIndex: 0, isTextMode: false, userTransVid: '', userPunctVid: punctVid,
+    pendingSeekTime: null,
+    aicHasTranslation: () => false,
+    aiClone: (x) => JSON.parse(JSON.stringify(x)),
+    selectCategoryVideo: () => {}, captureHomeState: () => {},
+    inputUrl: dummyEl, startBtn: dummyEl, parseErrorMessage: dummyEl, parseErrorAlert: dummyEl,
+    fileStatusBadge: dummyEl, checkStartReady: () => {}, resetPlaybackTrackingState: () => {},
+    initYouTubePlayer: () => {}, renderSubtitleList: () => {},
+    parseYouTubeId: () => 'lib_vid_1', resetSubtitleSearch: () => {}, resetBilingualForNewVideo: () => {},
+    stopSubtitleLoop: () => {}, updateActiveSentenceDisplay: () => {}, ensurePageFocus: () => {},
+    trackAndShowVideoStats: () => {},
+    document: {
+      body: dummyEl, createElement: () => dummyEl, getElementById: () => dummyEl,
+      querySelector: () => dummyEl, querySelectorAll: () => [],
+      addEventListener: () => {}, removeEventListener: () => {}
+    },
+    requestAnimationFrame: (cb) => setTimeout(cb, 0), cancelAnimationFrame: () => {},
+    setTimeout: (fn) => fn(), clearTimeout: () => {},
+    HTMLInputElement: MockHTMLInputElement,
+    window: { ensureYouTubeIframeApi: () => {}, addEventListener: () => {}, removeEventListener: () => {} }
+  };
+
+  const fnPlayer = new Function('sandbox', 'with(sandbox) {\n' + codePlayer + '\n return { saveToLocalHistory, getLocalHistory }; }');
+  const { saveToLocalHistory, getLocalHistory } = fnPlayer(sandbox);
+
+  // Lưu trước khi hoàn tác có userPunct: true
+  saveToLocalHistory({
+    videoId: 'lib_vid_1', title: 'Thư viện mẫu', duration: 120, format: 'json3', isText: false,
+    sentences: restored, userPunct: true
+  });
+  assert.strictEqual(getLocalHistory()[0].userPunct, true);
+
+  // Sau khi hoàn tác: dọn cờ userPunct
+  saveToLocalHistory({
+    videoId: 'lib_vid_1', title: 'Thư viện mẫu', duration: 120, format: 'json3', isText: false,
+    sentences: restored, userPunct: undefined
+  });
+  const histAfter = getLocalHistory();
+  assert.strictEqual(histAfter[0].userPunct, undefined, 'Cờ userPunct đã được dọn sạch khỏi bản ghi lịch sử');
+});
+

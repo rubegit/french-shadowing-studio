@@ -27,11 +27,16 @@
         </div>
       </div>
 
-      <div class="ai-actions mt-3">
-        <button type="button" id="pc-apply-btn" class="ai-btn ai-btn-primary" onclick="aiApply('punct-player')">
-          <i data-lucide="check"></i><span>Áp dụng</span>
+      <div class="ai-actions mt-3 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <button type="button" id="pc-apply-btn" class="ai-btn ai-btn-primary" onclick="aiApply('punct-player')">
+            <i data-lucide="check"></i><span>Áp dụng</span>
+          </button>
+          <button type="button" class="ai-btn ai-btn-ghost" onclick="closePunctModal()">Để sau</button>
+        </div>
+        <button type="button" id="pc-revert-btn" style="display:none;" class="ai-btn ai-btn-ghost text-amber-400 hover:text-amber-300 text-xs" onclick="window.pcRevertAsrOriginal()" title="Khôi phục toàn bộ các từ đã sửa về chữ ASR ban đầu">
+          <i data-lucide="rotate-ccw"></i><span>Khôi phục từ gốc ASR</span>
         </button>
-        <button type="button" class="ai-btn ai-btn-ghost" onclick="closePunctModal()">Để sau</button>
       </div>
       <div id="pc-status" class="ai-status"></div>
     </div>

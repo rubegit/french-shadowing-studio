@@ -561,18 +561,51 @@
       };
     }
 
-    // Hoàn tác các từ đã được sửa về lại chữ gốc của ASR (giữ nguyên dấu câu)
+    // Hoàn tác các từ đã được sửa về lại chữ gốc của ASR (giữ nguyên dấu câu, tách lại từ đối với ca gộp)
     function aicRestoreAsrOriginal(sents) {
       if (!Array.isArray(sents)) return sents;
       sents.forEach((s) => {
         if (Array.isArray(s.words)) {
+          const newWords = [];
           s.words.forEach((w) => {
             if (w.corrected && w.asr_original != null) {
-              w.word = aicAdoptPunct(w.asr_original, w.word);
-              delete w.corrected;
-              delete w.asr_original;
+              const origParts = String(w.asr_original).trim().split(/\s+/).filter(Boolean);
+              if (origParts.length > 1) {
+                // Ca gộp: tách lại thành nhiều từ riêng biệt với mốc thời gian hợp lý, không từ rỗng
+                const t0 = typeof w.startTime === 'number' ? w.startTime : 0;
+                const t1 = typeof w.endTime === 'number' ? w.endTime : t0;
+                const dur = Math.max(0, t1 - t0);
+                const totalChars = origParts.reduce((acc, p) => acc + p.length, 0) || origParts.length;
+                let curT = t0;
+
+                origParts.forEach((part, pIdx) => {
+                  const isLast = pIdx === origParts.length - 1;
+                  const frac = part.length / totalChars;
+                  const pDur = isLast ? Math.max(0, t1 - curT) : Number((dur * frac).toFixed(3));
+                  const endT = isLast ? t1 : Number((curT + pDur).toFixed(3));
+                  const finalWord = isLast ? aicAdoptPunct(part, w.word) : part;
+
+                  newWords.push({
+                    word: finalWord,
+                    startTime: curT,
+                    endTime: endT,
+                    joinNext: isLast ? !!w.joinNext : false
+                  });
+                  curT = endT;
+                });
+              } else {
+                // Ca 1:1: hoàn tác trực tiếp
+                const adopted = aicAdoptPunct(origParts[0] || w.asr_original, w.word);
+                const restoredW = Object.assign({}, w, { word: adopted });
+                delete restoredW.corrected;
+                delete restoredW.asr_original;
+                newWords.push(restoredW);
+              }
+            } else {
+              newWords.push(w);
             }
           });
+          s.words = newWords;
           s.text = aicComposeText(s.words);
         }
       });

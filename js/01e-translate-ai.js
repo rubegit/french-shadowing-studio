@@ -910,10 +910,27 @@
       }
       resetCopyButtons();
       resetPunctModalPreview();
+      const hasCorrected = sentences.some((s) => s.words && s.words.some((w) => w.corrected));
+      const revertBtn = document.getElementById('pc-revert-btn');
+      if (revertBtn) revertBtn.style.display = hasCorrected ? '' : 'none';
       aiSetStatus(document.getElementById('pc-status'), '', '');
       modal.classList.add('open');
       if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
     }
+
+    window.pcRevertAsrOriginal = function() {
+      if (!confirm('Khôi phục toàn bộ các từ đã sửa về chữ ASR ban đầu (vẫn giữ nguyên các dấu câu đã ngắt)?')) return;
+      sentences = aicRestoreAsrOriginal(sentences);
+      if (typeof userPunctVid !== 'undefined') userPunctVid = '';
+      if (currentVideoId) {
+        const hist = getLocalHistory();
+        const item = hist.find((h) => h.videoId === currentVideoId);
+        if (item) item.userPunct = undefined;
+      }
+      aiAfterSentencesChangedInPlayer();
+      closePunctModal();
+      showVocabToast('Đã khôi phục toàn bộ từ gốc ASR', false);
+    };
 
     function closePunctModal() {
       resetPunctModalPreview();
