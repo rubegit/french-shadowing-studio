@@ -1,0 +1,258 @@
+{
+  "timestamp": "2026-11-03T03:43:00.828Z",
+  "totalMonitored": 25,
+  "failingCount": 25,
+  "passingCount": 0,
+  "details": [
+    {
+      "id": "E01",
+      "name": "Home: tiêu đề Video Bạn Đã Luyện Gần Đây",
+      "target": 4.5,
+      "ratioLight": 1.05,
+      "ratioDark": 18.24,
+      "passLight": false,
+      "passDark": true,
+      "status": "FAIL"
+    },
+    {
+      "id": "E02",
+      "name": "Home và partials: text-slate-400",
+      "target": 4.5,
+      "ratioLight": 2.56,
+      "ratioDark": 6.39,
+      "passLight": false,
+      "passDark": true,
+      "status": "FAIL"
+    },
+    {
+      "id": "E03",
+      "name": "Home: nút ← Trang trước",
+      "target": 4.5,
+      "ratioLight": 2.56,
+      "ratioDark": 6.39,
+      "passLight": false,
+      "passDark": true,
+      "status": "FAIL"
+    },
+    {
+      "id": "E04",
+      "name": "Home: Xóa tất cả (text-slate-500)",
+      "target": 4.5,
+      "ratioLight": 4.76,
+      "ratioDark": 3.44,
+      "passLight": true,
+      "passDark": false,
+      "status": "FAIL"
+    },
+    {
+      "id": "E05",
+      "name": "Từ vựng: Xóa từ bài này, Xoá tất cả",
+      "target": 4.5,
+      "ratioLight": 3.76,
+      "ratioDark": 4.35,
+      "passLight": false,
+      "passDark": false,
+      "status": "FAIL"
+    },
+    {
+      "id": "E06",
+      "name": "Video Timeline: / 1 (text-slate-500)",
+      "target": 4.5,
+      "ratioLight": 4.76,
+      "ratioDark": 3.44,
+      "passLight": true,
+      "passDark": false,
+      "status": "FAIL"
+    },
+    {
+      "id": "E07",
+      "name": "Luyện tập: Câu trước, Câu sau",
+      "target": 4.5,
+      "ratioLight": 2.56,
+      "ratioDark": 6.39,
+      "passLight": false,
+      "passDark": true,
+      "status": "FAIL"
+    },
+    {
+      "id": "E08",
+      "name": "Luyện tập: nhãn Thời gian: (.ts-lbl)",
+      "target": 4.5,
+      "ratioLight": 2.56,
+      "ratioDark": 6.39,
+      "passLight": false,
+      "passDark": true,
+      "status": "FAIL"
+    },
+    {
+      "id": "E09",
+      "name": "Luyện tập: ký tự x của ô tốc độ",
+      "target": 4.5,
+      "ratioLight": 2,
+      "ratioDark": 8.2,
+      "passLight": false,
+      "passDark": true,
+      "status": "FAIL"
+    },
+    {
+      "id": "E10",
+      "name": "Luyện tập: Giao diện (9.5px), Tự dừng",
+      "target": 4.5,
+      "ratioLight": 2.56,
+      "ratioDark": 6.39,
+      "passLight": false,
+      "passDark": true,
+      "status": "FAIL"
+    },
+    {
+      "id": "E11",
+      "name": "Nghe chép: từ gần đúng (.dc-d)",
+      "target": 4.5,
+      "ratioLight": 2.15,
+      "ratioDark": 7.63,
+      "passLight": false,
+      "passDark": true,
+      "status": "FAIL"
+    },
+    {
+      "id": "E12",
+      "name": "Luyện từ vựng: phản hồi Rất tốt",
+      "target": 4.5,
+      "ratioLight": 1.05,
+      "ratioDark": 11.07,
+      "passLight": false,
+      "passDark": true,
+      "status": "FAIL"
+    },
+    {
+      "id": "E13",
+      "name": "Luyện từ vựng: khung Câu mẫu tiếng Pháp",
+      "target": 4.5,
+      "ratioLight": 1.11,
+      "ratioDark": 16.38,
+      "passLight": false,
+      "passDark": true,
+      "status": "FAIL"
+    },
+    {
+      "id": "E14",
+      "name": "Luyện từ vựng: viên gợi ý (vph-hint-pill)",
+      "target": 4.5,
+      "ratioLight": 1.66,
+      "ratioDark": 8.19,
+      "passLight": false,
+      "passDark": true,
+      "status": "FAIL"
+    },
+    {
+      "id": "E15",
+      "name": "Luyện từ vựng: huy hiệu vph-due-badge",
+      "target": 3,
+      "ratioLight": 1.41,
+      "ratioDark": 12.35,
+      "passLight": false,
+      "passDark": true,
+      "status": "FAIL"
+    },
+    {
+      "id": "E16",
+      "name": "TCF: hộp Bẫy TCF",
+      "target": 4.5,
+      "ratioLight": 3.19,
+      "ratioDark": 5.14,
+      "passLight": false,
+      "passDark": true,
+      "status": "FAIL"
+    },
+    {
+      "id": "E17",
+      "name": "Modal sửa câu: text-slate-300",
+      "target": 4.5,
+      "ratioLight": 1.48,
+      "ratioDark": 11.04,
+      "passLight": false,
+      "passDark": true,
+      "status": "FAIL"
+    },
+    {
+      "id": "E18",
+      "name": "Modal gửi danh sách từ: text-slate-300",
+      "target": 4.5,
+      "ratioLight": 1.48,
+      "ratioDark": 11.04,
+      "passLight": false,
+      "passDark": true,
+      "status": "FAIL"
+    },
+    {
+      "id": "E19",
+      "name": "Modal nạp từ: nhãn Schema 0.2",
+      "target": 4.5,
+      "ratioLight": 2.56,
+      "ratioDark": 7.11,
+      "passLight": false,
+      "passDark": true,
+      "status": "FAIL"
+    },
+    {
+      "id": "E20",
+      "name": "Modal nạp từ: nút Xác nhận ghi vào kho",
+      "target": 4.5,
+      "ratioLight": 2.34,
+      "ratioDark": 5.71,
+      "passLight": false,
+      "passDark": true,
+      "status": "FAIL"
+    },
+    {
+      "id": "E21",
+      "name": "Modal dịch sách: tiêu đề mục",
+      "target": 4.5,
+      "ratioLight": 2.56,
+      "ratioDark": 6.39,
+      "passLight": false,
+      "passDark": true,
+      "status": "FAIL"
+    },
+    {
+      "id": "E22",
+      "name": "Modal song ngữ: Xóa bản dịch",
+      "target": 4.5,
+      "ratioLight": 3.76,
+      "ratioDark": 4.35,
+      "passLight": false,
+      "passDark": false,
+      "status": "FAIL"
+    },
+    {
+      "id": "E23",
+      "name": "Menu điện thoại: mũi tên →",
+      "target": 4.5,
+      "ratioLight": 2.56,
+      "ratioDark": 6.39,
+      "passLight": false,
+      "passDark": true,
+      "status": "FAIL"
+    },
+    {
+      "id": "E25",
+      "name": "Trình đọc sách sepia: bk-muted",
+      "target": 4.5,
+      "ratioLight": 3.84,
+      "ratioDark": 3.94,
+      "passLight": false,
+      "passDark": false,
+      "status": "FAIL"
+    },
+    {
+      "id": "E26",
+      "name": "Token --fs-ink-subtle hiện tại",
+      "target": 4.5,
+      "ratioLight": 3.91,
+      "ratioDark": 4.19,
+      "passLight": false,
+      "passDark": false,
+      "status": "FAIL"
+    }
+  ]
+}
