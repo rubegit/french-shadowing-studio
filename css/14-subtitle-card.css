@@ -286,8 +286,8 @@
     right: 0;
     width: 275px;
     max-width: calc(100vw - 20px);
-    background: var(--fs-surface-overlay);
-    border: 1px solid var(--fs-border-control);
+    background: var(--fs-surface-overlay) !important;
+    border: 1px solid var(--fs-border-control) !important;
     border-radius: 16px;
     box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
     padding: 8px;
@@ -318,8 +318,8 @@
     gap: 10px;
     padding: 9px 12px;
     border-radius: 10px;
-    border: none;
-    background: transparent;
+    border: none !important;
+    background: transparent !important;
     color: var(--fs-ink);
     font-size: 13px;
     font-weight: 600;
@@ -330,7 +330,7 @@
     box-sizing: border-box;
   }
   .psm-item:hover, .psm-item:active {
-    background: var(--fs-hover);
+    background: var(--fs-hover) !important;
     color: var(--fs-ink);
   }
   .psm-sep {
@@ -373,18 +373,18 @@
     gap: 10px;
     padding: 6px 8px;
     border-radius: 10px;
-    background: transparent;
-    border: 1px solid transparent;
+    background: transparent !important;
+    border: 1px solid transparent !important;
     cursor: pointer;
     text-align: left;
     transition: all .15s ease;
   }
   .psm-ai-opt:hover {
-    background: var(--fs-hover);
+    background: var(--fs-hover) !important;
   }
   .psm-ai-opt.active {
-    background: var(--fs-tint);
-    border-color: var(--fs-primary);
+    background: var(--fs-tint) !important;
+    border-color: var(--fs-primary) !important;
   }
   .psm-ai-radio {
     width: 14px;
@@ -441,11 +441,13 @@
   html[data-ui="light"] .psm-title {
     color: var(--fs-muted) !important;
   }
-  html[data-ui="light"] .psm-item {
+  html[data-ui="light"] .practice-sandwich-menu .psm-item {
+    background: transparent !important;
+    border: none !important;
     color: var(--fs-ink) !important;
   }
-  html[data-ui="light"] .psm-item:hover,
-  html[data-ui="light"] .psm-item:active {
+  html[data-ui="light"] .practice-sandwich-menu .psm-item:hover,
+  html[data-ui="light"] .practice-sandwich-menu .psm-item:active {
     background: var(--fs-hover) !important;
     color: var(--fs-ink) !important;
   }
@@ -471,10 +473,14 @@
   html[data-ui="light"] .psm-sub-title {
     color: var(--fs-muted) !important;
   }
-  html[data-ui="light"] .psm-ai-opt:hover {
+  html[data-ui="light"] .practice-sandwich-menu .psm-ai-opt {
+    background: transparent !important;
+    border: 1px solid transparent !important;
+  }
+  html[data-ui="light"] .practice-sandwich-menu .psm-ai-opt:hover {
     background: var(--fs-hover) !important;
   }
-  html[data-ui="light"] .psm-ai-opt.active {
+  html[data-ui="light"] .practice-sandwich-menu .psm-ai-opt.active {
     background: var(--fs-tint) !important;
     border-color: var(--fs-primary) !important;
   }

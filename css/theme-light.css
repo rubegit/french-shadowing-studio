@@ -18,6 +18,11 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;0,7..72,700;1,7..72,400&display=swap');
 
+:root {
+  --fs-surface-card: #0d1733;
+  --fs-surface-overlay: #0d1733;
+}
+
 /* --- LIGHT TOKENS (DEFAULT) --- */
 html[data-ui="light"] {
   /* Core Surface & Text */
@@ -30,6 +35,8 @@ html[data-ui="light"] {
 
   /* Extended Surfaces & Canvas */
   --fs-surface-subtle: #EDF6F1;
+  --fs-surface-card: #FFFFFF;
+  --fs-surface-overlay: #FFFFFF;
   --fs-card: #FFFFFF;
   --fs-canvas: #F4FBF7;
   --fs-overlay: rgba(20, 33, 61, 0.45);
@@ -176,6 +183,8 @@ html[data-ui="light"].dark {
 
   /* Extended Surfaces & Canvas */
   --fs-surface-subtle: #1C2B25;
+  --fs-surface-card: #16221E;
+  --fs-surface-overlay: #16221E;
   --fs-card: #16221E;
   --fs-canvas: #0E1714;
   --fs-overlay: rgba(0, 0, 0, 0.65);
@@ -678,13 +687,13 @@ html[data-ui="light"] #screen-practice > header {
   color: var(--fs-ink) !important;
 }
 
-html[data-ui="light"] #screen-practice > header button:not(.pv-opt) {
+html[data-ui="light"] #screen-practice > header button:not(.pv-opt):not(.psm-item):not(.psm-ai-opt) {
   background-color: var(--fs-surface) !important;
   border-color: var(--fs-border) !important;
   color: var(--fs-ink) !important;
 }
 
-html[data-ui="light"] #screen-practice > header button:not(.pv-opt):hover {
+html[data-ui="light"] #screen-practice > header button:not(.pv-opt):not(.psm-item):not(.psm-ai-opt):hover {
   background-color: var(--fs-hover) !important;
 }
 
