@@ -349,18 +349,18 @@
     var alignHtml = '';
     if (stats.hasSubtitles) {
       alignHtml = [
-        '<div class="p-2.5 rounded-lg bg-indigo-950/40 border border-indigo-900/60"><div class="text-[10px] uppercase text-indigo-400">Khớp chính xác</div><div class="text-base font-bold text-indigo-300 font-mono">' + aStats.exact + '</div></div>',
-        '<div class="p-2.5 rounded-lg bg-sky-950/40 border border-sky-900/60"><div class="text-[10px] uppercase text-sky-400">Khớp gần đúng</div><div class="text-base font-bold text-sky-300 font-mono">' + aStats.fuzzy + '</div></div>',
-        '<div class="p-2.5 rounded-lg bg-amber-950/40 border border-amber-900/60"><div class="text-[10px] uppercase text-amber-400">Nhiều câu khớp (chờ chọn)</div><div class="text-base font-bold text-amber-300 font-mono">' + aStats.multiple + '</div></div>',
-        '<div class="p-2.5 rounded-lg bg-rose-950/40 border border-rose-900/60"><div class="text-[10px] uppercase text-rose-400">Cần căn lại mốc</div><div class="text-base font-bold text-rose-300 font-mono">' + aStats.notFound + '</div></div>'
+        '<div class="p-3 rounded-xl bg-indigo-950/40 border border-indigo-900/60 shadow-sm flex flex-col justify-between"><div class="text-[10px] uppercase font-bold text-indigo-400 tracking-wider">Khớp chính xác</div><div class="text-lg font-bold text-indigo-200 font-mono mt-1">' + aStats.exact + '</div></div>',
+        '<div class="p-3 rounded-xl bg-sky-950/40 border border-sky-900/60 shadow-sm flex flex-col justify-between"><div class="text-[10px] uppercase font-bold text-sky-400 tracking-wider">Khớp gần đúng</div><div class="text-lg font-bold text-sky-200 font-mono mt-1">' + aStats.fuzzy + '</div></div>',
+        '<div class="p-3 rounded-xl bg-amber-950/40 border border-amber-900/60 shadow-sm flex flex-col justify-between"><div class="text-[10px] uppercase font-bold text-amber-400 tracking-wider">Nhiều câu khớp</div><div class="text-lg font-bold text-amber-200 font-mono mt-1">' + aStats.multiple + '</div></div>',
+        '<div class="p-3 rounded-xl bg-rose-950/40 border border-rose-900/60 shadow-sm flex flex-col justify-between"><div class="text-[10px] uppercase font-bold text-rose-400 tracking-wider">Cần căn lại</div><div class="text-lg font-bold text-rose-200 font-mono mt-1">' + aStats.notFound + '</div></div>'
       ].join('');
     }
 
     grid.innerHTML = [
-      '<div class="p-2.5 rounded-lg bg-blue-950/40 border border-blue-900/60"><div class="text-[10px] uppercase text-slate-400">Tổng mục nhận diện</div><div class="text-base font-bold text-white font-mono">' + stats.totalItems + '</div></div>',
-      '<div class="p-2.5 rounded-lg bg-emerald-950/40 border border-emerald-900/60"><div class="text-[10px] uppercase text-emerald-400">Mục mới</div><div class="text-base font-bold text-emerald-300 font-mono">' + stats.newCount + '</div></div>',
-      '<div class="p-2.5 rounded-lg bg-cyan-950/40 border border-cyan-900/60"><div class="text-[10px] uppercase text-cyan-400">Đã có trong kho</div><div class="text-base font-bold text-cyan-300 font-mono">' + stats.existsCount + '</div></div>',
-      '<div class="p-2.5 rounded-lg bg-purple-950/40 border border-purple-900/60"><div class="text-[10px] uppercase text-purple-400">Xung đột / Nghi trùng</div><div class="text-base font-bold text-purple-300 font-mono">' + (stats.collisionCount + stats.suspiciousCount) + '</div></div>',
+      '<div class="p-3 rounded-xl bg-blue-950/40 border border-blue-900/60 shadow-sm flex flex-col justify-between"><div class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Tổng nhận diện</div><div class="text-lg font-bold text-white font-mono mt-1">' + stats.totalItems + '</div></div>',
+      '<div class="p-3 rounded-xl bg-emerald-950/40 border border-emerald-900/60 shadow-sm flex flex-col justify-between"><div class="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">Mục mới</div><div class="text-lg font-bold text-emerald-300 font-mono mt-1">' + stats.newCount + '</div></div>',
+      '<div class="p-3 rounded-xl bg-cyan-950/40 border border-cyan-900/60 shadow-sm flex flex-col justify-between"><div class="text-[10px] uppercase font-bold text-cyan-400 tracking-wider">Đã có trong kho</div><div class="text-lg font-bold text-cyan-300 font-mono mt-1">' + stats.existsCount + '</div></div>',
+      '<div class="p-3 rounded-xl bg-purple-950/40 border border-purple-900/60 shadow-sm flex flex-col justify-between"><div class="text-[10px] uppercase font-bold text-purple-400 tracking-wider">Xung đột / Nghi trùng</div><div class="text-lg font-bold text-purple-300 font-mono mt-1">' + (stats.collisionCount + stats.suspiciousCount) + '</div></div>',
       alignHtml
     ].join('');
   }
@@ -433,29 +433,58 @@
     sec.classList.remove('hidden');
     if (badge) badge.textContent = relevant.length + ' xung đột';
 
+    // Đăng ký event delegation an toàn, tránh lỗi cú pháp JS khi từ khóa chứa dấu nháy đơn tiếng Pháp
+    if (!list._hasColDelegation && typeof list.addEventListener === 'function') {
+      list._hasColDelegation = true;
+      list.addEventListener('change', function (e) {
+        var target = e.target;
+        if (target && target.classList && target.classList.contains('fss-col-radio')) {
+          var colId = target.getAttribute('data-col-id');
+          var val = target.value;
+          window.setCollisionDecision(colId, val);
+          var parentItem = target.closest('.fss-collision-item');
+          if (parentItem) {
+            parentItem.querySelectorAll('.fss-choice-card').forEach(function (card) {
+              var radio = card.querySelector('input[type="radio"]');
+              card.classList.toggle('is-selected', !!(radio && radio.checked));
+            });
+          }
+        }
+      });
+    }
+
     list.innerHTML = '';
     relevant.forEach(function (col) {
       var itemDiv = document.createElement('div');
-      itemDiv.className = 'p-2.5 rounded-lg bg-[#04091a] border border-amber-900/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2';
+      itemDiv.className = 'fss-collision-item p-3 rounded-xl bg-[#04091a] border border-amber-500/40 hover:border-amber-500/70 transition flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-sm';
 
-      var infoHtml = '<div class="space-y-0.5">' +
-        '<div class="font-bold text-amber-200">' + escapeHtml(col.fr) + '</div>' +
-        '<div class="text-[10px] text-slate-400">' +
-          'Loại cũ: <span class="text-cyan-300 font-mono">' + col.existingType + '</span> | ' +
-          'Loại mới: <span class="text-amber-300 font-mono">' + col.incomingType + '</span>' +
+      var infoHtml = '<div class="space-y-1">' +
+        '<div class="font-bold text-amber-200 text-sm flex items-center gap-1.5">' +
+          '<span class="w-2 h-2 rounded-full bg-amber-400 shrink-0"></span>' +
+          '<span>' + escapeHtml(col.fr) + '</span>' +
+        '</div>' +
+        '<div class="text-[11px] text-slate-400 flex flex-wrap items-center gap-2">' +
+          '<span>Loại cũ: <span class="px-1.5 py-0.5 rounded bg-cyan-950/80 text-cyan-300 border border-cyan-800/60 font-mono text-[10px]">' + escapeHtml(col.existingType) + '</span></span>' +
+          '<span class="text-slate-500">→</span>' +
+          '<span>Loại mới: <span class="px-1.5 py-0.5 rounded bg-amber-950/80 text-amber-300 border border-amber-800/60 font-mono text-[10px]">' + escapeHtml(col.incomingType) + '</span></span>' +
         '</div>' +
       '</div>';
 
-      var checkedKeep = (collisionDecisions[col.collisionId] === 'keep_existing_add_occ') ? 'checked' : '';
-      var checkedSkip = (collisionDecisions[col.collisionId] === 'skip_new') ? 'checked' : '';
+      var curDecision = collisionDecisions[col.collisionId];
+      var checkedKeep = (curDecision === 'keep_existing_add_occ') ? 'checked' : '';
+      var checkedSkip = (curDecision === 'skip_new') ? 'checked' : '';
+      var isKeepSelected = (curDecision === 'keep_existing_add_occ') ? ' is-selected' : '';
+      var isSkipSelected = (curDecision === 'skip_new') ? ' is-selected' : '';
 
-      var choicesHtml = '<div class="flex items-center gap-3 text-[11px] shrink-0">' +
-        '<label class="flex items-center gap-1 cursor-pointer text-slate-300 hover:text-white">' +
-          '<input type="radio" name="' + col.collisionId + '" value="keep_existing_add_occ" ' + checkedKeep + ' onchange="window.setCollisionDecision(\'' + col.collisionId + '\', \'keep_existing_add_occ\')" />' +
+      var safeColId = escapeHtml(col.collisionId);
+
+      var choicesHtml = '<div class="flex flex-wrap sm:flex-nowrap items-center gap-2 shrink-0">' +
+        '<label class="fss-choice-card cursor-pointer px-3 py-1.5 rounded-lg border text-xs font-medium transition flex items-center gap-2 select-none' + isKeepSelected + '">' +
+          '<input type="radio" class="fss-col-radio accent-amber-500 cursor-pointer" name="' + safeColId + '" data-col-id="' + safeColId + '" value="keep_existing_add_occ" ' + checkedKeep + ' />' +
           '<span>Giữ mục cũ & thêm ngữ cảnh</span>' +
         '</label>' +
-        '<label class="flex items-center gap-1 cursor-pointer text-slate-300 hover:text-white">' +
-          '<input type="radio" name="' + col.collisionId + '" value="skip_new" ' + checkedSkip + ' onchange="window.setCollisionDecision(\'' + col.collisionId + '\', \'skip_new\')" />' +
+        '<label class="fss-choice-card cursor-pointer px-3 py-1.5 rounded-lg border text-xs font-medium transition flex items-center gap-2 select-none' + isSkipSelected + '">' +
+          '<input type="radio" class="fss-col-radio accent-amber-500 cursor-pointer" name="' + safeColId + '" data-col-id="' + safeColId + '" value="skip_new" ' + checkedSkip + ' />' +
           '<span>Bỏ qua mục mới</span>' +
         '</label>' +
       '</div>';
@@ -486,15 +515,38 @@
     }
 
     sec.classList.remove('hidden');
+
+    if (!list._hasSuspDelegation && typeof list.addEventListener === 'function') {
+      list._hasSuspDelegation = true;
+      list.addEventListener('change', function (e) {
+        var target = e.target;
+        if (target && target.classList && target.classList.contains('fss-susp-radio')) {
+          var suspId = target.getAttribute('data-susp-id');
+          var val = target.value;
+          window.setSuspiciousDecision(suspId, val);
+          var parentItem = target.closest('.fss-suspicious-item');
+          if (parentItem) {
+            parentItem.querySelectorAll('.fss-choice-card').forEach(function (card) {
+              var radio = card.querySelector('input[type="radio"]');
+              card.classList.toggle('is-selected', !!(radio && radio.checked));
+            });
+          }
+        }
+      });
+    }
+
     list.innerHTML = '';
 
     relevant.forEach(function (s) {
       var itemDiv = document.createElement('div');
-      itemDiv.className = 'p-2.5 rounded-lg bg-[#04091a] border border-purple-900/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2';
+      itemDiv.className = 'fss-suspicious-item p-3 rounded-xl bg-[#04091a] border border-purple-500/40 hover:border-purple-500/70 transition flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-sm';
 
-      var infoHtml = '<div class="space-y-0.5">' +
-        '<div class="font-bold text-purple-200">' + escapeHtml(s.fr) + ' <span class="text-slate-400 font-normal">≈</span> ' + escapeHtml(s.matchedFr) + '</div>' +
-        '<div class="text-[10px] text-slate-400">Nghi ngờ trùng gốc từ / biến thể phản xạ</div>' +
+      var infoHtml = '<div class="space-y-1">' +
+        '<div class="font-bold text-purple-200 text-sm flex items-center gap-1.5">' +
+          '<span class="w-2 h-2 rounded-full bg-purple-400 shrink-0"></span>' +
+          '<span>' + escapeHtml(s.fr) + ' <span class="text-slate-400 font-normal">≈</span> ' + escapeHtml(s.matchedFr) + '</span>' +
+        '</div>' +
+        '<div class="text-[11px] text-slate-400">Nghi ngờ trùng gốc từ / biến thể phản xạ</div>' +
       '</div>';
 
       var cur = suspiciousDecisions[s.suspiciousId] || '';
@@ -502,17 +554,23 @@
       var checkedSep = (cur === 'separate') ? 'checked' : '';
       var checkedSkip = (cur === 'skip') ? 'checked' : '';
 
-      var choicesHtml = '<div class="flex items-center gap-3 text-[11px] shrink-0">' +
-        '<label class="flex items-center gap-1 cursor-pointer text-slate-300 hover:text-white">' +
-          '<input type="radio" name="' + s.suspiciousId + '" value="merge" ' + checkedMerge + ' onchange="window.setSuspiciousDecision(\'' + s.suspiciousId + '\', \'merge\')" />' +
+      var isMergeSelected = (cur === 'merge') ? ' is-selected' : '';
+      var isSepSelected = (cur === 'separate') ? ' is-selected' : '';
+      var isSkipSelected = (cur === 'skip') ? ' is-selected' : '';
+
+      var safeSuspId = escapeHtml(s.suspiciousId);
+
+      var choicesHtml = '<div class="flex flex-wrap sm:flex-nowrap items-center gap-2 shrink-0">' +
+        '<label class="fss-choice-card cursor-pointer px-3 py-1.5 rounded-lg border text-xs font-medium transition flex items-center gap-2 select-none' + isMergeSelected + '">' +
+          '<input type="radio" class="fss-susp-radio accent-purple-500 cursor-pointer" name="' + safeSuspId + '" data-susp-id="' + safeSuspId + '" value="merge" ' + checkedMerge + ' />' +
           '<span>Gộp</span>' +
         '</label>' +
-        '<label class="flex items-center gap-1 cursor-pointer text-slate-300 hover:text-white">' +
-          '<input type="radio" name="' + s.suspiciousId + '" value="separate" ' + checkedSep + ' onchange="window.setSuspiciousDecision(\'' + s.suspiciousId + '\', \'separate\')" />' +
+        '<label class="fss-choice-card cursor-pointer px-3 py-1.5 rounded-lg border text-xs font-medium transition flex items-center gap-2 select-none' + isSepSelected + '">' +
+          '<input type="radio" class="fss-susp-radio accent-purple-500 cursor-pointer" name="' + safeSuspId + '" data-susp-id="' + safeSuspId + '" value="separate" ' + checkedSep + ' />' +
           '<span>Tách riêng</span>' +
         '</label>' +
-        '<label class="flex items-center gap-1 cursor-pointer text-slate-300 hover:text-white">' +
-          '<input type="radio" name="' + s.suspiciousId + '" value="skip" ' + checkedSkip + ' onchange="window.setSuspiciousDecision(\'' + s.suspiciousId + '\', \'skip\')" />' +
+        '<label class="fss-choice-card cursor-pointer px-3 py-1.5 rounded-lg border text-xs font-medium transition flex items-center gap-2 select-none' + isSkipSelected + '">' +
+          '<input type="radio" class="fss-susp-radio accent-purple-500 cursor-pointer" name="' + safeSuspId + '" data-susp-id="' + safeSuspId + '" value="skip" ' + checkedSkip + ' />' +
           '<span>Bỏ qua</span>' +
         '</label>' +
       '</div>';
@@ -536,6 +594,62 @@
     window.checkCommitUnlock();
   };
 
+  function formatCefrBadge(level) {
+    var lvl = (level || 'A2').toUpperCase().trim();
+    if (lvl === 'A1') {
+      return '<span class="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-[10px] font-bold font-mono bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">A1</span>';
+    }
+    if (lvl === 'A2' || lvl === 'A2+') {
+      return '<span class="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-[10px] font-bold font-mono bg-sky-500/15 text-sky-300 border border-sky-500/30">' + escapeHtml(lvl) + '</span>';
+    }
+    if (lvl === 'B1') {
+      return '<span class="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-[10px] font-bold font-mono bg-amber-500/15 text-amber-300 border border-amber-500/30">B1</span>';
+    }
+    if (lvl === 'B2') {
+      return '<span class="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-[10px] font-bold font-mono bg-orange-500/15 text-orange-300 border border-orange-500/30">B2</span>';
+    }
+    if (lvl === 'C1' || lvl === 'C2') {
+      return '<span class="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-[10px] font-bold font-mono bg-purple-500/15 text-purple-300 border border-purple-500/30">' + escapeHtml(lvl) + '</span>';
+    }
+    return '<span class="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-[10px] font-bold font-mono bg-slate-800 text-slate-300 border border-slate-700">' + escapeHtml(lvl) + '</span>';
+  }
+
+  function formatTypeBadge(type) {
+    var raw = (type || '').toLowerCase().trim();
+    if (raw === 'word' || raw === 'từ') {
+      return '<span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium bg-blue-500/15 text-blue-300 border border-blue-500/30">Từ đơn</span>';
+    }
+    if (raw === 'chunk' || raw === 'cụm từ') {
+      return '<span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">Cụm từ</span>';
+    }
+    if (raw === 'collocation') {
+      return '<span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">Collocation</span>';
+    }
+    if (raw === 'idiom' || raw === 'thành ngữ') {
+      return '<span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium bg-fuchsia-500/15 text-fuchsia-300 border border-fuchsia-500/30">Thành ngữ</span>';
+    }
+    if (raw === 'slang' || raw === 'tiếng lóng') {
+      return '<span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium bg-pink-500/15 text-pink-300 border border-pink-500/30">Tiếng lóng</span>';
+    }
+    return '<span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-mono bg-slate-800 text-slate-300 border border-slate-700">' + escapeHtml(type) + '</span>';
+  }
+
+  function formatStatusBadge(status) {
+    if (status === 'NEW') {
+      return '<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>MỤC MỚI</span>';
+    }
+    if (status === 'EXISTS') {
+      return '<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/15 text-blue-300 border border-blue-500/30"><span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>ĐÃ CÓ</span>';
+    }
+    if (status === 'TYPE_COLLISION') {
+      return '<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30 animate-pulse"><span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>XUNG ĐỘT</span>';
+    }
+    if (status === 'SUSPICIOUS') {
+      return '<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-purple-500/15 text-purple-300 border border-purple-500/30"><span class="w-1.5 h-1.5 rounded-full bg-purple-400"></span>NGHI TRÙNG</span>';
+    }
+    return '<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-slate-800 text-slate-300 border border-slate-700">' + escapeHtml(status) + '</span>';
+  }
+
   function renderPreviewTable(items) {
     var tbody = document.getElementById('fss-import-table-body');
     var countLabel = document.getElementById('fss-preview-count-label');
@@ -546,25 +660,14 @@
 
     (items || []).forEach(function (it, idx) {
       var tr = document.createElement('tr');
-      tr.className = 'hover:bg-blue-950/30 transition';
+      tr.className = 'hover:bg-blue-900/20 transition-colors border-b border-blue-950/40';
 
-      var statusBadge = '';
-      if (it.status === 'NEW') {
-        statusBadge = '<span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px]">MỤC MỚI</span>';
-      } else if (it.status === 'EXISTS') {
-        statusBadge = '<span class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/40 text-[10px]">ĐÃ CÓ</span>';
-      } else if (it.status === 'TYPE_COLLISION') {
-        statusBadge = '<span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px]">XUNG ĐỘT</span>';
-      } else if (it.status === 'SUSPICIOUS') {
-        statusBadge = '<span class="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/40 text-[10px]">NGHI TRÙNG</span>';
-      }
-
-      tr.innerHTML = '<td class="px-3 py-2 text-center text-slate-400 font-mono text-[11px]">' + (it.seq || (idx + 1)) + '</td>' +
-        '<td class="px-3 py-2 font-medium text-white">' + escapeHtml(it.fr) + '</td>' +
-        '<td class="px-3 py-2 font-mono text-cyan-300 text-[11px]">' + escapeHtml(it.type) + '</td>' +
-        '<td class="px-3 py-2 text-center font-mono text-slate-300 text-[11px]">' + escapeHtml(it.level || 'A2') + '</td>' +
-        '<td class="px-3 py-2 text-slate-300 truncate max-w-xs">' + escapeHtml(it.meaning_vi || '') + '</td>' +
-        '<td class="px-3 py-2 text-center">' + statusBadge + '</td>';
+      tr.innerHTML = '<td class="px-3 py-2.5 text-center text-slate-400 font-mono text-[11px] select-none">' + (it.seq || (idx + 1)) + '</td>' +
+        '<td class="px-3 py-2.5 font-semibold text-slate-100 text-sm tracking-wide">' + escapeHtml(it.fr) + '</td>' +
+        '<td class="px-3 py-2.5">' + formatTypeBadge(it.type) + '</td>' +
+        '<td class="px-3 py-2.5 text-center">' + formatCefrBadge(it.level) + '</td>' +
+        '<td class="px-3 py-2.5 text-slate-300 text-xs truncate max-w-xs" title="' + escapeHtml(it.meaning_vi || '') + '">' + escapeHtml(it.meaning_vi || '') + '</td>' +
+        '<td class="px-3 py-2.5 text-center whitespace-nowrap">' + formatStatusBadge(it.status) + '</td>';
 
       tbody.appendChild(tr);
     });
@@ -843,7 +946,11 @@
 
   function escapeHtml(str) {
     if (!str || typeof str !== 'string') return '';
-    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    return str.replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
 
 })();

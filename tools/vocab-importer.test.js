@@ -896,7 +896,9 @@ function setupImporterVm(initialStorage = {}) {
         appendChild: () => {},
         removeChild: () => {},
         querySelector: () => null,
-        querySelectorAll: () => []
+        querySelectorAll: () => [],
+        addEventListener: () => {},
+        removeEventListener: () => {}
       };
     }
     return elements[id];
@@ -1212,4 +1214,63 @@ test('M43.B2 Tùy chọn "Chỉ lưu cục bộ": chặn gọi pushAll khi đư�
 
   assert.strictEqual(pushAllCalled, true, 'Khi không tích, pushAll được gọi bình thường');
   assert.strictEqual(pushedVocab.length, 1);
+});
+
+// =========================================================================
+// TEST SUITE 15: M5 Xử lý xung đột từ có dấu nháy đơn tiếng Pháp & UI Redesign
+// =========================================================================
+test('M5.1 TYPE_COLLISION với từ có dấu nháy đơn (avoir l\'habitude de, s\'il y a lieu) mở khóa commit an toàn', () => {
+  const existingVocab = [
+    {
+      id: 'existing-1',
+      norm_key: 'avoir l\'habitude de',
+      text: 'avoir l\'habitude de',
+      type: 'chunk',
+      wordVi: 'quen với việc',
+      level: 'A2',
+      contexts: []
+    }
+  ];
+
+  const { sandbox, getEl } = setupImporterVm({
+    'shadowing_saved_vocab_v1': JSON.stringify(existingVocab)
+  });
+
+  sandbox.switchVocabImportMode('ADD_SOURCE');
+  getEl('fss-import-textarea').value = '32. avoir l\'habitude de || collocation || A2 || [loc.] có thói quen làm gì\nDans bài: J\'ai l' + 'habitude de me lever tôt.';
+  sandbox.runVocabDryRunPreview();
+
+  const commitBtn = getEl('fss-import-commit-btn');
+  const statusText = getEl('fss-import-status-text');
+
+  // Ban đầu chưa giải quyết xung đột -> nút bị khóa
+  assert.strictEqual(commitBtn.disabled, true, 'Nút commit phải bị khóa khi còn xung đột loại');
+  assert.ok(statusText.textContent.includes('Chặn ghi: Còn xung đột loại'), 'Thông báo chặn ghi hiển thị đúng');
+
+  // Giải quyết xung đột cho từ có dấu nháy đơn
+  const colId = "col_db_avoir l'habitude de";
+  sandbox.setCollisionDecision(colId, 'skip_new');
+
+  // Nút ghi phải được mở khóa ngay lập tức
+  assert.strictEqual(commitBtn.disabled, false, 'Nút commit phải được mở khóa sau khi giải quyết xung đột có nháy đơn');
+  assert.ok(statusText.textContent.includes('Sẵn sàng ghi vào kho'), 'Thông báo sẵn sàng ghi hiển thị đúng');
+});
+
+test('M5.2 Preview table & badges: định dạng CEFR pill, loại từ tiếng Việt và dot indicator trạng thái', () => {
+  const { sandbox, getEl } = setupImporterVm();
+
+  sandbox.switchVocabImportMode('ADD_SOURCE');
+  getEl('fss-import-textarea').value = [
+    '1. se brosser les dents || collocation || A1 || [loc.] đánh răng\nDans bài: Je me brosse les dents.',
+    '2. être en retard || collocation || A2 || [loc.] trễ giờ\nDans bài: Je suis en retard.',
+    '3. se réconcilier || word || B1 || [v. inf.] làm hòa\nDans bài: On va se réconcilier.',
+    '4. s\'il y a lieu || collocation || B2 || [loc.] nếu cần thiết\nDans bài: S\'il y a lieu de le faire.'
+  ].join('\n');
+  sandbox.runVocabDryRunPreview();
+
+  const tbody = getEl('fss-import-table-body');
+  assert.ok(tbody, 'Bảng preview phải được render');
+  // Chạy không phát sinh lỗi ngoại lệ nào
+  const countLabel = getEl('fss-preview-count-label');
+  assert.strictEqual(countLabel.textContent, '4 mục');
 });

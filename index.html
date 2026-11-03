@@ -669,6 +669,27 @@
   }
 
   /* =====================================================================
+     CHOICE CARDS & INTERACTION (M5)
+     ===================================================================== */
+  .fss-choice-card {
+    background-color: rgba(15, 23, 42, 0.6) !important;
+    border: 1px solid rgba(51, 65, 85, 0.8) !important;
+    color: #cbd5e1 !important;
+    transition: all 0.15s ease-in-out !important;
+  }
+  .fss-choice-card:hover {
+    background-color: rgba(30, 41, 59, 0.9) !important;
+    border-color: rgba(148, 163, 184, 0.4) !important;
+    color: #ffffff !important;
+  }
+  .fss-choice-card.is-selected {
+    background-color: rgba(30, 58, 138, 0.45) !important;
+    border-color: rgba(59, 130, 246, 0.8) !important;
+    color: #93c5fd !important;
+    box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.35) !important;
+  }
+
+  /* =====================================================================
      LIGHT MODE OVERRIDES: CHỈ ÁP DỤNG KHI THỰC SỰ LÀ GIAO DIỆN SÁNG
      1. Khi có data-theme="light" tường minh
      2. Khi hệ thống ở chế độ sáng và không có dark mode
@@ -811,6 +832,21 @@
     html:not([data-theme="dark"]):not(.dark) #fss-import-overwrite-container {
       color: #334155 !important;
     }
+    html:not([data-theme="dark"]):not(.dark) .fss-choice-card {
+      background-color: #f8fafc !important;
+      border-color: #cbd5e1 !important;
+      color: #334155 !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) .fss-choice-card:hover {
+      background-color: #f1f5f9 !important;
+      color: #0f172a !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) .fss-choice-card.is-selected {
+      background-color: #eff6ff !important;
+      border-color: #3b82f6 !important;
+      color: #1d4ed8 !important;
+      box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.25) !important;
+    }
   }
 
   /* Khi người dùng chọn sáng thủ công: html[data-theme="light"] */
@@ -950,6 +986,21 @@
   }
   html[data-theme="light"] #fss-import-overwrite-container {
     color: #334155 !important;
+  }
+  html[data-theme="light"] .fss-choice-card {
+    background-color: #f8fafc !important;
+    border-color: #cbd5e1 !important;
+    color: #334155 !important;
+  }
+  html[data-theme="light"] .fss-choice-card:hover {
+    background-color: #f1f5f9 !important;
+    color: #0f172a !important;
+  }
+  html[data-theme="light"] .fss-choice-card.is-selected {
+    background-color: #eff6ff !important;
+    border-color: #3b82f6 !important;
+    color: #1d4ed8 !important;
+    box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.25) !important;
   }
 </style>
 
