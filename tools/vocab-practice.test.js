@@ -907,10 +907,13 @@ test('M46.2 buildReorderSession: lọc đúng điều kiện 3-15 từ, công t�
 // ============================================================================
 // TEST 18: M46 - Chấm điểm, so sánh chuỗi ghép và hiển thị token đúng/sai
 // ============================================================================
-test('M46.3 Chấm điểm & so sánh: ghép chuỗi, chấp nhận 2 token trùng chữ ở vị trí tương đương, đánh dấu correct-pos / misplaced-pos', () => {
+test('M46.3 Chấm điểm & so sánh: ghép chuỗi, chấp nhận 2 token trùng chữ ở vị trí tương đương, đánh dấu correct-pos / misplaced-pos', async () => {
   const { sandbox } = createPracticeContext();
   const hub = sandbox.VocabPracticeHub;
   const state = hub._state;
+
+  const spoken = [];
+  sandbox.playFrenchAudio = (text) => { spoken.push(text); };
 
   const mockItem = {
     id: 'test_reorder_1',
@@ -935,6 +938,10 @@ test('M46.3 Chấm điểm & so sánh: ghép chuỗi, chấp nhận 2 token trù
   assert.strictEqual(state.score, 10, 'Đúng được cộng 10 điểm');
   const fbOk = sandbox.document.getElementById('vph-reorder-feedback');
   assert.match(fbOk.innerHTML, /Chính xác/, 'Feedback hiện Chính xác');
+  assert.match(fbOk.innerHTML, /Il a dit de venir de bonne heure\./, 'Feedback hiện câu chuẩn khi ghép đúng');
+
+  await new Promise(r => setTimeout(r, 260));
+  assert.ok(spoken.includes(q.expectedFr), 'Đã tự động đọc phát âm câu chuẩn sau khi hoàn thành kiểm tra đúng');
 
   // Ca 2: Câu có 2 từ 'de' ('tok_3' và 'tok_5'). Đổi chỗ 2 token này cho nhau:
   // Chuỗi ghép vẫn là "Il a dit de venir de bonne heure" -> Vẫn PHẢI CHẤM ĐÚNG!
@@ -1232,4 +1239,76 @@ test('M46.8 Bảo toàn item.srs: kiểm tra so sánh sâu trước/sau khi ch�
   // 5. Trả lời sai (isCorrect = false)
   hub.updateItemReorderSkill('srs_preserve_test', false, 0);
   assert.deepStrictEqual(getPersisted().srs, originalSrs, 'item.srs không đổi khi sai');
+});
+
+// ============================================================================
+// TEST 24: M-Reorder-UX-Trilogy - Khóa nghe câu trước nộp, phát âm từng ô từ sau nộp, nút Làm lại khi sai
+// ============================================================================
+test('M-Reorder-UX-Trilogy: khóa nút nghe câu trước nộp bài, mở khóa sau nộp/reveal; bấm ô từ sau nộp thì phát âm từ; nút Làm lại đặt lại câu hỏi', () => {
+  const { sandbox } = createPracticeContext();
+  const hub = sandbox.VocabPracticeHub;
+  const state = hub._state;
+
+  const spoken = [];
+  sandbox.playFrenchAudio = (text) => { spoken.push(text); };
+
+  const mockItem = {
+    id: 'test_reorder_trilogy',
+    text: 'apprendre',
+    examples: [{ fr: "J'aime apprendre le français.", vi: 'Tôi thích học tiếng Pháp.' }]
+  };
+
+  hub.open('all', null, 'reorder');
+  state.questions = hub.buildReorderSession([mockItem], { includeLowReps: true }).questions;
+  state.currentIndex = 0;
+  hub.renderReorderQuestion();
+
+  const q = state.questions[0];
+  const speakBtn = sandbox.document.getElementById('vph-reorder-speak-btn');
+
+  // 1. Trước khi nộp bài: Nút nghe câu phải disabled và có nhãn 🔒 Nghe câu
+  assert.strictEqual(speakBtn.disabled, true, 'Nút nghe câu bị disabled trước khi kiểm tra');
+  assert.match(speakBtn.innerHTML, /🔒 Nghe câu/, 'Icon ổ khóa hiển thị trước khi nộp');
+  speakBtn.onclick();
+  assert.strictEqual(spoken.length, 0, 'Bấm nút nghe trước khi nộp không được phát âm');
+
+  // 2. Nộp bài sai thứ tự:
+  state.reorderSelectedTokens = [...q.tokens].reverse();
+  state.reorderBankTokens = [];
+  hub.handleReorderSubmit();
+
+  assert.strictEqual(state.answered, true);
+  // Nút nghe câu mở khóa
+  assert.strictEqual(speakBtn.disabled, false, 'Sau khi kiểm tra, nút nghe câu được mở khóa');
+  assert.match(speakBtn.innerHTML, /🔊 Nghe câu/, 'Icon loa hiển thị sau khi nộp');
+
+  // Có nút "Làm lại câu này"
+  const retryBtn = sandbox.document.getElementById('vph-reorder-retry-btn');
+  assert.ok(retryBtn, 'Nút Làm lại hiển thị khi trả lời sai');
+
+  // 3. Sau khi kiểm tra: bấm vào ô từ trong Answer Zone thì phát âm từ đó
+  spoken.length = 0;
+  const firstSelectedToken = state.reorderSelectedTokens[0];
+  hub.handleReorderTokenDeselect(firstSelectedToken.id);
+  assert.ok(spoken.includes(firstSelectedToken.text), 'Bấm vào ô từ sau khi trả lời phát âm từ tương ứng');
+
+  // 4. Bấm nút "Làm lại":
+  spoken.length = 0;
+  retryBtn.onclick();
+
+  assert.strictEqual(state.answered, false, 'Sau khi bấm làm lại, answered = false');
+  assert.strictEqual(state.reorderCanAdvance, false);
+  assert.strictEqual(state.reorderSelectedTokens.length, 0, 'Selected tokens đã bị xóa');
+  assert.strictEqual(state.reorderBankTokens.length, q.tokens.length, 'Toàn bộ tokens quay về Word Bank');
+  assert.strictEqual(speakBtn.disabled, true, 'Nút nghe câu bị khóa trở lại');
+  assert.match(speakBtn.innerHTML, /🔒 Nghe câu/);
+
+  const fbAfterRetry = sandbox.document.getElementById('vph-reorder-feedback');
+  assert.strictEqual(fbAfterRetry.innerHTML, '', 'Feedback đã được xóa sạch sau khi làm lại');
+
+  // 5. Thử reveal answer: nút nghe cũng được mở khóa
+  hub.handleReorderRevealAnswer();
+  assert.strictEqual(speakBtn.disabled, false, 'Sau khi xem đáp án, nút nghe câu cũng được mở khóa');
+
+  hub.close();
 });

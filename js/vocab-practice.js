@@ -3208,8 +3208,8 @@
               <button type="button" class="vph-secondary-btn" id="vph-reorder-hint-btn" title="Gợi ý: Ctrl+/ hoặc phím '?'">
                 <span>💡 Gợi ý (Mức 1/3)</span>
               </button>
-              <button type="button" class="vph-secondary-btn" id="vph-reorder-speak-btn" title="Nghe phát âm câu tiếng Pháp">
-                <span>🔊 Nghe câu</span>
+              <button type="button" class="vph-secondary-btn" id="vph-reorder-speak-btn" disabled title="Nút nghe cả câu sẽ mở khóa sau khi bạn kiểm tra bài (tránh lộ đáp án)" style="opacity:0.5; cursor:not-allowed;">
+                <span>🔒 Nghe câu</span>
               </button>
               <button type="button" class="vph-secondary-btn" id="vph-reorder-reveal-btn" title="Xem đáp án chuẩn (tính là câu sai)">
                 <span>👁️ Xem đáp án</span>
@@ -3257,7 +3257,14 @@
     const toggleLowReps = document.getElementById('vph-reorder-include-low-reps');
 
     if (hintBtn) hintBtn.onclick = handleReorderHintAdvance;
-    if (speakBtn) speakBtn.onclick = () => speakFrench(q.expectedFr);
+    if (speakBtn) {
+      speakBtn.disabled = true;
+      speakBtn.innerHTML = `<span>🔒 Nghe câu</span>`;
+      speakBtn.title = 'Nút nghe cả câu sẽ mở khóa sau khi bạn kiểm tra bài (tránh lộ đáp án)';
+      speakBtn.onclick = () => {
+        if (state.answered) speakFrench(q.expectedFr);
+      };
+    }
     if (revealBtn) revealBtn.onclick = handleReorderRevealAnswer;
     if (submitBtn) {
       submitBtn.onclick = () => {
@@ -3276,6 +3283,19 @@
     renderReorderZones();
   }
 
+  function unlockReorderSpeakBtn(q) {
+    if (!q) return;
+    const speakBtn = document.getElementById('vph-reorder-speak-btn');
+    if (speakBtn) {
+      speakBtn.disabled = false;
+      speakBtn.innerHTML = `<span>🔊 Nghe câu</span>`;
+      speakBtn.title = 'Nghe phát âm câu tiếng Pháp';
+      speakBtn.style.opacity = '1';
+      speakBtn.style.cursor = 'pointer';
+      speakBtn.onclick = () => speakFrench(q.expectedFr);
+    }
+  }
+
   function renderReorderZones() {
     const answerZone = document.getElementById('vph-reorder-answer-zone');
     const wordBank = document.getElementById('vph-reorder-word-bank');
@@ -3289,12 +3309,14 @@
       answerZone.className = 'vph-reorder-answer-zone has-tokens';
       let chipsHtml = state.reorderSelectedTokens.map((t, idx) => {
         let posClass = '';
+        let titleAttr = '';
         if (state.answered) {
           const expectedTok = state.reorderCurrentTokens[idx];
           const isMatch = expectedTok && !!(normalizeTranslateAnswer(t.text, expectedTok.text)?.isCorrect);
           posClass = isMatch ? 'correct-pos' : 'misplaced-pos';
+          titleAttr = `title="Bấm để nghe phát âm: ${escHtml(t.text)}" style="cursor:pointer;"`;
         }
-        return `<button type="button" class="vph-reorder-chip in-answer ${posClass}" data-id="${t.id}" onclick="window.VocabPracticeHub.handleReorderTokenDeselect('${t.id}')">
+        return `<button type="button" class="vph-reorder-chip in-answer ${posClass}" data-id="${t.id}" ${titleAttr} onclick="window.VocabPracticeHub.handleReorderTokenDeselect('${t.id}')">
                   ${escHtml(t.displayText || t.text)}
                 </button>`;
       }).join('');
@@ -3310,10 +3332,11 @@
       wordBank.innerHTML = `<span class="fs-text-muted" style="font-size:12px; font-style:italic;">(Đã đưa hết các từ lên câu đang ghép)</span>`;
     } else {
       wordBank.innerHTML = state.reorderBankTokens.map((t, idx) => {
-        const keyBadge = idx < 9 ? `<span class="vph-reorder-key-badge">${idx + 1}</span>` : '';
+        const keyBadge = idx < 9 && !state.answered ? `<span class="vph-reorder-key-badge">${idx + 1}</span>` : '';
         const isHintWord = state.reorderHintLevel >= 1 && t.origIndex < 2;
         const hintStar = isHintWord ? `<span class="vph-reorder-hint-star" title="Từ số ${t.origIndex + 1} trong câu">⭐${t.origIndex + 1} </span>` : '';
-        return `<button type="button" class="vph-reorder-chip" data-id="${t.id}" onclick="window.VocabPracticeHub.handleReorderTokenSelect('${t.id}')">
+        const titleAttr = state.answered ? `title="Bấm để nghe phát âm: ${escHtml(t.text)}" style="cursor:pointer;"` : '';
+        return `<button type="button" class="vph-reorder-chip" data-id="${t.id}" ${titleAttr} onclick="window.VocabPracticeHub.handleReorderTokenSelect('${t.id}')">
                   ${keyBadge}${hintStar}${escHtml(t.displayText || t.text)}
                 </button>`;
       }).join('');
@@ -3321,7 +3344,11 @@
   }
 
   function handleReorderTokenSelect(tokenId) {
-    if (state.answered) return;
+    if (state.answered) {
+      const tok = state.reorderBankTokens.find(t => t.id === tokenId);
+      if (tok) speakFrench(tok.text);
+      return;
+    }
     const idx = state.reorderBankTokens.findIndex(t => t.id === tokenId);
     if (idx < 0) return;
     const token = state.reorderBankTokens.splice(idx, 1)[0];
@@ -3337,7 +3364,11 @@
   }
 
   function handleReorderTokenDeselect(tokenId) {
-    if (state.answered) return;
+    if (state.answered) {
+      const tok = state.reorderSelectedTokens.find(t => t.id === tokenId);
+      if (tok) speakFrench(tok.text);
+      return;
+    }
     const idx = state.reorderSelectedTokens.findIndex(t => t.id === tokenId);
     if (idx < 0) return;
     const token = state.reorderSelectedTokens.splice(idx, 1)[0];
@@ -3359,6 +3390,40 @@
     if (state.answered || state.reorderSelectedTokens.length === 0) return;
     state.reorderBankTokens = [...state.reorderBankTokens, ...state.reorderSelectedTokens];
     state.reorderSelectedTokens = [];
+    playSound('click');
+    renderReorderZones();
+  }
+
+  function handleReorderRetry() {
+    const q = state.questions[state.currentIndex];
+    if (!q) return;
+
+    state.answered = false;
+    state.reorderCanAdvance = false;
+    state.reorderSelectedTokens = [];
+    state.reorderBankTokens = [...q.shuffledTokens];
+
+    const fb = document.getElementById('vph-reorder-feedback');
+    if (fb) fb.innerHTML = '';
+
+    const submitBtn = document.getElementById('vph-reorder-submit-btn');
+    if (submitBtn) {
+      submitBtn.innerHTML = `<span>Kiểm tra (Enter)</span>`;
+      submitBtn.classList.remove('vph-pulse');
+    }
+
+    const speakBtn = document.getElementById('vph-reorder-speak-btn');
+    if (speakBtn) {
+      speakBtn.disabled = true;
+      speakBtn.innerHTML = `<span>🔒 Nghe câu</span>`;
+      speakBtn.title = 'Nút nghe cả câu sẽ mở khóa sau khi bạn kiểm tra bài (tránh lộ đáp án)';
+      speakBtn.style.opacity = '0.5';
+      speakBtn.style.cursor = 'not-allowed';
+      speakBtn.onclick = () => {
+        if (state.answered) speakFrench(q.expectedFr);
+      };
+    }
+
     playSound('click');
     renderReorderZones();
   }
@@ -3402,7 +3467,8 @@
       if (fb) {
         fb.innerHTML = `
           <div class="vph-diff-box vph-diff-success">
-            <div style="font-weight:700; margin-bottom:2px;">✓ Chính xác! Bạn đã ghép đúng thứ tự câu.</div>
+            <div style="font-weight:700; margin-bottom:4px;">✓ Chính xác! Bạn đã ghép đúng thứ tự câu.</div>
+            <div class="vph-diff-std">Câu chuẩn: <strong class="fs-text-success">${escHtml(q.expectedFr)}</strong></div>
           </div>
         `;
       }
@@ -3419,12 +3485,29 @@
       if (fb) {
         fb.innerHTML = `
           <div class="vph-diff-box vph-diff-error">
-            <div class="vph-diff-error-title">✕ Chưa chính xác.</div>
-            <div class="vph-diff-std">Đáp án chuẩn: <strong class="fs-text-success">${escHtml(q.expectedFr)}</strong></div>
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+              <div class="vph-diff-error-title" style="margin-bottom:0;">✕ Chưa chính xác.</div>
+              <button type="button" class="vph-secondary-btn" id="vph-reorder-retry-btn" style="padding:4px 12px; font-size:12.5px;">
+                <span>🔄 Làm lại câu này</span>
+              </button>
+            </div>
+            <div class="vph-diff-std" style="margin-top:6px;">Đáp án chuẩn: <strong class="fs-text-success">${escHtml(q.expectedFr)}</strong></div>
           </div>
         `;
+        const retryBtn = document.getElementById('vph-reorder-retry-btn');
+        if (retryBtn) retryBtn.onclick = handleReorderRetry;
       }
     }
+
+    // Mở khóa nút nghe câu sau khi kiểm tra bài
+    unlockReorderSpeakBtn(q);
+
+    // Tự động phát âm câu chuẩn tiếng Pháp sau khi hoàn thành kiểm tra
+    setTimeout(() => {
+      if (state.isOpen && state.currentMode === 'reorder' && state.answered) {
+        speakFrench(q.expectedFr);
+      }
+    }, 220);
 
     if (submitBtn) {
       submitBtn.innerHTML = `<span>Câu tiếp theo (Enter)</span>`;
@@ -3508,6 +3591,7 @@
     }
     state.reorderSelectedTokens = [...state.reorderCurrentTokens];
     state.reorderBankTokens = [];
+    unlockReorderSpeakBtn(q);
     renderReorderZones();
   }
 
@@ -3744,6 +3828,7 @@
     handleReorderTokenDeselect: handleReorderTokenDeselect,
     handleReorderUndo: handleReorderUndo,
     handleReorderClear: handleReorderClear,
+    handleReorderRetry: handleReorderRetry,
     handleReorderSubmit: handleReorderSubmit,
     advanceToNextReorderQuestion: advanceToNextReorderQuestion,
     handleReorderHintAdvance: handleReorderHintAdvance,
