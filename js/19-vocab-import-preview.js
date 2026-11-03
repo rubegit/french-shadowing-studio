@@ -349,18 +349,18 @@
     var alignHtml = '';
     if (stats.hasSubtitles) {
       alignHtml = [
-        '<div class="p-3 rounded-xl bg-indigo-950/40 border border-indigo-900/60 shadow-sm flex flex-col justify-between"><div class="text-[10px] uppercase font-bold text-indigo-400 tracking-wider">Khớp chính xác</div><div class="text-lg font-bold text-indigo-200 font-mono mt-1">' + aStats.exact + '</div></div>',
-        '<div class="p-3 rounded-xl bg-sky-950/40 border border-sky-900/60 shadow-sm flex flex-col justify-between"><div class="text-[10px] uppercase font-bold text-sky-400 tracking-wider">Khớp gần đúng</div><div class="text-lg font-bold text-sky-200 font-mono mt-1">' + aStats.fuzzy + '</div></div>',
-        '<div class="p-3 rounded-xl bg-amber-950/40 border border-amber-900/60 shadow-sm flex flex-col justify-between"><div class="text-[10px] uppercase font-bold text-amber-400 tracking-wider">Nhiều câu khớp</div><div class="text-lg font-bold text-amber-200 font-mono mt-1">' + aStats.multiple + '</div></div>',
-        '<div class="p-3 rounded-xl bg-rose-950/40 border border-rose-900/60 shadow-sm flex flex-col justify-between"><div class="text-[10px] uppercase font-bold text-rose-400 tracking-wider">Cần căn lại</div><div class="text-lg font-bold text-rose-200 font-mono mt-1">' + aStats.notFound + '</div></div>'
+        '<div class="fss-kpi-card fss-kpi-align-exact p-3 rounded-xl bg-indigo-950/40 border border-indigo-900/60 shadow-sm flex flex-col justify-between"><div class="fss-kpi-label text-[10px] uppercase font-bold text-indigo-400 tracking-wider">Khớp chính xác</div><div class="fss-kpi-val text-lg font-bold text-indigo-200 font-mono mt-1">' + aStats.exact + '</div></div>',
+        '<div class="fss-kpi-card fss-kpi-align-fuzzy p-3 rounded-xl bg-sky-950/40 border border-sky-900/60 shadow-sm flex flex-col justify-between"><div class="fss-kpi-label text-[10px] uppercase font-bold text-sky-400 tracking-wider">Khớp gần đúng</div><div class="fss-kpi-val text-lg font-bold text-sky-200 font-mono mt-1">' + aStats.fuzzy + '</div></div>',
+        '<div class="fss-kpi-card fss-kpi-align-multiple p-3 rounded-xl bg-amber-950/40 border border-amber-900/60 shadow-sm flex flex-col justify-between"><div class="fss-kpi-label text-[10px] uppercase font-bold text-amber-400 tracking-wider">Nhiều câu khớp</div><div class="fss-kpi-val text-lg font-bold text-amber-200 font-mono mt-1">' + aStats.multiple + '</div></div>',
+        '<div class="fss-kpi-card fss-kpi-align-notfound p-3 rounded-xl bg-rose-950/40 border border-rose-900/60 shadow-sm flex flex-col justify-between"><div class="fss-kpi-label text-[10px] uppercase font-bold text-rose-400 tracking-wider">Cần căn lại</div><div class="fss-kpi-val text-lg font-bold text-rose-200 font-mono mt-1">' + aStats.notFound + '</div></div>'
       ].join('');
     }
 
     grid.innerHTML = [
-      '<div class="p-3 rounded-xl bg-blue-950/40 border border-blue-900/60 shadow-sm flex flex-col justify-between"><div class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Tổng nhận diện</div><div class="text-lg font-bold text-white font-mono mt-1">' + stats.totalItems + '</div></div>',
-      '<div class="p-3 rounded-xl bg-emerald-950/40 border border-emerald-900/60 shadow-sm flex flex-col justify-between"><div class="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">Mục mới</div><div class="text-lg font-bold text-emerald-300 font-mono mt-1">' + stats.newCount + '</div></div>',
-      '<div class="p-3 rounded-xl bg-cyan-950/40 border border-cyan-900/60 shadow-sm flex flex-col justify-between"><div class="text-[10px] uppercase font-bold text-cyan-400 tracking-wider">Đã có trong kho</div><div class="text-lg font-bold text-cyan-300 font-mono mt-1">' + stats.existsCount + '</div></div>',
-      '<div class="p-3 rounded-xl bg-purple-950/40 border border-purple-900/60 shadow-sm flex flex-col justify-between"><div class="text-[10px] uppercase font-bold text-purple-400 tracking-wider">Xung đột / Nghi trùng</div><div class="text-lg font-bold text-purple-300 font-mono mt-1">' + (stats.collisionCount + stats.suspiciousCount) + '</div></div>',
+      '<div class="fss-kpi-card fss-kpi-total p-3 rounded-xl bg-blue-950/40 border border-blue-900/60 shadow-sm flex flex-col justify-between"><div class="fss-kpi-label text-[10px] uppercase font-bold text-slate-400 tracking-wider">Tổng nhận diện</div><div class="fss-kpi-val text-lg font-bold text-white font-mono mt-1">' + stats.totalItems + '</div></div>',
+      '<div class="fss-kpi-card fss-kpi-new p-3 rounded-xl bg-emerald-950/40 border border-emerald-900/60 shadow-sm flex flex-col justify-between"><div class="fss-kpi-label text-[10px] uppercase font-bold text-emerald-400 tracking-wider">Mục mới</div><div class="fss-kpi-val text-lg font-bold text-emerald-300 font-mono mt-1">' + stats.newCount + '</div></div>',
+      '<div class="fss-kpi-card fss-kpi-exists p-3 rounded-xl bg-cyan-950/40 border border-cyan-900/60 shadow-sm flex flex-col justify-between"><div class="fss-kpi-label text-[10px] uppercase font-bold text-cyan-400 tracking-wider">Đã có trong kho</div><div class="fss-kpi-val text-lg font-bold text-cyan-300 font-mono mt-1">' + stats.existsCount + '</div></div>',
+      '<div class="fss-kpi-card fss-kpi-collision p-3 rounded-xl bg-purple-950/40 border border-purple-900/60 shadow-sm flex flex-col justify-between"><div class="fss-kpi-label text-[10px] uppercase font-bold text-purple-400 tracking-wider">Xung đột / Nghi trùng</div><div class="fss-kpi-val text-lg font-bold text-purple-300 font-mono mt-1">' + (stats.collisionCount + stats.suspiciousCount) + '</div></div>',
       alignHtml
     ].join('');
   }
@@ -382,10 +382,10 @@
         ? '<div class="text-amber-400 text-[11px] mt-0.5 flex items-center gap-1 font-sans"><span>⚠️ ' + escapeHtml(f.warning) + '</span></div>'
         : '';
       var tr = document.createElement('tr');
-      tr.innerHTML = '<td class="px-3 py-2 font-medium text-slate-200">' + escapeHtml(f.fileName) + warnHtml + '</td>' +
-        '<td class="px-3 py-2 font-mono text-blue-300 text-[11px]">' + escapeHtml(f.source_id) + '</td>' +
-        '<td class="px-3 py-2 text-center text-emerald-400 font-mono font-bold">' + f.itemsCount + '</td>' +
-        '<td class="px-3 py-2 text-center text-cyan-400 font-mono font-bold">' + f.occurrencesCount + '</td>';
+      tr.innerHTML = '<td class="fss-src-name px-3 py-2 font-medium text-slate-200">' + escapeHtml(f.fileName) + warnHtml + '</td>' +
+        '<td class="fss-src-id px-3 py-2 font-mono text-blue-300 text-[11px]">' + escapeHtml(f.source_id) + '</td>' +
+        '<td class="fss-src-items px-3 py-2 text-center text-emerald-400 font-mono font-bold">' + f.itemsCount + '</td>' +
+        '<td class="fss-src-occs px-3 py-2 text-center text-cyan-400 font-mono font-bold">' + f.occurrencesCount + '</td>';
       tbody.appendChild(tr);
     });
   }
@@ -492,11 +492,33 @@
       itemDiv.innerHTML = infoHtml + choicesHtml;
       list.appendChild(itemDiv);
     });
+
+    // Nếu đã giải quyết xong toàn bộ xung đột loại: hiển thị thanh hành động trực tiếp
+    var allColDecided = relevant.length > 0 && relevant.every(function (col) {
+      return !!collisionDecisions[col.collisionId];
+    });
+
+    if (allColDecided) {
+      var doneBanner = document.createElement('div');
+      doneBanner.className = 'fss-conflict-resolved-banner p-3 rounded-xl flex items-center justify-between gap-3 text-xs mt-3';
+      doneBanner.innerHTML = '<div class="flex items-center gap-2 font-medium">' +
+        '<span class="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold text-xs shrink-0">✓</span>' +
+        '<span>Đã giải quyết xong toàn bộ ' + relevant.length + ' xung đột. Bạn có thể lưu ngay:</span>' +
+      '</div>' +
+      '<button type="button" onclick="window.executeVocabCommit()" class="fss-banner-commit-btn px-4 py-2 rounded-lg text-white font-bold text-xs shrink-0 shadow-md cursor-pointer transition flex items-center gap-1.5">' +
+        '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>' +
+        '<span>Xác nhận ghi vào kho</span>' +
+      '</button>';
+      list.appendChild(doneBanner);
+    }
   }
 
   window.setCollisionDecision = function (collisionId, choice) {
     collisionDecisions[collisionId] = choice;
     window.checkCommitUnlock();
+    if (stagedResult && stagedResult.collisions) {
+      renderCollisionsList(stagedResult.collisions);
+    }
   };
 
   function renderSuspiciousList(suspicious) {
@@ -596,58 +618,61 @@
 
   function formatCefrBadge(level) {
     var lvl = (level || 'A2').toUpperCase().trim();
+    var baseCls = 'fss-cefr-badge inline-flex items-center justify-center px-2 py-0.5 rounded-full text-[10px] font-bold font-mono ';
     if (lvl === 'A1') {
-      return '<span class="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-[10px] font-bold font-mono bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">A1</span>';
+      return '<span class="' + baseCls + 'fss-cefr-a1 bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">A1</span>';
     }
     if (lvl === 'A2' || lvl === 'A2+') {
-      return '<span class="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-[10px] font-bold font-mono bg-sky-500/15 text-sky-300 border border-sky-500/30">' + escapeHtml(lvl) + '</span>';
+      return '<span class="' + baseCls + 'fss-cefr-a2 bg-sky-500/15 text-sky-300 border border-sky-500/30">' + escapeHtml(lvl) + '</span>';
     }
     if (lvl === 'B1') {
-      return '<span class="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-[10px] font-bold font-mono bg-amber-500/15 text-amber-300 border border-amber-500/30">B1</span>';
+      return '<span class="' + baseCls + 'fss-cefr-b1 bg-amber-500/15 text-amber-300 border border-amber-500/30">B1</span>';
     }
     if (lvl === 'B2') {
-      return '<span class="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-[10px] font-bold font-mono bg-orange-500/15 text-orange-300 border border-orange-500/30">B2</span>';
+      return '<span class="' + baseCls + 'fss-cefr-b2 bg-orange-500/15 text-orange-300 border border-orange-500/30">B2</span>';
     }
     if (lvl === 'C1' || lvl === 'C2') {
-      return '<span class="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-[10px] font-bold font-mono bg-purple-500/15 text-purple-300 border border-purple-500/30">' + escapeHtml(lvl) + '</span>';
+      return '<span class="' + baseCls + 'fss-cefr-c1 bg-purple-500/15 text-purple-300 border border-purple-500/30">' + escapeHtml(lvl) + '</span>';
     }
-    return '<span class="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-[10px] font-bold font-mono bg-slate-800 text-slate-300 border border-slate-700">' + escapeHtml(lvl) + '</span>';
+    return '<span class="' + baseCls + 'bg-slate-800 text-slate-300 border border-slate-700">' + escapeHtml(lvl) + '</span>';
   }
 
   function formatTypeBadge(type) {
     var raw = (type || '').toLowerCase().trim();
+    var baseCls = 'fss-type-badge inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium ';
     if (raw === 'word' || raw === 'từ') {
-      return '<span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium bg-blue-500/15 text-blue-300 border border-blue-500/30">Từ đơn</span>';
+      return '<span class="' + baseCls + 'fss-type-word bg-blue-500/15 text-blue-300 border border-blue-500/30">Từ đơn</span>';
     }
     if (raw === 'chunk' || raw === 'cụm từ') {
-      return '<span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">Cụm từ</span>';
+      return '<span class="' + baseCls + 'fss-type-chunk bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">Cụm từ</span>';
     }
     if (raw === 'collocation') {
-      return '<span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">Collocation</span>';
+      return '<span class="' + baseCls + 'fss-type-collocation bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">Collocation</span>';
     }
     if (raw === 'idiom' || raw === 'thành ngữ') {
-      return '<span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium bg-fuchsia-500/15 text-fuchsia-300 border border-fuchsia-500/30">Thành ngữ</span>';
+      return '<span class="' + baseCls + 'fss-type-idiom bg-fuchsia-500/15 text-fuchsia-300 border border-fuchsia-500/30">Thành ngữ</span>';
     }
     if (raw === 'slang' || raw === 'tiếng lóng') {
-      return '<span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium bg-pink-500/15 text-pink-300 border border-pink-500/30">Tiếng lóng</span>';
+      return '<span class="' + baseCls + 'fss-type-slang bg-pink-500/15 text-pink-300 border border-pink-500/30">Tiếng lóng</span>';
     }
-    return '<span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-mono bg-slate-800 text-slate-300 border border-slate-700">' + escapeHtml(type) + '</span>';
+    return '<span class="' + baseCls + 'font-mono bg-slate-800 text-slate-300 border border-slate-700">' + escapeHtml(type) + '</span>';
   }
 
   function formatStatusBadge(status) {
+    var baseCls = 'fss-status-badge inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold ';
     if (status === 'NEW') {
-      return '<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>MỤC MỚI</span>';
+      return '<span class="' + baseCls + 'fss-status-new bg-emerald-500/15 text-emerald-300 border border-emerald-500/30"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 fss-status-dot"></span>MỤC MỚI</span>';
     }
     if (status === 'EXISTS') {
-      return '<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/15 text-blue-300 border border-blue-500/30"><span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>ĐÃ CÓ</span>';
+      return '<span class="' + baseCls + 'fss-status-exists bg-blue-500/15 text-blue-300 border border-blue-500/30"><span class="w-1.5 h-1.5 rounded-full bg-blue-400 fss-status-dot"></span>ĐÃ CÓ</span>';
     }
     if (status === 'TYPE_COLLISION') {
-      return '<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30 animate-pulse"><span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>XUNG ĐỘT</span>';
+      return '<span class="' + baseCls + 'fss-status-collision bg-amber-500/15 text-amber-300 border border-amber-500/30 animate-pulse"><span class="w-1.5 h-1.5 rounded-full bg-amber-400 fss-status-dot"></span>XUNG ĐỘT</span>';
     }
     if (status === 'SUSPICIOUS') {
-      return '<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-purple-500/15 text-purple-300 border border-purple-500/30"><span class="w-1.5 h-1.5 rounded-full bg-purple-400"></span>NGHI TRÙNG</span>';
+      return '<span class="' + baseCls + 'fss-status-suspicious bg-purple-500/15 text-purple-300 border border-purple-500/30"><span class="w-1.5 h-1.5 rounded-full bg-purple-400 fss-status-dot"></span>NGHI TRÙNG</span>';
     }
-    return '<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-slate-800 text-slate-300 border border-slate-700">' + escapeHtml(status) + '</span>';
+    return '<span class="' + baseCls + 'font-medium bg-slate-800 text-slate-300 border border-slate-700">' + escapeHtml(status) + '</span>';
   }
 
   function renderPreviewTable(items) {
@@ -662,11 +687,11 @@
       var tr = document.createElement('tr');
       tr.className = 'hover:bg-blue-900/20 transition-colors border-b border-blue-950/40';
 
-      tr.innerHTML = '<td class="px-3 py-2.5 text-center text-slate-400 font-mono text-[11px] select-none">' + (it.seq || (idx + 1)) + '</td>' +
-        '<td class="px-3 py-2.5 font-semibold text-slate-100 text-sm tracking-wide">' + escapeHtml(it.fr) + '</td>' +
+      tr.innerHTML = '<td class="fss-td-seq px-3 py-2.5 text-center text-slate-400 font-mono text-[11px] select-none">' + (it.seq || (idx + 1)) + '</td>' +
+        '<td class="fss-td-fr px-3 py-2.5 font-semibold text-slate-100 text-sm tracking-wide">' + escapeHtml(it.fr) + '</td>' +
         '<td class="px-3 py-2.5">' + formatTypeBadge(it.type) + '</td>' +
         '<td class="px-3 py-2.5 text-center">' + formatCefrBadge(it.level) + '</td>' +
-        '<td class="px-3 py-2.5 text-slate-300 text-xs truncate max-w-xs" title="' + escapeHtml(it.meaning_vi || '') + '">' + escapeHtml(it.meaning_vi || '') + '</td>' +
+        '<td class="fss-td-vi px-3 py-2.5 text-slate-300 text-xs truncate max-w-xs" title="' + escapeHtml(it.meaning_vi || '') + '">' + escapeHtml(it.meaning_vi || '') + '</td>' +
         '<td class="px-3 py-2.5 text-center whitespace-nowrap">' + formatStatusBadge(it.status) + '</td>';
 
       tbody.appendChild(tr);

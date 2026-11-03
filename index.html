@@ -689,6 +689,35 @@
     box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.35) !important;
   }
 
+  /* Nút Xác nhận ghi vào kho & Banner nút commit */
+  #fss-import-commit-btn,
+  .fss-banner-commit-btn {
+    background-color: #059669 !important;
+    color: #ffffff !important;
+    border: 1px solid #047857 !important;
+    font-weight: 700 !important;
+    box-shadow: 0 4px 14px rgba(5, 150, 105, 0.35) !important;
+    transition: all 0.15s ease-in-out !important;
+  }
+  #fss-import-commit-btn:hover:not(:disabled),
+  .fss-banner-commit-btn:hover {
+    background-color: #047857 !important;
+    box-shadow: 0 6px 18px rgba(5, 150, 105, 0.45) !important;
+  }
+  #fss-import-commit-btn:disabled {
+    background-color: #1e293b !important;
+    color: #64748b !important;
+    border: 1px solid #334155 !important;
+    opacity: 0.55 !important;
+    cursor: not-allowed !important;
+    box-shadow: none !important;
+  }
+  .fss-conflict-resolved-banner {
+    background-color: rgba(6, 78, 59, 0.4) !important;
+    border: 1px solid rgba(16, 185, 129, 0.5) !important;
+    color: #6ee7b7 !important;
+  }
+
   /* =====================================================================
      LIGHT MODE OVERRIDES: CHỈ ÁP DỤNG KHI THỰC SỰ LÀ GIAO DIỆN SÁNG
      1. Khi có data-theme="light" tường minh
@@ -847,6 +876,132 @@
       color: #1d4ed8 !important;
       box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.25) !important;
     }
+
+    /* KPI Cards in Light Mode */
+    html:not([data-theme="dark"]):not(.dark) .fss-kpi-card {
+      background-color: #f8fafc !important;
+      border: 1px solid #e2e8f0 !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) .fss-kpi-label {
+      color: #475569 !important;
+      font-weight: 700 !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) .fss-kpi-total .fss-kpi-val { color: #0f172a !important; font-weight: 800 !important; }
+    html:not([data-theme="dark"]):not(.dark) .fss-kpi-new .fss-kpi-val { color: #047857 !important; font-weight: 800 !important; }
+    html:not([data-theme="dark"]):not(.dark) .fss-kpi-exists .fss-kpi-val { color: #0284c7 !important; font-weight: 800 !important; }
+    html:not([data-theme="dark"]):not(.dark) .fss-kpi-collision .fss-kpi-val { color: #b45309 !important; font-weight: 800 !important; }
+    html:not([data-theme="dark"]):not(.dark) .fss-kpi-align-exact .fss-kpi-val { color: #4338ca !important; font-weight: 800 !important; }
+    html:not([data-theme="dark"]):not(.dark) .fss-kpi-align-fuzzy .fss-kpi-val { color: #0284c7 !important; font-weight: 800 !important; }
+    html:not([data-theme="dark"]):not(.dark) .fss-kpi-align-multiple .fss-kpi-val { color: #b45309 !important; font-weight: 800 !important; }
+    html:not([data-theme="dark"]):not(.dark) .fss-kpi-align-notfound .fss-kpi-val { color: #be123c !important; font-weight: 800 !important; }
+
+    /* Conflict & Suspicious in Light Mode */
+    html:not([data-theme="dark"]):not(.dark) #fss-import-collisions-section {
+      background-color: #fffbeb !important;
+      border: 1px solid #fcd34d !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) #fss-import-collisions-section .text-amber-300,
+    html:not([data-theme="dark"]):not(.dark) #fss-import-collisions-section .text-amber-400 {
+      color: #92400e !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) #fss-collision-badge {
+      background-color: #fef3c7 !important;
+      color: #92400e !important;
+      border: 1px solid #fcd34d !important;
+      font-weight: 700 !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) .fss-collision-item {
+      background-color: #ffffff !important;
+      border: 1px solid #fde68a !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) .fss-collision-item .text-amber-200 {
+      color: #0f172a !important;
+      font-weight: 700 !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) .fss-collision-item .bg-amber-400 {
+      background-color: #d97706 !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) .fss-collision-item .text-slate-400 {
+      color: #475569 !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) .fss-collision-item .bg-cyan-950\/80 {
+      background-color: #f1f5f9 !important;
+      border-color: #cbd5e1 !important;
+      color: #0369a1 !important;
+      font-weight: 600 !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) .fss-collision-item .bg-amber-950\/80 {
+      background-color: #fef3c7 !important;
+      border-color: #fde68a !important;
+      color: #92400e !important;
+      font-weight: 700 !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) .fss-conflict-resolved-banner {
+      background-color: #f0fdf4 !important;
+      border: 1px solid #86efac !important;
+      color: #166534 !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) .fss-conflict-resolved-banner span {
+      color: #166534 !important;
+      font-weight: 600 !important;
+    }
+
+    /* Table text and cells in Light Mode */
+    html:not([data-theme="dark"]):not(.dark) .fss-td-seq { color: #64748b !important; font-weight: 600 !important; }
+    html:not([data-theme="dark"]):not(.dark) .fss-td-fr { color: #0f172a !important; font-weight: 700 !important; }
+    html:not([data-theme="dark"]):not(.dark) .fss-td-vi { color: #334155 !important; font-weight: 500 !important; }
+    html:not([data-theme="dark"]):not(.dark) .fss-src-name { color: #0f172a !important; font-weight: 600 !important; }
+    html:not([data-theme="dark"]):not(.dark) .fss-src-id { color: #2563eb !important; font-weight: 600 !important; }
+    html:not([data-theme="dark"]):not(.dark) .fss-src-items { color: #047857 !important; font-weight: 700 !important; }
+    html:not([data-theme="dark"]):not(.dark) .fss-src-occs { color: #0284c7 !important; font-weight: 700 !important; }
+
+    /* CEFR Badges in Light Mode */
+    html:not([data-theme="dark"]):not(.dark) .fss-cefr-a1 { background-color: #d1fae5 !important; color: #065f46 !important; border-color: #a7f3d0 !important; font-weight: 800 !important; }
+    html:not([data-theme="dark"]):not(.dark) .fss-cefr-a2 { background-color: #e0f2fe !important; color: #0369a1 !important; border-color: #bae6fd !important; font-weight: 800 !important; }
+    html:not([data-theme="dark"]):not(.dark) .fss-cefr-b1 { background-color: #fef3c7 !important; color: #78350f !important; border-color: #fde68a !important; font-weight: 800 !important; }
+    html:not([data-theme="dark"]):not(.dark) .fss-cefr-b2 { background-color: #ffedd5 !important; color: #9a3412 !important; border-color: #fed7aa !important; font-weight: 800 !important; }
+    html:not([data-theme="dark"]):not(.dark) .fss-cefr-c1 { background-color: #f3e8ff !important; color: #581c87 !important; border-color: #e9d5ff !important; font-weight: 800 !important; }
+
+    /* Type Badges in Light Mode */
+    html:not([data-theme="dark"]):not(.dark) .fss-type-word { background-color: #eff6ff !important; color: #1e40af !important; border-color: #bfdbfe !important; font-weight: 600 !important; }
+    html:not([data-theme="dark"]):not(.dark) .fss-type-chunk { background-color: #eef2ff !important; color: #3730a3 !important; border-color: #c7d2fe !important; font-weight: 600 !important; }
+    html:not([data-theme="dark"]):not(.dark) .fss-type-collocation { background-color: #ecfeff !important; color: #0e7490 !important; border-color: #a5f3fc !important; font-weight: 600 !important; }
+    html:not([data-theme="dark"]):not(.dark) .fss-type-idiom { background-color: #fdf4ff !important; color: #86198f !important; border-color: #f5d0fe !important; font-weight: 600 !important; }
+    html:not([data-theme="dark"]):not(.dark) .fss-type-slang { background-color: #fdf2f8 !important; color: #9d174d !important; border-color: #fbcfe8 !important; font-weight: 600 !important; }
+
+    /* Status Badges in Light Mode */
+    html:not([data-theme="dark"]):not(.dark) .fss-status-new { background-color: #dcfce7 !important; color: #166534 !important; border-color: #86efac !important; font-weight: 700 !important; }
+    html:not([data-theme="dark"]):not(.dark) .fss-status-new .fss-status-dot { background-color: #16a34a !important; }
+    html:not([data-theme="dark"]):not(.dark) .fss-status-exists { background-color: #dbeafe !important; color: #1e40af !important; border-color: #93c5fd !important; font-weight: 700 !important; }
+    html:not([data-theme="dark"]):not(.dark) .fss-status-exists .fss-status-dot { background-color: #2563eb !important; }
+    html:not([data-theme="dark"]):not(.dark) .fss-status-collision { background-color: #fef3c7 !important; color: #92400e !important; border-color: #fcd34d !important; font-weight: 700 !important; }
+    html:not([data-theme="dark"]):not(.dark) .fss-status-collision .fss-status-dot { background-color: #d97706 !important; }
+    html:not([data-theme="dark"]):not(.dark) .fss-status-suspicious { background-color: #f3e8ff !important; color: #6b21a8 !important; border-color: #d8b4fe !important; font-weight: 700 !important; }
+    html:not([data-theme="dark"]):not(.dark) .fss-status-suspicious .fss-status-dot { background-color: #9333ea !important; }
+
+    /* Commit Button in Light Mode */
+    html:not([data-theme="dark"]):not(.dark) #fss-import-commit-btn,
+    html:not([data-theme="dark"]):not(.dark) .fss-banner-commit-btn {
+      background-color: #059669 !important;
+      color: #ffffff !important;
+      border: 1px solid #047857 !important;
+      font-weight: 700 !important;
+      box-shadow: 0 4px 14px rgba(5, 150, 105, 0.3) !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) #fss-import-commit-btn:hover:not(:disabled),
+    html:not([data-theme="dark"]):not(.dark) .fss-banner-commit-btn:hover {
+      background-color: #047857 !important;
+    }
+    html:not([data-theme="dark"]):not(.dark) #fss-import-commit-btn:disabled {
+      background-color: #f1f5f9 !important;
+      color: #94a3b8 !important;
+      border: 1px solid #cbd5e1 !important;
+      opacity: 0.7 !important;
+      cursor: not-allowed !important;
+      box-shadow: none !important;
+    }
   }
 
   /* Khi người dùng chọn sáng thủ công: html[data-theme="light"] */
@@ -1001,6 +1156,132 @@
     border-color: #3b82f6 !important;
     color: #1d4ed8 !important;
     box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.25) !important;
+  }
+
+  /* KPI Cards in Light Mode */
+  html[data-theme="light"] .fss-kpi-card {
+    background-color: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+  }
+  html[data-theme="light"] .fss-kpi-label {
+    color: #475569 !important;
+    font-weight: 700 !important;
+  }
+  html[data-theme="light"] .fss-kpi-total .fss-kpi-val { color: #0f172a !important; font-weight: 800 !important; }
+  html[data-theme="light"] .fss-kpi-new .fss-kpi-val { color: #047857 !important; font-weight: 800 !important; }
+  html[data-theme="light"] .fss-kpi-exists .fss-kpi-val { color: #0284c7 !important; font-weight: 800 !important; }
+  html[data-theme="light"] .fss-kpi-collision .fss-kpi-val { color: #b45309 !important; font-weight: 800 !important; }
+  html[data-theme="light"] .fss-kpi-align-exact .fss-kpi-val { color: #4338ca !important; font-weight: 800 !important; }
+  html[data-theme="light"] .fss-kpi-align-fuzzy .fss-kpi-val { color: #0284c7 !important; font-weight: 800 !important; }
+  html[data-theme="light"] .fss-kpi-align-multiple .fss-kpi-val { color: #b45309 !important; font-weight: 800 !important; }
+  html[data-theme="light"] .fss-kpi-align-notfound .fss-kpi-val { color: #be123c !important; font-weight: 800 !important; }
+
+  /* Conflict & Suspicious in Light Mode */
+  html[data-theme="light"] #fss-import-collisions-section {
+    background-color: #fffbeb !important;
+    border: 1px solid #fcd34d !important;
+  }
+  html[data-theme="light"] #fss-import-collisions-section .text-amber-300,
+  html[data-theme="light"] #fss-import-collisions-section .text-amber-400 {
+    color: #92400e !important;
+  }
+  html[data-theme="light"] #fss-collision-badge {
+    background-color: #fef3c7 !important;
+    color: #92400e !important;
+    border: 1px solid #fcd34d !important;
+    font-weight: 700 !important;
+  }
+  html[data-theme="light"] .fss-collision-item {
+    background-color: #ffffff !important;
+    border: 1px solid #fde68a !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+  }
+  html[data-theme="light"] .fss-collision-item .text-amber-200 {
+    color: #0f172a !important;
+    font-weight: 700 !important;
+  }
+  html[data-theme="light"] .fss-collision-item .bg-amber-400 {
+    background-color: #d97706 !important;
+  }
+  html[data-theme="light"] .fss-collision-item .text-slate-400 {
+    color: #475569 !important;
+  }
+  html[data-theme="light"] .fss-collision-item .bg-cyan-950\/80 {
+    background-color: #f1f5f9 !important;
+    border-color: #cbd5e1 !important;
+    color: #0369a1 !important;
+    font-weight: 600 !important;
+  }
+  html[data-theme="light"] .fss-collision-item .bg-amber-950\/80 {
+    background-color: #fef3c7 !important;
+    border-color: #fde68a !important;
+    color: #92400e !important;
+    font-weight: 700 !important;
+  }
+  html[data-theme="light"] .fss-conflict-resolved-banner {
+    background-color: #f0fdf4 !important;
+    border: 1px solid #86efac !important;
+    color: #166534 !important;
+  }
+  html[data-theme="light"] .fss-conflict-resolved-banner span {
+    color: #166534 !important;
+    font-weight: 600 !important;
+  }
+
+  /* Table text and cells in Light Mode */
+  html[data-theme="light"] .fss-td-seq { color: #64748b !important; font-weight: 600 !important; }
+  html[data-theme="light"] .fss-td-fr { color: #0f172a !important; font-weight: 700 !important; }
+  html[data-theme="light"] .fss-td-vi { color: #334155 !important; font-weight: 500 !important; }
+  html[data-theme="light"] .fss-src-name { color: #0f172a !important; font-weight: 600 !important; }
+  html[data-theme="light"] .fss-src-id { color: #2563eb !important; font-weight: 600 !important; }
+  html[data-theme="light"] .fss-src-items { color: #047857 !important; font-weight: 700 !important; }
+  html[data-theme="light"] .fss-src-occs { color: #0284c7 !important; font-weight: 700 !important; }
+
+  /* CEFR Badges in Light Mode */
+  html[data-theme="light"] .fss-cefr-a1 { background-color: #d1fae5 !important; color: #065f46 !important; border-color: #a7f3d0 !important; font-weight: 800 !important; }
+  html[data-theme="light"] .fss-cefr-a2 { background-color: #e0f2fe !important; color: #0369a1 !important; border-color: #bae6fd !important; font-weight: 800 !important; }
+  html[data-theme="light"] .fss-cefr-b1 { background-color: #fef3c7 !important; color: #78350f !important; border-color: #fde68a !important; font-weight: 800 !important; }
+  html[data-theme="light"] .fss-cefr-b2 { background-color: #ffedd5 !important; color: #9a3412 !important; border-color: #fed7aa !important; font-weight: 800 !important; }
+  html[data-theme="light"] .fss-cefr-c1 { background-color: #f3e8ff !important; color: #581c87 !important; border-color: #e9d5ff !important; font-weight: 800 !important; }
+
+  /* Type Badges in Light Mode */
+  html[data-theme="light"] .fss-type-word { background-color: #eff6ff !important; color: #1e40af !important; border-color: #bfdbfe !important; font-weight: 600 !important; }
+  html[data-theme="light"] .fss-type-chunk { background-color: #eef2ff !important; color: #3730a3 !important; border-color: #c7d2fe !important; font-weight: 600 !important; }
+  html[data-theme="light"] .fss-type-collocation { background-color: #ecfeff !important; color: #0e7490 !important; border-color: #a5f3fc !important; font-weight: 600 !important; }
+  html[data-theme="light"] .fss-type-idiom { background-color: #fdf4ff !important; color: #86198f !important; border-color: #f5d0fe !important; font-weight: 600 !important; }
+  html[data-theme="light"] .fss-type-slang { background-color: #fdf2f8 !important; color: #9d174d !important; border-color: #fbcfe8 !important; font-weight: 600 !important; }
+
+  /* Status Badges in Light Mode */
+  html[data-theme="light"] .fss-status-new { background-color: #dcfce7 !important; color: #166534 !important; border-color: #86efac !important; font-weight: 700 !important; }
+  html[data-theme="light"] .fss-status-new .fss-status-dot { background-color: #16a34a !important; }
+  html[data-theme="light"] .fss-status-exists { background-color: #dbeafe !important; color: #1e40af !important; border-color: #93c5fd !important; font-weight: 700 !important; }
+  html[data-theme="light"] .fss-status-exists .fss-status-dot { background-color: #2563eb !important; }
+  html[data-theme="light"] .fss-status-collision { background-color: #fef3c7 !important; color: #92400e !important; border-color: #fcd34d !important; font-weight: 700 !important; }
+  html[data-theme="light"] .fss-status-collision .fss-status-dot { background-color: #d97706 !important; }
+  html[data-theme="light"] .fss-status-suspicious { background-color: #f3e8ff !important; color: #6b21a8 !important; border-color: #d8b4fe !important; font-weight: 700 !important; }
+  html[data-theme="light"] .fss-status-suspicious .fss-status-dot { background-color: #9333ea !important; }
+
+  /* Commit Button in Light Mode */
+  html[data-theme="light"] #fss-import-commit-btn,
+  html[data-theme="light"] .fss-banner-commit-btn {
+    background-color: #059669 !important;
+    color: #ffffff !important;
+    border: 1px solid #047857 !important;
+    font-weight: 700 !important;
+    box-shadow: 0 4px 14px rgba(5, 150, 105, 0.3) !important;
+  }
+  html[data-theme="light"] #fss-import-commit-btn:hover:not(:disabled),
+  html[data-theme="light"] .fss-banner-commit-btn:hover {
+    background-color: #047857 !important;
+  }
+  html[data-theme="light"] #fss-import-commit-btn:disabled {
+    background-color: #f1f5f9 !important;
+    color: #94a3b8 !important;
+    border: 1px solid #cbd5e1 !important;
+    opacity: 0.7 !important;
+    cursor: not-allowed !important;
+    box-shadow: none !important;
   }
 </style>
 

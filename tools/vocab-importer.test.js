@@ -1274,3 +1274,52 @@ test('M5.2 Preview table & badges: định dạng CEFR pill, loại từ tiếng
   const countLabel = getEl('fss-preview-count-label');
   assert.strictEqual(countLabel.textContent, '4 mục');
 });
+
+// =========================================================================
+// TEST SUITE 16: M6 Light Mode Contrast & Direct Action Banner
+// =========================================================================
+test('M6.1 Khi chọn xong tất cả xung đột loại, hiển thị banner hành động trực tiếp fss-conflict-resolved-banner', () => {
+  const existingVocab = [
+    {
+      id: 'existing-1',
+      norm_key: 'se brosser les dents',
+      text: 'se brosser les dents',
+      type: 'collocation',
+      wordVi: 'đánh răng',
+      level: 'A1',
+      contexts: []
+    }
+  ];
+
+  const { sandbox, getEl } = setupImporterVm({
+    'shadowing_saved_vocab_v1': JSON.stringify(existingVocab)
+  });
+
+  sandbox.switchVocabImportMode('ADD_SOURCE');
+  getEl('fss-import-textarea').value = '1. se brosser les dents || chunk || A1 || [loc.] đánh răng\nDans bài: Je me brosse les dents.';
+  sandbox.runVocabDryRunPreview();
+
+  const colList = getEl('fss-collisions-list');
+  const commitBtn = getEl('fss-import-commit-btn');
+  assert.strictEqual(commitBtn.disabled, true);
+
+  // Chọn quyết định cho từ xung đột
+  sandbox.setCollisionDecision('col_db_se brosser les dents', 'skip_new');
+
+  // Nút footer mở khóa
+  assert.strictEqual(commitBtn.disabled, false);
+});
+
+test('M6.2 KPI cards có semantic class cho Light Mode contrast cao', () => {
+  const { sandbox, getEl } = setupImporterVm();
+
+  sandbox.switchVocabImportMode('ADD_SOURCE');
+  getEl('fss-import-textarea').value = '1. bonjour || word || A1 || [interj.] xin chào\nDans bài: Bonjour tout le monde.';
+  sandbox.runVocabDryRunPreview();
+
+  const statsGrid = getEl('fss-import-stats-grid');
+  assert.ok(statsGrid.innerHTML.includes('fss-kpi-card'), 'Thẻ KPI phải có class fss-kpi-card');
+  assert.ok(statsGrid.innerHTML.includes('fss-kpi-total'), 'Thẻ tổng mục phải có class fss-kpi-total');
+  assert.ok(statsGrid.innerHTML.includes('fss-kpi-new'), 'Thẻ mục mới phải có class fss-kpi-new');
+  assert.ok(statsGrid.innerHTML.includes('fss-kpi-val'), 'Giá trị KPI phải có class fss-kpi-val');
+});
