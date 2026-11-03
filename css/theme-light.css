@@ -274,6 +274,27 @@ html[data-ui="light"].dark {
 /* --- DARK MODE TOKEN OVERRIDES: Chỉ kích hoạt khi có data-theme="dark" rõ ràng. Mặc định luôn là Light Mode. --- */
 
 /* ====================================================================
+   MODULE M3: SEMANTIC BRIDGES (TAILWIND TO TOKENS)
+   ==================================================================== */
+.fs-text-primary, .fs-text-1 { color: var(--fs-ink) !important; }
+.fs-text-secondary, .fs-text-2, .fs-text-muted { color: var(--fs-muted) !important; }
+.fs-text-subtle, .fs-text-3 { color: var(--fs-ink-subtle) !important; }
+.fs-text-accent { color: var(--fs-accent-text) !important; }
+.fs-text-success { color: var(--fs-success-text) !important; }
+.fs-text-warn { color: var(--fs-warn-text) !important; }
+.fs-text-danger { color: var(--fs-danger-text) !important; }
+.fs-text-white { color: #ffffff !important; }
+
+.fs-surface-base { background-color: var(--fs-bg) !important; }
+.fs-surface-card { background-color: var(--fs-card) !important; }
+.fs-surface-subtle { background-color: var(--fs-surface-subtle) !important; }
+.fs-surface-overlay { background-color: var(--fs-overlay) !important; }
+
+.fs-border-base { border-color: var(--fs-line) !important; }
+.fs-border-control { border-color: var(--fs-border-control) !important; }
+.fs-border-accent { border-color: var(--fs-accent) !important; }
+
+/* ====================================================================
    BASE RESETS & GLOBAL FOUNDATIONS (Scoped strictly to html[data-ui="light"])
    ==================================================================== */
 
