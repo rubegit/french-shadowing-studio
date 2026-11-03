@@ -5,6 +5,55 @@
   const collapse = (s) => String(s == null ? '' : s).replace(/\s+/g, ' ');
   const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   const reEsc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const cleanVid = (id) => String(id || '').replace(/^(yt|video):/, '').trim().toLowerCase();
+
+  // Tìm toạ độ từ/cụm từ (kể cả đã chia, đại từ phản thân, trợ từ quá khứ, dấu câu)
+  function getWordSpan(text, term) {
+    if (typeof window !== 'undefined' && typeof window.findWordSpanInString === 'function') {
+      return window.findWordSpanInString(text, term);
+    }
+    if (!text || !term) return null;
+    text = String(text); term = String(term).trim();
+    const cleanTerm = term.replace(/[!?,;.:«»"“”()]+$/, '').replace(/^[«»"“”()]+/, '').trim();
+    const isReflexive = /^(se|s\x27|s’)\s*/i.test(cleanTerm);
+    const cleanP = cleanTerm.replace(/^(se|s\x27|s’)\s*/i, '');
+    const words = cleanP.split(/\s+/).filter(Boolean);
+    if (!words.length) return null;
+
+    const exactTokens = cleanTerm.split(/\s+/).filter(Boolean);
+    if (exactTokens.length) {
+      const reExact = exactTokens.map(t => reEsc(t).replace(/[\x27\u2019]/g, '[\x27\u2019]?')).join('\\s+');
+      const re = new RegExp('(^|[^\\p{L}])(' + reExact + ')(?=$|[^\\p{L}])', 'iu');
+      const m = re.exec(text);
+      if (m) return { start: m.index + m[1].length, end: m.index + m[1].length + m[2].length, match: m[2] };
+    }
+    const pronounPart = isReflexive
+      ? '(?:(?:se|s[\x27\u2019]|me|m[\x27\u2019]|te|t[\x27\u2019]|nous|vous)\\s*(?:(?:suis|es|est|sommes|êtes|etes|sont|ai|as|a|avons|avez|ont|étais|etait|étaient|etaient)\\s+)?)?'
+      : '';
+    const bodyPart = words.map((w) => {
+      const pure = w.replace(/[\x27\u2019]/g, '').toLowerCase();
+      if (/^(du|de|des|le|la|les|un|une|d|l|en|à|au|aux)$/i.test(pure)) {
+        return '(?:de\\s+(?:tes|ses|mes|nos|vos|leurs?)|du|de|des|le|la|les|un|une|d[\x27\u2019]|l[\x27\u2019]|en|à|au|aux)';
+      }
+      if (pure === 'prendre' || pure === 'pris') return '(?:prendre|prends?|prennent|prenons|prenez|prenait|prenaient|pris)';
+      if (pure === 'faire' || pure === 'fait') return '(?:faire|fais|fait|faisons|faites|font|faisait|faisaient|fera|feront)';
+      if (pure === 'avoir' || pure === 'eu') return '(?:avoir|ai|as|a|avons|avez|ont|avait|avaient|eu)';
+      if (pure === 'être' || pure === 'etre' || pure === 'été' || pure === 'ete') return '(?:être|etre|suis|es|est|sommes|êtes|etes|sont|étais|etait|étaient|etaient|été|ete)';
+      if (pure === 'mettre' || pure === 'mis') return '(?:mettre|mets?|mettent|mettons|mettez|mettait|mettaient|mis)';
+      if (pure === 'aller' || pure === 'va' || pure === 'vais') return '(?:aller|vais|vas|va|allons|allez|vont|allait|allaient|allé|alle)';
+      const pureNoElision = w.replace(/^[ldsjcn][\x27\u2019]/i, '');
+      if (pureNoElision.length >= 4) {
+        const stem = pureNoElision.slice(0, Math.min(pureNoElision.length - 2, 4));
+        return '(?:[ldsjcn][\x27\u2019])?' + reEsc(stem) + '[\\p{L}\x27\u2019]*';
+      }
+      return reEsc(w).replace(/[\x27\u2019]/g, '[\x27\u2019]?') + '[sx]?';
+    }).join('\\s+');
+
+    const reGrammar = new RegExp('(^|[^\\p{L}])(' + pronounPart + bodyPart + ')(?=$|[^\\p{L}])', 'iu');
+    const mg = reGrammar.exec(text);
+    if (mg) return { start: mg.index + mg[1].length, end: mg.index + mg[1].length + mg[2].length, match: mg[2] };
+    return null;
+  }
 
   // Cách tách từ giống hệt cách giao diện phụ đề đang dùng để dựng từng ô chữ
   function toksOf(s) {
@@ -31,15 +80,14 @@
   function compute(S, vid) {
     const map = new Map();
     if (!vid || !S.length) return map;
-    const items = getVocab().filter((x) => x && !x.bookId && String(x.videoId || '') === vid && x.en && x.text);
+    const cVid = cleanVid(vid);
+    const vocabList = (typeof getVocab === 'function') ? getVocab() : [];
+    const items = vocabList.filter((x) => x && !x.bookId && cleanVid(x.videoId) === cVid && x.text);
     if (!items.length) return map;
 
     const canons = S.map(canonOf), offs = [], ends = [];
     let full = '';
     canons.forEach((c, i) => { if (i) full += ' '; offs[i] = full.length; full += c; ends[i] = full.length; });
-    const startAt = new Map();
-    offs.forEach((o, i) => { if (!startAt.has(o)) startAt.set(o, i); });
-    const endSet = new Set(ends);
     const idxAt = (pos) => { let lo = 0, hi = offs.length - 1; while (lo < hi) { const m = (lo + hi + 1) >> 1; if (offs[m] <= pos) lo = m; else hi = m - 1; } return lo; };
     const timeDist = (k, t) => {
       const s = S[k], a = +s.startTime, b = +s.endTime;
@@ -48,36 +96,51 @@
       if (isFinite(b) && t > b) return t - b;
       return 0;
     };
-    const lim = isTextMode ? 1.5 : 8;
+    const lim = (typeof isTextMode !== 'undefined' && isTextMode) ? 1.5 : 8;
 
     items.forEach((x) => {
-      const enRaw = String(x.en), hsN = +x.hs, heN = +x.he;
-      if (!isFinite(hsN) || !isFinite(heN) || heN <= hsN) return;
+      const enRaw = String(x.en || ''), hsN = +x.hs, heN = +x.he;
       const en = collapse(enRaw);
-      const hs = collapse(enRaw.slice(0, hsN)).length, he = collapse(enRaw.slice(0, heN)).length;
       const t = +x.t || 0;
       let best = null;
 
-      // 1) Khớp nguyên văn đoạn ngữ cảnh đã lưu (có kiểm tra khớp đúng ranh giới câu) -> đúng chỗ đã lưu, kể cả khi từ đó lặp lại nhiều nơi
+      // 1) Khớp ngữ cảnh đã lưu trong full transcript (hỗ trợ cả trích đoạn/mệnh đề nằm trong câu)
       if (en) {
         for (let p = full.indexOf(en); p >= 0; p = full.indexOf(en, p + 1)) {
-          if (!startAt.has(p) || !endSet.has(p + en.length)) continue;
-          const d = timeDist(startAt.get(p), t);
-          if (!best || d < best.d) best = { a: p + hs, b: p + he, d };
+          const k = idxAt(p);
+          if (p >= offs[k] && p + en.length <= ends[k] + 1) {
+            let wordStart = 0, wordEnd = en.length;
+            if (isFinite(hsN) && isFinite(heN) && heN > hsN && heN <= enRaw.length) {
+              const sub = enRaw.slice(hsN, heN).trim();
+              if (sub.length > 1 && !/^[.,;:!?]+$/.test(sub) && getWordSpan(sub, x.text)) {
+                wordStart = collapse(enRaw.slice(0, hsN)).length;
+                wordEnd = collapse(enRaw.slice(0, heN)).length;
+              }
+            }
+            if (wordStart === 0 && wordEnd === en.length) {
+              const span = getWordSpan(en, x.text);
+              if (span) {
+                wordStart = span.start;
+                wordEnd = span.end;
+              }
+            }
+            const d = timeDist(k, t);
+            if (!best || d < best.d) {
+              best = { a: p + wordStart, b: p + wordEnd, d };
+            }
+          }
         }
       }
 
-      // 2) Câu đã bị chia lại / sửa dấu câu: tìm đúng từ/cụm đó ở câu gần mốc thời gian đã lưu nhất
+      // 2) Câu đã bị chia lại / sửa dấu câu: tìm đúng từ/cụm/dạng đã chia ở câu gần mốc thời gian đã lưu nhất
       if (!best) {
-        const txt = collapse(x.text).trim();
-        if (!txt) return;
-        let re;
-        try { re = new RegExp('(?<![\\p{L}\\p{N}])' + reEsc(txt) + '(?![\\p{L}\\p{N}])', 'iu'); } catch (e) { return; }
         for (let k = 0; k < S.length; k++) {
           const d = timeDist(k, t);
           if (d > lim || (best && d >= best.d)) continue;
-          const m = re.exec(canons[k]);
-          if (m) best = { a: offs[k] + m.index, b: offs[k] + m.index + m[0].length, d };
+          const span = getWordSpan(canons[k], x.text);
+          if (span) {
+            best = { a: offs[k] + span.start, b: offs[k] + span.end, d };
+          }
         }
       }
       if (!best) return;
@@ -114,7 +177,7 @@
   const clear = (el) => CLS.forEach((c) => el.classList.remove(c));
   const setCls = (el, c) => { clear(el); if (c) c.split(' ').forEach((k) => el.classList.add(k)); };
 
-  // ---- Giao diện Mặc định + Đọc báo/IELTS ----
+  // ---- Giao diện Mặc định + Đọc báo/IELTS (danh sách cuộn bên phải) ----
   function markMain() {
     const root = document.getElementById('subtitles-scroll-container');
     if (!root) return;
@@ -131,6 +194,34 @@
       if (fl) els.forEach((e, i) => setCls(e, fl[i]));
     });
   }
+
+  // ---- Thẻ câu đang phát (#cs-text ở dưới video) ----
+  function markCs() {
+    const csBox = document.getElementById('cs-text');
+    if (!csBox || !Array.isArray(sentences)) return;
+    const map = build();
+    csBox.querySelectorAll('.vs-w').forEach(clear);
+    if (!map.size) return;
+    const idx = parseInt(csBox.getAttribute('data-idx'), 10);
+    if (isNaN(idx) || !sentences[idx]) return;
+    const s = sentences[idx];
+    if (!map.has(String(s.id))) return;
+    const els = Array.from(csBox.querySelectorAll('.cs-w'));
+    if (!els.length) return;
+    const fl = flags(s, els.map((e) => e.textContent));
+    if (fl) els.forEach((e, i) => setCls(e, fl[i]));
+  }
+
+  // Tự động cập nhật toạ độ từ vựng khi thẻ câu hiện tại (#cs-text) thay đổi
+  try {
+    const csBox = document.getElementById('cs-text');
+    if (csBox && typeof MutationObserver !== 'undefined') {
+      const obs = new MutationObserver(() => {
+        try { markCs(); } catch (e) {}
+      });
+      obs.observe(csBox, { childList: true });
+    }
+  } catch (e) {}
 
   // ---- Shadowing (câu đang luyện + các câu còn lại trong danh sách) ----
   function markShadow() {
@@ -160,10 +251,14 @@
     });
   }
 
+  window.computeVocabMap = compute;
   window.vsFlags = flags;
+  window.vsMarkMain = markMain;
+  window.vsMarkCs = markCs;
   window.vsMarkShadow = markShadow;
   window.vsRefresh = function () {
     try { markMain(); } catch (e) { console.warn('[vocab-highlight]', e); }
+    try { markCs(); } catch (e) { console.warn('[vocab-highlight]', e); }
     try { markShadow(); } catch (e) { console.warn('[vocab-highlight]', e); }
     try { if (window.vsDcRefresh) window.vsDcRefresh(); } catch (e) { console.warn('[vocab-highlight]', e); }
   };
@@ -174,6 +269,7 @@
     window.renderSubtitleList = function () {
       const r = origRender.apply(this, arguments);
       try { markMain(); } catch (e) { console.warn('[vocab-highlight]', e); }
+      try { markCs(); } catch (e) { console.warn('[vocab-highlight]', e); }
       return r;
     };
   }

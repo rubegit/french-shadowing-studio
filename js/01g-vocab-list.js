@@ -806,28 +806,86 @@
     }
 
 
-    // Tô sáng từ cần học trong câu ví dụ (khớp cả khi đã chia: plot -> plotting)
-    function hlExample(en, term) {
-      const t = String(term || '').trim();
-      const low = en.toLowerCase();
-      if (t.length >= 2) {
-        const cands = [t.toLowerCase()];
-        const stem = t.toLowerCase().replace(/(e|y)$/, '');
-        if (stem.length >= 3 && stem !== cands[0]) cands.push(stem);
-        for (const c of cands) {
-          let from = 0, idx;
-          while ((idx = low.indexOf(c, from)) >= 0) {
-            if (idx === 0 || !/[\p{L}]/u.test(low[idx - 1])) {
-              let end = idx + c.length;
-              if (c.indexOf(' ') < 0) while (end < low.length && /[\p{L}']/u.test(low[end])) end++;
-              return escHtml(en.slice(0, idx)) + '<mark>' + escHtml(en.slice(idx, end)) + '</mark>' + escHtml(en.slice(end));
-            }
-            from = idx + 1;
-          }
-        }
+    // Xác định toạ độ [start, end] của từ/cụm từ trong ngữ cảnh hoặc câu ví dụ
+    // Hỗ trợ cả thể nguyên mẫu, chia thì, động từ phản thân (se/me/te/nous/vous/s'), mạo từ, giới từ, số nhiều và dấu câu
+    function findWordSpanInString(text, term) {
+      if (!text || !term) return null;
+      text = String(text);
+      term = String(term).trim();
+      if (!text || !term) return null;
+
+      const escRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const cleanTerm = term.replace(/[!?,;.:«»"“”()]+$/, '').replace(/^[«»"“”()]+/, '').trim();
+      const isReflexive = /^(se|s\x27|s’)\s*/i.test(cleanTerm);
+      const cleanP = cleanTerm.replace(/^(se|s\x27|s’)\s*/i, '');
+      const words = cleanP.split(/\s+/).filter(Boolean);
+      if (!words.length) return null;
+
+      // 1. Exact match (không phân biệt nháy, khoảng trắng, hoa thường)
+      const exactTokens = cleanTerm.split(/\s+/).filter(Boolean);
+      if (exactTokens.length) {
+        const reExact = exactTokens.map(t => escRe(t).replace(/[\x27\u2019]/g, '[\x27\u2019]?')).join('\\s+');
+        const re = new RegExp('(^|[^\\p{L}])(' + reExact + ')(?=$|[^\\p{L}])', 'iu');
+        const m = re.exec(text);
+        if (m) return { start: m.index + m[1].length, end: m.index + m[1].length + m[2].length, match: m[2] };
       }
-      return escHtml(en);
+
+      // 2. Số nhiều / biến thể đơn giản (thêm s/x ở đuôi)
+      if (exactTokens.length) {
+        const rePlural = exactTokens.map(t => escRe(t).replace(/[\x27\u2019]/g, '[\x27\u2019]?') + '[sx]?').join('\\s+');
+        const reP = new RegExp('(^|[^\\p{L}])(' + rePlural + ')(?=$|[^\\p{L}])', 'iu');
+        const mp = reP.exec(text);
+        if (mp) return { start: mp.index + mp[1].length, end: mp.index + mp[1].length + mp[2].length, match: mp[2] };
+      }
+
+      // 3. Động từ phản thân + trợ động từ quá khứ (être/avoir) + động từ bất quy tắc + giới từ biến thể
+      const pronounPart = isReflexive
+        ? '(?:(?:se|s[\x27\u2019]|me|m[\x27\u2019]|te|t[\x27\u2019]|nous|vous)\\s*(?:(?:suis|es|est|sommes|êtes|etes|sont|ai|as|a|avons|avez|ont|étais|etait|étaient|etaient)\\s+)?)?'
+        : '';
+      const bodyPart = words.map((w) => {
+        const pure = w.replace(/[\x27\u2019]/g, '').toLowerCase();
+        if (/^(du|de|des|le|la|les|un|une|d|l|en|à|au|aux)$/i.test(pure)) {
+          return '(?:de\\s+(?:tes|ses|mes|nos|vos|leurs?)|du|de|des|le|la|les|un|une|d[\x27\u2019]|l[\x27\u2019]|en|à|au|aux)';
+        }
+        if (pure === 'prendre' || pure === 'pris') return '(?:prendre|prends?|prennent|prenons|prenez|prenait|prenaient|pris)';
+        if (pure === 'faire' || pure === 'fait') return '(?:faire|fais|fait|faisons|faites|font|faisait|faisaient|fera|feront)';
+        if (pure === 'avoir' || pure === 'eu') return '(?:avoir|ai|as|a|avons|avez|ont|avait|avaient|eu)';
+        if (pure === 'être' || pure === 'etre' || pure === 'été' || pure === 'ete') return '(?:être|etre|suis|es|est|sommes|êtes|etes|sont|étais|etait|étaient|etaient|été|ete)';
+        if (pure === 'mettre' || pure === 'mis') return '(?:mettre|mets?|mettent|mettons|mettez|mettait|mettaient|mis)';
+        if (pure === 'aller' || pure === 'va' || pure === 'vais') return '(?:aller|vais|vas|va|allons|allez|vont|allait|allaient|allé|alle)';
+        const pureNoElision = w.replace(/^[ldsjcn][\x27\u2019]/i, '');
+        if (pureNoElision.length >= 4) {
+          const stem = pureNoElision.slice(0, Math.min(pureNoElision.length - 2, 4));
+          return '(?:[ldsjcn][\x27\u2019])?' + escRe(stem) + '[\\p{L}\x27\u2019]*';
+        }
+        return escRe(w).replace(/[\x27\u2019]/g, '[\x27\u2019]?') + '[sx]?';
+      }).join('\\s+');
+
+      const reGrammar = new RegExp('(^|[^\\p{L}])(' + pronounPart + bodyPart + ')(?=$|[^\\p{L}])', 'iu');
+      const mg = reGrammar.exec(text);
+      if (mg) return { start: mg.index + mg[1].length, end: mg.index + mg[1].length + mg[2].length, match: mg[2] };
+
+      return null;
     }
+    window.findWordSpanInString = findWordSpanInString;
+
+    // Tô sáng từ cần học trong câu ví dụ (khớp cả khi đã chia thì, đại từ phản thân, giới từ, số nhiều)
+    function hlExample(en, term) {
+      if (!en) return '';
+      en = String(en);
+      term = String(term || '').trim();
+      const _esc = (typeof escHtml === 'function')
+        ? escHtml
+        : (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      if (!term) return _esc(en);
+
+      const span = findWordSpanInString(en, term);
+      if (span) {
+        return _esc(en.slice(0, span.start)) + '<mark>' + _esc(en.slice(span.start, span.end)) + '</mark>' + _esc(en.slice(span.end));
+      }
+      return _esc(en);
+    }
+    window.hlExample = hlExample;
     let vocabOpenExamples = new Set();   // các thẻ đang mở phần "ví dụ" (giữ nguyên khi vẽ lại danh sách)
     function vocabExamplesHtml(x) {
       const ex = Array.isArray(x.examples) ? x.examples.filter((e) => e && (e.fr || e.en)) : [];
@@ -881,70 +939,22 @@
         ? escHtml
         : (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-      // 1. Kiểm tra hs, he cũ nếu hợp lệ và không vượt quá độ dài chuỗi
+      // 1. Kiểm tra hs, he cũ nếu hợp lệ và thực sự trỏ đúng từ cần highlight
       if (typeof hs === 'number' && typeof he === 'number' && he > hs && he <= en.length) {
         const sub = en.slice(hs, he).trim();
         if (sub.length > 1 && !/^[.,;:!?]+$/.test(sub)) {
-          return _esc(en.slice(0, hs)) + '<mark class="vocab-hl">' + _esc(en.slice(hs, he)) + '</mark>' + _esc(en.slice(he));
+          // Chỉ tin cậy hs, he nếu chuỗi trích ra khớp hoặc có chứa biến thể của term
+          if (!term || findWordSpanInString(sub, term)) {
+            return _esc(en.slice(0, hs)) + '<mark class="vocab-hl">' + _esc(en.slice(hs, he)) + '</mark>' + _esc(en.slice(he));
+          }
         }
       }
 
       if (!term) return _esc(en);
 
-      const escRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const cleanTerm = term.replace(/[!?,;.:]+$/, '').trim();
-      const termTokens = cleanTerm.split(/\s+/).filter(Boolean);
-
-      // 2. Exact match không phân biệt nháy, khoảng trắng, hoa thường
-      if (termTokens.length > 0) {
-        const reStr = termTokens.map(t => escRe(t).replace(/[\x27\u2019]/g, '[\x27\u2019]?')).join('\\s+');
-        const re = new RegExp('(^|[^\\p{L}])(' + reStr + ')(?=$|[^\\p{L}])', 'iu');
-        const m = re.exec(en);
-        if (m) {
-          const start = m.index + m[1].length;
-          const end = start + m[2].length;
-          return _esc(en.slice(0, start)) + '<mark class="vocab-hl">' + _esc(en.slice(start, end)) + '</mark>' + _esc(en.slice(end));
-        }
-      }
-
-      // 3. Số nhiều / biến thể đơn giản (thêm s/x ở đuôi)
-      if (termTokens.length > 0) {
-        const rePlural = termTokens.map(t => escRe(t).replace(/[\x27\u2019]/g, '[\x27\u2019]?') + '[sx]?').join('\\s+');
-        const reP = new RegExp('(^|[^\\p{L}])(' + rePlural + ')(?=$|[^\\p{L}])', 'iu');
-        const mp = reP.exec(en);
-        if (mp) {
-          const start = mp.index + mp[1].length;
-          const end = start + mp[2].length;
-          return _esc(en.slice(0, start)) + '<mark class="vocab-hl">' + _esc(en.slice(start, end)) + '</mark>' + _esc(en.slice(end));
-        }
-      }
-
-      // 4. Cho cụm từ có động từ chia
-      const cleanP = cleanTerm.replace(/^(se|s\x27|s’)\s*/i, '');
-      const words = cleanP.split(/\s+/).filter(Boolean);
-      if (words.length > 0) {
-        const stemPattern = '(?:(?:se|s[\x27\u2019])\\s+)?' + words.map(w => {
-          const pure = w.replace(/[\x27\u2019]/g, '').toLowerCase();
-          if (/^(du|de|des|le|la|les|un|une|d|l|en|à|au|aux)$/i.test(pure)) {
-            return '(?:du|de|des|le|la|les|un|une|d[\x27\u2019]|l[\x27\u2019]|en|à|au|aux)';
-          }
-          if (pure === 'prendre' || pure === 'pris') return '(?:prendre|prends?|prennent|prenons|prenez|prenait|pris)';
-          if (pure === 'faire' || pure === 'fait') return '(?:faire|fais|fait|faisons|faites|font|faisait|fera)';
-          if (pure === 'avoir') return '(?:avoir|ai|as|a|avons|avez|ont|avait|avaient|eu)';
-          const pureNoElision = w.replace(/^[ldsjcn][\x27\u2019]/i, '');
-          if (pureNoElision.length >= 4) {
-            return '(?:[ldsjcn][\x27\u2019])?' + escRe(pureNoElision.slice(0, Math.min(pureNoElision.length - 2, 4))) + '[\\p{L}\x27\u2019]*';
-          }
-          return escRe(w).replace(/[\x27\u2019]/g, '[\x27\u2019]?');
-        }).join('\\s+');
-
-        const re = new RegExp('(^|[^\\p{L}])(' + stemPattern + ')(?=$|[^\\p{L}])', 'iu');
-        const m = re.exec(en);
-        if (m) {
-          const start = m.index + m[1].length;
-          const end = start + m[2].length;
-          return _esc(en.slice(0, start)) + '<mark class="vocab-hl">' + _esc(en.slice(start, end)) + '</mark>' + _esc(en.slice(end));
-        }
+      const span = findWordSpanInString(en, term);
+      if (span) {
+        return _esc(en.slice(0, span.start)) + '<mark class="vocab-hl">' + _esc(en.slice(span.start, span.end)) + '</mark>' + _esc(en.slice(span.end));
       }
 
       return _esc(en);

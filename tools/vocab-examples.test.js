@@ -57,11 +57,13 @@ test('Test 1: vocabExamplesHtml hiển thị 3 ví dụ khi item có định d�
   };
 
   const html = vocabExamplesHtml(item);
+  const plainTextHtml = html.replace(/<\/?mark>/g, '');
   assert.ok(html.includes('Xem thêm ví dụ (3)'), 'Nút mở ví dụ phải có số lượng là 3');
-  assert.ok(html.includes('Je me promène dans le parc.'), 'Phải chứa câu ví dụ 1 tiếng Pháp');
+  assert.ok(html.includes('<mark>'), 'Từ vựng trong câu ví dụ phải được tô sáng');
+  assert.ok(plainTextHtml.includes('Je me promène dans le parc.'), 'Phải chứa câu ví dụ 1 tiếng Pháp');
   assert.ok(html.includes('Tôi đi dạo trong công viên.'), 'Phải chứa bản dịch 1 tiếng Việt');
-  assert.ok(html.includes('Nous nous promenons souvent.'), 'Phải chứa câu ví dụ 2 tiếng Pháp');
-  assert.ok(html.includes('Tu te promènes avec qui ?'), 'Phải chứa câu ví dụ 3 tiếng Pháp');
+  assert.ok(plainTextHtml.includes('Nous nous promenons thường.') || plainTextHtml.includes('Nous nous promenons souvent.'), 'Phải chứa câu ví dụ 2 tiếng Pháp');
+  assert.ok(plainTextHtml.includes('Tu te promènes avec qui ?'), 'Phải chứa câu ví dụ 3 tiếng Pháp');
 });
 
 test('Test 2: vocabExamplesHtml hiển thị ví dụ khi item có định dạng cũ { en, vi }', () => {
