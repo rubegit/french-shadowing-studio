@@ -33,7 +33,7 @@ test('M1.2 Lint Color: Quét và thống kê chính xác số lượng mã màu 
   const result = runLint();
 
   assert.ok(result.summary, 'Phải có bảng summary');
-  assert.ok(result.summary.totalCssHexOutsideTokens > 1000, 'Phải quét được >1000 mã hex trong CSS ngoài token');
+  assert.ok(result.summary.totalCssHexOutsideTokens > 0 && result.summary.totalCssHexOutsideTokens <= 2362, 'Số lượng mã hex trong CSS ngoài token phải giảm dần từ mốc baseline 2362');
   assert.ok(result.summary.totalJsInlineColorStyles > 50, 'Phải quét được >50 inline style màu trong JS');
   assert.strictEqual(result.summary.totalHtmlTailwindColors, 0, 'Toàn bộ class màu Tailwind trong HTML đã được dọn sạch về 0');
 
