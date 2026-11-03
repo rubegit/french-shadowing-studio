@@ -290,6 +290,8 @@ html[data-ui="light"].dark {
 .fs-surface-subtle { background-color: var(--fs-surface-subtle) !important; }
 .fs-surface-overlay { background-color: var(--fs-overlay) !important; }
 
+.fs-divider { background-color: var(--fs-line) !important; }
+
 .fs-border-base { border-color: var(--fs-line) !important; }
 .fs-border-control { border-color: var(--fs-border-control) !important; }
 .fs-border-accent { border-color: var(--fs-accent) !important; }

@@ -1,15 +1,15 @@
-<div id="screen-practice" class="hidden h-screen flex flex-col overflow-hidden bg-[#070b14]">
-    <header class="h-14 border-b border-blue-950/70 bg-[#091024] px-3 sm:px-4 flex items-center justify-between shrink-0 z-30 gap-2">
+<div id="screen-practice" class="hidden h-screen flex flex-col overflow-hidden fs-surface-base">
+    <header class="h-14 border-b fs-border-base fs-surface-subtle px-3 sm:px-4 flex items-center justify-between shrink-0 z-30 gap-2">
       <!-- CỤM NÚT TRÁI -->
       <div class="flex items-center gap-2 sm:gap-2.5 flex-nowrap shrink-0">
         <button
           onclick="backToInputScreen()"
-          class="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-blue-950/80 hover:bg-blue-900 border border-blue-800/80 text-blue-300 hover:text-white text-xs font-semibold transition-all cursor-pointer shadow-xs shrink-0 whitespace-nowrap btn-interactive"
+          class="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg fs-surface-card border fs-border-control fs-text-primary text-xs font-semibold transition-all cursor-pointer shadow-xs shrink-0 whitespace-nowrap btn-interactive"
         >
           <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
           <span id="practice-back-btn-label" class="hidden sm:inline">Luyện video khác</span>
         </button>
-        <div class="h-4 w-[1px] bg-slate-800 hidden md:block"></div>
+        <div class="h-4 w-[1px] fs-divider hidden md:block"></div>
         
 
         <button type="button" class="vocab-btn primary" onclick="openVocabScreen('lesson')" title="Xem từ vựng đã lưu của bài học này">
@@ -25,7 +25,7 @@
           <svg class="fs-theme-icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
           <svg class="fs-theme-icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
         </button>
-        <div class="h-4 w-[1px] bg-slate-800 hidden md:block"></div>
+        <div class="h-4 w-[1px] fs-divider hidden md:block"></div>
 
         <!-- ĐỔI GIAO DIỆN LUYỆN TẬP: Mặc định / Shadowing / Chép chính tả -->
         <div class="pv-switch" id="pv-switch">
@@ -115,9 +115,9 @@
           id="btn-toggle-karaoke"
           onclick="toggleKaraokeMode()"
           title="Chạy chữ Karaoke theo từng từ phát âm"
-          class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer transition-all bg-red-600/30 text-red-200 border-red-500/60 glow-red shrink-0 whitespace-nowrap btn-interactive"
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer transition-all fs-surface-card fs-text-danger fs-border-control glow-red shrink-0 whitespace-nowrap btn-interactive"
         >
-          <i data-lucide="sparkles" class="w-3.5 h-3.5 text-red-400"></i>
+          <i data-lucide="sparkles" class="w-3.5 h-3.5 fs-text-danger"></i>
           <span>Karaoke</span>
         </button>
 
@@ -127,7 +127,7 @@
             id="btn-toggle-bilingual"
             onclick="toggleBilingual()"
             title="Hiện bản dịch tiếng Việt dưới mỗi câu tiếng Pháp"
-            class="btn-interactive flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer transition-all bg-slate-800 hover:bg-slate-700 text-slate-400 border-slate-700 shrink-0 whitespace-nowrap"
+            class="btn-interactive flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer transition-all fs-surface-card fs-text-subtle fs-border-control shrink-0 whitespace-nowrap"
           >
             <i data-lucide="languages" class="w-3.5 h-3.5"></i>
             <span>Song ngữ</span>
@@ -147,7 +147,7 @@
           id="btn-toggle-autostop"
           onclick="toggleSentenceAutoStop()"
           title="Tự động dừng sau mỗi câu để nhại theo (Shadowing)"
-          class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer transition-all bg-slate-800 hover:bg-slate-700 text-slate-400 border-slate-700 shrink-0 whitespace-nowrap btn-interactive"
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer transition-all fs-surface-card fs-text-subtle fs-border-control shrink-0 whitespace-nowrap btn-interactive"
         >
           <i data-lucide="pause-circle" class="w-3.5 h-3.5"></i>
           <span>Tự dừng</span>
@@ -158,7 +158,7 @@
           id="btn-toggle-autoscroll"
           onclick="toggleAutoScroll()"
           title="Tự động cuộn theo tiến trình video (Auto scroll)"
-          class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer transition-all bg-slate-800 hover:bg-slate-700 text-slate-400 border-slate-700 shrink-0 whitespace-nowrap btn-interactive"
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer transition-all fs-surface-card fs-text-subtle fs-border-control shrink-0 whitespace-nowrap btn-interactive"
         >
           <i data-lucide="arrow-down-up" class="w-3.5 h-3.5"></i>
           <span class="htool-scroll-txt">Auto scroll</span>
@@ -169,7 +169,7 @@
           id="btn-punct"
           onclick="openPunctModal()"
           title="Nhờ AI thêm dấu câu và chia câu ngắn cho phụ đề (không dịch)"
-          class="btn-interactive flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer transition-all bg-slate-800 hover:bg-slate-700 text-slate-400 border-slate-700 shrink-0 whitespace-nowrap"
+          class="btn-interactive flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer transition-all fs-surface-card fs-text-subtle fs-border-control shrink-0 whitespace-nowrap"
         >
           <i data-lucide="case-sensitive" class="w-3.5 h-3.5"></i>
           <span class="htool-opt-txt">Thêm dấu câu</span>
@@ -180,7 +180,7 @@
           id="btn-keyvocab"
           onclick="openKeyVocabModal()"
           title="Nhờ AI liệt kê từ vựng, cụm từ, thành ngữ, tiếng lóng tiếng Pháp trong bài này, kèm nghĩa và 3 ví dụ tiếng Pháp"
-          class="btn-interactive flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer transition-all bg-slate-800 hover:bg-slate-700 text-slate-400 border-slate-700 shrink-0 whitespace-nowrap"
+          class="btn-interactive flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer transition-all fs-surface-card fs-text-subtle fs-border-control shrink-0 whitespace-nowrap"
         >
           <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
           <span class="htool-opt-txt">Từ khó</span>
@@ -191,7 +191,7 @@
           id="btn-tcf-exam"
           onclick="window.TcfExam && window.TcfExam.openModal()"
           title="Mô phỏng thi nghe TCF Canada (Compréhension Orale) dựa trên nội dung bài này"
-          class="btn-interactive flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer transition-all bg-gradient-to-r from-red-600/25 to-blue-600/25 hover:from-red-600/40 hover:to-blue-600/40 text-blue-200 border-blue-500/40 shrink-0 whitespace-nowrap shadow-xs"
+          class="btn-interactive flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer transition-all fs-surface-card fs-text-primary fs-border-control shrink-0 whitespace-nowrap shadow-xs"
         >
           <span style="font-size:12px">🇨🇦</span>
           <span style="font-weight:700" class="htool-opt-txt">Thi thử TCF</span>
@@ -224,48 +224,48 @@
               <div class="psm-title">Chức năng & Tiện ích</div>
               <div class="psm-section">
                 <button type="button" class="psm-item" onclick="openCloudSyncModal(); closePracticeMobileMenu();">
-                  <i data-lucide="cloud" class="w-4 h-4 text-sky-400"></i>
+                  <i data-lucide="cloud" class="w-4 h-4 fs-text-accent"></i>
                   <span>Đồng bộ đám mây</span>
                   <span class="cloud-sync-dot disconnected ml-auto"></span>
                 </button>
                 <button type="button" class="psm-item" onclick="toggleFsTheme(); closePracticeMobileMenu();">
-                  <svg class="fs-theme-icon-moon w-4 h-4 text-amber-300" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
-                  <svg class="fs-theme-icon-sun w-4 h-4 text-amber-400" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+                  <svg class="fs-theme-icon-moon w-4 h-4 fs-text-warn" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+                  <svg class="fs-theme-icon-sun w-4 h-4 fs-text-warn" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
                   <span>Chuyển chế độ Sáng / Tối</span>
                 </button>
                 <button type="button" class="psm-item" onclick="closePracticeMobileMenu(); toggleTextSizePanel(event);">
-                  <span class="font-bold text-xs bg-slate-800 text-slate-200 px-1.5 py-0.5 rounded border border-slate-700">Aa</span>
+                  <span class="font-bold text-xs fs-surface-subtle fs-text-primary px-1.5 py-0.5 rounded border fs-border-control">Aa</span>
                   <span>Cỡ chữ & Giãn dòng</span>
                 </button>
               </div>
               <div class="psm-sep"></div>
               <div class="psm-section">
                 <button type="button" class="psm-item" id="psm-btn-ipa" onclick="togglePracticeIpa();">
-                  <span class="font-bold text-xs bg-slate-800 text-slate-200 px-1.5 py-0.5 rounded border border-slate-700">IPA</span>
+                  <span class="font-bold text-xs fs-surface-subtle fs-text-primary px-1.5 py-0.5 rounded border fs-border-control">IPA</span>
                   <span>Phiên âm IPA</span>
                   <span class="psm-badge" id="psm-badge-ipa">TẮT</span>
                 </button>
                 <button type="button" class="psm-item" id="psm-btn-karaoke" onclick="toggleKaraokeMode(); updatePracticeMobileMenuBadges();">
-                  <i data-lucide="sparkles" class="w-4 h-4 text-red-400"></i>
+                  <i data-lucide="sparkles" class="w-4 h-4 fs-text-danger"></i>
                   <span>Chạy chữ Karaoke</span>
                   <span class="psm-badge" id="psm-badge-karaoke">TẮT</span>
                 </button>
                 <button type="button" class="psm-item" id="psm-btn-bilingual" onclick="toggleBilingual(); updatePracticeMobileMenuBadges();">
-                  <i data-lucide="languages" class="w-4 h-4 text-emerald-400"></i>
+                  <i data-lucide="languages" class="w-4 h-4 fs-text-success"></i>
                   <span>Dịch Song ngữ</span>
                   <span class="psm-badge" id="psm-badge-bilingual">TẮT</span>
                 </button>
                 <button type="button" class="psm-item" onclick="closePracticeMobileMenu(); openBilingualModal(true);" title="Sửa bản dịch song ngữ">
-                  <i data-lucide="pencil" class="w-4 h-4 text-emerald-400"></i>
+                  <i data-lucide="pencil" class="w-4 h-4 fs-text-success"></i>
                   <span>Sửa bản dịch song ngữ</span>
                 </button>
                 <button type="button" class="psm-item" id="psm-btn-autostop" onclick="toggleSentenceAutoStop(); updatePracticeMobileMenuBadges();">
-                  <i data-lucide="pause-circle" class="w-4 h-4 text-indigo-400"></i>
+                  <i data-lucide="pause-circle" class="w-4 h-4 fs-text-accent"></i>
                   <span>Tự dừng sau mỗi câu</span>
                   <span class="psm-badge" id="psm-badge-autostop">TẮT</span>
                 </button>
                 <button type="button" class="psm-item" id="psm-btn-autoscroll" onclick="toggleAutoScroll(); updatePracticeMobileMenuBadges();">
-                  <i data-lucide="arrow-down-up" class="w-4 h-4 text-blue-400"></i>
+                  <i data-lucide="arrow-down-up" class="w-4 h-4 fs-text-accent"></i>
                   <span>Tự động cuộn (Auto scroll)</span>
                   <span class="psm-badge" id="psm-badge-autoscroll">TẮT</span>
                 </button>
@@ -273,16 +273,16 @@
               <div class="psm-sep"></div>
               <div class="psm-section">
                 <button type="button" class="psm-item" onclick="closePracticeMobileMenu(); openPunctModal();">
-                  <i data-lucide="case-sensitive" class="w-4 h-4 text-yellow-400"></i>
+                  <i data-lucide="case-sensitive" class="w-4 h-4 fs-text-warn"></i>
                   <span>Thêm dấu câu AI</span>
                 </button>
                 <button type="button" class="psm-item" onclick="closePracticeMobileMenu(); openKeyVocabModal();">
-                  <i data-lucide="sparkles" class="w-4 h-4 text-amber-400"></i>
+                  <i data-lucide="sparkles" class="w-4 h-4 fs-text-warn"></i>
                   <span>Từ vựng khó (AI)</span>
                 </button>
                 <button type="button" class="psm-item" onclick="closePracticeMobileMenu(); window.TcfExam && window.TcfExam.openModal();">
                   <span style="font-size:14px">🇨🇦</span>
-                  <span class="font-semibold text-blue-300">Thi thử nghe TCF</span>
+                  <span class="font-semibold fs-text-primary">Thi thử nghe TCF</span>
                 </button>
               </div>
               <div class="psm-sep"></div>
@@ -322,7 +322,7 @@
         
         <!-- NỬA TRÁI: VIDEO & BẢNG ĐIỀU KHIỂN ĐÃ ĐƯỢC MỞ RỘNG SPACING THÔNG THOÁNG -->
         <div id="panel-left" class="split-panel-left space-y-3.5 pr-0 lg:pr-1.5">
-          <div id="video-frame-wrapper" class="relative w-full aspect-video bg-black rounded-2xl overflow-hidden border border-slate-800 shadow-2xl shrink-0">
+          <div id="video-frame-wrapper" class="relative w-full aspect-video bg-black rounded-2xl overflow-hidden border fs-border-base shadow-2xl shrink-0">
             <div id="yt-player-container" class="w-full h-full"></div>
             <div id="vid-fade" aria-hidden="true"></div>
             <!-- Lớp phủ trong suốt: chuột không chạm vào iframe YouTube nên YouTube không hiện thanh timeline, tên video, nút loa/CC... Bấm vào = phát / dừng -->
@@ -332,7 +332,7 @@
           </div>
 
           <!-- BẢNG ĐIỀU KHIỂN: THÔNG THOÁNG, KHÔNG BỊ BÍ DÍNH -->
-          <div id="pv-ctl" class="bg-[#091024] border border-slate-800 rounded-2xl px-4 py-2.5 shadow-md shrink-0">
+          <div id="pv-ctl" class="fs-surface-card border fs-border-base rounded-2xl px-4 py-2.5 shadow-md shrink-0">
             <!-- HÀNG 1: CÁC NÚT ĐIỀU KHIỂN CHÍNH (ĐỆM DƯỚI RÕ RÀNG VỚI ĐƯỜNG KẺ) -->
             <div class="pc">
                 <!-- THANH TIMELINE (tự vẽ: thanh của YouTube đã bị lớp phủ chặn) -->
@@ -423,7 +423,7 @@
         <div id="split-resizer" class="split-resizer" title="Kéo để chỉnh tỷ lệ hai bên (30% - 70%)"></div>
 
         <!-- NỬA PHẢI: KHU VỰC PHỤ ĐỀ -->
-        <div id="panel-right" class="split-panel-right bg-[#0a1124] border border-blue-950/70 rounded-2xl overflow-hidden shadow-2xl relative pl-0 lg:pl-1">
+        <div id="panel-right" class="split-panel-right fs-surface-card border fs-border-base rounded-2xl overflow-hidden shadow-2xl relative pl-0 lg:pl-1">
           <div class="sub-panel-hd hd" id="sub-panel-hd">
             <div class="sub-panel-tabs seg" id="sub-panel-tabs">
               <button type="button" id="tab-sub-sentences" class="on" onclick="switchRightPanelTab('sentences')">Danh sách câu</button>
@@ -466,7 +466,7 @@
           ></div>
 
           <!-- Ô TÌM KIẾM PHỤ ĐỀ (Đã chuyển lên header dạng kính lúp mở rộng) -->
-          <div id="sub-search-bar" class="p-3.5 border-t border-slate-800/80 bg-[#0c152e] shrink-0" style="display:none !important;">
+          <div id="sub-search-bar" class="p-3.5 border-t fs-border-base fs-surface-subtle shrink-0" style="display:none !important;">
             <div class="search-row">
               <div class="search-row-field">
                 <span class="sub-search-icon-box">
@@ -477,7 +477,7 @@
                   type="text"
                   oninput="handleSearch(this.value)"
                   placeholder="Tìm kiếm câu thoại hoặc từ vựng..."
-                  class="w-full pl-11 pr-4 py-2.5 bg-[#060b18] border border-slate-800 rounded-xl text-[19px] text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:bg-[#070f24] transition-all leading-normal"
+                  class="w-full pl-11 pr-4 py-2.5 fs-surface-card border fs-border-control rounded-xl text-[19px] fs-text-primary focus:outline-none transition-all leading-normal"
                 />
               </div>
               <button
