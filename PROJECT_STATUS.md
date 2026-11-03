@@ -14,11 +14,11 @@
 
 - **Tên dự án:** French Shadowing Studio
 - **Phiên bản phát hành gần nhất:** `v2.0.27` (Commit `ba376ac`)
-- **Current HEAD Commit:** `9e2ea06` (Khởi tạo `PROJECT_STATUS.md` và triển khai `M-Status-Fix`)
+- **Current HEAD Commit:** `2f02b09` (M-Status-Fix đã nghiệm thu; đang triển khai `M-Account-Handover-A`)
 - **Nhánh Git (Branch):** `main`
-- **Trạng thái Git Working Tree:** Đang thực hiện `M-Status-Fix` (chỉ sửa `PROJECT_STATUS.md`, không sửa source code)
+- **Trạng thái Git Working Tree:** Đang triển khai `M-Account-Handover-A` (chỉ sửa/tạo tài liệu bàn giao, không sửa source code)
 - **Môi trường triển khai:** Vercel Static Hosting (phục vụ trực tiếp từ `index.html` và static assets)
-- **Thời điểm cập nhật:** `2026-11-03T08:35:00-06:00`
+- **Thời điểm cập nhật:** `2026-11-03T09:08:00-06:00`
 
 ---
 
@@ -77,7 +77,8 @@
 | **M5a** | Dọn Dẹp Inline Styles Màu Trong `js/vocab-practice.js` | **Đã hoàn thành** | `v2.0.25` (`8379385`) |
 | **M5-fix** | Sửa Độ Tương Phản Chip Câu Ghép, Pill Từ Trọng Tâm & Gợi Ý SRS | **Đã hoàn thành** | `v2.0.26` (`06a85fe`) |
 | **M5b** | Dọn Dẹp Dứt Điểm Toàn Bộ Inline Styles Màu Trong Các File JS Còn Lại | **Đã hoàn thành** | `v2.0.27` (`ba376ac`) |
-| **M-Status** | Thiết lập & Hiệu chỉnh Tài Liệu Trạng Thái `PROJECT_STATUS.md` | **Đã triển khai, chờ nghiệm thu** | `9e2ea06` + `M-Status-Fix` |
+| **M-Status** | Thiết lập & Hiệu chỉnh Tài Liệu Trạng Thái `PROJECT_STATUS.md` | **Đã nghiệm thu** | `2f02b09` (nghiệm thu bởi người dùng) |
+| **M-Account-Handover-A** | Thiết lập Cơ chế & Biên bản Bàn giao Tài khoản Động (`HANDOVER.md`) | **Đã triển khai, chờ nghiệm thu** | *(commit hiện tại)* |
 | **M5d** | Dọn Dẹp Inline Styles Màu & SVG HEX Trong HTML Partials *(Kế hoạch gốc)* | **Chưa thực hiện (Pending)** | *(Tồn đọng 40 inline styles & 20 SVG HEX)* |
 | **M6** | Chuẩn Hóa Trạng Thái Tương Tác & Vòng Sáng Chỉ Thị (Focus Rings) | **Chưa bắt đầu (Dự kiến)** | *(Kế hoạch tiếp theo)* |
 | **M7** | Kiểm Toán Tổng Thể Toàn Diện & Dọn Dẹp Cờ Thừa (Final Audit) | **Chưa bắt đầu (Dự kiến)** | *(Kế hoạch tiếp theo)* |
@@ -87,7 +88,7 @@
 ## 4. Current Focus (Trọng tâm Hiện thời)
 
 - Đã dọn sạch triệt để **100% Tailwind color classes trong HTML** và **100% inline styles màu trong JavaScript**.
-- Đang hoàn tất nghiệm thu tài liệu **`PROJECT_STATUS.md`** (Module `M-Status` / `M-Status-Fix`) làm cơ sở bàn giao minh bạch.
+- Đang hoàn tất nghiệm thu cơ chế bàn giao tài khoản động **`M-Account-Handover-A`** (`HANDOVER.md` & `AGENTS.md`) làm cơ sở chuyển giao ca minh bạch.
 - **Hiện trạng nợ kỹ thuật cần xử lý:**
   - Dự án **chưa sạch màu tuyệt đối**. Vẫn còn tồn tại **40 inline color styles** trong các HTML partials và **20 thuộc tính SVG HEX** (thuộc phạm vi của milestone **M5d** trong Kế hoạch gốc).
   - Vẫn còn **921 mã HEX** trong các file CSS ngoài vùng định nghĩa token.
@@ -96,8 +97,8 @@
 
 ## 5. Pending Tasks (Công việc Chờ Thực hiện & Thứ tự Ưu tiên)
 
-1. **Ưu tiên 1: Nghiệm thu hoàn tất M-Status-Fix**
-   - Đảm bảo tài liệu phản ánh trung thực, chính xác các chỉ số và hiện trạng kỹ thuật.
+1. **Ưu tiên 1: Nghiệm thu hoàn tất M-Account-Handover-A**
+   - Đảm bảo cơ chế bàn giao tự động động và biên bản `HANDOVER.md` đạt chuẩn.
 2. **Ưu tiên 2: Triển khai Milestone M5d – Dọn dẹp Inline Styles trong HTML Partials & SVG**
    - Xóa bỏ 40 inline color styles trong 9 partials (`view-home`: 18, `view-guide`: 7, `view-book`: 4, `modal-book-translate`: 3, `view-translate`: 3, `view-vocab`: 2, `modal-share`: 1, `modal-book-import`: 1, `modal-bilingual`: 1).
    - Thay thế 20 thuộc tính SVG `fill`/`stroke` HEX bằng `currentColor` hoặc semantic classes.
@@ -136,8 +137,9 @@
 
 Khi một AI Agent mới tiếp quản dự án (khi đổi tài khoản Google hoặc mở phiên chat mới):
 
-1. **Bước 1: Đọc tài liệu chỉ dẫn bắt buộc:**
-   - Đọc [`AGENTS.md`](./AGENTS.md) để nắm chắc **Quy trình 4 bước bắt buộc** (*Listen & Analyze $\rightarrow$ Propose Plan $\rightarrow$ Wait for Review $\rightarrow$ Execute ONLY on "Đồng ý"*).
+1. **Bước 1: Đọc tài liệu chỉ dẫn & biên bản bàn giao:**
+   - Đọc [`HANDOVER.md`](./HANDOVER.md) (nếu tồn tại) để nắm ngay ngữ cảnh bàn giao tức thời của phiên trước.
+   - Đọc [`AGENTS.md`](./AGENTS.md) để nắm chắc **Quy trình 4 bước bắt buộc** và Mục 7 về quy trình tiếp nhận phiên làm việc.
    - Đọc [`PROJECT_STATUS.md`](./PROJECT_STATUS.md) (tệp này) để nắm rõ phiên bản, commit, tiến độ module, nợ kỹ thuật thực tế và công việc tiếp theo.
 2. **Bước 2: Xác minh trạng thái thực tế bằng các lệnh chỉ đọc:**
    ```bash
