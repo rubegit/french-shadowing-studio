@@ -1973,7 +1973,7 @@
           <div class="vph-cloze-sentence">${q.maskedSentence}</div>
 
           <div class="vph-cloze-meaning">
-            Gợi ý nghĩa: <span style="color:#6ee7b7">${formatGrammarBadgeHtml(escHtml(q.meaning), { mask: true })}</span>
+            Gợi ý nghĩa: <span class="fs-text-success">${formatGrammarBadgeHtml(escHtml(q.meaning), { mask: true })}</span>
           </div>
         </div>
 
@@ -2077,13 +2077,12 @@
 
       if (blankPill) {
         blankPill.textContent = target;
-        blankPill.style.color = '#6ee7b7';
-        blankPill.style.borderColor = '#10b981';
+        blankPill.classList.add('valid');
       }
 
       const meaningEl = document.querySelector('.vph-cloze-meaning');
       if (meaningEl) {
-        meaningEl.innerHTML = `Nghĩa đầy đủ: <span style="color:#6ee7b7">${formatGrammarBadgeHtml(escHtml(q.meaning), { mask: false })}</span>`;
+        meaningEl.innerHTML = `Nghĩa đầy đủ: <span class="fs-text-success">${formatGrammarBadgeHtml(escHtml(q.meaning), { mask: false })}</span>`;
       }
 
       const bonus = state.clozeHintsUsed === 0 ? 15 : 10;
@@ -2146,12 +2145,12 @@
     const blankPill = document.getElementById('vph-blank-pill');
     if (blankPill) {
       blankPill.textContent = q.frenchWord;
-      blankPill.style.color = '#fca5a5';
+      blankPill.classList.add('invalid');
     }
 
     const meaningEl = document.querySelector('.vph-cloze-meaning');
     if (meaningEl) {
-      meaningEl.innerHTML = `Nghĩa đầy đủ: <span style="color:#6ee7b7">${formatGrammarBadgeHtml(escHtml(q.meaning), { mask: false })}</span>`;
+      meaningEl.innerHTML = `Nghĩa đầy đủ: <span class="fs-text-success">${formatGrammarBadgeHtml(escHtml(q.meaning), { mask: false })}</span>`;
     }
 
     const feedbackArea = document.getElementById('vph-feedback-area');
@@ -2319,7 +2318,7 @@
         <h3 class="vph-done-title">Phá kỷ lục Ghép thẻ!</h3>
         <p class="vph-done-desc">Bạn đã ghép chính xác tất cả ${state.totalPairs} cặp từ vựng trong thời gian kỷ lục:</p>
 
-        <div style="font-size:38px; font-weight:800; color:#38bdf8; font-family:'JetBrains Mono', monospace; margin: 10px 0;">
+        <div class="fs-text-primary" style="font-size:38px; font-weight:800; font-family:'JetBrains Mono', monospace; margin: 10px 0;">
           ${totalSec} giây
         </div>
 
@@ -2379,14 +2378,14 @@
 
     let ctxHtml = item.en || '';
     if (item.he > item.hs && item.he <= ctxHtml.length) {
-      ctxHtml = escHtml(ctxHtml.slice(0, item.hs)) + `<b style="color:#fbbf24;text-decoration:underline">${escHtml(ctxHtml.slice(item.hs, item.he))}</b>` + escHtml(ctxHtml.slice(item.he));
+      ctxHtml = escHtml(ctxHtml.slice(0, item.hs)) + `<b class="fs-text-warn" style="text-decoration:underline">${escHtml(ctxHtml.slice(item.hs, item.he))}</b>` + escHtml(ctxHtml.slice(item.he));
     } else {
       ctxHtml = escHtml(ctxHtml);
     }
 
     body.innerHTML = `
       <div class="vph-flashcard-container">
-        <div style="font-size:12px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.04em">
+        <div class="fs-text-muted" style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em">
           ${qNum} · Chạm vào thẻ hoặc ấn Space để lật
         </div>
 
@@ -2413,7 +2412,7 @@
 
             <!-- Mặt sau (Back) -->
             <div class="vph-fc-back">
-              <span class="vph-fc-top-tag" style="color:#d946ef;background:rgba(217,70,239,0.15)">Nghĩa & Bản dịch</span>
+              <span class="vph-fc-top-tag vph-fc-top-tag-vi">Nghĩa & Bản dịch</span>
               
               <div class="vph-fc-meaning">${formatGrammarBadgeHtml(escHtml(item.wordVi || item.vi || item.text), { mask: false })}</div>
 
@@ -2535,7 +2534,7 @@
 
     const skippedTotal = (state.translateSkippedInfo?.lowReps || 0) + (state.translateSkippedInfo?.noExamples || 0);
     const skippedNotice = skippedTotal > 0 && state.currentIndex === 0
-      ? `<div style="font-size:11px; color:#94a3b8; margin-bottom:8px; text-align:center;">
+      ? `<div class="fs-text-muted" style="font-size:11px; margin-bottom:8px; text-align:center;">
            ℹ️ Đã tự động bỏ qua ${skippedTotal} thẻ (chưa đạt reps ≥ ${TRANSLATE_MIN_RECOGNITION_REPS} hoặc thiếu câu ví dụ song ngữ).
          </div>`
       : '';
@@ -2545,7 +2544,7 @@
         ${skippedNotice}
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
           <div style="display:flex; align-items:center; gap:8px;">
-            <span style="font-size:12px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.04em">${qNum}</span>
+            <span class="fs-text-muted" style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em">${qNum}</span>
             ${levelBadge}
           </div>
           <div class="vph-font-controls" title="Điều chỉnh cỡ chữ bài luyện">
@@ -2738,7 +2737,7 @@
 
         hintSec.innerHTML = `
           <div class="vph-hint-display">
-            <div style="font-size:11px; text-transform:uppercase; color:#f59e0b; font-weight:700; margin-bottom:4px;">
+            <div class="fs-text-warn" style="font-size:11px; text-transform:uppercase; font-weight:700; margin-bottom:4px;">
               💡 Gợi ý câu (${levelLabel}):
             </div>
             <div class="vph-hint-code">${escHtml(hintText)}</div>
@@ -2809,7 +2808,7 @@
     if (!body) return;
 
     const enableLowRepsBtnHtml = (sessionData.skippedLowReps > 0 && !state.translateIncludeLowReps)
-      ? `<button type="button" class="vph-primary-btn" id="vph-enable-low-reps-btn" style="background:#2563eb; color:#fff;">
+      ? `<button type="button" class="vph-primary-btn" id="vph-enable-low-reps-btn">
            <span>⚡ Bật "Gồm cả thẻ reps &lt; 2" (${sessionData.skippedLowReps} thẻ)</span>
          </button>`
       : '';
@@ -2823,7 +2822,7 @@
           <br>1. Thẻ từ đã đạt độ nhận biết cơ bản (<b>reps ≥ ${TRANSLATE_MIN_RECOGNITION_REPS}</b> qua Flashcard hoặc Trắc nghiệm).
           <br>2. Thẻ có ít nhất một câu ví dụ song ngữ Pháp - Việt (VD1 - VD3).
         </p>
-        <div style="font-size:12px; color:#94a3b8; margin-bottom:20px;">
+        <div class="fs-text-muted" style="font-size:12px; margin-bottom:20px;">
           (Đã kiểm tra: ${sessionData.skippedLowReps} thẻ chưa đủ reps, ${sessionData.skippedNoExamples} thẻ thiếu câu ví dụ).
         </div>
         <div class="vph-actions-row">
@@ -2910,7 +2909,7 @@
                 <span>Câu tiếp (Enter) ➔</span>
               </button>
             </div>
-            <div style="font-size:calc(1.15rem * var(--vph-font-scale, 1.08)); font-weight:600; color:#ecfdf5;">${escHtml(q.expectedFr)}</div>
+            <div class="fs-text-ink" style="font-size:calc(1.15rem * var(--vph-font-scale, 1.08)); font-weight:600;">${escHtml(q.expectedFr)}</div>
           </div>
         `;
         document.getElementById('vph-translate-next-btn')?.addEventListener('click', advanceToNextTranslateQuestion);
@@ -2942,11 +2941,11 @@
           <div class="vph-feedback-box error" style="display:flex; flex-direction:column; gap:10px;">
             <div style="font-weight:700;">Chưa chính xác!</div>
             <div>
-              <div style="font-size:11px; text-transform:uppercase; color:#94a3b8; font-weight:700;">Đáp án chuẩn:</div>
-              <div style="font-size:calc(1.15rem * var(--vph-font-scale, 1.08)); font-weight:600; color:#6ee7b7; margin-top:2px;">${escHtml(q.expectedFr)}</div>
+              <div class="fs-text-muted" style="font-size:11px; text-transform:uppercase; font-weight:700;">Đáp án chuẩn:</div>
+              <div class="fs-text-success" style="font-size:calc(1.15rem * var(--vph-font-scale, 1.08)); font-weight:600; margin-top:2px;">${escHtml(q.expectedFr)}</div>
             </div>
             <div>
-              <div style="font-size:11px; text-transform:uppercase; color:#94a3b8; font-weight:700;">So sánh chi tiết theo từ:</div>
+              <div class="fs-text-muted" style="font-size:11px; text-transform:uppercase; font-weight:700;">So sánh chi tiết theo từ:</div>
               <div class="vph-word-diff-box">${wordDiffHtml}</div>
             </div>
             <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:8px; margin-top:6px;">
@@ -2995,8 +2994,7 @@
     if (btn) {
       btn.disabled = true;
       btn.textContent = '✓ Đã lưu cách nói này vào kho cục bộ';
-      btn.style.color = '#34d399';
-      btn.style.borderColor = '#10b981';
+      btn.classList.add('is-saved');
     }
   }
 
@@ -3037,7 +3035,7 @@
       feedbackArea.innerHTML = `
         <div class="vph-feedback-box error" style="display:flex; flex-direction:column; gap:8px;">
           <div style="font-weight:700;">${title}</div>
-          <div style="font-size:calc(1.15rem * var(--vph-font-scale, 1.08)); font-weight:600; color:#6ee7b7;">${escHtml(q.expectedFr)}</div>
+          <div class="fs-text-success" style="font-size:calc(1.15rem * var(--vph-font-scale, 1.08)); font-weight:600;">${escHtml(q.expectedFr)}</div>
           <div style="margin-top:6px;">
             <button type="button" id="vph-translate-next-btn" class="vph-primary-btn">
               <span>Câu tiếp (Enter) ➔</span>
@@ -3153,7 +3151,7 @@
 
     const skippedTotal = (state.reorderSkippedInfo?.lowReps || 0) + (state.reorderSkippedInfo?.noExamples || 0);
     const skippedNotice = skippedTotal > 0 && state.currentIndex === 0
-      ? `<div style="font-size:11px; color:#94a3b8; margin-bottom:8px; text-align:center;">
+      ? `<div class="fs-text-muted" style="font-size:11px; margin-bottom:8px; text-align:center;">
            ℹ️ Đã tự động bỏ qua ${skippedTotal} thẻ (chưa đạt reps ≥ ${REORDER_SM2_CONFIG.MIN_RECOGNITION_REPS} hoặc câu ví dụ không nằm trong khoảng 3–15 từ).
          </div>`
       : '';
@@ -3163,7 +3161,7 @@
         ${skippedNotice}
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
           <div style="display:flex; align-items:center; gap:8px;">
-            <span style="font-size:12px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.04em">${qNum}</span>
+            <span class="fs-text-muted" style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em">${qNum}</span>
             ${levelBadge}
           </div>
           <div class="vph-font-controls" title="Điều chỉnh cỡ chữ bài luyện">
@@ -3309,7 +3307,7 @@
 
     // 2. Render Word Bank
     if (state.reorderBankTokens.length === 0) {
-      wordBank.innerHTML = `<span style="color:#64748b; font-size:12px; font-style:italic;">(Đã đưa hết các từ lên câu đang ghép)</span>`;
+      wordBank.innerHTML = `<span class="fs-text-muted" style="font-size:12px; font-style:italic;">(Đã đưa hết các từ lên câu đang ghép)</span>`;
     } else {
       wordBank.innerHTML = state.reorderBankTokens.map((t, idx) => {
         const keyBadge = idx < 9 ? `<span class="vph-reorder-key-badge">${idx + 1}</span>` : '';
@@ -3403,7 +3401,7 @@
 
       if (fb) {
         fb.innerHTML = `
-          <div class="vph-diff-box" style="border-color:rgba(16,185,129,0.5); background:rgba(16,185,129,0.1); color:#4ade80;">
+          <div class="vph-diff-box vph-diff-success">
             <div style="font-weight:700; margin-bottom:2px;">✓ Chính xác! Bạn đã ghép đúng thứ tự câu.</div>
           </div>
         `;
@@ -3420,9 +3418,9 @@
 
       if (fb) {
         fb.innerHTML = `
-          <div class="vph-diff-box" style="border-color:rgba(239,68,68,0.5); background:rgba(239,68,68,0.1);">
-            <div style="color:#f87171; font-weight:700; margin-bottom:4px;">✕ Chưa chính xác.</div>
-            <div style="color:#cbd5e1; font-size:13px;">Đáp án chuẩn: <strong style="color:#4ade80;">${escHtml(q.expectedFr)}</strong></div>
+          <div class="vph-diff-box vph-diff-error">
+            <div class="vph-diff-error-title">✕ Chưa chính xác.</div>
+            <div class="vph-diff-std">Đáp án chuẩn: <strong class="fs-text-success">${escHtml(q.expectedFr)}</strong></div>
           </div>
         `;
       }
@@ -3458,7 +3456,7 @@
       if (hintBtn) hintBtn.innerHTML = `<span>💡 Gợi ý (Mức 2/3: Ghim 50%)</span>`;
       if (hintSection) {
         hintSection.innerHTML = `
-          <div style="font-size:12px; color:#fbbf24; margin-top:6px;">
+          <div class="fs-text-warn" style="font-size:12px; margin-top:6px;">
             💡 Đã đánh dấu ⭐1, ⭐2 cho 1–2 từ mở đầu câu trong ngân hàng từ.
           </div>
         `;
@@ -3477,7 +3475,7 @@
 
       if (hintSection) {
         hintSection.innerHTML = `
-          <div style="font-size:12px; color:#fbbf24; margin-top:6px;">
+          <div class="fs-text-warn" style="font-size:12px; margin-top:6px;">
             💡 Đã ghim sẵn ${halfCount} từ đầu tiên vào đúng vị trí câu đang ghép.
           </div>
         `;
@@ -3500,9 +3498,9 @@
     if (hintBtn) hintBtn.innerHTML = `<span>💡 Đã mở câu mẫu</span>`;
     if (hintSection) {
       hintSection.innerHTML = `
-        <div class="vph-diff-box" style="border-color:#f59e0b; background:rgba(245,158,11,0.1); margin-top:8px;">
-          <span style="color:#fbbf24; font-weight:700;">Câu mẫu tiếng Pháp:</span>
-          <strong style="color:#ffffff; margin-left:4px;">${escHtml(q.expectedFr)}</strong>
+        <div class="vph-diff-box vph-diff-warn" style="margin-top:8px;">
+          <span class="fs-text-warn" style="font-weight:700;">Câu mẫu tiếng Pháp:</span>
+          <strong class="fs-text-ink" style="margin-left:4px;">${escHtml(q.expectedFr)}</strong>
         </div>
       `;
     }
@@ -3558,7 +3556,7 @@
     if (!body) return;
 
     const enableLowRepsBtnHtml = (sessionData.skippedLowReps > 0 && !state.reorderIncludeLowReps)
-      ? `<button type="button" class="vph-primary-btn" id="vph-enable-reorder-low-reps-btn" style="background:#2563eb; color:#fff;">
+      ? `<button type="button" class="vph-primary-btn" id="vph-enable-reorder-low-reps-btn">
            <span>⚡ Bật "Gồm cả thẻ reps &lt; 2" (${sessionData.skippedLowReps} thẻ)</span>
          </button>`
       : '';
@@ -3643,11 +3641,11 @@
             <span class="vph-stat-lbl">Chính xác (${accuracy}%)</span>
           </div>
           <div class="vph-score-stat">
-            <span class="vph-stat-val" style="color:#fbbf24">${state.score}</span>
+            <span class="vph-stat-val fs-text-warn">${state.score}</span>
             <span class="vph-stat-lbl">Tổng điểm</span>
           </div>
           <div class="vph-score-stat">
-            <span class="vph-stat-val" style="color:#a855f7">${state.maxStreak} 🔥</span>
+            <span class="vph-stat-val fs-text-accent">${state.maxStreak} 🔥</span>
             <span class="vph-stat-lbl">Chuỗi dài nhất</span>
           </div>
         </div>

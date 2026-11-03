@@ -2640,3 +2640,50 @@ html[data-ui="light"] .vph-reorder-key-badge {
   background: var(--fs-line);
   color: var(--fs-muted);
 }
+
+/* Helper semantic classes for feedback and diffs */
+.vph-cloze-blank-pill.valid {
+  color: var(--fs-success-text) !important;
+  border-bottom-color: var(--fs-success) !important;
+}
+.vph-cloze-blank-pill.invalid {
+  color: var(--fs-error-text) !important;
+  border-bottom-color: var(--fs-error) !important;
+}
+.vph-fc-top-tag-vi {
+  color: var(--fs-primary) !important;
+  background: var(--fs-tint) !important;
+}
+.vph-btn-accept-alt.is-saved {
+  color: var(--fs-success-text) !important;
+  border-color: var(--fs-success) !important;
+}
+.vph-diff-box {
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--fs-border-control);
+  background: var(--fs-surface-subtle);
+}
+.vph-diff-box.vph-diff-success {
+  border-color: var(--fs-success);
+  background: var(--fs-success-subtle);
+  color: var(--fs-success-text);
+}
+.vph-diff-box.vph-diff-error {
+  border-color: var(--fs-error);
+  background: var(--fs-error-subtle);
+}
+.vph-diff-box.vph-diff-warn {
+  border-color: var(--fs-warning);
+  background: var(--fs-warning-subtle);
+}
+.vph-diff-error-title {
+  color: var(--fs-error-text);
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.vph-diff-std {
+  color: var(--fs-ink);
+  font-size: 13px;
+}
+

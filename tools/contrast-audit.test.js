@@ -34,13 +34,13 @@ test('M1.2 Lint Color: Quét và thống kê chính xác số lượng mã màu 
 
   assert.ok(result.summary, 'Phải có bảng summary');
   assert.ok(result.summary.totalCssHexOutsideTokens > 0 && result.summary.totalCssHexOutsideTokens <= 2362, 'Số lượng mã hex trong CSS ngoài token phải giảm dần từ mốc baseline 2362');
-  assert.ok(result.summary.totalJsInlineColorStyles > 50, 'Phải quét được >50 inline style màu trong JS');
+  assert.ok(result.summary.totalJsInlineColorStyles <= 64, 'Số lượng inline style màu trong JS phải giảm dần từ mốc baseline 64');
   assert.strictEqual(result.summary.totalHtmlTailwindColors, 0, 'Toàn bộ class màu Tailwind trong HTML đã được dọn sạch về 0');
 
-  // Kiểm tra file js/vocab-practice.js nằm trong top vi phạm inline style
+  // Kiểm tra file js/vocab-practice.js đã được dọn sạch hoàn toàn inline style màu
   const vocabPracticeResult = result.jsResults.find(r => r.file.includes('vocab-practice.js'));
   assert.ok(vocabPracticeResult, 'Phải quét vocab-practice.js');
-  assert.ok(vocabPracticeResult.inlineColorStylesCount >= 30, 'vocab-practice.js có khoảng 38 inline styles');
+  assert.strictEqual(vocabPracticeResult.inlineColorStylesCount, 0, 'vocab-practice.js đã được dọn sạch hoàn toàn 0 inline style màu');
 });
 
 test('M1.3 Baseline Snapshot: Tệp baseline.json tồn tại và ghi lại mốc đo ban đầu', () => {
