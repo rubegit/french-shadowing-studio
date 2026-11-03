@@ -872,7 +872,7 @@
         <div>
           <h3 class="text-sm font-bold fs-text-primary flex items-center gap-2">
             Nạp Từ Vựng & Quản Lý Dữ Liệu
-            <span class="text-[10px] px-2 py-0.5 rounded bg-blue-500/20 fs-text-accent border border-blue-500/40 font-mono">Schema 0.2</span>
+            <span class="text-[10px] px-2 py-0.5 rounded fs-surface-subtle fs-text-accent border fs-border-control font-mono">Schema 0.2</span>
           </h3>
           <p class="text-[11px] fs-text-muted">Hỗ trợ nhiều nguồn, đối chiếu thông minh và đồng bộ an toàn</p>
         </div>
@@ -887,7 +887,7 @@
     <div id="fss-import-modal-body" class="space-y-4 text-xs">
       
       <!-- Persistent Cloud Sync Alert (Hiện khi local đã ghi nhưng pushAll thất bại) -->
-      <div id="fss-import-cloud-alert" class="hidden p-4 rounded-xl fs-surface-subtle border-2 border-rose-600 fs-text-primary space-y-2">
+      <div id="fss-import-cloud-alert" class="hidden p-4 rounded-xl fs-surface-subtle border-2 fs-border-accent fs-text-primary space-y-2">
         <div class="flex items-start gap-2.5">
           <svg class="w-5 h-5 fs-text-danger shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
           <div class="flex-1 text-[11px] space-y-1">
@@ -897,7 +897,7 @@
               TUYỆT ĐỐI KHÔNG mở hoặc đăng nhập trên thiết bị khác lúc này. Thiết bị khác chưa cập nhật sẽ tải dữ liệu cũ hoặc đẩy đè lại lên Cloud làm hỏng kho từ vựng.
             </p>
           </div>
-          <button type="button" id="fss-import-cloud-retry-btn" onclick="window.retryCloudPush()" class="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 fs-text-white font-bold text-xs shrink-0 cursor-pointer transition shadow">
+          <button type="button" id="fss-import-cloud-retry-btn" onclick="window.retryCloudPush()" class="px-3 py-1.5 rounded-lg fss-btn-danger fs-text-white font-bold text-xs shrink-0 cursor-pointer transition shadow">
             Thử đẩy lại ngay
           </button>
         </div>
@@ -959,7 +959,7 @@
       </div>
 
       <!-- Staging & Preview Results Container -->
-      <div id="fss-import-preview-results" class="hidden space-y-4 pt-3 border-t border-blue-950/80">
+      <div id="fss-import-preview-results" class="hidden space-y-4 pt-3 border-t fs-border-base">
         
         <!-- Stats Summary -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center" id="fss-import-stats-grid"></div>
@@ -985,9 +985,9 @@
         </div>
 
         <!-- Lỗi cú pháp / dòng sai quy cách -->
-        <div id="fss-import-errors-box" class="hidden p-3 rounded-xl bg-rose-950/40 border border-rose-800/80 text-rose-200 space-y-1">
-          <div class="font-bold flex items-center gap-1.5 text-rose-300 text-xs">
-            <svg class="w-4 h-4 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <div id="fss-import-errors-box" class="hidden p-3 rounded-xl fs-surface-subtle border fs-border-base fs-text-primary space-y-1">
+          <div class="font-bold flex items-center gap-1.5 fs-text-danger text-xs">
+            <svg class="w-4 h-4 fs-text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             <span>Dòng bị bỏ qua do lỗi cú pháp:</span>
           </div>
           <ul id="fss-import-errors-list" class="list-disc list-inside text-[11px] space-y-0.5 max-h-24 overflow-y-auto"></ul>
@@ -1000,7 +1000,7 @@
               <svg class="w-4 h-4 fs-text-warn" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
               <span>Phát hiện xung đột loại từ vựng (Bắt buộc chọn để mở khóa ghi)</span>
             </div>
-            <span id="fss-collision-badge" class="px-2 py-0.5 rounded bg-amber-500/20 fs-text-warn font-mono text-[10px]"></span>
+            <span id="fss-collision-badge" class="px-2 py-0.5 rounded fs-surface-card fs-text-warn font-mono text-[10px]"></span>
           </div>
           <div id="fss-collisions-list" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
         </div>
@@ -1054,7 +1054,7 @@
         <!-- Cloud Sync status badge & Local-only option (M43-B) -->
         <div id="fss-import-cloud-sync-box" class="p-2.5 rounded-xl border fs-border-base fs-surface-card flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs">
           <div class="flex items-center gap-2">
-            <span id="fss-cloud-sync-badge" class="px-2 py-0.5 rounded text-[11px] font-semibold flex items-center gap-1.5 bg-blue-500/20 fs-text-accent border border-blue-500/30">
+            <span id="fss-cloud-sync-badge" class="px-2 py-0.5 rounded text-[11px] font-semibold flex items-center gap-1.5 fs-surface-subtle fs-text-accent border fs-border-control">
               <span id="fss-cloud-sync-badge-icon">☁️</span>
               <span id="fss-cloud-sync-badge-text">Đang kiểm tra kết nối...</span>
             </span>
@@ -1071,18 +1071,18 @@
         </div>
 
         <!-- Confirmation Text Boxes for Commit -->
-        <div id="fss-import-confirm-box-replace" class="hidden p-3.5 rounded-xl fs-surface-subtle border border-amber-600/80 space-y-2">
-          <label class="block text-xs font-bold text-amber-300">
-            Xác nhận thay thế toàn bộ kho: Gõ chính xác từ khóa <span class="fs-text-primary font-mono bg-amber-500/20 px-2 py-0.5 rounded border border-amber-600">THAY THE</span> để mở khóa ghi
+        <div id="fss-import-confirm-box-replace" class="hidden p-3.5 rounded-xl fs-surface-subtle border fs-border-control space-y-2">
+          <label class="block text-xs font-bold fs-text-warn">
+            Xác nhận thay thế toàn bộ kho: Gõ chính xác từ khóa <span class="fs-text-primary font-mono fs-surface-card px-2 py-0.5 rounded border fs-border-control">THAY THE</span> để mở khóa ghi
           </label>
-          <input type="text" id="fss-import-confirm-replace-input" oninput="window.checkCommitUnlock()" placeholder="Gõ THAY THE..." class="w-full sm:w-64 px-3 py-2 rounded-lg fs-surface-card border border-amber-500/80 fs-text-primary font-mono text-xs focus:outline-none focus:border-amber-400" />
+          <input type="text" id="fss-import-confirm-replace-input" oninput="window.checkCommitUnlock()" placeholder="Gõ THAY THE..." class="w-full sm:w-64 px-3 py-2 rounded-lg fs-surface-card border fs-border-control fs-text-primary font-mono text-xs focus:outline-none" />
         </div>
 
-        <div id="fss-import-confirm-box-restore" class="hidden p-3.5 rounded-xl fs-surface-subtle border border-blue-600/80 space-y-2">
-          <label class="block text-xs font-bold text-blue-300">
-            Xác nhận khôi phục kho: Gõ chính xác từ khóa <span class="fs-text-primary font-mono bg-blue-500/20 px-2 py-0.5 rounded border border-blue-600">KHOI PHUC</span> để mở khóa ghi
+        <div id="fss-import-confirm-box-restore" class="hidden p-3.5 rounded-xl fs-surface-subtle border fs-border-control space-y-2">
+          <label class="block text-xs font-bold fs-text-accent">
+            Xác nhận khôi phục kho: Gõ chính xác từ khóa <span class="fs-text-primary font-mono fs-surface-card px-2 py-0.5 rounded border fs-border-control">KHOI PHUC</span> để mở khóa ghi
           </label>
-          <input type="text" id="fss-import-confirm-restore-input" oninput="window.checkCommitUnlock()" placeholder="Gõ KHOI PHUC..." class="w-full sm:w-64 px-3 py-2 rounded-lg fs-surface-card border border-blue-500/80 fs-text-primary font-mono text-xs focus:outline-none focus:border-blue-400" />
+          <input type="text" id="fss-import-confirm-restore-input" oninput="window.checkCommitUnlock()" placeholder="Gõ KHOI PHUC..." class="w-full sm:w-64 px-3 py-2 rounded-lg fs-surface-card border fs-border-control fs-text-primary font-mono text-xs focus:outline-none" />
         </div>
 
       </div>
@@ -1119,10 +1119,7 @@
           <button type="button" onclick="window.closeVocabImportModal()" class="fss-btn-cancel px-4 py-1.5 rounded-lg transition cursor-pointer">
             Hủy bỏ
           </button>
-          <button type="button" id="fss-import-commit-btn" disabled onclick="window.executeVocabCommit()" class="px-5 py-1.5 rounded-lg fs-text-white font-bold text-xs flex items-center gap-1.5 transition cursor-pointer shadow-lg shadow-emerald-900/30">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-            <span id="fss-import-commit-btn-text">Xác nhận ghi vào kho</span>
-          </button>
+          <button type="button" id="fss-import-commit-btn" disabled onclick="window.executeVocabCommit()" class="px-5 py-1.5 rounded-lg fs-text-white font-bold text-xs flex items-center gap-1.5 transition cursor-pointer shadow-lg">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
             <span id="fss-import-commit-btn-text">Xác nhận ghi vào kho</span>
           </button>

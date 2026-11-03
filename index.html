@@ -219,7 +219,7 @@
   <!-- Redesign Theme: Mint Pastel & Dark Mode (Spec 2026) -->
   <link rel="stylesheet" href="css/theme-light.css?v=3feb0b77">
 </head>
-<body class="bg-[#070b14] text-slate-100 min-h-screen flex flex-col antialiased selection:bg-red-600/40 selection:text-white" onclick="ensurePageFocus()">
+<body class="fs-surface-base fs-text-primary min-h-screen flex flex-col antialiased" onclick="ensurePageFocus()">
 
   <!-- ==================== POPUP TRA NGHĨA KHI BÔI ĐEN ==================== -->
   <!-- ==================== CỬA SỔ DÁN BẢN DỊCH (nút "Song ngữ" khi chưa có bản dịch) ==================== -->
@@ -1299,7 +1299,7 @@
         <div>
           <h3 class="text-sm font-bold fs-text-primary flex items-center gap-2">
             Nạp Từ Vựng & Quản Lý Dữ Liệu
-            <span class="text-[10px] px-2 py-0.5 rounded bg-blue-500/20 fs-text-accent border border-blue-500/40 font-mono">Schema 0.2</span>
+            <span class="text-[10px] px-2 py-0.5 rounded fs-surface-subtle fs-text-accent border fs-border-control font-mono">Schema 0.2</span>
           </h3>
           <p class="text-[11px] fs-text-muted">Hỗ trợ nhiều nguồn, đối chiếu thông minh và đồng bộ an toàn</p>
         </div>
@@ -1314,7 +1314,7 @@
     <div id="fss-import-modal-body" class="space-y-4 text-xs">
       
       <!-- Persistent Cloud Sync Alert (Hiện khi local đã ghi nhưng pushAll thất bại) -->
-      <div id="fss-import-cloud-alert" class="hidden p-4 rounded-xl fs-surface-subtle border-2 border-rose-600 fs-text-primary space-y-2">
+      <div id="fss-import-cloud-alert" class="hidden p-4 rounded-xl fs-surface-subtle border-2 fs-border-accent fs-text-primary space-y-2">
         <div class="flex items-start gap-2.5">
           <svg class="w-5 h-5 fs-text-danger shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
           <div class="flex-1 text-[11px] space-y-1">
@@ -1324,7 +1324,7 @@
               TUYỆT ĐỐI KHÔNG mở hoặc đăng nhập trên thiết bị khác lúc này. Thiết bị khác chưa cập nhật sẽ tải dữ liệu cũ hoặc đẩy đè lại lên Cloud làm hỏng kho từ vựng.
             </p>
           </div>
-          <button type="button" id="fss-import-cloud-retry-btn" onclick="window.retryCloudPush()" class="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 fs-text-white font-bold text-xs shrink-0 cursor-pointer transition shadow">
+          <button type="button" id="fss-import-cloud-retry-btn" onclick="window.retryCloudPush()" class="px-3 py-1.5 rounded-lg fss-btn-danger fs-text-white font-bold text-xs shrink-0 cursor-pointer transition shadow">
             Thử đẩy lại ngay
           </button>
         </div>
@@ -1386,7 +1386,7 @@
       </div>
 
       <!-- Staging & Preview Results Container -->
-      <div id="fss-import-preview-results" class="hidden space-y-4 pt-3 border-t border-blue-950/80">
+      <div id="fss-import-preview-results" class="hidden space-y-4 pt-3 border-t fs-border-base">
         
         <!-- Stats Summary -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center" id="fss-import-stats-grid"></div>
@@ -1412,9 +1412,9 @@
         </div>
 
         <!-- Lỗi cú pháp / dòng sai quy cách -->
-        <div id="fss-import-errors-box" class="hidden p-3 rounded-xl bg-rose-950/40 border border-rose-800/80 text-rose-200 space-y-1">
-          <div class="font-bold flex items-center gap-1.5 text-rose-300 text-xs">
-            <svg class="w-4 h-4 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <div id="fss-import-errors-box" class="hidden p-3 rounded-xl fs-surface-subtle border fs-border-base fs-text-primary space-y-1">
+          <div class="font-bold flex items-center gap-1.5 fs-text-danger text-xs">
+            <svg class="w-4 h-4 fs-text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             <span>Dòng bị bỏ qua do lỗi cú pháp:</span>
           </div>
           <ul id="fss-import-errors-list" class="list-disc list-inside text-[11px] space-y-0.5 max-h-24 overflow-y-auto"></ul>
@@ -1427,7 +1427,7 @@
               <svg class="w-4 h-4 fs-text-warn" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
               <span>Phát hiện xung đột loại từ vựng (Bắt buộc chọn để mở khóa ghi)</span>
             </div>
-            <span id="fss-collision-badge" class="px-2 py-0.5 rounded bg-amber-500/20 fs-text-warn font-mono text-[10px]"></span>
+            <span id="fss-collision-badge" class="px-2 py-0.5 rounded fs-surface-card fs-text-warn font-mono text-[10px]"></span>
           </div>
           <div id="fss-collisions-list" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
         </div>
@@ -1481,7 +1481,7 @@
         <!-- Cloud Sync status badge & Local-only option (M43-B) -->
         <div id="fss-import-cloud-sync-box" class="p-2.5 rounded-xl border fs-border-base fs-surface-card flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs">
           <div class="flex items-center gap-2">
-            <span id="fss-cloud-sync-badge" class="px-2 py-0.5 rounded text-[11px] font-semibold flex items-center gap-1.5 bg-blue-500/20 fs-text-accent border border-blue-500/30">
+            <span id="fss-cloud-sync-badge" class="px-2 py-0.5 rounded text-[11px] font-semibold flex items-center gap-1.5 fs-surface-subtle fs-text-accent border fs-border-control">
               <span id="fss-cloud-sync-badge-icon">☁️</span>
               <span id="fss-cloud-sync-badge-text">Đang kiểm tra kết nối...</span>
             </span>
@@ -1498,18 +1498,18 @@
         </div>
 
         <!-- Confirmation Text Boxes for Commit -->
-        <div id="fss-import-confirm-box-replace" class="hidden p-3.5 rounded-xl fs-surface-subtle border border-amber-600/80 space-y-2">
-          <label class="block text-xs font-bold text-amber-300">
-            Xác nhận thay thế toàn bộ kho: Gõ chính xác từ khóa <span class="fs-text-primary font-mono bg-amber-500/20 px-2 py-0.5 rounded border border-amber-600">THAY THE</span> để mở khóa ghi
+        <div id="fss-import-confirm-box-replace" class="hidden p-3.5 rounded-xl fs-surface-subtle border fs-border-control space-y-2">
+          <label class="block text-xs font-bold fs-text-warn">
+            Xác nhận thay thế toàn bộ kho: Gõ chính xác từ khóa <span class="fs-text-primary font-mono fs-surface-card px-2 py-0.5 rounded border fs-border-control">THAY THE</span> để mở khóa ghi
           </label>
-          <input type="text" id="fss-import-confirm-replace-input" oninput="window.checkCommitUnlock()" placeholder="Gõ THAY THE..." class="w-full sm:w-64 px-3 py-2 rounded-lg fs-surface-card border border-amber-500/80 fs-text-primary font-mono text-xs focus:outline-none focus:border-amber-400" />
+          <input type="text" id="fss-import-confirm-replace-input" oninput="window.checkCommitUnlock()" placeholder="Gõ THAY THE..." class="w-full sm:w-64 px-3 py-2 rounded-lg fs-surface-card border fs-border-control fs-text-primary font-mono text-xs focus:outline-none" />
         </div>
 
-        <div id="fss-import-confirm-box-restore" class="hidden p-3.5 rounded-xl fs-surface-subtle border border-blue-600/80 space-y-2">
-          <label class="block text-xs font-bold text-blue-300">
-            Xác nhận khôi phục kho: Gõ chính xác từ khóa <span class="fs-text-primary font-mono bg-blue-500/20 px-2 py-0.5 rounded border border-blue-600">KHOI PHUC</span> để mở khóa ghi
+        <div id="fss-import-confirm-box-restore" class="hidden p-3.5 rounded-xl fs-surface-subtle border fs-border-control space-y-2">
+          <label class="block text-xs font-bold fs-text-accent">
+            Xác nhận khôi phục kho: Gõ chính xác từ khóa <span class="fs-text-primary font-mono fs-surface-card px-2 py-0.5 rounded border fs-border-control">KHOI PHUC</span> để mở khóa ghi
           </label>
-          <input type="text" id="fss-import-confirm-restore-input" oninput="window.checkCommitUnlock()" placeholder="Gõ KHOI PHUC..." class="w-full sm:w-64 px-3 py-2 rounded-lg fs-surface-card border border-blue-500/80 fs-text-primary font-mono text-xs focus:outline-none focus:border-blue-400" />
+          <input type="text" id="fss-import-confirm-restore-input" oninput="window.checkCommitUnlock()" placeholder="Gõ KHOI PHUC..." class="w-full sm:w-64 px-3 py-2 rounded-lg fs-surface-card border fs-border-control fs-text-primary font-mono text-xs focus:outline-none" />
         </div>
 
       </div>
@@ -1546,10 +1546,7 @@
           <button type="button" onclick="window.closeVocabImportModal()" class="fss-btn-cancel px-4 py-1.5 rounded-lg transition cursor-pointer">
             Hủy bỏ
           </button>
-          <button type="button" id="fss-import-commit-btn" disabled onclick="window.executeVocabCommit()" class="px-5 py-1.5 rounded-lg fs-text-white font-bold text-xs flex items-center gap-1.5 transition cursor-pointer shadow-lg shadow-emerald-900/30">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-            <span id="fss-import-commit-btn-text">Xác nhận ghi vào kho</span>
-          </button>
+          <button type="button" id="fss-import-commit-btn" disabled onclick="window.executeVocabCommit()" class="px-5 py-1.5 rounded-lg fs-text-white font-bold text-xs flex items-center gap-1.5 transition cursor-pointer shadow-lg">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
             <span id="fss-import-commit-btn-text">Xác nhận ghi vào kho</span>
           </button>
@@ -1625,7 +1622,7 @@
             <span id="vocab-due-badge-2" class="vocab-due-badge" style="display:none">0</span>
           </button>
           <button type="button" id="btn-cloud-sync" class="cloud-sync-btn home-top-btn pill" onclick="openCloudSyncModal()" title="Đồng bộ đám mây (Supabase)">
-            <svg class="w-3.5 h-3.5 text-blue-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+            <svg class="w-3.5 h-3.5 fs-text-accent shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
             <span id="cloud-sync-status-text">Đồng bộ Cloud</span>
             <span class="cloud-sync-dot disconnected"></span>
           </button>
@@ -1649,7 +1646,7 @@
         <div class="mobile-nav-section-title">Chế độ học</div>
         <div class="mobile-nav-grid">
           <button type="button" class="mobile-nav-item" data-mode="video" onclick="selectMobileMode('video')">
-            <div class="mobile-nav-item-icon bg-red-500/15 text-red-500">
+            <div class="mobile-nav-item-icon fs-surface-subtle fs-text-danger">
               <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M10 8.8v6.4l5.6-3.2z"/><rect x="2" y="5" width="20" height="14" rx="4" fill="none" stroke="currentColor" stroke-width="2"/></svg>
             </div>
             <div class="mobile-nav-item-text">
@@ -1660,7 +1657,7 @@
           </button>
 
           <button type="button" class="mobile-nav-item" data-mode="text" onclick="selectMobileMode('text')">
-            <div class="mobile-nav-item-icon bg-teal-500/15 text-teal-500">
+            <div class="mobile-nav-item-icon fs-surface-subtle fs-text-success">
               <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M8 7h8M8 11h8M8 15h5"/></svg>
             </div>
             <div class="mobile-nav-item-text">
@@ -1671,7 +1668,7 @@
           </button>
 
           <button type="button" class="mobile-nav-item" data-mode="book" onclick="selectMobileMode('book')">
-            <div class="mobile-nav-item-icon bg-amber-500/15 text-amber-500">
+            <div class="mobile-nav-item-icon fs-surface-subtle fs-text-warn">
               <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
             </div>
             <div class="mobile-nav-item-text">
@@ -1682,7 +1679,7 @@
           </button>
 
           <button type="button" class="mobile-nav-item" data-mode="vt" onclick="selectMobileMode('vt')">
-            <div class="mobile-nav-item-icon bg-purple-500/15 text-purple-400">
+            <div class="mobile-nav-item-icon fs-surface-subtle fs-text-accent">
               <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 8 6 6M4 14l6-6 2-3M2 5h12M7 2h1M22 22l-5-10-5 10M14 18h6"/></svg>
             </div>
             <div class="mobile-nav-item-text">
@@ -1693,7 +1690,7 @@
           </button>
 
           <button type="button" class="mobile-nav-item" data-mode="custom-yt" onclick="selectMobileMode('custom-yt')">
-            <div class="mobile-nav-item-icon bg-rose-500/15 text-rose-400">
+            <div class="mobile-nav-item-icon fs-surface-subtle fs-text-danger">
               <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
             </div>
             <div class="mobile-nav-item-text">
@@ -1709,35 +1706,35 @@
         <div class="mobile-nav-actions">
           <button type="button" class="mobile-nav-action-btn" onclick="closeMobileMenu(); openVocabScreen();">
             <div class="flex items-center gap-3">
-              <div class="mobile-action-icon text-emerald-400"><i data-lucide="bookmark" class="w-4 h-4"></i></div>
+              <div class="mobile-action-icon fs-text-success"><i data-lucide="bookmark" class="w-4 h-4"></i></div>
               <span class="font-semibold text-sm">Từ vựng đã lưu</span>
             </div>
             <div class="flex items-center gap-1.5">
               <span class="vocab-count-badge vocab-count-pill" style="display:none">0</span>
-              <span class="text-xs text-slate-400">&rarr;</span>
+              <span class="text-xs fs-text-muted">&rarr;</span>
             </div>
           </button>
 
           <button type="button" class="mobile-nav-action-btn" onclick="closeMobileMenu(); openCloudSyncModal();">
             <div class="flex items-center gap-3">
-              <div class="mobile-action-icon text-blue-400"><i data-lucide="cloud" class="w-4 h-4"></i></div>
+              <div class="mobile-action-icon fs-text-accent"><i data-lucide="cloud" class="w-4 h-4"></i></div>
               <span class="font-semibold text-sm">Đồng bộ Đám mây</span>
             </div>
             <div class="flex items-center gap-2">
               <span class="cloud-sync-dot disconnected"></span>
-              <span class="text-xs text-slate-400">&rarr;</span>
+              <span class="text-xs fs-text-muted">&rarr;</span>
             </div>
           </button>
 
           <button type="button" class="mobile-nav-action-btn mobile-theme-btn" onclick="toggleFsTheme();" title="Chuyển chế độ Sáng / Tối" aria-label="Chuyển chế độ Sáng / Tối">
             <div class="flex items-center gap-3">
-              <div class="mobile-action-icon text-amber-400">
+              <div class="mobile-action-icon fs-text-warn">
                 <svg class="fs-theme-icon-moon w-4 h-4" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
                 <svg class="fs-theme-icon-sun w-4 h-4" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
               </div>
               <span class="font-semibold text-sm">Chế độ Sáng / Tối</span>
             </div>
-            <span class="text-xs text-slate-400">&rarr;</span>
+            <span class="text-xs fs-text-muted">&rarr;</span>
           </button>
         </div>
       </div>
@@ -1745,7 +1742,7 @@
 
     <div class="wrap w-full max-w-[1200px] mx-auto py-8 px-4 sm:px-10 space-y-7">
 
-      <div id="main-card" class="bg-[#0a1124] border border-blue-950/80 rounded-2xl p-5 sm:p-8 shadow-2xl space-y-7">
+      <div id="main-card" class="fs-surface-card border fs-border-base rounded-2xl p-5 sm:p-8 shadow-2xl space-y-7">
         <div id="video-input-mode">
           <div class="home-hero-text">
             <h1 class="home-title">Luyện nghe tiếng Pháp qua YouTube</h1>
@@ -2073,27 +2070,27 @@
         </div>
 
          <!-- KHU VỰC VIDEO ĐÃ LUYỆN GẦN ĐÂY VỚI THANH CÔNG CỤ GRID / LIST & SẮP XẾP -->
-        <div class="pt-6 pb-1 border-t border-slate-800/80 lib-wrap">
-          <div class="p-4 sm:p-6 rounded-2xl bg-gradient-to-b from-[#091129] to-[#070d1e] border border-blue-900/60 shadow-xl space-y-4">
+        <div class="pt-6 pb-1 border-t fs-border-base lib-wrap">
+          <div class="p-4 sm:p-6 rounded-2xl fs-surface-subtle border fs-border-base shadow-xl space-y-4">
             
             <!-- Header Tiêu đề & Đếm số video -->
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 lib-head">
               <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-xl bg-blue-500/15 text-blue-400 flex items-center justify-center shrink-0">
+                <div class="w-9 h-9 rounded-xl fs-surface-subtle fs-text-accent flex items-center justify-center shrink-0">
                   <i data-lucide="history" class="w-5 h-5"></i>
                 </div>
                 <div>
-                  <h2 class="text-lg sm:text-xl font-extrabold text-white tracking-tight flex items-center gap-2">
+                  <h2 class="text-lg sm:text-xl font-extrabold fs-text-primary tracking-tight flex items-center gap-2">
                     <span>Video Bạn Đã Luyện Gần Đây</span>
                   </h2>
-                  <p class="text-xs text-slate-400 mt-0.5">Tiếp tục luyện nghe và xem lại các video bạn đã học</p>
+                  <p class="text-xs fs-text-muted mt-0.5">Tiếp tục luyện nghe và xem lại các video bạn đã học</p>
                 </div>
               </div>
               <div class="flex items-center gap-3">
-                <span class="text-xs font-mono text-slate-400 bg-[#060a17] px-2.5 py-1 rounded-lg border border-blue-950">
-                  Tổng: <strong id="library-total-count" class="text-blue-300 font-bold">0</strong> video
+                <span class="text-xs font-mono fs-text-muted fs-surface-card px-2.5 py-1 rounded-lg border fs-border-base">
+                  Tổng: <strong id="library-total-count" class="fs-text-accent font-bold">0</strong> video
                 </span>
-                <button type="button" onclick="clearAllHistory()" class="text-xs text-slate-500 hover:text-red-400 transition-colors cursor-pointer" title="Xóa toàn bộ lịch sử">Xóa tất cả</button>
+                <button type="button" onclick="clearAllHistory()" class="text-xs fs-text-muted hover:fs-text-danger transition-colors cursor-pointer" title="Xóa toàn bộ lịch sử">Xóa tất cả</button>
               </div>
             </div>
 
@@ -2102,7 +2099,7 @@
               <!-- Ô tìm kiếm -->
               <div class="search-container flex-1">
                 <div class="search-icon-box">
-                  <i data-lucide="search" class="w-4 h-4 text-blue-400"></i>
+                  <i data-lucide="search" class="w-4 h-4 fs-text-accent"></i>
                 </div>
                 <input
                   id="library-search-input"
@@ -2126,7 +2123,7 @@
                 </div>
 
                 <!-- Nút chuyển View Mode -->
-                <div class="view-mode-toggle-group flex items-center bg-[#060a17] p-1.5 rounded-xl border border-blue-950 gap-1.5">
+                <div class="view-mode-toggle-group flex items-center fs-surface-card p-1.5 rounded-xl border fs-border-base gap-1.5">
                   <button type="button" id="btn-view-grid-2" onclick="setVideoViewMode('grid-2')" class="view-mode-btn" title="Lưới 2 cột">
                     <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="18" rx="1.5"/><rect x="14" y="3" width="7" height="18" rx="1.5"/></svg>
                     <span class="sr-only">2 cột</span>
@@ -2145,18 +2142,18 @@
 
             <!-- Container danh sách video hiển thị theo Grid hoặc List -->
             <div id="netflix-categories-container" class="pt-2 min-h-[200px]">
-              <div class="text-center py-8 text-slate-400 text-xs">
-                <span class="inline-block w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin mr-2 align-middle"></span>
+              <div class="text-center py-8 fs-text-muted text-xs">
+                <span class="inline-block w-4 h-4 border-2 fs-border-control border-t-transparent rounded-full animate-spin mr-2 align-middle"></span>
                 Đang nạp video...
               </div>
             </div>
 
             <!-- Thanh phân trang (Pagination) khi xem ở chế độ List -->
-            <div id="video-pagination-bar" class="video-pagination-bar hidden flex items-center justify-between mt-8 pt-5 border-t border-slate-700/60 text-xs text-slate-400">
+            <div id="video-pagination-bar" class="video-pagination-bar hidden flex items-center justify-between mt-8 pt-5 border-t fs-border-base text-xs fs-text-muted">
               <span id="video-pagination-info">Đang hiển thị 1 - 20 video</span>
               <div class="flex items-center gap-2">
                 <button type="button" id="btn-page-prev" onclick="changeVideoPage(-1)" class="page-nav-btn" disabled>&larr; Trang trước</button>
-                <span id="video-page-num" class="font-bold text-white px-2">1</span>
+                <span id="video-page-num" class="font-bold fs-text-primary px-2">1</span>
                 <button type="button" id="btn-page-next" onclick="changeVideoPage(1)" class="page-nav-btn">Trang sau &rarr;</button>
               </div>
             </div>

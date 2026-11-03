@@ -20,7 +20,7 @@ const ROOT = path.resolve(__dirname, '..');
 const HEX_REGEX = /#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4})\b/g;
 const INLINE_COLOR_STYLE_REGEX = /style\s*=\s*["'][^"']*(?:color|background|border-color)\s*:[^"']*["']/gi;
 const JS_STYLE_ASSIGN_REGEX = /\.style\.(?:color|backgroundColor|borderColor)\s*=\s*["'][^"']+["']/g;
-const TAILWIND_COLOR_REGEX = /\b(?:text|bg|border)-(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-(?:50|100|200|300|400|500|600|700|800|900|950)\b|\btext-white\b|\bbg-white\b|\bbg-\[#[0-9a-fA-F]+\]|\btext-\[#[0-9a-fA-F]+\]/g;
+const TAILWIND_COLOR_REGEX = /(?<![\w-])(?:text|bg|border)-(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-(?:50|100|200|300|400|500|600|700|800|900|950)\b|(?<![\w-])text-white\b|(?<![\w-])bg-white\b|(?<![\w-])(?:bg|text)-\[#[0-9a-fA-F]+\]/g;
 const SVG_HEX_ATTR_REGEX = /(?:fill|stroke)\s*=\s*["']#(?:[0-9a-fA-F]{3,8})["']/gi;
 
 export function scanCssFile(filePath) {
@@ -64,13 +64,16 @@ export function scanJsFile(filePath) {
 }
 
 export function scanHtmlFile(filePath) {
-  const content = fs.readFileSync(filePath, 'utf8');
+  const rawContent = fs.readFileSync(filePath, 'utf8');
   const relPath = path.relative(ROOT, filePath);
 
-  const inlineStyles = content.match(INLINE_COLOR_STYLE_REGEX) || [];
-  const tailwindMatches = content.match(TAILWIND_COLOR_REGEX) || [];
-  const svgHexMatches = content.match(SVG_HEX_ATTR_REGEX) || [];
-  const arbitraryColorMatches = content.match(/\b(?:bg|text|border)-\[#[0-9a-fA-F]+\]/g) || [];
+  // Loại bỏ thẻ <style> nội bộ để đo chính xác các class gán trực tiếp trên thẻ HTML
+  const htmlOnly = rawContent.replace(/<style[\s\S]*?<\/style>/gi, '');
+
+  const inlineStyles = htmlOnly.match(INLINE_COLOR_STYLE_REGEX) || [];
+  const tailwindMatches = htmlOnly.match(TAILWIND_COLOR_REGEX) || [];
+  const svgHexMatches = htmlOnly.match(SVG_HEX_ATTR_REGEX) || [];
+  const arbitraryColorMatches = htmlOnly.match(/\b(?:bg|text|border)-\[#[0-9a-fA-F]+\]/g) || [];
 
   return {
     file: relPath,

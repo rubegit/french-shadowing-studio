@@ -35,7 +35,7 @@ test('M1.2 Lint Color: Quét và thống kê chính xác số lượng mã màu 
   assert.ok(result.summary, 'Phải có bảng summary');
   assert.ok(result.summary.totalCssHexOutsideTokens > 1000, 'Phải quét được >1000 mã hex trong CSS ngoài token');
   assert.ok(result.summary.totalJsInlineColorStyles > 50, 'Phải quét được >50 inline style màu trong JS');
-  assert.ok(result.summary.totalHtmlTailwindColors >= 50, 'Phải quét được số lượng class Tailwind màu còn tồn dư trong HTML');
+  assert.strictEqual(result.summary.totalHtmlTailwindColors, 0, 'Toàn bộ class màu Tailwind trong HTML đã được dọn sạch về 0');
 
   // Kiểm tra file js/vocab-practice.js nằm trong top vi phạm inline style
   const vocabPracticeResult = result.jsResults.find(r => r.file.includes('vocab-practice.js'));
