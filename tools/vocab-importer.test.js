@@ -1323,3 +1323,45 @@ test('M6.2 KPI cards có semantic class cho Light Mode contrast cao', () => {
   assert.ok(statsGrid.innerHTML.includes('fss-kpi-new'), 'Thẻ mục mới phải có class fss-kpi-new');
   assert.ok(statsGrid.innerHTML.includes('fss-kpi-val'), 'Giá trị KPI phải có class fss-kpi-val');
 });
+
+// =========================================================================
+// TEST SUITE 17: M7 Tự động làm sạch các tiền tố ngữ cảnh (Trong bài, Dans bài...)
+// =========================================================================
+test('M7.1 Parser gọt sạch các biến thể tiền tố Dans bài, Dans le texte, Trong bài khỏi source_text', () => {
+  const rawText = [
+    '# SOURCE: yt:test_dans_bai | Test Dans bài',
+    '40. s\'abonner || từ || A2 || [v. inf.] đăng ký theo dõi',
+    'Dans bài: N\'oubliez pas de vous abonner à notre chaîne pour ne rater aucune de nos vidéos.',
+    'VD1: Je me suis abonné. || Tôi đã đăng ký.',
+    '41. se lever || từ || A1 || [v. inf.] thức dậy',
+    'Dans le texte: Je me lève à sept heures du matin.',
+    '42. OCC || se brosser les dents',
+    'Dans bài: Je me brosse les dents tous les jours.'
+  ].join('\n');
+
+  const parsed = SchemaV02.parseText2A(rawText);
+  assert.strictEqual(parsed.errors.length, 0, 'Phải parse thành công 0 lỗi');
+  assert.strictEqual(parsed.items.length, 2, 'Có 2 mục mới');
+  assert.strictEqual(parsed.occurrences.length, 1, 'Có 1 occurrence');
+
+  // Mục 40: gọt sạch "Dans bài:"
+  assert.strictEqual(
+    parsed.items[0].source_text,
+    "N'oubliez pas de vous abonner à notre chaîne pour ne rater aucune de nos vidéos.",
+    'Tiền tố "Dans bài:" phải được gọt sạch hoàn toàn khỏi câu tiếng Pháp'
+  );
+
+  // Mục 41: gọt sạch "Dans le texte:"
+  assert.strictEqual(
+    parsed.items[1].source_text,
+    "Je me lève à sept heures du matin.",
+    'Tiền tố "Dans le texte:" phải được gọt sạch hoàn toàn'
+  );
+
+  // OCC: gọt sạch "Dans bài:"
+  assert.strictEqual(
+    parsed.occurrences[0].source_text,
+    "Je me brosse les dents tous les jours.",
+    'Tiền tố "Dans bài:" trong OCC phải được gọt sạch'
+  );
+});

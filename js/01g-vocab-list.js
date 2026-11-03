@@ -1155,7 +1155,7 @@
         .replace(/```[a-z]*\n?/gi, '')
         .replace(/\\([\\.\)\(\-*_`#>\[\]!:|])/g, '$1')
         .replace(/[ \t\u00a0]+(?=(?:VD|V\.D|Ví dụ|Vi du|Example|Ex)\s*\d+\s*[:：.)\-–])/gi, '\n')
-        .replace(/[ \t\u00a0]+(?=(?:Trong bài|Trong văn bản|In the text)\s*[:：])/gi, '\n')
+        .replace(/[ \t\u00a0]+(?=(?:Trong bài|Trong văn bản|Dans bài|Dans le texte|In the text)\s*[:：])/gi, '\n')
         .replace(new RegExp('[ \\t\\u00a0]+(?=\\d{1,3}\\s*[\\.\\)]\\s*[^|\\n]{1,80}\\|\\|\\s*(?:' + KINDS + ')\\s*\\|\\|)', 'gi'), '\n');
       norm.split(/\r?\n/).forEach((line0) => {
         const line = line0.replace(/\*\*|__|`/g, '').replace(/^[\s>]*(?:[-*•–]\s+)?/, '').trim();
@@ -1175,7 +1175,7 @@
           if (en) cur.examples.push({ fr: en, en: en, vi: vi });
           return;
         }
-        const it = /^(?:Trong bài|Trong văn bản|In the text|In text|Source)\s*[:：]\s*(.+)$/i.exec(line);
+        const it = /^(?:Trong bài|Trong văn bản|Dans bài|Dans le texte|In the text|In text|Source)\s*[:：]\s*(.+)$/i.exec(line);
         if (it) { if (cur) cur.inText = unq(it[1]); return; }
         const trSent = /^(?:Dịch câu|Dich cau|Dịch ngữ cảnh|Dich ngu canh|Bản dịch câu|Bản dịch|Sentence translation)\s*[:：]\s*(.+)$/i.exec(line);
         if (trSent) { if (cur) cur.sentVi = unq(trSent[1]); return; }

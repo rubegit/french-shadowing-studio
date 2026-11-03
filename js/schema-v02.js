@@ -643,6 +643,18 @@
     return flatItem;
   }
 
+  var CONTEXT_PREFIX_REGEX = /^(?:Trong bài|Trong văn bản|Dans bài|Dans le texte|Dans le transcript|Dans la vidéo|In the text|In the transcript|In text|Source|Context)\s*[:：]\s*/i;
+
+  function stripContextPrefix(text) {
+    if (!text || typeof text !== 'string') return '';
+    return text.replace(CONTEXT_PREFIX_REGEX, '').trim();
+  }
+
+  function hasContextPrefix(text) {
+    if (!text || typeof text !== 'string') return false;
+    return CONTEXT_PREFIX_REGEX.test(text.trim());
+  }
+
   /**
    * Bộ phân tích định dạng 2A (.txt)
    */
@@ -679,12 +691,13 @@
         continue;
       }
 
-      var matchOccDirect = line.match(/^OCC\s*:\s*([^|]+)(?:\|\|\s*(?:Trong bài:\s*)?(.*))?$/i);
+      var matchOccDirect = line.match(/^OCC\s*:\s*([^|]+)(?:\|\|\s*(.*))?$/i);
       if (matchOccDirect) {
         var frOcc = matchOccDirect[1].trim();
-        var sourceText = (matchOccDirect[2] || '').trim();
-        if (!sourceText && i + 1 < lines.length && lines[i + 1].trim().startsWith('Trong bài:')) {
-          sourceText = lines[i + 1].trim().substring(10).trim();
+        var rawSource = (matchOccDirect[2] || '').trim();
+        var sourceText = stripContextPrefix(rawSource);
+        if (!sourceText && i + 1 < lines.length && hasContextPrefix(lines[i + 1])) {
+          sourceText = stripContextPrefix(lines[i + 1]);
           i += 2;
         } else {
           i++;
@@ -716,11 +729,11 @@
         var frOcc = occParts[1] || '';
         var nextLine = (i + 1 < lines.length) ? lines[i + 1].trim() : '';
         var sourceText = '';
-        if (nextLine.startsWith('Trong bài:')) {
-          sourceText = nextLine.substring(10).trim();
+        if (hasContextPrefix(nextLine)) {
+          sourceText = stripContextPrefix(nextLine);
           i += 2;
         } else {
-          sourceText = nextLine;
+          sourceText = stripContextPrefix(nextLine);
           i += 2;
         }
         result.occurrences.push({
@@ -757,7 +770,7 @@
       }
 
       var line2 = (i + 1 < lines.length) ? lines[i + 1].trim() : '';
-      var sourceTextItem = line2.replace(/^Trong bài:\s*/, '').trim();
+      var sourceTextItem = stripContextPrefix(line2);
 
       var examples = [];
       var cursor = i + 2;
