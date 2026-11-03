@@ -1,6 +1,8 @@
 const test = require('node:test');
 const assert = require('node:assert');
 const {
+  PROMPT_TUVUNG_V1,
+  PROMPT_TUVUNG_V2,
   EXTRACT_PROMPT_TEMPLATE,
   fillExtractPromptTemplate,
   buildDaCoList,
@@ -88,15 +90,16 @@ test('M41.3 DA_CO: khi tắt để trống; khi bật chỉ lấy từ các vide
     transcript: 'Sample text'
   });
 
-  // Kỳ vọng: Chỉ chứa "maison" và "école", không chứa "bonjour", "merci" (cùng video) và không chứa "café" (_deleted)
-  assert.ok(daCoOn.includes('maison'), 'Phải chứa từ maison từ video khác');
-  assert.ok(daCoOn.includes('école'), 'Phải chứa từ école từ video khác');
-  assert.ok(!daCoOn.includes('bonjour'), 'TUYỆT ĐỐI KHÔNG chứa từ thuộc video hiện tại');
-  assert.ok(!daCoOn.includes('merci'), 'TUYỆT ĐỐI KHÔNG chứa từ thuộc video hiện tại');
-  assert.ok(!daCoOn.includes('café'), 'TUYỆT ĐỐI KHÔNG chứa từ đã xóa (_deleted)');
+  // Kỳ vọng: Khối <<<DA_CO...>>> chỉ chứa "maison" và "école", không chứa "bonjour", "merci" (cùng video) và không chứa "café" (_deleted)
+  const daCoBlock = (daCoOn.match(/<<<DA_CO\n([\s\S]*?)\n>>>/) || [])[1] || '';
+  assert.ok(daCoBlock.includes('maison'), 'Phải chứa từ maison từ video khác');
+  assert.ok(daCoBlock.includes('école'), 'Phải chứa từ école từ video khác');
+  assert.ok(!daCoBlock.includes('bonjour'), 'TUYỆT ĐỐI KHÔNG chứa từ thuộc video hiện tại trong khối DA_CO');
+  assert.ok(!daCoBlock.includes('merci'), 'TUYỆT ĐỐI KHÔNG chứa từ thuộc video hiện tại trong khối DA_CO');
+  assert.ok(!daCoBlock.includes('café'), 'TUYỆT ĐỐI KHÔNG chứa từ đã xóa (_deleted)');
 
   // Kiểm tra loại trùng
-  const occurrencesOfMaison = daCoOn.split('maison').length - 1;
+  const occurrencesOfMaison = daCoBlock.split('maison').length - 1;
   assert.strictEqual(occurrencesOfMaison, 1, 'Mỗi từ đã có chỉ xuất hiện đúng 1 dòng');
 });
 
@@ -147,4 +150,38 @@ test('M41.6 Lọc bỏ nhãn âm thanh [Musique] / [Applaudissements] / [...] kh
   assert.ok(!res.includes('[Musique]'));
   assert.ok(!res.includes('[Applaudissements]'));
   assert.ok(!res.includes('[Rires]'));
+});
+
+test('M4.1 PROMPT_TUVUNG_V1 và PROMPT_TUVUNG_V2 được bảo toàn và export đầy đủ', () => {
+  assert.ok(PROMPT_TUVUNG_V1 && typeof PROMPT_TUVUNG_V1 === 'string', 'PROMPT_TUVUNG_V1 phải là chuỗi hợp lệ');
+  assert.ok(PROMPT_TUVUNG_V2 && typeof PROMPT_TUVUNG_V2 === 'string', 'PROMPT_TUVUNG_V2 phải là chuỗi hợp lệ');
+  assert.strictEqual(EXTRACT_PROMPT_TEMPLATE, PROMPT_TUVUNG_V2, 'EXTRACT_PROMPT_TEMPLATE mặc định phải là bản V2');
+});
+
+test('M4.2 PROMPT_TUVUNG_V2 chứa đủ 4 điểm mới và điền biến an toàn', () => {
+  // Điểm 1: 2 luồng trích xuất và LOẠI TRỪ cụ thể
+  assert.ok(PROMPT_TUVUNG_V2.includes('(1) Cụm phản xạ giao tiếp thực tế'), 'V2 phải có luồng 1 phản xạ giao tiếp');
+  assert.ok(PROMPT_TUVUNG_V2.includes('(2) Từ vựng, động từ then chốt mang tính chủ đề'), 'V2 phải có luồng 2 từ vựng/động từ');
+  assert.ok(PROMPT_TUVUNG_V2.includes('LOẠI TRỪ: Các từ ngữ pháp đơn lẻ rỗng nghĩa'), 'V2 phải có danh sách loại trừ cụ thể');
+
+  // Điểm 2: Quét bao phủ toàn bài & Cân bằng danh mục
+  assert.ok(PROMPT_TUVUNG_V2.includes('b) QUÉT BAO PHỦ TOÀN BÀI (Chống lười/dừng sớm)'), 'V2 phải có quy tắc chống dừng sớm');
+  assert.ok(PROMPT_TUVUNG_V2.includes('c) CÂN BẰNG DANH MỤC: Bắt buộc trích xuất cân bằng cả 2 luồng'), 'V2 phải có quy tắc cân bằng danh mục');
+
+  // Điểm 3: Quét vi mô từng câu
+  assert.ok(PROMPT_TUVUNG_V2.includes('Bước 1: Đọc quét văn bản theo trình tự thời gian từ đầu đến cuối.'), 'V2 phải quét theo trình tự thời gian');
+  assert.ok(PROMPT_TUVUNG_V2.includes('Bước 2: Với mỗi câu/mệnh đề, kiểm tra:'), 'V2 phải kiểm tra vi mô từng câu/mệnh đề');
+
+  // Điểm 4: Động từ chủ đề
+  assert.ok(PROMPT_TUVUNG_V2.includes('- từ: từ đơn, danh từ đơn/ghép, tính từ, trạng từ, liên từ, động từ chủ đề.'), 'V2 phải bổ sung động từ chủ đề');
+
+  // Kiểm tra điền biến qua generateKeyVocabPrompt
+  const out = generateKeyVocabPrompt({
+    videoId: '7wUXSXZgNlU',
+    videoTitle: '35 Verbes',
+    transcript: 'Hélène se lève de bonne heure.'
+  });
+  assert.ok(out.includes('SOURCE_ID: yt:7wUXSXZgNlU'));
+  assert.ok(out.includes('Hélène se lève de bonne heure.'));
+  assert.strictEqual(out.match(/\{\{[A-Z_]+\}\}/g), null, 'Không được còn sót placeholder {{...}}');
 });
