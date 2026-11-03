@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi" class="dark">
+<html lang="vi">
 <head>
   <meta charset="UTF-8" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
@@ -32,8 +32,14 @@
           document.documentElement.setAttribute('data-ui', 'light');
         }
         var savedTheme = localStorage.getItem('fss_ui_theme');
-        if (savedTheme === 'dark' || savedTheme === 'light') {
-          document.documentElement.setAttribute('data-theme', savedTheme);
+        // Mặc định luôn là Light Mode dù thời gian là buổi tối hay máy tính bật dark mode.
+        // Chỉ khi người dùng chủ động chọn 'dark' thì mới kích hoạt dark theme.
+        var activeTheme = (savedTheme === 'dark') ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', activeTheme);
+        if (activeTheme === 'dark') {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
         }
         if (!localStorage.getItem('vtData_v1')) {
           var sampleVt = {
@@ -153,11 +159,7 @@
     })();
     window.toggleFsTheme = function () {
       try {
-        var cur = document.documentElement.getAttribute('data-theme');
-        if (!cur) {
-          var sysDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-          cur = sysDark ? 'dark' : 'light';
-        }
+        var cur = document.documentElement.getAttribute('data-theme') || 'light';
         var next = (cur === 'dark') ? 'light' : 'dark';
         document.documentElement.setAttribute('data-theme', next);
         document.documentElement.classList.toggle('dark', next === 'dark');
@@ -215,7 +217,7 @@
 <link rel="stylesheet" href="css/15-ipa-highlight.css?v=5b8c6b2b" id="ipa-hl-style">
 <link rel="stylesheet" href="css/16-own-video.css?v=211e741b" id="own-yt-style">
   <!-- Redesign Theme: Mint Pastel & Dark Mode (Spec 2026) -->
-  <link rel="stylesheet" href="css/theme-light.css?v=38da7778">
+  <link rel="stylesheet" href="css/theme-light.css?v=4375ccd4">
 </head>
 <body class="bg-[#070b14] text-slate-100 min-h-screen flex flex-col antialiased selection:bg-red-600/40 selection:text-white" onclick="ensurePageFocus()">
 

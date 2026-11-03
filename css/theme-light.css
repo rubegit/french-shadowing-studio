@@ -6,8 +6,8 @@
  * Rules:
  * 1. Scoped strictly under html[data-ui="light"] so removing data-ui="light"
  *    restores the original dark navy UI immediately with zero side-effects.
- * 2. Dark mode overrides defined under html[data-ui="light"][data-theme="dark"]
- *    and @media (prefers-color-scheme: dark) for html[data-ui="light"]:not([data-theme="light"]).
+ * 2. Dark mode overrides defined strictly under html[data-ui="light"][data-theme="dark"].
+ *    Default is always Light mode (Spec 2026: Mint Pastel).
  * 3. Does not modify or override the 4 book reader themes (#screen-book[data-theme]).
  * ====================================================================
  */
@@ -225,85 +225,7 @@ html[data-ui="light"].dark {
   --gvt: #CFC2FF;
 }
 
-/* --- DARK MODE TOKEN OVERRIDES (System preferred, when no explicit theme is set) --- */
-@media (prefers-color-scheme: dark) {
-  html[data-ui="light"]:not([data-theme="light"]):not([data-theme="dark"]) {
-    --fs-bg: #0E1714;
-    --fs-surface: #16221E;
-    --fs-line: #26362F;
-    --fs-border: #3A4D44;
-    --fs-ink: #E8F3EE;
-    --fs-muted: #A3B5AC;
-
-    --fs-surface-subtle: #1C2B25;
-    --fs-card: #16221E;
-    --fs-canvas: #0E1714;
-    --fs-overlay: rgba(0, 0, 0, 0.65);
-    --fs-sub-bg: #16221E;
-
-    --fs-ink-muted: #A3B5AC;
-    --fs-ink-subtle: #6D8277;
-
-    --fs-primary: #A8E6CF;
-    --fs-primary-strong: #61C5A0;
-    --fs-on-primary: #0F3D2B;
-    --fs-tint: #1D3A30;
-    --fs-accent-text: #A8E6CF;
-    --fs-accent: #A8E6CF;
-    --fs-accent-base: #2DD4BF;
-    --fs-line-strong: #455C52;
-
-    --fs-shadow: rgba(0, 0, 0, 0.35);
-    --fs-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
-    --fs-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.35);
-    --fs-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.45);
-    --fs-shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
-    --fs-hover: rgba(255, 255, 255, 0.08);
-    --fs-focus-ring: 0 0 0 3px rgba(168, 230, 207, 0.35);
-
-    --fs-stat-done-bg: #1D3A30;
-    --fs-stat-done-ink: #A8E6CF;
-
-    --fs-stat-near-bg: #3A3115;
-    --fs-stat-near-ink: #F3D77A;
-
-    --fs-stat-fail-bg: #432522;
-    --fs-stat-fail-ink: #FFB4A8;
-
-    --fs-stat-idle-bg: #222E2A;
-    --fs-stat-idle-ink: #A3B5AC;
-
-    /* Status Tokens (Dark mode) */
-    --fs-success: #34D399;
-    --fs-success-bg: rgba(16, 185, 129, 0.15);
-    --fs-success-border: rgba(16, 185, 129, 0.35);
-    --fs-success-text: #6EE7B7;
-
-    --fs-error: #F87171;
-    --fs-error-bg: rgba(239, 68, 68, 0.15);
-
-    --fs-danger: #F87171;
-    --fs-danger-bg: rgba(239, 68, 68, 0.18);
-    --fs-danger-border: rgba(239, 68, 68, 0.35);
-    --fs-danger-text: #FCA5A5;
-
-    --fs-warning: #FBBF24;
-    --fs-warning-bg: rgba(245, 158, 11, 0.15);
-    --fs-warn-bg: rgba(245, 158, 11, 0.18);
-    --fs-warn-border: rgba(245, 158, 11, 0.35);
-    --fs-warn-text: #FCD34D;
-
-    /* Spec Tokens for Vocabulary Practice Hub & Status (Practice-Center-Spec) */
-    --g1b: #1D3A30;
-    --g1t: #A8E6CF;
-    --g2b: #3A3115;
-    --g2t: #F3D77A;
-    --g3b: #432522;
-    --g3t: #FFB4A8;
-    --gvb: #2A2450;
-    --gvt: #CFC2FF;
-  }
-}
+/* --- DARK MODE TOKEN OVERRIDES: Chỉ kích hoạt khi có data-theme="dark" rõ ràng. Mặc định luôn là Light Mode. --- */
 
 /* ====================================================================
    BASE RESETS & GLOBAL FOUNDATIONS (Scoped strictly to html[data-ui="light"])
@@ -646,14 +568,7 @@ html[data-ui="light"]:not([data-theme="dark"]) .fs-theme-icon-moon {
   display: inline-block !important;
 }
 
-@media (prefers-color-scheme: dark) {
-  html[data-ui="light"]:not([data-theme="light"]):not([data-theme="dark"]) .fs-theme-icon-moon {
-    display: none !important;
-  }
-  html[data-ui="light"]:not([data-theme="light"]):not([data-theme="dark"]) .fs-theme-icon-sun {
-    display: inline-block !important;
-  }
-}
+
 
 /* --- 3. VÙNG NỘI DUNG CHÍNH (.wrap) & BREAKPOINT 900PX --- */
 .wrap,
@@ -8021,17 +7936,7 @@ html[data-ui="light"][data-theme="dark"] .vph-srs-filter-btn.active b {
   color: var(--fs-on-primary) !important;
 }
 
-@media (prefers-color-scheme: dark) {
-  html[data-ui="light"]:not([data-theme="light"]):not([data-theme="dark"]) .vph-modal,
-  html[data-ui="light"]:not([data-theme="light"]):not([data-theme="dark"]) .vph-level-select,
-  html[data-ui="light"]:not([data-theme="light"]):not([data-theme="dark"]) .vph-scope-select {
-    color-scheme: dark !important;
-  }
-  html[data-ui="light"]:not([data-theme="light"]):not([data-theme="dark"]) .vph-option-btn.correct .vph-opt-key,
-  html[data-ui="light"]:not([data-theme="light"]):not([data-theme="dark"]) .vph-srs-filter-btn.active b {
-    color: var(--fs-on-primary) !important;
-  }
-}
+
 
 /* Header Modal (Mục 2) */
 html[data-ui="light"] .vph-header {
@@ -11874,12 +11779,7 @@ html[data-ui="light"][data-theme="dark"] .fs-header-nav-row {
   border-bottom: 1px solid var(--fs-line) !important;
 }
 
-@media (prefers-color-scheme: dark) {
-  html[data-ui="light"]:not([data-theme="light"]):not([data-theme="dark"]) .fs-header-nav-row {
-    background: var(--fs-surface-subtle) !important;
-    border-bottom: 1px solid var(--fs-line) !important;
-  }
-}
+
 
 .fs-header-nav-row .fs-header-right {
   display: flex !important;
