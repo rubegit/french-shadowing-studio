@@ -78,7 +78,8 @@
 | **M5-fix** | Sửa Độ Tương Phản Chip Câu Ghép, Pill Từ Trọng Tâm & Gợi Ý SRS | **Đã hoàn thành** | `v2.0.26` (`06a85fe`) |
 | **M5b** | Dọn Dẹp Dứt Điểm Toàn Bộ Inline Styles Màu Trong Các File JS Còn Lại | **Đã hoàn thành** | `v2.0.27` (`ba376ac`) |
 | **M-Status** | Thiết lập & Hiệu chỉnh Tài Liệu Trạng Thái `PROJECT_STATUS.md` | **Đã triển khai, chờ nghiệm thu** | `9e2ea06` + `M-Status-Fix` |
-| **M-Account-Handover-A** | Thiết lập Cơ chế & Biên bản Bàn giao Tài khoản Động (`HANDOVER.md`) | **Đã triển khai, chờ nghiệm thu** | *(commit hiện tại)* |
+| **M-Account-Handover-A** | Thiết lập Cơ chế & Biên bản Bàn giao Tài khoản Động (`HANDOVER.md`) | **Đã nghiệm thu** | `f28088b` + `3c8594c` |
+| **M-Account-Handover-B** | Tạo Agent Skill `/fss-handover` Điều Phối Bàn Giao & Tiếp Nhận | **Đã triển khai, chờ nghiệm thu** | *(commit hiện tại)* |
 | **M5d** | Dọn Dẹp Inline Styles Màu & SVG HEX Trong HTML Partials *(Kế hoạch gốc)* | **Chưa thực hiện (Pending)** | *(Tồn đọng 40 inline styles & 20 SVG HEX)* |
 | **M6** | Chuẩn Hóa Trạng Thái Tương Tác & Vòng Sáng Chỉ Thị (Focus Rings) | **Chưa bắt đầu (Dự kiến)** | *(Kế hoạch tiếp theo)* |
 | **M7** | Kiểm Toán Tổng Thể Toàn Diện & Dọn Dẹp Cờ Thừa (Final Audit) | **Chưa bắt đầu (Dự kiến)** | *(Kế hoạch tiếp theo)* |
