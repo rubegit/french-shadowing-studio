@@ -6,9 +6,9 @@
 #tcf-modal .ai-modal {
   max-width: 680px;
   width: 95%;
-  border: 1px solid rgba(59, 130, 246, 0.35);
-  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.85), 0 0 30px rgba(59, 130, 246, 0.15);
-  background: linear-gradient(175deg, #0d152c 0%, #070c1b 100%);
+  border: 1px solid var(--fs-border-control);
+  box-shadow: var(--fs-shadow-lg);
+  background: var(--fs-surface-card);
 }
 
 .tcf-brand-badge {
@@ -21,9 +21,9 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  background: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.35);
-  color: #fca5a5;
+  background: var(--fs-error-subtle);
+  border: 1px solid var(--fs-error);
+  color: var(--fs-error-text);
   margin-bottom: 8px;
 }
 
@@ -33,11 +33,11 @@
   gap: 12px;
   padding: 12px 14px;
   border-radius: 12px;
-  background: rgba(15, 23, 42, 0.65);
-  border: 1px solid rgba(30, 58, 138, 0.4);
+  background: var(--fs-surface-subtle);
+  border: 1px solid var(--fs-border);
   margin: 12px 0 16px;
   font-size: 13px;
-  color: #94a3b8;
+  color: var(--fs-muted);
 }
 
 .tcf-stat-item {
@@ -46,7 +46,7 @@
   gap: 6px;
 }
 .tcf-stat-item b {
-  color: #e2e8f0;
+  color: var(--fs-ink);
 }
 
 .tcf-options-group {
@@ -56,7 +56,7 @@
   display: block;
   font-size: 12px;
   font-weight: 700;
-  color: #94a3b8;
+  color: var(--fs-muted);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   margin-bottom: 8px;
@@ -73,24 +73,24 @@
   border-radius: 999px;
   font-size: 12px;
   font-weight: 600;
-  background: rgba(30, 41, 59, 0.6);
-  border: 1px solid rgba(51, 65, 85, 0.8);
-  color: #cbd5e1;
+  background: var(--fs-surface-subtle);
+  border: 1px solid var(--fs-border-control);
+  color: var(--fs-ink);
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   user-select: none;
 }
 .tcf-chip:hover {
-  background: rgba(59, 130, 246, 0.2);
-  border-color: rgba(59, 130, 246, 0.5);
-  color: #93c5fd;
+  background: var(--fs-surface-hover);
+  border-color: var(--fs-primary);
+  color: var(--fs-ink);
   transform: translateY(-1px);
 }
 .tcf-chip.active {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  border-color: #60a5fa;
+  background: var(--fs-primary);
+  border-color: var(--fs-primary);
   color: #ffffff;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+  box-shadow: var(--fs-shadow-sm);
 }
 
 .tcf-saved-alert {
@@ -100,26 +100,26 @@
   gap: 10px;
   padding: 10px 14px;
   border-radius: 12px;
-  background: rgba(16, 185, 129, 0.12);
-  border: 1px solid rgba(16, 185, 129, 0.35);
-  color: #6ee7b7;
+  background: var(--fs-success-subtle);
+  border: 1px solid var(--fs-success);
+  color: var(--fs-success-text);
   font-size: 13px;
   margin-bottom: 14px;
 }
 .tcf-btn-retake-saved {
   padding: 5px 12px;
   border-radius: 8px;
-  background: #059669;
-  color: white;
+  background: var(--fs-success);
+  color: #ffffff;
   font-size: 12px;
   font-weight: 700;
   border: none;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: filter 0.2s;
   white-space: nowrap;
 }
 .tcf-btn-retake-saved:hover {
-  background: #10b981;
+  filter: brightness(1.1);
 }
 
 /* ---------- MÀN HÌNH PHÒNG THI TCF (EXAM OVERLAY) ---------- */
@@ -127,7 +127,7 @@
   position: fixed;
   inset: 0;
   z-index: 9999;
-  background: rgba(3, 7, 18, 0.88);
+  background: var(--fs-overlay);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   display: none;
@@ -156,10 +156,10 @@
   max-height: 92vh;
   display: flex;
   flex-direction: column;
-  background: #090e1f;
-  border: 1px solid rgba(59, 130, 246, 0.35);
+  background: var(--fs-surface-card);
+  border: 1px solid var(--fs-border-control);
   border-radius: 20px;
-  box-shadow: 0 25px 70px -15px rgba(0, 0, 0, 0.95);
+  box-shadow: var(--fs-shadow-lg);
   overflow: hidden;
   animation: tcfPop 0.28s cubic-bezier(0.16, 1, 0.3, 1);
   box-sizing: border-box;
@@ -176,8 +176,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
-  background: rgba(15, 23, 42, 0.85);
-  border-bottom: 1px solid rgba(30, 58, 138, 0.4);
+  background: var(--fs-surface-subtle);
+  border-bottom: 1px solid var(--fs-border);
   gap: 12px;
 }
 .tcf-exam-title-box {
@@ -192,13 +192,13 @@
   border-radius: 6px;
   font-size: 11px;
   font-weight: 800;
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-  color: white;
+  background: var(--fs-error);
+  color: #ffffff;
 }
 .tcf-exam-title {
   font-size: 15px;
   font-weight: 700;
-  color: #f8fafc;
+  color: var(--fs-ink);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -209,18 +209,18 @@
   gap: 5px;
   padding: 4px 10px;
   border-radius: 8px;
-  background: rgba(30, 41, 59, 0.8);
-  border: 1px solid rgba(51, 65, 85, 0.6);
+  background: var(--fs-surface);
+  border: 1px solid var(--fs-border-control);
   font-family: monospace;
   font-size: 13px;
   font-weight: 700;
-  color: #38bdf8;
+  color: var(--fs-primary);
   white-space: nowrap;
 }
 .tcf-exam-close {
   background: transparent;
   border: none;
-  color: #94a3b8;
+  color: var(--fs-muted);
   cursor: pointer;
   padding: 6px;
   border-radius: 8px;
@@ -230,15 +230,15 @@
   transition: color 0.15s, background 0.15s;
 }
 .tcf-exam-close:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: #f1f5f9;
+  background: var(--fs-hover);
+  color: var(--fs-ink);
 }
 
 /* Exam Audio Bar */
 .tcf-audio-bar {
   padding: 12px 20px;
-  background: linear-gradient(90deg, rgba(30, 58, 138, 0.25), rgba(15, 23, 42, 0.6));
-  border-bottom: 1px solid rgba(30, 58, 138, 0.3);
+  background: var(--fs-surface-subtle);
+  border-bottom: 1px solid var(--fs-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -253,25 +253,25 @@
   border-radius: 10px;
   font-size: 13px;
   font-weight: 700;
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  border: 1px solid #3b82f6;
-  color: white;
+  background: var(--fs-primary);
+  border: 1px solid var(--fs-primary);
+  color: #ffffff;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+  box-shadow: var(--fs-shadow-sm);
   transition: all 0.2s;
 }
 .tcf-play-btn:hover {
   transform: translateY(-1px);
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  filter: brightness(1.08);
 }
 .tcf-play-btn.playing {
-  background: linear-gradient(135deg, #059669, #047857);
-  border-color: #10b981;
+  background: var(--fs-success);
+  border-color: var(--fs-success);
 }
 
 .tcf-audio-status {
   font-size: 13px;
-  color: #94a3b8;
+  color: var(--fs-muted);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -285,7 +285,7 @@
 .tcf-audio-wave span {
   width: 3px;
   height: 100%;
-  background: #38bdf8;
+  background: var(--fs-primary);
   border-radius: 2px;
   animation: wavePulse 1s infinite ease-in-out;
 }
@@ -300,7 +300,7 @@
 
 .tcf-mode-note {
   font-size: 12px;
-  color: #64748b;
+  color: var(--fs-muted);
   font-style: italic;
 }
 
@@ -318,8 +318,8 @@
   box-sizing: border-box;
   width: 100%;
   max-width: 100%;
-  background: rgba(15, 23, 42, 0.7);
-  border: 1px solid rgba(30, 58, 138, 0.35);
+  background: var(--fs-surface);
+  border: 1px solid var(--fs-border);
   border-radius: 16px;
   padding: 18px 20px;
   margin-bottom: 20px;
@@ -327,8 +327,8 @@
   overflow: hidden;
 }
 .tcf-q-card:focus-within {
-  border-color: rgba(96, 165, 250, 0.6);
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+  border-color: var(--fs-primary);
+  box-shadow: 0 0 0 2px var(--fs-tint);
 }
 
 .tcf-q-head {
@@ -341,7 +341,7 @@
 .tcf-q-num {
   font-size: 13px;
   font-weight: 800;
-  color: #60a5fa;
+  color: var(--fs-primary);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -355,19 +355,19 @@
   border-radius: 5px;
   font-size: 11px;
   font-weight: 700;
-  background: rgba(59, 130, 246, 0.15);
-  border: 1px solid rgba(59, 130, 246, 0.3);
-  color: #93c5fd;
+  background: var(--fs-tint);
+  border: 1px solid var(--fs-border-control);
+  color: var(--fs-primary);
 }
 .tcf-q-type {
   font-size: 11px;
-  color: #64748b;
+  color: var(--fs-muted);
 }
 
 .tcf-q-text {
   font-size: 16px;
   font-weight: 600;
-  color: #f1f5f9;
+  color: var(--fs-ink);
   line-height: 1.5;
   margin-bottom: 16px;
 }
@@ -390,9 +390,9 @@
   max-width: 100%;
   padding: 12px 14px;
   border-radius: 12px;
-  background: rgba(30, 41, 59, 0.45);
-  border: 1.5px solid rgba(51, 65, 85, 0.6);
-  color: #e2e8f0;
+  background: var(--fs-surface-subtle);
+  border: 1.5px solid var(--fs-border-control);
+  color: var(--fs-ink);
   text-align: left;
   font-size: 14px;
   line-height: 1.45;
@@ -401,15 +401,15 @@
   user-select: none;
 }
 .tcf-opt-btn:hover {
-  background: rgba(59, 130, 246, 0.15);
-  border-color: rgba(96, 165, 250, 0.5);
-  color: #ffffff;
+  background: var(--fs-surface-hover);
+  border-color: var(--fs-primary);
+  color: var(--fs-ink);
 }
 .tcf-opt-btn.selected {
-  background: rgba(37, 99, 235, 0.22);
-  border-color: #3b82f6;
-  color: #ffffff;
-  box-shadow: 0 0 16px rgba(37, 99, 235, 0.25);
+  background: var(--fs-tint);
+  border-color: var(--fs-primary);
+  color: var(--fs-ink);
+  box-shadow: 0 0 0 2px var(--fs-tint);
 }
 
 .tcf-opt-letter {
@@ -421,18 +421,20 @@
   border-radius: 6px;
   font-weight: 800;
   font-size: 12px;
-  background: rgba(255, 255, 255, 0.08);
-  color: #94a3b8;
+  background: var(--fs-surface);
+  border: 1px solid var(--fs-border-control);
+  color: var(--fs-muted);
   transition: all 0.18s;
 }
 .tcf-opt-btn:hover .tcf-opt-letter {
-  background: #3b82f6;
-  color: white;
+  background: var(--fs-primary);
+  border-color: var(--fs-primary);
+  color: #ffffff;
 }
 .tcf-opt-btn.selected .tcf-opt-letter {
-  background: #2563eb;
-  color: white;
-  box-shadow: 0 0 8px rgba(37, 99, 235, 0.5);
+  background: var(--fs-primary);
+  border-color: var(--fs-primary);
+  color: #ffffff;
 }
 
 /* Exam Footer Actions */
@@ -441,17 +443,17 @@
   align-items: center;
   justify-content: space-between;
   padding: 14px 20px;
-  background: rgba(15, 23, 42, 0.9);
-  border-top: 1px solid rgba(30, 58, 138, 0.4);
+  background: var(--fs-surface-subtle);
+  border-top: 1px solid var(--fs-border);
   gap: 12px;
 }
 .tcf-progress-text {
   font-size: 13px;
   font-weight: 600;
-  color: #94a3b8;
+  color: var(--fs-muted);
 }
 .tcf-progress-text b {
-  color: #60a5fa;
+  color: var(--fs-primary);
 }
 
 .tcf-submit-btn {
@@ -459,24 +461,24 @@
   border-radius: 10px;
   font-size: 14px;
   font-weight: 700;
-  background: linear-gradient(135deg, #10b981, #059669);
-  border: 1px solid #34d399;
-  color: white;
+  background: var(--fs-success);
+  border: 1px solid var(--fs-success);
+  color: #ffffff;
   cursor: pointer;
-  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.35);
+  box-shadow: var(--fs-shadow-sm);
   transition: all 0.2s;
 }
 .tcf-submit-btn:hover {
   transform: translateY(-1px);
-  background: linear-gradient(135deg, #34d399, #10b981);
+  filter: brightness(1.08);
 }
 
 /* ---------- KẾT QUẢ VÀ GIẢI THÍCH (RESULTS REVIEW) ---------- */
 .tcf-result-banner {
   padding: 24px;
   border-radius: 16px;
-  background: linear-gradient(135deg, rgba(30, 58, 138, 0.4), rgba(15, 23, 42, 0.8));
-  border: 1.5px solid rgba(59, 130, 246, 0.4);
+  background: var(--fs-surface-subtle);
+  border: 1.5px solid var(--fs-border);
   text-align: center;
   margin-bottom: 24px;
 }
@@ -487,13 +489,12 @@
   gap: 4px;
   font-size: 42px;
   font-weight: 900;
-  color: #ffffff;
-  text-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+  color: var(--fs-ink);
   margin-bottom: 6px;
 }
 .tcf-score-circle small {
   font-size: 20px;
-  color: #94a3b8;
+  color: var(--fs-muted);
   font-weight: 600;
 }
 .tcf-level-badge-large {
@@ -502,14 +503,14 @@
   border-radius: 999px;
   font-size: 14px;
   font-weight: 800;
-  background: linear-gradient(135deg, #10b981, #2563eb);
-  color: white;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  background: var(--fs-primary);
+  color: #ffffff;
+  box-shadow: var(--fs-shadow-sm);
   margin-bottom: 8px;
 }
 .tcf-comment {
   font-size: 13px;
-  color: #cbd5e1;
+  color: var(--fs-ink);
   max-width: 520px;
   margin: 0 auto;
   line-height: 1.5;
@@ -517,10 +518,10 @@
 
 /* Reviewed question state */
 .tcf-q-card.is-correct {
-  border-color: rgba(16, 185, 129, 0.5);
+  border-color: var(--fs-success);
 }
 .tcf-q-card.is-wrong {
-  border-color: rgba(239, 68, 68, 0.5);
+  border-color: var(--fs-error);
 }
 
 .tcf-status-tag {
@@ -533,35 +534,37 @@
   font-weight: 800;
 }
 .tcf-status-tag.correct {
-  background: rgba(16, 185, 129, 0.18);
-  border: 1px solid rgba(16, 185, 129, 0.4);
-  color: #6ee7b7;
+  background: var(--fs-success-subtle);
+  border: 1px solid var(--fs-success);
+  color: var(--fs-success-text);
 }
 .tcf-status-tag.wrong {
-  background: rgba(239, 68, 68, 0.18);
-  border: 1px solid rgba(239, 68, 68, 0.4);
-  color: #fca5a5;
+  background: var(--fs-error-subtle);
+  border: 1px solid var(--fs-error);
+  color: var(--fs-error-text);
 }
 
 /* Option review states */
 .tcf-opt-btn.correct-choice {
-  background: rgba(16, 185, 129, 0.22) !important;
-  border-color: #10b981 !important;
-  color: #ecfdf5 !important;
+  background: var(--fs-success-subtle) !important;
+  border-color: var(--fs-success) !important;
+  color: var(--fs-ink) !important;
 }
 .tcf-opt-btn.correct-choice .tcf-opt-letter {
-  background: #10b981 !important;
-  color: white !important;
+  background: var(--fs-success) !important;
+  color: #ffffff !important;
+  border-color: var(--fs-success) !important;
 }
 
 .tcf-opt-btn.wrong-choice {
-  background: rgba(239, 68, 68, 0.22) !important;
-  border-color: #ef4444 !important;
-  color: #fef2f2 !important;
+  background: var(--fs-error-subtle) !important;
+  border-color: var(--fs-error) !important;
+  color: var(--fs-ink) !important;
 }
 .tcf-opt-btn.wrong-choice .tcf-opt-letter {
-  background: #ef4444 !important;
-  color: white !important;
+  background: var(--fs-error) !important;
+  color: #ffffff !important;
+  border-color: var(--fs-error) !important;
 }
 
 /* Jump to audio button */
@@ -573,17 +576,17 @@
   border-radius: 8px;
   font-size: 12px;
   font-weight: 700;
-  background: rgba(59, 130, 246, 0.15);
-  border: 1px solid rgba(59, 130, 246, 0.4);
-  color: #93c5fd;
+  background: var(--fs-surface-subtle);
+  border: 1px solid var(--fs-border-control);
+  color: var(--fs-primary);
   cursor: pointer;
   transition: all 0.2s;
   margin-top: 10px;
 }
 .tcf-jump-btn:hover {
-  background: #2563eb;
-  color: white;
-  border-color: #3b82f6;
+  background: var(--fs-primary);
+  color: #ffffff;
+  border-color: var(--fs-primary);
   transform: translateY(-1px);
 }
 
@@ -595,21 +598,21 @@
   margin-top: 14px;
   padding: 12px 14px;
   border-radius: 10px;
-  background: rgba(15, 23, 42, 0.85);
-  border-left: 3px solid #38bdf8;
+  background: var(--fs-surface-subtle);
+  border-left: 3px solid var(--fs-primary);
   font-size: 13px;
   line-height: 1.5;
-  color: #cbd5e1;
+  color: var(--fs-ink);
 }
 .tcf-explain-title {
   font-weight: 700;
-  color: #38bdf8;
+  color: var(--fs-primary);
   margin-bottom: 4px;
 }
 .tcf-explain-piege {
   margin-top: 6px;
   font-size: 12px;
-  color: #f59e0b;
+  color: var(--fs-warning-text);
 }
 
 /* Mobile responsive adjustments */
