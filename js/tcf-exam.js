@@ -588,7 +588,7 @@ ${transcript}
     if (statsBox) {
       if (!sents.length) {
         statsBox.innerHTML = `
-          <div style="width:100%;color:#fca5a5;font-size:13px;display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(239,68,68,0.15);border-radius:8px;border:1px solid rgba(239,68,68,0.3)">
+          <div class="tcf-error-banner">
             <span>⚠️ Chưa phát hiện nội dung bài nghe. Hãy chọn một video hoặc bài đọc trong phòng luyện trước khi tạo đề TCF.</span>
           </div>
         `;
@@ -597,7 +597,7 @@ ${transcript}
           <span class="tcf-stat-item">⏱ Thời lượng: <b>${stats.durationFormatted}</b></span>
           <span class="tcf-stat-item">📝 Tổng số từ: <b>${stats.words.toLocaleString()} từ</b> (${sents.length} câu)</span>
           <span class="tcf-stat-item">🎯 Độ khó ước tính: <b>${stats.estLevel}</b></span>
-          <span class="tcf-stat-item" style="color:#60a5fa">🇨🇦 Chuẩn TCF Canada: <b>Tối đa 39 câu</b> (AI tự định lượng, gợi ý: ${stats.suggestedRangeText})</span>
+          <span class="tcf-stat-item tcf-stat-highlight">🇨🇦 Chuẩn TCF Canada: <b>Tối đa 39 câu</b> (AI tự định lượng, gợi ý: ${stats.suggestedRangeText})</span>
         `;
       }
     }
@@ -1017,7 +1017,7 @@ ${transcript}
         </div>
         <div class="tcf-level-badge-large">${esc(levelBadge)}</div>
         <p class="tcf-comment">${esc(comment)}</p>
-        <div style="margin-top:14px;font-size:12px;color:#94a3b8">
+        <div class="tcf-explain-note">
           ⏱ Thời gian làm bài: <b>${formatTime(tcfState.secondsElapsed)}</b> · Tỉ lệ đúng: <b>${percent}%</b>
         </div>
       </div>
@@ -1057,8 +1057,8 @@ ${transcript}
                 <div class="tcf-opt-btn${stateClass}">
                   <span class="tcf-opt-letter">${letter}</span>
                   <span>${esc(optText)}</span>
-                  ${isCorrectAns ? '<span style="margin-left:auto;color:#34d399;font-weight:700">✓ Đáp án đúng</span>' : ''}
-                  ${isUserPicked && !isCorrect ? '<span style="margin-left:auto;color:#f87171;font-weight:700">✗ Bạn đã chọn</span>' : ''}
+                  ${isCorrectAns ? '<span class="tcf-opt-badge-correct">✓ Đáp án đúng</span>' : ''}
+                  ${isUserPicked && !isCorrect ? '<span class="tcf-opt-badge-wrong">✗ Bạn đã chọn</span>' : ''}
                 </div>
               `;
             }).join('')}
@@ -1074,7 +1074,7 @@ ${transcript}
           <!-- Explanation & Pièges -->
           <div class="tcf-explain-box">
             <div class="tcf-explain-title">💡 Giải thích chi tiết &amp; Dẫn chứng:</div>
-            ${q.quote ? `<div style="font-style:italic;margin-bottom:6px;color:#93c5fd">"${esc(q.quote)}"</div>` : ''}
+            ${q.quote ? `<div class="tcf-explain-quote">"${esc(q.quote)}"</div>` : ''}
             <div>${esc(q.explain || 'Đáp án đúng dựa trên thông tin chính trong bài nghe.')}</div>
             ${q.piege ? `<div class="tcf-explain-piege">⚠️ <b>Bẫy TCF:</b> ${esc(q.piege)}</div>` : ''}
           </div>

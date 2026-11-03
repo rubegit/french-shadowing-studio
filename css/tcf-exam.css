@@ -639,3 +639,39 @@
     padding: 6px 12px;
   }
 }
+
+.tcf-error-banner {
+  width: 100%;
+  color: var(--fs-error-text);
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--fs-error-subtle);
+  border-radius: 8px;
+  border: 1px solid var(--fs-error);
+}
+.tcf-stat-highlight {
+  color: var(--fs-accent-text) !important;
+}
+.tcf-explain-note {
+  margin-top: 14px;
+  font-size: 12px;
+  color: var(--fs-muted);
+}
+.tcf-opt-badge-correct {
+  margin-left: auto;
+  color: var(--fs-success-text);
+  font-weight: 700;
+}
+.tcf-opt-badge-wrong {
+  margin-left: auto;
+  color: var(--fs-error-text);
+  font-weight: 700;
+}
+.tcf-explain-quote {
+  font-style: italic;
+  margin-bottom: 6px;
+  color: var(--fs-accent-text);
+}

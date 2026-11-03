@@ -95,3 +95,6 @@ html:has(#screen-vt:not(.hidden)),body:has(#screen-vt:not(.hidden)){overflow:hid
   .vt-hl,.vt-hr{gap:6px}
   .vt-hr .dc-chip2,.vt-hr .dc-btn{padding-left:10px;padding-right:10px;font-size:12px;white-space:nowrap}
 }
+
+.vt-has-ai-tr { color: var(--fs-success-text) !important; font-weight: 600; }
+.vt-source-link { color: var(--fs-accent-text) !important; text-decoration: underline; }

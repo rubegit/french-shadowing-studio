@@ -1345,7 +1345,7 @@
               <div class="ai-modal-title">📋 Sao chép Prompt dành cho AI</div>
               <button type="button" class="ai-modal-close" onclick="document.getElementById('manual-prompt-modal').classList.remove('open')">✕</button>
             </div>
-            <p class="ai-step-text" style="color:#fde68a;margin-top:4px">Trình duyệt hạn chế tự động copy vào bộ nhớ. Bạn hãy bấm nút bên dưới hoặc nhấn Ctrl+C (⌘+C trên Mac) để copy prompt:</p>
+            <p class="ai-step-text fs-text-warn" style="margin-top:4px">Trình duyệt hạn chế tự động copy vào bộ nhớ. Bạn hãy bấm nút bên dưới hoặc nhấn Ctrl+C (⌘+C trên Mac) để copy prompt:</p>
             <textarea id="manual-prompt-text" class="ai-textarea" style="height:220px;font-size:13px;line-height:1.5" readonly></textarea>
             <div class="ai-actions" style="margin-top:12px;display:flex;gap:10px">
               <button type="button" class="ai-btn ai-btn-primary" onclick="const ta=document.getElementById('manual-prompt-text');ta.focus();ta.select();try{document.execCommand('copy');showVocabToast('Đã copy prompt thành công!', true);}catch(e){}">
@@ -2192,7 +2192,7 @@
         : 'Chỉ ôn tập từ vựng của bài đang lọc (video / bài viết / sách)';
       document.getElementById('vocab-list').innerHTML = list.length
         ? list.map(vocabCardHtml).join('')
-        : `<div class="vocab-empty">${all.length ? 'Không có mục nào khớp bộ lọc.' : 'Chưa có từ vựng nào.<br>Khi luyện tập, bôi đen một từ, cụm từ hoặc câu rồi bấm <b style="color:#fbbf24">Lưu</b> để lưu lại ở đây.'}</div>`;
+        : `<div class="vocab-empty">${all.length ? 'Không có mục nào khớp bộ lọc.' : 'Chưa có từ vựng nào.<br>Khi luyện tập, bôi đen một từ, cụm từ hoặc câu rồi bấm <b class="fs-text-warn">Lưu</b> để lưu lại ở đây.'}</div>`;
 
       // Cập nhật nút "Xóa từ bài này" khi đang lọc theo video/bài cụ thể
       const delScopeBtn = document.getElementById('vocab-del-scope-btn');

@@ -1026,7 +1026,7 @@
             if (DC.hints) bits.push('dùng ' + DC.hints + ' gợi ý');
             $('dc-sub').textContent = bits.join(' · ');
             $('dc-diff').innerHTML = diffHTML(res, T, DC.lastR);
-            $('dc-res-legend').innerHTML = '<span><i style="background:#22c55e"></i>Đúng</span><span><i style="background:#f59e0b"></i>Gần đúng (gõ sai chính tả)</span><span><i style="background:#ef4444"></i>Sai / thiếu</span><span><i style="background:#64748b"></i>Thừa</span>';
+            $('dc-res-legend').innerHTML = '<span><i class="dc-dot-correct"></i>Đúng</span><span><i class="dc-dot-warn"></i>Gần đúng (gõ sai chính tả)</span><span><i class="dc-dot-error"></i>Sai / thiếu</span><span><i class="dc-dot-muted"></i>Thừa</span>';
         }
         const vi = s && s.vi && String(s.vi).trim();
         $('dc-trans').classList.toggle('pv-x', !vi);
@@ -1138,7 +1138,7 @@
         if (!pop.classList.contains('pv-x')) { closePop(); return; }
         let h = '<div class="dc-pop-grid">';
         for (let i = 0; i < sentences.length; i++) h += '<button type="button" class="dc-chip ' + statusOf(i) + (i === DC.idx ? ' cur' : '') + '" data-i="' + i + '">' + (i + 1) + '</button>';
-        h += '</div><div class="dc-pop-foot"><div class="dc-legend"><span><i style="background:#22c55e"></i>Hoàn hảo</span><span><i style="background:#f59e0b"></i>Gần đúng</span><span><i style="background:#ef4444"></i>Cần luyện</span><span><i style="background:#64748b"></i>Xem đáp án</span></div>';
+        h += '</div><div class="dc-pop-foot"><div class="dc-legend"><span><i class="dc-dot-correct"></i>Hoàn hảo</span><span><i class="dc-dot-warn"></i>Gần đúng</span><span><i class="dc-dot-error"></i>Cần luyện</span><span><i class="dc-dot-muted"></i>Xem đáp án</span></div>';
         h += '<div><button type="button" class="dc-link" id="dc-pop-sum">Tổng kết</button><button type="button" class="dc-link danger" id="dc-pop-reset">Xóa tiến độ</button></div></div>';
         pop.innerHTML = h; pop.classList.remove('pv-x'); $('dc-count').setAttribute('aria-expanded', 'true');
         const cur = pop.querySelector('.dc-chip.cur'); if (cur) cur.scrollIntoView({ block: 'center' });

@@ -668,7 +668,7 @@
     function bkImportRenderList() {
       const list = document.getElementById('bk-imp-list');
       list.innerHTML = bkImp.chapters.map((c, i) =>
-        `<label class="bk-chrow${c.on ? '' : ' off'}" style="padding-left:${10 + (c.lv > 1 ? 14 : 0)}px"><input type="checkbox" data-i="${i}" ${c.on ? 'checked' : ''} /><span class="t">${bkEsc(c.title)}${c.pathNodes && c.pathNodes.length ? `<span style="color:#64748b;font-size:.7rem"> · ${bkEsc(c.pathNodes.map((n) => n.t).join(' › '))}</span>` : ''}</span><span class="w">${c.words.toLocaleString('en-US')} từ</span></label>`).join('');
+        `<label class="bk-chrow${c.on ? '' : ' off'}" style="padding-left:${10 + (c.lv > 1 ? 14 : 0)}px"><input type="checkbox" data-i="${i}" ${c.on ? 'checked' : ''} /><span class="t">${bkEsc(c.title)}${c.pathNodes && c.pathNodes.length ? `<span class="bk-path-hint"> · ${bkEsc(c.pathNodes.map((n) => n.t).join(' › '))}</span>` : ''}</span><span class="w">${c.words.toLocaleString('en-US')} từ</span></label>`).join('');
       list.querySelectorAll('input').forEach((cb) => cb.addEventListener('change', () => { bkImp.chapters[+cb.dataset.i].on = cb.checked; cb.closest('.bk-chrow').classList.toggle('off', !cb.checked); bkImportSummary(); }));
       bkImportSummary();
     }
@@ -757,7 +757,7 @@
     function bkCoverHtml(b) {
       const h = b.hue || bkHue(b.title);
       const img = b.thumb ? `<img src="${bkEsc(encodeURI(/^(https?:|data:|blob:|images\/)/.test(b.thumb) ? b.thumb : 'images/' + b.thumb))}" alt="" loading="lazy" onerror="this.remove()">` : '';
-      return `<div class="bk-cover${b.thumb ? ' has-img' : ''}" style="background:linear-gradient(145deg,hsl(${h},62%,38%),hsl(${(h + 40) % 360},58%,22%))">${img}<span>${bkEsc((b.title || '').slice(0, 42))}</span></div>`;
+      return `<div class="bk-cover${b.thumb ? ' has-img' : ''}" style="--bk-h:${h}deg">${img}<span>${bkEsc((b.title || '').slice(0, 42))}</span></div>`;
     }
     function bkProgressOf(b) {
       const total = b.wordCount || 1, pos = b.pos || { ch: 0, i: 0 };
@@ -783,7 +783,7 @@
             <div class="bk-card-title">${bkEsc(b.title)}</div>
             <div class="bk-card-sub">${bkEsc(b.author || 'Không rõ tác giả')}</div>
             <div class="bk-card-meta"><span>${(b.chapterCount || 0)} chương</span><span>${((b.wordCount || 0) / 1000).toFixed(1)}k từ</span></div>
-            <div class="bk-card-meta"><span>Đọc ${pr}%</span><span style="color:#fcd34d">Dịch ${tr}%</span></div>
+            <div class="bk-card-meta"><span>Đọc ${pr}%</span><span class="bk-tr-stat">Dịch ${tr}%</span></div>
             <div class="bk-bar"><i style="width:${pr}%"></i></div>
             <div class="bk-bar tr" style="margin-top:3px"><i style="width:${tr}%"></i></div>
           </div></div>`;
@@ -1227,7 +1227,7 @@
       const mark = (t, k) => k < 0 ? bkEsc(t) : bkEsc(t.slice(0, k)) + '<mark>' + bkEsc(t.slice(k, k + q.length)) + '</mark>' + bkEsc(t.slice(k + q.length));
       const snip = (t, k) => { if (k < 0 || t.length <= 190) return mark(t, k); const s = Math.max(0, k - 70); return (s ? '…' : '') + mark(t.slice(s, s + 190), k - s) + '…'; };
       host.innerHTML = `<div class="bk-dnote" style="padding:10px 14px;text-align:left">${hits.length}${more ? '+' : ''} kết quả</div>` + hits.map((h) =>
-        `<button type="button" class="bk-hit" onclick="bkHitGo(${h.c},${h.i})"><small>Ch ${h.c + 1} · ${bkEsc(bkChs[h.c].title)}</small>${h.a >= 0 ? snip(h.en, h.a) : bkEsc(h.en.slice(0, 160))}${h.b >= 0 ? `<div style="color:var(--bk-vi);margin-top:2px">${snip(h.vi, h.b)}</div>` : ''}</button>`).join('');
+        `<button type="button" class="bk-hit" onclick="bkHitGo(${h.c},${h.i})"><small>Ch ${h.c + 1} · ${bkEsc(bkChs[h.c].title)}</small>${h.a >= 0 ? snip(h.en, h.a) : bkEsc(h.en.slice(0, 160))}${h.b >= 0 ? `<div class="bk-hit-vi">${snip(h.vi, h.b)}</div>` : ''}</button>`).join('');
     }
     function bkHitGo(c, i) { if (bkNarrow()) bkCloseDrawer(); bkGoto(c, i, true); }
 
@@ -1629,7 +1629,7 @@
             <div class="bk-sample-title">${bkEsc(sm.title)}</div>
             <div class="bk-sample-author">${bkEsc(sm.author)}</div>
             <div class="bk-sample-note">${bkEsc(sm.note || '')}</div>
-            ${have ? `<div class="bk-card-meta"><span>${have.chapterCount} chương</span><span>${((have.wordCount || 0) / 1000).toFixed(1)}k từ</span><span>Đọc ${pr}%</span>${tr ? `<span style="color:#fcd34d">Dịch ${tr}%</span>` : ''}</div><div class="bk-bar"><i style="width:${pr}%"></i></div>` : '<div class="bk-sample-note">Bấm để mở ngay: tra nghĩa, lưu từ vựng, song ngữ…</div>'}
+            ${have ? `<div class="bk-card-meta"><span>${have.chapterCount} chương</span><span>${((have.wordCount || 0) / 1000).toFixed(1)}k từ</span><span>Đọc ${pr}%</span>${tr ? `<span class="bk-tr-stat">Dịch ${tr}%</span>` : ''}</div><div class="bk-bar"><i style="width:${pr}%"></i></div>` : '<div class="bk-sample-note">Bấm để mở ngay: tra nghĩa, lưu từ vựng, song ngữ…</div>'}
             <span class="bk-sample-btn">${have ? (pr > 0 ? 'Tiếp tục đọc →' : 'Mở sách →') : 'Đọc thử →'}</span>
           </div>
           ${have ? `<div class="bk-card-tools"><button type="button" title="Xóa bản đã tải về máy này (tải lại bất cứ lúc nào)" onclick="event.stopPropagation(); bkRemoveSample('${sm.id}')"><i data-lucide="trash-2"></i></button></div>` : ''}

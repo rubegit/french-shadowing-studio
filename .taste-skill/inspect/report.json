@@ -1,0 +1,1403 @@
+{
+ "url": "index.html",
+ "at": "2026-10-31T20:07:46.324Z",
+ "allow": [],
+ "viewports": [
+  {
+   "width": 1440,
+   "height": 900,
+   "load": "load",
+   "screens": 1,
+   "filled": [
+    0.32
+   ],
+   "motion": {
+    "elements": 1,
+    "css": 0,
+    "transitions": 1,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 1440,
+     "h": 900
+    },
+    "page": {
+     "height": 900,
+     "screens": 1,
+     "words": 205,
+     "img": 1,
+     "video": 0,
+     "canvas": 0,
+     "svg": 171,
+     "sections": 1,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 1,
+     "uiAbuse": true,
+     "realPictures": 0,
+     "videoCount": 0,
+     "uiPictures": 1,
+     "pictureSamples": [],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [
+      "🔤",
+      "🎮",
+      "🎯",
+      "🎧",
+      "🎴",
+      "🧠",
+      "🔥"
+     ],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "Luyện nghe tiếng Pháp qua YouTube",
+     "words": 6,
+     "chars": 33,
+     "lines": 1,
+     "size": 19,
+     "vw": 1.3,
+     "font": "Plus Jakarta Sans",
+     "weight": 700,
+     "tracking": 0,
+     "leading": 1.35,
+     "top": 131,
+     "tag": "h1",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "h1": {
+     "text": "Luyện nghe tiếng Pháp qua YouTube",
+     "words": 6,
+     "lines": 1,
+     "size": 18.7,
+     "font": "Plus Jakarta Sans"
+    },
+    "headings": [],
+    "headingSummary": {
+     "count": 0,
+     "maxLines": 0,
+     "over2Lines": 0,
+     "statements": 0,
+     "centered": 0,
+     "medianWords": null,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "Plus Jakarta Sans",
+       "share": 0.98,
+       "mono": false
+      },
+      {
+       "family": "JetBrains Mono",
+       "share": 0.02,
+       "mono": true
+      }
+     ],
+     "familyCount": 2,
+     "sizes": [],
+     "sizeCount": 0,
+     "notLoaded": [],
+     "body": null,
+     "measureChars": null,
+     "max": {
+      "size": 18.7,
+      "vw": 1.3,
+      "font": "Plus Jakarta Sans",
+      "text": "French Shadowing Studio"
+     },
+     "monoShare": 0.02,
+     "monoProseShare": 0.02,
+     "monoFamilies": [
+      "JetBrains Mono"
+     ],
+     "monoSamples": [
+      "Tổng: video",
+      "0"
+     ],
+     "microLabels": 0,
+     "microLabelShare": 0,
+     "microSamples": [],
+     "upperShare": 0,
+     "centerShare": 0.39,
+     "smallText": 0
+    },
+    "eyebrows": [],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#f4fbf7",
+     "bodyBgHsl": {
+      "h": 146,
+      "s": 0.47,
+      "l": 0.97
+     },
+     "dark": false,
+     "sectionBgs": [
+      {
+       "color": "#f4fbf7",
+       "top": 0,
+       "hsl": {
+        "h": 146,
+        "s": 0.47,
+        "l": 0.97
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#4a566b",
+       "share": 0.31
+      },
+      {
+       "color": "#14213d",
+       "share": 0.25
+      },
+      {
+       "color": "#94a3b8",
+       "share": 0.12
+      },
+      {
+       "color": "#64748b",
+       "share": 0.11
+      },
+      {
+       "color": "#cbd5e1",
+       "share": 0.07
+      }
+     ],
+     "button": {
+      "bg": "#ffffff",
+      "hsl": {
+       "h": 0,
+       "s": 0,
+       "l": 1
+      },
+      "fg": "#14213d"
+     },
+     "lowContrast": [
+      {
+       "text": "Video Bạn Đã Luyện Gần Đây",
+       "ratio": 1,
+       "need": 4.5,
+       "size": 17.4,
+       "fg": "#ffffff",
+       "bg": "#ffffff"
+      },
+      {
+       "text": "Chưa có video nào trong lịch sử luyện tậ",
+       "ratio": 1.5,
+       "need": 4.5,
+       "size": 11.6,
+       "fg": "#cbd5e1",
+       "bg": "#ffffff"
+      },
+      {
+       "text": "Tiếp tục luyện nghe và xem lại các video",
+       "ratio": 2.6,
+       "need": 4.5,
+       "size": 11.6,
+       "fg": "#94a3b8",
+       "bg": "#ffffff"
+      },
+      {
+       "text": "Đang hiển thị 1 - 20 video",
+       "ratio": 2.6,
+       "need": 4.5,
+       "size": 11.6,
+       "fg": "#94a3b8",
+       "bg": "#ffffff"
+      }
+     ]
+    },
+    "buttons": {
+     "count": 6,
+     "inHero": 6,
+     "radius": "pill",
+     "height": 42,
+     "withShadow": 3,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Từ vựng đã lưu 2 2",
+      "Đồng bộ Cloud",
+      "← Trang trước",
+      "Trang sau →",
+      "🎯 Trắc nghiệm 4 đáp án"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 0,
+     "shadowOverlay": 5,
+     "shadowSamples": [],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 0,
+     "hairlineSamples": [],
+     "outlinedBoxes": 0,
+     "dashed": 0,
+     "blurred": 2,
+     "roundedBoxes": 3,
+     "boxRadius": 20,
+     "squareMedia": 0,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": []
+    },
+    "heroMedia": [],
+    "nav": {
+     "links": 0,
+     "fixed": true,
+     "height": 99,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": [
+     "jetbrains mono",
+     "plus jakarta sans"
+    ]
+   },
+   "layout": {
+    "viewport": {
+     "w": 1440,
+     "h": 900
+    },
+    "pageH": 900,
+    "margins": {
+     "left": 60,
+     "right": 76
+    },
+    "sections": [],
+    "gaps": [],
+    "h1s": [
+     {
+      "text": "Luyện nghe tiếng Pháp qua YouTube",
+      "size": 19,
+      "top": 131,
+      "firstScreen": true
+     }
+    ],
+    "edgeText": [],
+    "edges": [],
+    "leftBlocks": 0,
+    "bodySize": 12,
+    "stage": false,
+    "explains": false,
+    "slivers": [],
+    "voidShare": 0.4,
+    "voidBox": {
+     "x": 0,
+     "y": 540,
+     "w": 1440,
+     "h": 360
+    }
+   },
+   "app": {
+    "viewport": {
+     "w": 1440,
+     "h": 900
+    },
+    "dark": false,
+    "ground": "#f4fbf7",
+    "sidebar": null,
+    "topbar": {
+     "h": 43
+    },
+    "canvas": {
+     "left": 60,
+     "right": 35
+    },
+    "hero": {
+     "text": "Luyện nghe tiếng Pháp qua YouTube",
+     "words": 6,
+     "chars": 33,
+     "lines": 1,
+     "size": 19,
+     "vw": 1.3,
+     "font": "Plus Jakarta Sans",
+     "weight": 700,
+     "tracking": 0,
+     "leading": 1.35,
+     "top": 131,
+     "tag": "h1",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "charts": 0,
+    "layout": {
+     "panels": 2,
+     "firstScreen": 2,
+     "ragged": [],
+     "voids": [
+      {
+       "gap": 43,
+       "at": 599,
+       "panel": "🎮"
+      }
+     ]
+    },
+    "tiles": 0,
+    "panels": {
+     "count": 3,
+     "radii": [
+      [
+       20,
+       1
+      ],
+      [
+       12,
+       1
+      ],
+      [
+       24,
+       1
+      ]
+     ],
+     "heavyBorders": 1,
+     "borderSamples": [
+      "#1e293b on #ffffff (14.63:1)"
+     ],
+     "heavyShadows": 3,
+     "softShadows": 0,
+     "shadowSamples": [
+      "rgba(20, 33, 61, 0.06) 0px 8px 24px 0px",
+      "rgba(20, 33, 61, 0.16) 0px 24px 64px -12px",
+      "rgba(20, 33, 61, 0.08) 0px 8px 24px -4px"
+     ],
+     "glass": 0
+    },
+    "chips": {
+     "count": 1,
+     "hues": 1,
+     "samples": [
+      {
+       "hue": 220,
+       "size": 42,
+       "radius": "12px"
+      }
+     ]
+    },
+    "numbers": {
+     "cells": 0,
+     "leftAligned": 0,
+     "figures": 0,
+     "tabularShare": null,
+     "kpiMax": null
+    },
+    "rows": null,
+    "chartHues": 0,
+    "placeholders": [],
+    "type": {
+     "under13": 0.2,
+     "tiny": 2,
+     "tinySamples": [
+      "Giao diện 10px",
+      "Enter 10px"
+     ],
+     "sizes": [
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      22,
+      24,
+      32
+     ]
+    },
+    "title": {
+     "text": "Luyện nghe tiếng Pháp qua YouTube",
+     "size": 19,
+     "top": 131
+    },
+    "colourShare": 0.001
+   },
+   "consoleErrors": []
+  },
+  {
+   "width": 768,
+   "height": 1024,
+   "load": "load",
+   "screens": 2,
+   "filled": [
+    0.38,
+    0.33
+   ],
+   "motion": {
+    "elements": 2,
+    "css": 1,
+    "transitions": 1,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 768,
+     "h": 1024
+    },
+    "page": {
+     "height": 1096,
+     "screens": 1.1,
+     "words": 194,
+     "img": 1,
+     "video": 0,
+     "canvas": 0,
+     "svg": 171,
+     "sections": 1,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 1,
+     "uiAbuse": true,
+     "realPictures": 0,
+     "videoCount": 0,
+     "uiPictures": 1,
+     "pictureSamples": [],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [
+      "🔤",
+      "🎮",
+      "🎯",
+      "🎧",
+      "🎴",
+      "🧠",
+      "🔥"
+     ],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "Luyện nghe tiếng Pháp qua YouTube",
+     "words": 6,
+     "chars": 33,
+     "lines": 1,
+     "size": 19,
+     "vw": 2.4,
+     "font": "Plus Jakarta Sans",
+     "weight": 700,
+     "tracking": 0,
+     "leading": 1.35,
+     "top": 115,
+     "tag": "h1",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "h1": {
+     "text": "Luyện nghe tiếng Pháp qua YouTube",
+     "words": 6,
+     "lines": 1,
+     "size": 18.7,
+     "font": "Plus Jakarta Sans"
+    },
+    "headings": [],
+    "headingSummary": {
+     "count": 0,
+     "maxLines": 0,
+     "over2Lines": 0,
+     "statements": 0,
+     "centered": 0,
+     "medianWords": null,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "Plus Jakarta Sans",
+       "share": 0.98,
+       "mono": false
+      },
+      {
+       "family": "JetBrains Mono",
+       "share": 0.02,
+       "mono": true
+      }
+     ],
+     "familyCount": 2,
+     "sizes": [],
+     "sizeCount": 0,
+     "notLoaded": [],
+     "body": null,
+     "measureChars": null,
+     "max": {
+      "size": 18.7,
+      "vw": 2.4,
+      "font": "Plus Jakarta Sans",
+      "text": "French Shadowing Studio"
+     },
+     "monoShare": 0.02,
+     "monoProseShare": 0.02,
+     "monoFamilies": [
+      "JetBrains Mono"
+     ],
+     "monoSamples": [
+      "Tổng: video",
+      "0"
+     ],
+     "microLabels": 0,
+     "microLabelShare": 0,
+     "microSamples": [],
+     "upperShare": 0,
+     "centerShare": 0.35,
+     "smallText": 0
+    },
+    "eyebrows": [],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#f4fbf7",
+     "bodyBgHsl": {
+      "h": 146,
+      "s": 0.47,
+      "l": 0.97
+     },
+     "dark": false,
+     "sectionBgs": [
+      {
+       "color": "#f4fbf7",
+       "top": 0,
+       "hsl": {
+        "h": 146,
+        "s": 0.47,
+        "l": 0.97
+       }
+      },
+      {
+       "color": "#ffffff",
+       "top": 211,
+       "hsl": {
+        "h": 0,
+        "s": 0,
+        "l": 1
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#4a566b",
+       "share": 0.29
+      },
+      {
+       "color": "#14213d",
+       "share": 0.25
+      },
+      {
+       "color": "#94a3b8",
+       "share": 0.13
+      },
+      {
+       "color": "#64748b",
+       "share": 0.11
+      },
+      {
+       "color": "#cbd5e1",
+       "share": 0.07
+      }
+     ],
+     "button": {
+      "bg": "#edf6f1",
+      "hsl": {
+       "h": 147,
+       "s": 0.33,
+       "l": 0.95
+      },
+      "fg": "#14213d"
+     },
+     "lowContrast": [
+      {
+       "text": "Video Bạn Đã Luyện Gần Đây",
+       "ratio": 1,
+       "need": 4.5,
+       "size": 17.4,
+       "fg": "#ffffff",
+       "bg": "#ffffff"
+      },
+      {
+       "text": "Chưa có video nào trong lịch sử luyện tậ",
+       "ratio": 1.5,
+       "need": 4.5,
+       "size": 11.6,
+       "fg": "#cbd5e1",
+       "bg": "#ffffff"
+      },
+      {
+       "text": "Tiếp tục luyện nghe và xem lại các video",
+       "ratio": 2.6,
+       "need": 4.5,
+       "size": 11.6,
+       "fg": "#94a3b8",
+       "bg": "#ffffff"
+      },
+      {
+       "text": "Đang hiển thị 1 - 20 video",
+       "ratio": 2.6,
+       "need": 4.5,
+       "size": 11.6,
+       "fg": "#94a3b8",
+       "bg": "#ffffff"
+      }
+     ]
+    },
+    "buttons": {
+     "count": 5,
+     "inHero": 5,
+     "radius": 8,
+     "height": 30,
+     "withShadow": 2,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Từ vựng đã lưu 2 2",
+      "← Trang trước",
+      "Trang sau →",
+      "🎯 Trắc nghiệm",
+      "🧠 Đến hạn: 0"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 0,
+     "shadowOverlay": 7,
+     "shadowSamples": [],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 0,
+     "hairlineSamples": [],
+     "outlinedBoxes": 0,
+     "dashed": 0,
+     "blurred": 2,
+     "roundedBoxes": 3,
+     "boxRadius": 20,
+     "squareMedia": 0,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": []
+    },
+    "heroMedia": [],
+    "nav": {
+     "links": 0,
+     "fixed": true,
+     "height": 99,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": [
+     "jetbrains mono",
+     "plus jakarta sans"
+    ]
+   },
+   "layout": {
+    "viewport": {
+     "w": 768,
+     "h": 1024
+    },
+    "pageH": 1096,
+    "margins": {
+     "left": 12,
+     "right": 37
+    },
+    "sections": [],
+    "gaps": [],
+    "h1s": [
+     {
+      "text": "Luyện nghe tiếng Pháp qua YouTube",
+      "size": 19,
+      "top": 115,
+      "firstScreen": true
+     }
+    ],
+    "edgeText": [],
+    "edges": [],
+    "leftBlocks": 0,
+    "bodySize": 12,
+    "stage": false,
+    "explains": false,
+    "slivers": [],
+    "voidShare": 0,
+    "voidBox": null
+   },
+   "app": {
+    "viewport": {
+     "w": 768,
+     "h": 1024
+    },
+    "dark": false,
+    "ground": "#f4fbf7",
+    "sidebar": null,
+    "topbar": {
+     "h": 41
+    },
+    "canvas": {
+     "left": 12,
+     "right": 10
+    },
+    "hero": {
+     "text": "Luyện nghe tiếng Pháp qua YouTube",
+     "words": 6,
+     "chars": 33,
+     "lines": 1,
+     "size": 19,
+     "vw": 2.4,
+     "font": "Plus Jakarta Sans",
+     "weight": 700,
+     "tracking": 0,
+     "leading": 1.35,
+     "top": 115,
+     "tag": "h1",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "charts": 0,
+    "layout": {
+     "panels": 2,
+     "firstScreen": 2,
+     "ragged": [],
+     "voids": [
+      {
+       "gap": 43,
+       "at": 661,
+       "panel": "🎮"
+      }
+     ]
+    },
+    "tiles": 0,
+    "panels": {
+     "count": 3,
+     "radii": [
+      [
+       20,
+       1
+      ],
+      [
+       12,
+       1
+      ],
+      [
+       24,
+       1
+      ]
+     ],
+     "heavyBorders": 1,
+     "borderSamples": [
+      "#1e293b on #ffffff (14.63:1)"
+     ],
+     "heavyShadows": 3,
+     "softShadows": 0,
+     "shadowSamples": [
+      "rgba(20, 33, 61, 0.06) 0px 8px 24px 0px",
+      "rgba(20, 33, 61, 0.16) 0px 24px 64px -12px",
+      "rgba(20, 33, 61, 0.08) 0px 8px 24px -4px"
+     ],
+     "glass": 0
+    },
+    "chips": {
+     "count": 1,
+     "hues": 1,
+     "samples": [
+      {
+       "hue": 220,
+       "size": 44,
+       "radius": "12px"
+      }
+     ]
+    },
+    "numbers": {
+     "cells": 0,
+     "leftAligned": 0,
+     "figures": 0,
+     "tabularShare": null,
+     "kpiMax": null
+    },
+    "rows": null,
+    "chartHues": 0,
+    "placeholders": [],
+    "type": {
+     "under13": 0.21,
+     "tiny": 2,
+     "tinySamples": [
+      "Giao diện 9px",
+      "Enter 10px"
+     ],
+     "sizes": [
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      22,
+      24,
+      32
+     ]
+    },
+    "title": {
+     "text": "Luyện nghe tiếng Pháp qua YouTube",
+     "size": 19,
+     "top": 115
+    },
+    "colourShare": 0.001
+   },
+   "consoleErrors": []
+  },
+  {
+   "width": 390,
+   "height": 844,
+   "load": "load",
+   "screens": 2,
+   "filled": [
+    0.59,
+    0.54
+   ],
+   "motion": {
+    "elements": 2,
+    "css": 1,
+    "transitions": 1,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 390,
+     "h": 844
+    },
+    "page": {
+     "height": 916,
+     "screens": 1.1,
+     "words": 175,
+     "img": 1,
+     "video": 0,
+     "canvas": 0,
+     "svg": 171,
+     "sections": 1,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 1,
+     "uiAbuse": true,
+     "realPictures": 0,
+     "videoCount": 0,
+     "uiPictures": 1,
+     "pictureSamples": [],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [
+      "🔤",
+      "🎮",
+      "🎯",
+      "🎧",
+      "🎴",
+      "🧠",
+      "🔥"
+     ],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "Luyện nghe tiếng Pháp qua YouTube",
+     "words": 6,
+     "chars": 33,
+     "lines": 1,
+     "size": 19,
+     "vw": 4.8,
+     "font": "Plus Jakarta Sans",
+     "weight": 700,
+     "tracking": 0,
+     "leading": 1.35,
+     "top": 115,
+     "tag": "h1",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "h1": {
+     "text": "Luyện nghe tiếng Pháp qua YouTube",
+     "words": 6,
+     "lines": 1,
+     "size": 18.7,
+     "font": "Plus Jakarta Sans"
+    },
+    "headings": [],
+    "headingSummary": {
+     "count": 0,
+     "maxLines": 0,
+     "over2Lines": 0,
+     "statements": 0,
+     "centered": 0,
+     "medianWords": null,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "Plus Jakarta Sans",
+       "share": 0.98,
+       "mono": false
+      },
+      {
+       "family": "JetBrains Mono",
+       "share": 0.02,
+       "mono": true
+      }
+     ],
+     "familyCount": 2,
+     "sizes": [],
+     "sizeCount": 0,
+     "notLoaded": [],
+     "body": null,
+     "measureChars": null,
+     "max": {
+      "size": 18.7,
+      "vw": 4.8,
+      "font": "Plus Jakarta Sans",
+      "text": "Luyện nghe tiếng Pháp qua YouTube"
+     },
+     "monoShare": 0.02,
+     "monoProseShare": 0.02,
+     "monoFamilies": [
+      "JetBrains Mono"
+     ],
+     "monoSamples": [
+      "Tổng: video",
+      "0"
+     ],
+     "microLabels": 0,
+     "microLabelShare": 0,
+     "microSamples": [],
+     "upperShare": 0,
+     "centerShare": 0.4,
+     "smallText": 0
+    },
+    "eyebrows": [],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#f4fbf7",
+     "bodyBgHsl": {
+      "h": 146,
+      "s": 0.47,
+      "l": 0.97
+     },
+     "dark": false,
+     "sectionBgs": [
+      {
+       "color": "#f4fbf7",
+       "top": 0,
+       "hsl": {
+        "h": 146,
+        "s": 0.47,
+        "l": 0.97
+       }
+      },
+      {
+       "color": "#ffffff",
+       "top": 230,
+       "hsl": {
+        "h": 0,
+        "s": 0,
+        "l": 1
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#4a566b",
+       "share": 0.27
+      },
+      {
+       "color": "#14213d",
+       "share": 0.2
+      },
+      {
+       "color": "#94a3b8",
+       "share": 0.15
+      },
+      {
+       "color": "#64748b",
+       "share": 0.13
+      },
+      {
+       "color": "#cbd5e1",
+       "share": 0.08
+      }
+     ],
+     "button": {
+      "bg": "#edf6f1",
+      "hsl": {
+       "h": 147,
+       "s": 0.33,
+       "l": 0.95
+      },
+      "fg": "#14213d"
+     },
+     "lowContrast": [
+      {
+       "text": "Video Bạn Đã Luyện Gần Đây",
+       "ratio": 1,
+       "need": 4.5,
+       "size": 17.4,
+       "fg": "#ffffff",
+       "bg": "#ffffff"
+      },
+      {
+       "text": "Chưa có video nào trong lịch sử luyện tậ",
+       "ratio": 1.5,
+       "need": 4.5,
+       "size": 11.6,
+       "fg": "#cbd5e1",
+       "bg": "#ffffff"
+      },
+      {
+       "text": "Tiếp tục luyện nghe và xem lại các video",
+       "ratio": 2.6,
+       "need": 4.5,
+       "size": 11.6,
+       "fg": "#94a3b8",
+       "bg": "#ffffff"
+      },
+      {
+       "text": "Đang hiển thị 1 - 20 video",
+       "ratio": 2.6,
+       "need": 4.5,
+       "size": 11.6,
+       "fg": "#94a3b8",
+       "bg": "#ffffff"
+      }
+     ]
+    },
+    "buttons": {
+     "count": 5,
+     "inHero": 5,
+     "radius": 8,
+     "height": 45,
+     "withShadow": 2,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Từ vựng đã lưu 2 2",
+      "← Trang trước",
+      "Trang sau →",
+      "🎯 Trắc nghiệm",
+      "🧠 Đến hạn: 0"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 0,
+     "shadowOverlay": 8,
+     "shadowSamples": [],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 0,
+     "hairlineSamples": [],
+     "outlinedBoxes": 0,
+     "dashed": 0,
+     "blurred": 2,
+     "roundedBoxes": 2,
+     "boxRadius": 14,
+     "squareMedia": 0,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": []
+    },
+    "heroMedia": [],
+    "nav": {
+     "links": 0,
+     "fixed": true,
+     "height": 99,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": [
+     "jetbrains mono",
+     "plus jakarta sans"
+    ]
+   },
+   "layout": {
+    "viewport": {
+     "w": 390,
+     "h": 844
+    },
+    "pageH": 916,
+    "margins": {
+     "left": 12,
+     "right": 23
+    },
+    "sections": [],
+    "gaps": [],
+    "h1s": [
+     {
+      "text": "Luyện nghe tiếng Pháp qua YouTube",
+      "size": 19,
+      "top": 115,
+      "firstScreen": true
+     }
+    ],
+    "edgeText": [],
+    "edges": [],
+    "leftBlocks": 0,
+    "bodySize": 12,
+    "stage": false,
+    "explains": false,
+    "slivers": [],
+    "voidShare": 0,
+    "voidBox": null
+   },
+   "app": {
+    "viewport": {
+     "w": 390,
+     "h": 844
+    },
+    "dark": false,
+    "ground": "#f4fbf7",
+    "sidebar": null,
+    "topbar": {
+     "h": 41
+    },
+    "canvas": {
+     "left": 12,
+     "right": -11
+    },
+    "hero": {
+     "text": "Luyện nghe tiếng Pháp qua YouTube",
+     "words": 6,
+     "chars": 33,
+     "lines": 1,
+     "size": 19,
+     "vw": 4.8,
+     "font": "Plus Jakarta Sans",
+     "weight": 700,
+     "tracking": 0,
+     "leading": 1.35,
+     "top": 115,
+     "tag": "h1",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "charts": 0,
+    "layout": {
+     "panels": 2,
+     "firstScreen": 2,
+     "ragged": [],
+     "voids": [
+      {
+       "gap": 509,
+       "at": 340,
+       "panel": "🎮"
+      }
+     ]
+    },
+    "tiles": 0,
+    "panels": {
+     "count": 3,
+     "radii": [
+      [
+       14,
+       1
+      ],
+      [
+       12,
+       1
+      ],
+      [
+       0,
+       1
+      ]
+     ],
+     "heavyBorders": 1,
+     "borderSamples": [
+      "#1e293b on #ffffff (14.63:1)"
+     ],
+     "heavyShadows": 2,
+     "softShadows": 1,
+     "shadowSamples": [
+      "rgba(20, 33, 61, 0.16) 0px 24px 64px -12px",
+      "rgba(20, 33, 61, 0.08) 0px 8px 24px -4px"
+     ],
+     "glass": 0
+    },
+    "chips": {
+     "count": 1,
+     "hues": 1,
+     "samples": [
+      {
+       "hue": 220,
+       "size": 44,
+       "radius": "12px"
+      }
+     ]
+    },
+    "numbers": {
+     "cells": 0,
+     "leftAligned": 0,
+     "figures": 0,
+     "tabularShare": null,
+     "kpiMax": null
+    },
+    "rows": null,
+    "chartHues": 0,
+    "placeholders": [],
+    "type": {
+     "under13": 0.21,
+     "tiny": 1,
+     "tinySamples": [
+      "Giao diện 9px"
+     ],
+     "sizes": [
+      9,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      22,
+      24,
+      32
+     ]
+    },
+    "title": {
+     "text": "Luyện nghe tiếng Pháp qua YouTube",
+     "size": 19,
+     "top": 115
+    },
+    "colourShare": 0.003
+   },
+   "consoleErrors": []
+  }
+ ],
+ "findings": [
+  {
+   "level": "FAIL",
+   "id": "emoji",
+   "width": 1440,
+   "message": "Emoji in the page: 🔤 🎮 🎯 🎧 🎴 🧠 🔥",
+   "fix": "Remove. Use words or real imagery.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "button-fx",
+   "width": 1440,
+   "message": "Buttons with shadow/glow.",
+   "fix": "Flat fill, one colour.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "contrast",
+   "width": 1440,
+   "message": "Unreadable text: \"Video Bạn Đã Luyện Gần Đây\" 1:1 (#ffffff on #ffffff); \"Chưa có video nào trong lịch sử luyện tậ\" 1.5:1 (#cbd5e1 on #ffffff)",
+   "fix": "Raise contrast to at least 4.5:1 for text, 3:1 for large display.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "ui-wrapper",
+   "width": 1440,
+   "message": "A data-ui element wraps a heading or more than a screen and a half of the page.",
+   "fix": "data-ui marks a cropped interface fragment only. Remove it from page-level wrappers.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "WARN",
+   "id": "hero-void",
+   "width": 1440,
+   "message": "40% of the first screen is one empty block (1440×360px at 0,540).",
+   "fix": "Place the void on purpose or fill it: move the picture, the film or one fact into it, grow the headline to meet it, or shrink the screen to its content. A void reads as placed only when something closes it on the far side and it is the screen's one rest."
+  },
+  {
+   "level": "FAIL",
+   "id": "heavy-shadow",
+   "width": 1440,
+   "message": "3 panel shadow(s) heavy enough to read as floating: rgba(20, 33, 61, 0.06) 0px 8px 24px 0px | rgba(20, 33, 61, 0.16) 0px 24px 64px -12px | rgba(20, 33, 61, 0.08) 0px 8px 24px -4px",
+   "fix": "Panels sit on the ground: separate them with a fill one step from the ground or a quiet 1px border. A shadow, if any, is under 8% black with a small blur. Real overlays (menus, dialogs, popovers) may float.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "WARN",
+   "id": "panel-void",
+   "width": 1440,
+   "message": "1 card(s) hold a blank band inside: 43px in \"🎮\".",
+   "fix": "A card stretches to its neighbour only when it has content to fill. Keep a legend or a note directly under its chart (only an action or a total may sit at a stretched card's foot), let a short card keep its own height (align-items: start), and let a filtered block shrink to its rows."
+  }
+ ],
+ "images": [
+  {
+   "viewport": "desktop",
+   "width": 1440,
+   "fold": "/Users/linhvu/AI Project/Shadowing/.taste-skill/inspect/desktop-fold.jpg",
+   "pages": [
+    "/Users/linhvu/AI Project/Shadowing/.taste-skill/inspect/desktop-page-01.jpg"
+   ],
+   "film": []
+  },
+  {
+   "viewport": "tablet",
+   "width": 768,
+   "fold": "/Users/linhvu/AI Project/Shadowing/.taste-skill/inspect/tablet-fold.jpg",
+   "pages": [
+    "/Users/linhvu/AI Project/Shadowing/.taste-skill/inspect/tablet-page-01.jpg"
+   ],
+   "film": []
+  },
+  {
+   "viewport": "mobile",
+   "width": 390,
+   "fold": "/Users/linhvu/AI Project/Shadowing/.taste-skill/inspect/mobile-fold.jpg",
+   "pages": [
+    "/Users/linhvu/AI Project/Shadowing/.taste-skill/inspect/mobile-page-01.jpg"
+   ],
+   "film": []
+  }
+ ]
+}

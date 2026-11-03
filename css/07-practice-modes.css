@@ -106,6 +106,11 @@
     .dc-leg-item.partial .dc-leg-dot { background: var(--fs-accent); }
     .dc-leg-item.poor .dc-leg-dot { background: var(--fs-error-text); }
     .dc-leg-item.todo .dc-leg-dot { background: var(--fs-surface-subtle); border: 1px solid var(--fs-border-control); }
+    .dc-dot-correct { background: var(--fs-success) !important; }
+    .dc-dot-warn { background: var(--fs-warning) !important; }
+    .dc-dot-error { background: var(--fs-error) !important; }
+    .dc-dot-muted { background: var(--fs-muted) !important; }
+    .dc-dot-todo { background: var(--fs-surface-subtle) !important; border: 1px solid var(--fs-border-control) !important; }
     .dc-link { background: none; border: 0; color: var(--fs-primary); font-weight: 700; cursor: pointer; font-size: 12px; padding: 2px 4px; }
     .dc-link:hover { color: var(--fs-accent-text); }
     .dc-link.danger { color: var(--fs-error-text); }

@@ -184,7 +184,7 @@
     const label = o.videoId ? '' : (o.kind === 'text' ? '📄 Bài viết' : 'Việt → Anh');
     const del = o.src === 'rec' ? `<button type="button" class="vt-del" data-del="${esc(o.key)}" title="Xóa khỏi danh sách" aria-label="Xóa khỏi danh sách">×</button>` : '';
     return `<div class="vt-card" data-k="${esc(o.key)}" data-src="${o.src}" tabindex="0">${del}<div class="vt-thumb">${thumb}<span style="position:relative;padding:0 14px;text-align:center">${label}</span>${o.duration ? `<span class="vt-dur">${esc(o.duration)}</span>` : ''}</div>
-      <div class="vt-cb"><div class="vt-ct">${esc(o.title)}</div><div class="vt-cm">${o.channel ? `<span>${esc(o.channel)}</span>` : ''}${o.topic ? `<span>${esc(catLabel(o.topic))}</span>` : ''}${o.total ? `<span>${o.total} câu</span>` : ''}${o.tr ? '<span style="color:#86efac">Có bản dịch AI</span>' : ''}</div>
+      <div class="vt-cb"><div class="vt-ct">${esc(o.title)}</div><div class="vt-cm">${o.channel ? `<span>${esc(o.channel)}</span>` : ''}${o.topic ? `<span>${esc(catLabel(o.topic))}</span>` : ''}${o.total ? `<span>${o.total} câu</span>` : ''}${o.tr ? '<span class="vt-has-ai-tr">Có bản dịch AI</span>' : ''}</div>
       <div class="vt-bar"><i style="width:${pct}%"></i></div></div></div>`;
   }
   function syncExtStrip() {
@@ -486,7 +486,7 @@
     $('vt-list').innerHTML = h || '<div class="sh-empty">Không có câu nào phù hợp với bộ lọc này.</div>';
     playUI(P.playing);
     const st = stats();
-    const src = rec.url && /^https?:\/\//i.test(rec.url) ? ` · <a href="${esc(rec.url)}" target="_blank" rel="noopener" style="color:#7aa2ff">Xem bài gốc</a>` : '';
+    const src = rec.url && /^https?:\/\//i.test(rec.url) ? ` · <a href="${esc(rec.url)}" target="_blank" rel="noopener" class="vt-source-link">Xem bài gốc</a>` : '';
     $('vt-sub').innerHTML = `Đã luyện <b>${st.d}/${st.t}</b> câu · Bản dịch AI <b>${st.tr}/${st.t}</b> câu${src}`;
     $('vt-bar').style.width = (st.t ? st.d / st.t * 100 : 0) + '%';
     document.querySelectorAll('#vt-filter button').forEach((b) => b.classList.toggle('on', b.dataset.f === filter));
@@ -537,7 +537,7 @@
     if (!rec) return;
     let h = '<div class="dc-pop-grid">';
     for (let i = 0; i < rec.sents.length; i++) h += `<button type="button" class="dc-chip ${stOf(i)}${i === idx ? ' cur' : ''}" data-i="${i}">${i + 1}</button>`;
-    h += '</div><div class="dc-pop-foot"><div class="dc-legend"><span><i style="background:#22c55e"></i>Đã xem bản dịch</span><span><i style="background:#f59e0b"></i>Đã gõ, chưa xem</span><span><i style="background:#17213f;border:1px solid #2b3f7a"></i>Chưa làm</span></div></div>';
+    h += '</div><div class="dc-pop-foot"><div class="dc-legend"><span><i class="dc-dot-correct"></i>Đã xem bản dịch</span><span><i class="dc-dot-warn"></i>Đã gõ, chưa xem</span><span><i class="dc-dot-todo"></i>Chưa làm</span></div></div>';
     pop.innerHTML = h; pop.classList.remove('pv-x'); $('vt-count').setAttribute('aria-expanded', 'true');
     const cur = pop.querySelector('.dc-chip.cur'); if (cur) cur.scrollIntoView({ block: 'center' });
   }
