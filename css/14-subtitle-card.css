@@ -40,19 +40,19 @@
     font-weight: 800 !important;
     letter-spacing: .06em !important;
     text-transform: uppercase !important;
-    color: #64748b !important;
+    color: var(--fs-muted) !important;
     padding: 4px 6px 2px !important;
   }
   .fs-sec-sep {
     height: 1px !important;
-    background: #15203d !important;
+    background: var(--fs-line) !important;
     margin: 6px 2px !important;
   }
   html[data-ui="light"] .fs-sec-title {
-    color: #64748b !important;
+    color: var(--fs-muted) !important;
   }
   html[data-ui="light"] .fs-sec-sep {
-    background: #e2e8f0 !important;
+    background: var(--fs-line) !important;
   }
 
   /* Áp dụng biến cỡ chữ, giãn dòng và căn giữa cho Câu hiện tại */
@@ -126,6 +126,7 @@
     #screen-practice header .pv-sw-label small {
       font-size: 9px !important;
       line-height: 1 !important;
+      color: var(--fs-muted) !important;
     }
     #screen-practice header .pv-sw-label b {
       font-size: 11.5px !important;
@@ -148,18 +149,18 @@
       border-radius: 12px !important;
       align-items: center !important;
       justify-content: center !important;
-      background: #0d1630 !important;
-      border: 1px solid #1e2c52 !important;
-      color: #9fb0cf !important;
+      background: var(--fs-surface) !important;
+      border: 1px solid var(--fs-border-control) !important;
+      color: var(--fs-ink-subtle) !important;
       cursor: pointer !important;
       padding: 0 !important;
       transition: all .15s ease !important;
     }
     .practice-sandwich-btn:hover,
     .practice-sandwich-btn[aria-expanded="true"] {
-      background: #182859 !important;
-      border-color: #3b82f6 !important;
-      color: #ffffff !important;
+      background: var(--fs-hover) !important;
+      border-color: var(--fs-primary) !important;
+      color: var(--fs-ink) !important;
     }
 
     /* Thẻ câu hiện tại */
@@ -177,11 +178,12 @@
     .cs-nav #cs-prev { justify-self: start; }
     .cs-nav #cs-auto { justify-self: center; margin: 0 auto; }
     .cs-nav #cs-next { justify-self: end; }
-    .cs-nav .dc-btn { padding: 4px 8px; font-size: 11.5px; min-height: 30px; border-radius: 8px; }
-    .cs-auto { font-size: 11.5px; gap: 5px; }
-    .cs-auto .sw { width: 28px; height: 16px; }
-    .cs-auto .sw::after { width: 12px; height: 12px; top: 1px; left: 1px; }
-    .cs-auto[aria-checked="true"] .sw::after { transform: translateX(12px); }
+    .cs-nav .dc-btn { padding: 4px 8px; font-size: 11.5px; min-height: 30px; border-radius: 8px; border: 1px solid var(--fs-border-control) !important; }
+    .cs-auto { font-size: 11.5px; gap: 5px; color: var(--fs-ink-subtle); }
+    .cs-auto .sw { width: 28px; height: 16px; background: var(--fs-surface-subtle); border: 1px solid var(--fs-border-control); }
+    .cs-auto .sw::after { width: 12px; height: 12px; top: 1px; left: 1px; background: var(--fs-muted); }
+    .cs-auto[aria-checked="true"] .sw { background: var(--fs-primary); border-color: var(--fs-primary); }
+    .cs-auto[aria-checked="true"] .sw::after { transform: translateX(12px); background: #ffffff; }
     .cs-ts {
       display: flex !important;
       justify-content: center !important;
@@ -208,11 +210,11 @@
       margin: 0 4px 0 0 !important;
       font-size: 11.5px !important;
       line-height: 1 !important;
-      color: #7d8db0;
+      color: var(--fs-muted) !important;
       white-space: nowrap !important;
     }
     html[data-ui="light"] .cs-ts .ts-lbl {
-      color: #52607a !important;
+      color: var(--fs-muted) !important;
     }
     .cs-ts .ts-step {
       width: 24px;
@@ -230,6 +232,8 @@
       border-radius: 6px;
       flex: 0 0 auto;
       text-align: center;
+      color: var(--fs-muted);
+      border-color: var(--fs-border-control);
     }
     .cs-ts .ts-sep {
       display: inline-block !important;
@@ -261,18 +265,18 @@
     border-radius: 10px !important;
     align-items: center !important;
     justify-content: center !important;
-    background: #0d1630 !important;
-    border: 1px solid #1e2c52 !important;
-    color: #9fb0cf !important;
+    background: var(--fs-surface) !important;
+    border: 1px solid var(--fs-border-control) !important;
+    color: var(--fs-ink-subtle) !important;
     cursor: pointer !important;
     padding: 0 !important;
     transition: all .15s ease !important;
   }
   .practice-sandwich-btn:hover,
   .practice-sandwich-btn[aria-expanded="true"] {
-    background: #182859 !important;
-    border-color: #3b82f6 !important;
-    color: #ffffff !important;
+    background: var(--fs-hover) !important;
+    border-color: var(--fs-primary) !important;
+    color: var(--fs-ink) !important;
   }
 
   /* Popup Dropdown của Menu Sandwich */
@@ -282,10 +286,10 @@
     right: 0;
     width: 275px;
     max-width: calc(100vw - 20px);
-    background: #0a1126;
-    border: 1px solid #1e293b;
+    background: var(--fs-surface-overlay);
+    border: 1px solid var(--fs-border-control);
     border-radius: 16px;
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
     padding: 8px;
     z-index: 500;
     display: flex;
@@ -300,7 +304,7 @@
     font-weight: 700;
     letter-spacing: .05em;
     text-transform: uppercase;
-    color: #64748b;
+    color: var(--fs-muted);
     padding: 6px 10px 4px;
   }
   .psm-section {
@@ -316,7 +320,7 @@
     border-radius: 10px;
     border: none;
     background: transparent;
-    color: #cbd5e1;
+    color: var(--fs-ink);
     font-size: 13px;
     font-weight: 600;
     text-align: left;
@@ -326,12 +330,12 @@
     box-sizing: border-box;
   }
   .psm-item:hover, .psm-item:active {
-    background: #141f3d;
-    color: #ffffff;
+    background: var(--fs-hover);
+    color: var(--fs-ink);
   }
   .psm-sep {
     height: 1px;
-    background: #15203d;
+    background: var(--fs-line);
     margin: 4px 6px;
   }
   .psm-badge {
@@ -340,12 +344,12 @@
     font-weight: 800;
     padding: 2px 7px;
     border-radius: 9999px;
-    background: #16203a;
-    color: #64748b;
+    background: var(--fs-surface-subtle);
+    color: var(--fs-muted);
   }
   .psm-badge.on {
-    background: rgba(34, 197, 94, .18);
-    color: #4ade80;
+    background: var(--fs-tint);
+    color: var(--fs-accent-text);
   }
 
   /* Mục lựa chọn công cụ AI tra nghĩa */
@@ -354,7 +358,7 @@
     font-weight: 700;
     letter-spacing: .04em;
     text-transform: uppercase;
-    color: #64748b;
+    color: var(--fs-muted);
     padding: 6px 10px 4px;
   }
   .psm-ai-grid {
@@ -376,17 +380,17 @@
     transition: all .15s ease;
   }
   .psm-ai-opt:hover {
-    background: rgba(255, 255, 255, 0.06);
+    background: var(--fs-hover);
   }
   .psm-ai-opt.active {
-    background: rgba(59, 130, 246, 0.14);
-    border-color: rgba(59, 130, 246, 0.35);
+    background: var(--fs-tint);
+    border-color: var(--fs-primary);
   }
   .psm-ai-radio {
     width: 14px;
     height: 14px;
     border-radius: 50%;
-    border: 2px solid #64748b;
+    border: 2px solid var(--fs-border-control);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -394,9 +398,9 @@
     transition: all .15s ease;
   }
   .psm-ai-opt.active .psm-ai-radio {
-    border-color: #3b82f6;
-    background: #3b82f6;
-    box-shadow: inset 0 0 0 2.5px #0a1126;
+    border-color: var(--fs-primary);
+    background: var(--fs-primary);
+    box-shadow: inset 0 0 0 2.5px var(--fs-surface);
   }
   .psm-ai-text {
     display: flex;
@@ -406,20 +410,20 @@
   .psm-ai-name {
     font-size: 12.5px;
     font-weight: 700;
-    color: #f1f5f9;
+    color: var(--fs-ink);
   }
   .psm-ai-opt.active .psm-ai-name {
-    color: #60a5fa;
+    color: var(--fs-accent-text);
   }
   .psm-ai-desc {
     font-size: 11px;
-    color: #94a3b8;
+    color: var(--fs-muted);
   }
 
   /* Tương thích Light & Dark Mode cho Menu Sandwich màn Luyện tập theo Taste-Skill & Impeccable */
   html[data-ui="light"] .practice-sandwich-btn {
     background-color: var(--fs-surface) !important;
-    border: 1px solid var(--fs-line) !important;
+    border: 1px solid var(--fs-border-control) !important;
     color: var(--fs-ink) !important;
     border-radius: var(--fs-radius-pill, 9999px) !important;
   }
@@ -430,8 +434,8 @@
     color: var(--fs-primary) !important;
   }
   html[data-ui="light"] .practice-sandwich-menu {
-    background-color: var(--fs-surface) !important;
-    border: 1px solid var(--fs-line) !important;
+    background-color: var(--fs-surface-overlay) !important;
+    border: 1px solid var(--fs-border-control) !important;
     box-shadow: var(--fs-shadow-lg) !important;
   }
   html[data-ui="light"] .psm-title {
@@ -451,7 +455,7 @@
   html[data-ui="light"] .psm-badge {
     background: var(--fs-surface-subtle) !important;
     color: var(--fs-muted) !important;
-    border: 1px solid var(--fs-line) !important;
+    border: 1px solid var(--fs-border-control) !important;
     padding: 2px 8px !important;
     font-size: 10.5px !important;
     font-weight: 700 !important;
@@ -462,7 +466,7 @@
   html[data-ui="light"] .psm-badge.on {
     background: var(--fs-tint) !important;
     color: var(--fs-accent-text) !important;
-    border: 1px solid rgba(11, 90, 60, 0.22) !important;
+    border: 1px solid var(--fs-border-control) !important;
   }
   html[data-ui="light"] .psm-sub-title {
     color: var(--fs-muted) !important;
@@ -475,7 +479,7 @@
     border-color: var(--fs-primary) !important;
   }
   html[data-ui="light"] .psm-ai-opt .psm-ai-radio {
-    border-color: var(--fs-line) !important;
+    border-color: var(--fs-border-control) !important;
   }
   html[data-ui="light"] .psm-ai-opt.active .psm-ai-radio {
     border-color: var(--fs-primary) !important;
@@ -495,7 +499,7 @@
   html.dark .psm-badge.on {
     background: var(--fs-tint) !important;
     color: var(--fs-accent-text) !important;
-    border-color: rgba(168, 230, 207, 0.25) !important;
+    border-color: var(--fs-border-control) !important;
   }
   html[data-ui="light"] #screen-practice header .vocab-btn {
     border-radius: 12px !important;
@@ -513,8 +517,8 @@
     align-items: center !important;
     justify-content: space-between !important;
     padding: 10px 14px 8px !important;
-    border-bottom: 1px solid #131d3d !important;
-    background: #0a1126 !important;
+    border-bottom: 1px solid var(--fs-line) !important;
+    background: var(--fs-surface) !important;
     flex-shrink: 0 !important;
     gap: 8px !important;
     min-width: 0 !important;
@@ -522,8 +526,8 @@
     box-sizing: border-box !important;
   }
   html[data-ui="light"] .sub-panel-hd {
-    background: var(--fs-surface, #ffffff) !important;
-    border-bottom-color: var(--fs-line, #e2e8f0) !important;
+    background: var(--fs-surface) !important;
+    border-bottom-color: var(--fs-line) !important;
     padding: 10px 14px 8px !important;
     align-items: center !important;
   }
@@ -549,14 +553,14 @@
   .sub-panel-count {
     font-size: 12.5px !important;
     font-weight: 700 !important;
-    color: #7d8db0 !important;
+    color: var(--fs-muted) !important;
     white-space: nowrap !important;
     transition: opacity .18s ease, width .18s ease !important;
     flex-shrink: 1 !important;
     min-width: 0 !important;
   }
   html[data-ui="light"] .sub-panel-count {
-    color: #64748b !important;
+    color: var(--fs-muted) !important;
   }
 
   .sub-search-expandable {
@@ -578,7 +582,7 @@
     pointer-events: none !important;
     transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1), max-width 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.18s ease, padding 0.18s ease !important;
     font-size: 12.5px !important;
-    color: #e2e8f0 !important;
+    color: var(--fs-ink) !important;
     box-sizing: border-box !important;
   }
 
@@ -587,18 +591,18 @@
     max-width: calc(100vw - 230px) !important;
     opacity: 1 !important;
     padding: 5px 32px 5px 12px !important;
-    background: #060b18 !important;
-    border: 1px solid #3b82f6 !important;
+    background: var(--fs-surface) !important;
+    border: 1px solid var(--fs-primary) !important;
     border-radius: 9999px !important;
     pointer-events: auto !important;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25) !important;
+    box-shadow: 0 0 0 2px var(--fs-tint) !important;
   }
 
   html[data-ui="light"] .sub-search-expandable.open .sub-search-expand-input {
-    background: #f8fafc !important;
-    border-color: #3b82f6 !important;
-    color: #0f172a !important;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
+    background: var(--fs-surface) !important;
+    border-color: var(--fs-primary) !important;
+    color: var(--fs-ink) !important;
+    box-shadow: 0 0 0 2px var(--fs-tint) !important;
   }
 
   .sub-panel-right-tools:has(.sub-search-expandable.open) .sub-panel-count {
@@ -614,9 +618,9 @@
     height: 32px !important;
     min-width: 32px !important;
     border-radius: 50% !important;
-    border: 1px solid #1e293b !important;
-    background: #0d1630 !important;
-    color: #9fb0cf !important;
+    border: 1px solid var(--fs-border-control) !important;
+    background: var(--fs-surface) !important;
+    color: var(--fs-ink-subtle) !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -634,29 +638,29 @@
     min-width: 28px !important;
     border: none !important;
     background: transparent !important;
-    color: #94a3b8 !important;
+    color: var(--fs-muted) !important;
   }
 
   .sub-search-toggle-btn:hover {
-    background: #182859 !important;
-    border-color: #3b82f6 !important;
-    color: #ffffff !important;
+    background: var(--fs-hover) !important;
+    border-color: var(--fs-primary) !important;
+    color: var(--fs-ink) !important;
   }
 
   html[data-ui="light"] .sub-search-toggle-btn {
-    background: #ffffff !important;
-    border-color: #cbd5e1 !important;
-    color: #475569 !important;
+    background: var(--fs-surface) !important;
+    border-color: var(--fs-border-control) !important;
+    color: var(--fs-ink-subtle) !important;
   }
   html[data-ui="light"] .sub-search-toggle-btn:hover {
-    background: #f1f5f9 !important;
-    border-color: #3b82f6 !important;
-    color: #1d4ed8 !important;
+    background: var(--fs-hover) !important;
+    border-color: var(--fs-primary) !important;
+    color: var(--fs-primary) !important;
   }
   html[data-ui="light"] .sub-search-expandable.open .sub-search-toggle-btn {
     background: transparent !important;
     border-color: transparent !important;
-    color: #64748b !important;
+    color: var(--fs-muted) !important;
   }
 
   /* Co giãn thông minh khi thu hẹp chiều ngang cột phụ đề (bằng resizer hoặc màn hình nhỏ) */
@@ -751,45 +755,51 @@
     .cs-ts .ts-step { width: 22px !important; height: 22px !important; min-width: 22px !important; }
     .cs-ts .ts-ctl { gap: 2px !important; }
   }
-  .cs-card { position: relative; flex: none; min-width: 0; padding: 18px 22px 14px; border-radius: 16px; background: #091024; border: 1px solid #1e293b; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, .3); }
+  .cs-card { position: relative; flex: none; min-width: 0; padding: 18px 22px 14px; border-radius: 16px; background: var(--fs-surface-card); border: 1px solid var(--fs-line); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, .15); }
   .cs-w { border-radius: 6px; padding: 0 2px; cursor: pointer; transition: background .08s, color .08s; }
-  .cs-w:hover { background: rgba(148, 163, 184, .18); }
-  .cs-w.cs-cur { background: rgba(96, 165, 250, .30); color: #fff; }
+  .cs-w:hover { background: var(--fs-hover); }
+  .cs-w.cs-cur { background: var(--fs-tint); color: var(--fs-accent-text); }
   /* IPA nằm ngay dưới từng chữ (vẽ bằng ::after nên không lẫn vào vùng bôi đen / copy chữ) — giống giao diện Shadowing */
   .cs-w[data-ipa] { display: inline-flex; flex-direction: column; align-items: center; vertical-align: top; }
-  .cs-w[data-ipa]::after { content: attr(data-ipa); margin: 1px 0 6px; font-size: .85em; line-height: 1.25; font-weight: 400; font-style: normal; color: #3fbd6d; white-space: nowrap; user-select: none; -webkit-user-select: none; pointer-events: none; }
+  .cs-w[data-ipa]::after { content: attr(data-ipa); margin: 1px 0 6px; font-size: .85em; line-height: 1.25; font-weight: 400; font-style: normal; color: var(--fs-success-text); white-space: nowrap; user-select: none; -webkit-user-select: none; pointer-events: none; }
   /* Nút IPA nằm ở hàng nút điều hướng trên cùng (giống các nút Karaoke / Song ngữ), chỉ hiện ở máy tính + iPad ngang, giao diện Mặc định, chế độ video */
-  .cs-ipa { display: none; align-items: center; gap: 6px; flex: none; padding: 6px 12px; border-radius: 8px; border: 1px solid #334155; background: #1e293b; color: #94a3b8; font-size: 12px; font-weight: 600; line-height: 16px; font-family: inherit; white-space: nowrap; cursor: pointer; transition: all .15s; }
+  .cs-ipa { display: none; align-items: center; gap: 6px; flex: none; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--fs-border-control); background: var(--fs-surface); color: var(--fs-ink-subtle); font-size: 12px; font-weight: 600; line-height: 16px; font-family: inherit; white-space: nowrap; cursor: pointer; transition: all .15s; }
   @media (min-width: 1024px) and (orientation: landscape), (min-width: 1101px) {
     body:not(.text-mode) .cs-ipa { display: inline-flex; }
   }
-  .cs-ipa:hover { background: #334155; color: #e2e8f0; }
-  .cs-ipa.on { background: rgba(34, 197, 94, .16); border-color: rgba(74, 222, 128, .55); color: #4ade80; }
-  .cs-ipa.on:hover { border-color: rgba(74, 222, 128, .85); color: #86efac; }
+  .cs-ipa:hover { background: var(--fs-hover); color: var(--fs-ink); }
+  .cs-ipa.on { background: var(--fs-tint); border-color: var(--fs-success-text); color: var(--fs-success-text); }
+  .cs-ipa.on:hover { border-color: var(--fs-success-text); color: var(--fs-success-text); }
   /* Hàng Câu trước / Câu sau (giống giao diện Shadowing) */
-  .cs-nav { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #131d3d; }
+  .cs-nav { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--fs-line); }
   .cs-nav-r { display: flex; align-items: center; gap: 14px; }
-  .cs-auto { display: inline-flex; align-items: center; gap: 8px; padding: 4px 2px; background: none; border: 0; color: #7d8db0; font: 700 13px/1 "Plus Jakarta Sans", system-ui, sans-serif; cursor: pointer; white-space: nowrap; transition: color .15s; }
-  .cs-auto:hover { color: #e2e8f0; }
-  .cs-auto .sw { position: relative; width: 34px; height: 20px; border-radius: 99px; background: #1e2c52; border: 1px solid #2b3f7a; transition: background .15s, border-color .15s; flex: none; }
-  .cs-auto .sw::after { content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: #94a3b8; transition: transform .15s, background .15s; }
-  .cs-auto[aria-checked="true"] { color: #cbd5e1; }
-  .cs-auto[aria-checked="true"] .sw { background: #1b43a0; border-color: #2a56bd; }
-  .cs-auto[aria-checked="true"] .sw::after { transform: translateX(14px); background: #cfdcff; }
-  .cs-nav .dc-btn:disabled { opacity: .35; cursor: default; color: #b6c4e0; border-color: #1e2c52; background: #0d1630; }
+  .cs-auto { display: inline-flex; align-items: center; gap: 8px; padding: 4px 2px; background: none; border: 0; color: var(--fs-ink-subtle); font: 700 13px/1 "Plus Jakarta Sans", system-ui, sans-serif; cursor: pointer; white-space: nowrap; transition: color .15s; }
+  .cs-auto:hover { color: var(--fs-ink); }
+  .cs-auto .sw { position: relative; width: 34px; height: 20px; border-radius: 99px; background: var(--fs-surface-subtle); border: 1px solid var(--fs-border-control); transition: background .15s, border-color .15s; flex: none; }
+  .cs-auto .sw::after { content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: var(--fs-muted); transition: transform .15s, background .15s; }
+  .cs-auto[aria-checked="true"] { color: var(--fs-ink); }
+  .cs-auto[aria-checked="true"] .sw { background: var(--fs-primary); border-color: var(--fs-primary); }
+  .cs-auto[aria-checked="true"] .sw::after { transform: translateX(14px); background: #ffffff; }
+  .cs-nav .dc-btn { border: 1px solid var(--fs-border-control) !important; }
+  .cs-nav .dc-btn:disabled { opacity: .35; cursor: default; color: var(--fs-muted); border-color: var(--fs-line); background: var(--fs-surface-subtle); }
   /* Hàng Thời gian (bắt đầu – kết thúc) dưới hàng Câu trước / Câu sau: nhỏ, chìm, tự co theo bề rộng của thẻ */
-  .cs-ts { display: flex; justify-content: center; align-items: center; margin-top: 10px; padding-top: 10px; border-top: 1px solid #131d3d; }
+  .cs-ts { display: flex; justify-content: center; align-items: center; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--fs-line); }
   .cs-ts .ts-ctl { display: inline-flex; align-items: center; justify-content: center; flex-wrap: nowrap; gap: 4px; max-width: 100%; }
-  .cs-ts .ts-lbl { font-size: 12px; font-weight: 700; color: #7d8db0; margin-right: 3px; white-space: nowrap; flex: 0 0 auto; }
-  html[data-ui="light"] .cs-ts .ts-lbl { color: #52607a !important; }
-  .cs-ts .ts-in { color: #7d8db0; }          /* cùng độ sáng với chữ "Tự dừng" */
-  .cs-ts .ts-in.mod { color: #a8935a; }      /* ô đã chỉnh: ngả vàng nhưng vẫn chìm như chữ "Tự dừng" */
+  .cs-ts .ts-lbl { font-size: 12px; font-weight: 700; color: var(--fs-muted); margin-right: 3px; white-space: nowrap; flex: 0 0 auto; }
+  html[data-ui="light"] .cs-ts .ts-lbl { color: var(--fs-muted) !important; }
+  .cs-ts .ts-in { color: var(--fs-muted); border-color: var(--fs-border-control); }          /* cùng độ sáng với chữ "Tự dừng" */
+  .cs-ts .ts-in.mod { color: var(--fs-accent); }      /* ô đã chỉnh */
   /* Thẻ đổi 1 <-> 2 dòng thì chỉ đẩy phần bên dưới, không kéo phần bên trên (tắt scroll anchoring của trình duyệt) */
   #panel-left, #panel-left > * { overflow-anchor: none; }
   /* Popup "Dừng loop" ngay trên chữ đang loop (dùng chung kiểu .dc-loop-pop của giao diện Chép chính tả) */
   #loop-stop-pop { display: none; align-items: center; gap: 6px; }
   #loop-stop-pop.on { display: flex; }
-  #loop-stop-pop .lsp-delay { display: inline-flex; align-items: center; gap: 2px; padding: 3px 6px; border-radius: 9999px; background: rgba(6, 10, 23, .96); border: 1px solid rgba(34, 197, 94, .5); color: #bbf7d0; font: 700 12px/1 "Plus Jakarta Sans", system-ui, sans-serif; box-shadow: 0 8px 24px rgba(0, 0, 0, .5); }
+  #loop-stop-pop .lsp-delay { display: inline-flex; align-items: center; gap: 2px; padding: 3px 6px; border-radius: 9999px; background: var(--fs-surface-overlay); border: 1px solid var(--fs-border-control); color: var(--fs-ink); font: 700 12px/1 "Plus Jakarta Sans", system-ui, sans-serif; box-shadow: 0 8px 24px rgba(0, 0, 0, .4); }
   #loop-stop-pop .lsp-delay b { min-width: 24px; text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
   #loop-stop-pop .lsp-step { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; cursor: pointer; user-select: none; }
-  #loop-stop-pop .lsp-step:hover { background: rgba(148, 163, 184, .3); }
+  #loop-stop-pop .lsp-step:hover { background: var(--fs-hover); }
+
+  /* Đảm bảo E06: Độ tương phản tỷ số đếm câu / 1 */
+  .dc-count small, .vt-count small {
+    color: var(--fs-muted) !important;
+  }
