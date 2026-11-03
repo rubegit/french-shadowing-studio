@@ -52,3 +52,20 @@ test('M1.3 Baseline Snapshot: Tệp baseline.json tồn tại và ghi lại mố
   assert.ok(baselineData.failingCount > 0, 'Phải ghi nhận số lỗi ban đầu làm mốc giảm dần');
   assert.ok(Array.isArray(baselineData.details), 'details phải là mảng');
 });
+
+test('M5-fix: Khắc phục triệt để độ tương phản chip câu đang ghép, pill từ trọng tâm và ghi chú gợi ý SRS', () => {
+  const cssContent = fs.readFileSync(path.join(ROOT, 'css', 'vocab-practice.css'), 'utf8');
+
+  // Chip câu đang ghép trong Light mode phải dùng --fs-accent-text (đậm nét), không dùng --fs-primary mờ
+  assert.match(cssContent, /html\[data-ui="light"\]\s+\.vph-reorder-chip\.in-answer\s*\{[^}]*color:\s*var\(--fs-accent-text\)/);
+
+  // Pill từ trọng tâm trong Light mode phải dùng --fs-accent-text
+  assert.match(cssContent, /html\[data-ui="light"\]\s+\.vph-hint-pill\s*\{[^}]*color:\s*var\(--fs-accent-text\)/);
+
+  // Thẻ gợi ý .vph-reorder-hint-note phải tồn tại với container bo góc và màu chữ cảnh báo độ tương phản cao
+  assert.match(cssContent, /\.vph-reorder-hint-note\s*\{/);
+  assert.match(cssContent, /html\[data-ui="light"\]\s+\.vph-reorder-hint-note\s*\{[^}]*color:\s*var\(--fs-stat-near-ink/);
+
+  // Thẻ tiếng Việt Flashcard 3D phải dùng --fs-accent-text
+  assert.match(cssContent, /\.vph-fc-top-tag-vi\s*\{[^}]*color:\s*var\(--fs-accent-text\)/);
+});

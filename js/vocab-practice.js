@@ -3456,8 +3456,9 @@
       if (hintBtn) hintBtn.innerHTML = `<span>💡 Gợi ý (Mức 2/3: Ghim 50%)</span>`;
       if (hintSection) {
         hintSection.innerHTML = `
-          <div class="fs-text-warn" style="font-size:12px; margin-top:6px;">
-            💡 Đã đánh dấu ⭐1, ⭐2 cho 1–2 từ mở đầu câu trong ngân hàng từ.
+          <div class="vph-reorder-hint-note">
+            <span>💡</span>
+            <span>Đã đánh dấu ⭐1, ⭐2 cho 1–2 từ mở đầu câu trong ngân hàng từ.</span>
           </div>
         `;
       }
@@ -3475,8 +3476,9 @@
 
       if (hintSection) {
         hintSection.innerHTML = `
-          <div class="fs-text-warn" style="font-size:12px; margin-top:6px;">
-            💡 Đã ghim sẵn ${halfCount} từ đầu tiên vào đúng vị trí câu đang ghép.
+          <div class="vph-reorder-hint-note">
+            <span>💡</span>
+            <span>Đã ghim sẵn ${halfCount} từ đầu tiên vào đúng vị trí câu đang ghép.</span>
           </div>
         `;
       }
