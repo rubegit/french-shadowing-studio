@@ -873,11 +873,87 @@
     window.formatGrammarBadgeHtml = formatGrammarBadgeHtml;
     window.maskGrammarTag = maskGrammarTag;
 
+    function smartHighlightInContext(en, term, hs, he) {
+      if (!en) return '';
+      en = String(en);
+      term = String(term || '').trim();
+      const _esc = (typeof escHtml === 'function')
+        ? escHtml
+        : (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+      // 1. Kiểm tra hs, he cũ nếu hợp lệ và không vượt quá độ dài chuỗi
+      if (typeof hs === 'number' && typeof he === 'number' && he > hs && he <= en.length) {
+        const sub = en.slice(hs, he).trim();
+        if (sub.length > 1 && !/^[.,;:!?]+$/.test(sub)) {
+          return _esc(en.slice(0, hs)) + '<mark class="vocab-hl">' + _esc(en.slice(hs, he)) + '</mark>' + _esc(en.slice(he));
+        }
+      }
+
+      if (!term) return _esc(en);
+
+      const escRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const cleanTerm = term.replace(/[!?,;.:]+$/, '').trim();
+      const termTokens = cleanTerm.split(/\s+/).filter(Boolean);
+
+      // 2. Exact match không phân biệt nháy, khoảng trắng, hoa thường
+      if (termTokens.length > 0) {
+        const reStr = termTokens.map(t => escRe(t).replace(/[\x27\u2019]/g, '[\x27\u2019]?')).join('\\s+');
+        const re = new RegExp('(^|[^\\p{L}])(' + reStr + ')(?=$|[^\\p{L}])', 'iu');
+        const m = re.exec(en);
+        if (m) {
+          const start = m.index + m[1].length;
+          const end = start + m[2].length;
+          return _esc(en.slice(0, start)) + '<mark class="vocab-hl">' + _esc(en.slice(start, end)) + '</mark>' + _esc(en.slice(end));
+        }
+      }
+
+      // 3. Số nhiều / biến thể đơn giản (thêm s/x ở đuôi)
+      if (termTokens.length > 0) {
+        const rePlural = termTokens.map(t => escRe(t).replace(/[\x27\u2019]/g, '[\x27\u2019]?') + '[sx]?').join('\\s+');
+        const reP = new RegExp('(^|[^\\p{L}])(' + rePlural + ')(?=$|[^\\p{L}])', 'iu');
+        const mp = reP.exec(en);
+        if (mp) {
+          const start = mp.index + mp[1].length;
+          const end = start + mp[2].length;
+          return _esc(en.slice(0, start)) + '<mark class="vocab-hl">' + _esc(en.slice(start, end)) + '</mark>' + _esc(en.slice(end));
+        }
+      }
+
+      // 4. Cho cụm từ có động từ chia
+      const cleanP = cleanTerm.replace(/^(se|s\x27|s’)\s*/i, '');
+      const words = cleanP.split(/\s+/).filter(Boolean);
+      if (words.length > 0) {
+        const stemPattern = '(?:(?:se|s[\x27\u2019])\\s+)?' + words.map(w => {
+          const pure = w.replace(/[\x27\u2019]/g, '').toLowerCase();
+          if (/^(du|de|des|le|la|les|un|une|d|l|en|à|au|aux)$/i.test(pure)) {
+            return '(?:du|de|des|le|la|les|un|une|d[\x27\u2019]|l[\x27\u2019]|en|à|au|aux)';
+          }
+          if (pure === 'prendre' || pure === 'pris') return '(?:prendre|prends?|prennent|prenons|prenez|prenait|pris)';
+          if (pure === 'faire' || pure === 'fait') return '(?:faire|fais|fait|faisons|faites|font|faisait|fera)';
+          if (pure === 'avoir') return '(?:avoir|ai|as|a|avons|avez|ont|avait|avaient|eu)';
+          const pureNoElision = w.replace(/^[ldsjcn][\x27\u2019]/i, '');
+          if (pureNoElision.length >= 4) {
+            return '(?:[ldsjcn][\x27\u2019])?' + escRe(pureNoElision.slice(0, Math.min(pureNoElision.length - 2, 4))) + '[\\p{L}\x27\u2019]*';
+          }
+          return escRe(w).replace(/[\x27\u2019]/g, '[\x27\u2019]?');
+        }).join('\\s+');
+
+        const re = new RegExp('(^|[^\\p{L}])(' + stemPattern + ')(?=$|[^\\p{L}])', 'iu');
+        const m = re.exec(en);
+        if (m) {
+          const start = m.index + m[1].length;
+          const end = start + m[2].length;
+          return _esc(en.slice(0, start)) + '<mark class="vocab-hl">' + _esc(en.slice(start, end)) + '</mark>' + _esc(en.slice(end));
+        }
+      }
+
+      return _esc(en);
+    }
+    window.smartHighlightInContext = smartHighlightInContext;
+
     function vocabCardHtml(x) {
       const KIND = { word: 'Từ', phrase: 'Cụm từ', sentence: 'Câu' };
-      const ctx = x.he > x.hs
-        ? escHtml(x.en.slice(0, x.hs)) + '<mark class="vocab-hl">' + escHtml(x.en.slice(x.hs, x.he)) + '</mark>' + escHtml(x.en.slice(x.he))
-        : escHtml(x.en);
+      const ctx = smartHighlightInContext(x.en, x.text, x.hs, x.he);
       const yt = (x.videoId && x.t_known !== false) ? `https://www.youtube.com/watch?v=${encodeURIComponent(x.videoId)}&t=${Math.max(0, Math.floor((x.t || 0) - 2))}s` : (x.videoId ? `https://www.youtube.com/watch?v=${encodeURIComponent(x.videoId)}` : '');
       const timeStr = (x.t_known === false) ? '(chưa căn mốc)' : formatTime(x.t || 0);
       const src = x.bookId ? `<a href="#" title="Mở lại đúng câu này trong sách" onclick="openVocabVideo('${x.id}'); return false;">📖 ${escHtml(x.videoTitle || 'Sách')}</a>`
@@ -1925,14 +2001,14 @@
           const unalignedTag = (it.ctx && it.ctx.t_known === false) ? '<span class="text-[10px] text-amber-400 font-normal ml-1">(chưa căn)</span>' : '';
           if (it.ctx && it.ctx.en) {
             const en = String(it.ctx.en || '');
-            const hs = it.ctx.hs >= 0 ? it.ctx.hs : 0;
-            const he = it.ctx.he > hs ? it.ctx.he : hs;
-            ctxHtml = `<p class="vocab-ctx cursor-pointer" onclick="window.kvJumpToContext && window.kvJumpToContext('${it.id}')" title="Bấm để nhảy tới câu này trong bài">${escHtml(en.slice(0, hs))}<mark class="vocab-hl">${escHtml(en.slice(hs, he))}</mark>${escHtml(en.slice(he))}${unalignedTag}</p>`;
+            const hlCtx = smartHighlightInContext(en, it.term, it.ctx.hs, it.ctx.he);
+            ctxHtml = `<p class="vocab-ctx cursor-pointer" onclick="window.kvJumpToContext && window.kvJumpToContext('${it.id}')" title="Bấm để nhảy tới câu này trong bài">${hlCtx}${unalignedTag}</p>`;
           } else {
             const ctx = kvFindContext(it);
             if (ctx) {
               const en = String(ctx.s.text || '');
-              ctxHtml = `<p class="vocab-ctx cursor-pointer" onclick="window.kvJumpToContext && window.kvJumpToContext('${it.id}')" title="Bấm để nhảy tới câu này trong bài">${escHtml(en.slice(0, ctx.hs))}<mark class="vocab-hl">${escHtml(en.slice(ctx.hs, ctx.he))}</mark>${escHtml(en.slice(ctx.he))}</p>`;
+              const hlCtx = smartHighlightInContext(en, it.term, ctx.hs, ctx.he);
+              ctxHtml = `<p class="vocab-ctx cursor-pointer" onclick="window.kvJumpToContext && window.kvJumpToContext('${it.id}')" title="Bấm để nhảy tới câu này trong bài">${hlCtx}</p>`;
             }
           }
           const exHtml = (it.examples || []).map((e) => `<div><p class="vocab-ex-en">${hlExample(String(e.fr || e.en || ''), it.term)}</p>${e.vi ? `<p class="vocab-ex-vi">${escHtml(e.vi)}</p>` : ''}</div>`).join('');

@@ -563,15 +563,6 @@
         return { startTime: baseT, duration: fallbackDur };
       }
 
-      // 2. Tìm câu tương ứng với từ vựng
-      let s = null;
-      if (baseT > 0) {
-        s = sents.find((st) => typeof st.startTime === 'number' && typeof st.endTime === 'number' && baseT >= st.startTime - 0.5 && baseT <= st.endTime + 0.5);
-        if (!s) {
-          s = sents.find((st) => typeof st.startTime === 'number' && Math.abs(st.startTime - baseT) < 1.5);
-        }
-      }
-
       const cleanNorm = (str) => String(str || '')
         .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
         .toLowerCase()
@@ -583,14 +574,32 @@
       const normCtx = cleanNorm(item.en);
       const normWord = cleanNorm(item.text);
 
-      if (!s && normCtx) {
-        s = sents.find((st) => {
-          const stClean = cleanNorm(st.text);
-          return stClean.includes(normCtx) || normCtx.includes(stClean);
-        });
-      }
-      if (!s && normWord) {
-        s = sents.find((st) => cleanNorm(st.text).includes(normWord));
+      // 2. Tìm câu tương ứng với từ vựng (Ưu tiên tuyệt đối theo Text-First)
+      let s = null;
+
+      // (a) Dò tất cả các câu thực sự chứa ngữ cảnh trích dẫn hoặc từ vựng
+      const textMatches = sents.filter((st) => {
+        const stClean = cleanNorm(st.text);
+        if (normCtx && normCtx.length >= 2 && (stClean.includes(normCtx) || normCtx.includes(stClean))) return true;
+        if (normWord && normWord.length >= 2 && stClean.includes(normWord)) return true;
+        return false;
+      });
+
+      if (textMatches.length === 1) {
+        s = textMatches[0];
+      } else if (textMatches.length > 1) {
+        // Nhiều câu cùng chứa từ: chọn câu có mốc gần baseT nhất
+        s = textMatches.reduce((best, cur) => {
+          const curDiff = Math.abs((cur.startTime || 0) - baseT);
+          const bestDiff = Math.abs((best.startTime || 0) - baseT);
+          return curDiff < bestDiff ? cur : best;
+        }, textMatches[0]);
+      } else if (baseT > 0) {
+        // (b) Fallback: Chỉ khi không có câu nào khớp văn bản mới dò mốc thời gian
+        s = sents.find((st) => typeof st.startTime === 'number' && typeof st.endTime === 'number' && baseT >= st.startTime && baseT <= st.endTime);
+        if (!s) {
+          s = sents.find((st) => typeof st.startTime === 'number' && Math.abs(st.startTime - baseT) < 1.0);
+        }
       }
 
       if (!s) {
