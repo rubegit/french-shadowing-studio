@@ -14,11 +14,11 @@
 
 - **Tên dự án:** French Shadowing Studio
 - **Phiên bản phát hành gần nhất:** `v2.0.27` (Commit `ba376ac`)
-- **Current HEAD Commit:** `e77366c` (*feat(a11y): chuẩn hóa trạng thái tương tác, scrollbars và focus rings theo WCAG (M6)*)
+- **Current HEAD Commit:** `580edc2` (*test(audit): hoàn tất kiểm toán tổng thể toàn diện và khóa chặn hồi quy CI (M7)*)
 - **Nhánh Git (Branch):** `main`
 - **Trạng thái Git Working Tree:** Clean 100%
 - **Môi trường triển khai:** Vercel Static Hosting (phục vụ trực tiếp từ `index.html` và static assets)
-- **Thời điểm cập nhật:** `2026-11-04T11:48:00-06:00`
+- **Thời điểm cập nhật:** `2026-11-04T12:26:00-06:00`
 
 ---
 
@@ -72,7 +72,7 @@
 | **M-Account-Handover-B** | Tạo Agent Skill `/fss-handover` Điều Phối Bàn Giao & Tiếp Nhận | **Đã hoàn thành** | `4b1a8d0` |
 | **M5d** | Dọn Dẹp 100% Inline Styles Màu & SVG HEX Trong HTML Partials | **Đã hoàn thành** | `01e8373` + `7e87543` + `61c89f2` |
 | **M6** | Chuẩn Hóa Trạng Thái Tương Tác & Vòng Sáng Chỉ Thị (Focus Rings) | **Đã hoàn thành** | `e77366c` |
-| **M7** | Kiểm Toán Tổng Thể Toàn Diện & Khóa Chặn Hồi Quy (Final Audit) | **Đã hoàn thành** | *(commit hiện tại)* |
+| **M7** | Kiểm Toán Tổng Thể Toàn Diện & Khóa Chặn Hồi Quy (Final Audit) | **Đã hoàn thành** | `580edc2` |
 
 ---
 
