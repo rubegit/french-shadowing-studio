@@ -8,7 +8,7 @@
 ---
 
 ### 1. Metadata Bàn giao (Handover Metadata)
-- **Thời điểm cập nhật:** 2026-11-04T13:33:00-06:00
+- **Thời điểm cập nhật:** 2026-11-04T14:02:00-06:00
 - **Agent bàn giao (Outgoing Agent):** Antigravity Agent
 - **Mục đích:** Bàn giao liền mạch sang phiên làm việc / tài khoản Google mới trong Antigravity.
 - **Tài liệu tham chiếu bắt buộc:** [`AGENTS.md`](./AGENTS.md), [`PROJECT_STATUS.md`](./PROJECT_STATUS.md).
@@ -17,8 +17,8 @@
 
 ### 2. Bản chụp Trạng thái Git (Git State Snapshot)
 - **Nhánh hiện tại (Branch):** `main`
-- **HEAD Commit tại thời điểm nạp:** `c7e7d19` (*feat(sync): phân tách số lượng video và bài báo trên Cloud Sync (M1 - M-Cloud-Article-Distinction)*)
-- **Tình trạng Remote:** Đang đi trước `origin/main` 1 commit (`c7e7d19`), chưa push lên remote theo quy tắc an toàn.
+- **HEAD Commit tại thời điểm nạp:** `912c060` (*feat(article): tích hợp bộ chuyển đổi 2 chế độ Prompt AI (Căn chỉnh bài đọc & Trích xuất từ Audio thuần) (M3.1)*)
+- **Tình trạng Remote:** Sắp được push lên `origin/main` theo lệnh người dùng.
 - **Trạng thái Working Tree:** **Clean 100%** (xác minh thực tế qua `git status --porcelain`).
 - **Cảnh báo an toàn Git:**
   - Tuyệt đối **KHÔNG PUSH** commit cục bộ lên remote nếu người dùng chưa ra lệnh rõ ràng bằng văn bản.
@@ -28,13 +28,15 @@
 
 ### 3. Tiến độ & Trạng thái Các Module (Milestone Progress)
 - **Release chính thức gần nhất:** `v2.0.27` (Commit `ba376ac`) – Đã tag và push.
-- **Module vừa nghiệm thu:**
+- **Module vừa nghiệm thu trong chuỗi Article Audio:**
   - **`M1 (Article Audio)`** (Commit `c7e7d19`): Phân tách rạch ròi bộ đếm Video vs Bài báo trên Supabase Cloud Sync, hiển thị dạng 4 cột KPI và báo cáo chính xác "X video, Y bài báo".
-  - **`M-Userscript-No-Embed`** (Commit `a809e71`): Bổ sung `@noframes` và guards chặn nút Userscript trên iframe/embed của YouTube và trang web của studio; xóa nhãn cứng `v1.3.1` trên nút hướng dẫn cài đặt.
-  - **`M-Timeline-Timestamp-Bar`** (Commit `dfc0c68`): Bổ sung tính năng Lưu timestamp vĩnh viễn (`💾`), Bắt mốc thời gian thực từ video (`⏱️`), Khôi phục mốc gốc YouTube (`↺ Gốc`), Scale lại mốc từng từ karaoke (`words`), và khắc phục triệt để lỗi ép auto-play khi tua mốc.
-- **Các Module tiếp theo trong lộ trình Audio bài báo:**
-  - **`M2 (Article Audio)`**: Bộ nạp Audio (chỉ nhận file `.mp3`) & Trình phát Audio Player đồng bộ câu/từ cho bài báo.
-  - **`M3 (Article Audio)`**: Công cụ nhập Transcript có word-timestamp từ AI (Prompt mẫu + Parser).
+  - **`M1.1 (Article Audio)`** (Commit `899ff5f`): Bổ sung hover tooltip cho 4 thẻ KPI trong Cloud Sync Modal.
+  - **`M2 (Article Audio)`** (Commit `d5cbb2f`): Bộ nạp Audio MP3 (`accept=".mp3,audio/mpeg"`), lưu trữ Blob trong IndexedDB (`shadowing_article_audio_v1`), Compact Audio Player Bar (`#art-audio-bar`) đồng bộ thời gian 2 chiều.
+  - **`M3 (Article Audio)`** (Commit `56e8e5b`): Đồng bộ Transcript & Word-Timestamps từ AI cho bài báo, hỗ trợ parser thông minh JSON/SRT/WebVTT, khôi phục mặc định.
+  - **`M3.1 (Article Audio)`** (Commit `912c060`): Bộ chuyển đổi 2 chế độ Prompt AI (Căn chỉnh bài đọc hiện tại & Trích xuất từ Audio thuần).
+- **Bộ kiểm thử tự động:**
+  - `node --test tools/*.test.js`: **203 / 203 PASS (100%)**.
+  - `node tools/lint-color.js`: **921 / 921 HEX**, **0 inline style**, **0 tailwind color**.
 
 ---
 
