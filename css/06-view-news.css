@@ -332,4 +332,218 @@
         max-width: 110px;
       }
     }
+
+    /* =====================================================================
+       MODAL ĐỒNG BỘ TIMESTAMPS TỪ AI CHO BÀI BÁO (MODULE M3)
+       ===================================================================== */
+    .art-sync-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 10005;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      background: rgba(2, 6, 23, 0.75);
+      backdrop-filter: blur(4px);
+    }
+    .art-sync-modal {
+      width: 100%;
+      max-width: 620px;
+      max-height: calc(100vh - 32px);
+      display: flex;
+      flex-direction: column;
+      background: var(--fs-surface-card);
+      border: 1px solid var(--fs-border-control);
+      border-radius: 16px;
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.45);
+      overflow: hidden;
+    }
+    .art-sync-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--fs-border-control);
+      background: var(--fs-card);
+    }
+    .art-sync-title-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .art-sync-title-ico {
+      color: var(--fs-accent);
+    }
+    .art-sync-title {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--fs-text-primary);
+    }
+    .art-sync-close-btn {
+      background: transparent;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+      color: var(--fs-text-subtle);
+      padding: 4px;
+      border-radius: 6px;
+      line-height: 1;
+    }
+    .art-sync-close-btn:hover {
+      color: var(--fs-danger);
+    }
+    .art-sync-modal-body {
+      padding: 16px 18px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .art-sync-step {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .art-sync-step-head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .art-sync-step-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--fs-accent);
+      color: var(--fs-text-inverse);
+      font-size: 12px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .art-sync-step-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--fs-text-primary);
+    }
+    .art-sync-prompt-box {
+      position: relative;
+      border: 1px solid var(--fs-border-control);
+      border-radius: 10px;
+      background: var(--fs-surface-subtle);
+      padding: 10px 12px;
+    }
+    .art-sync-prompt-text {
+      margin: 0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 11px;
+      line-height: 1.5;
+      color: var(--fs-text-subtle);
+      max-height: 110px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .art-sync-copy-btn {
+      margin-top: 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 8px;
+      background: var(--fs-card);
+      border: 1px solid var(--fs-border-control);
+      color: var(--fs-text-primary);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .art-sync-copy-btn:hover {
+      border-color: var(--fs-accent);
+      color: var(--fs-accent);
+    }
+    .art-sync-textarea {
+      width: 100%;
+      min-height: 130px;
+      max-height: 220px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--fs-border-control);
+      background: var(--fs-surface-subtle);
+      color: var(--fs-text-primary);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.45;
+      resize: vertical;
+      outline: none;
+      box-sizing: border-box;
+    }
+    .art-sync-textarea:focus {
+      border-color: var(--fs-accent);
+    }
+    .art-sync-status {
+      font-size: 12px;
+      font-weight: 500;
+      min-height: 18px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .art-sync-status.is-error {
+      color: var(--fs-danger);
+    }
+    .art-sync-status.is-success {
+      color: var(--fs-success);
+    }
+    .art-sync-modal-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px 18px;
+      border-top: 1px solid var(--fs-border-control);
+      background: var(--fs-card);
+    }
+    .art-sync-footer-right {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .art-sync-btn-secondary {
+      padding: 6px 12px;
+      border-radius: 8px;
+      background: transparent;
+      border: 1px solid var(--fs-border-control);
+      color: var(--fs-text-subtle);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .art-sync-btn-secondary:hover {
+      border-color: var(--fs-text-primary);
+      color: var(--fs-text-primary);
+    }
+    .art-sync-btn-primary {
+      padding: 6px 14px;
+      border-radius: 8px;
+      background: var(--fs-accent);
+      border: 1px solid transparent;
+      color: var(--fs-text-inverse);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: filter 0.15s ease, transform 0.15s ease;
+    }
+    .art-sync-btn-primary:hover {
+      filter: brightness(1.08);
+      transform: scale(1.02);
+    }
+    .art-sync-btn-primary:active {
+      transform: scale(0.98);
+    }
   

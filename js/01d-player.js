@@ -1126,6 +1126,262 @@
       });
     };
 
+    // =====================================================================
+    // MODULE M3: ĐỒNG BỘ TRANSCRIPT & WORD TIMESTAMPS TỪ AI CHO BÀI BÁO
+    // =====================================================================
+    function parseTimestampToSeconds(ts) {
+      if (typeof ts === 'number') return ts;
+      if (!ts) return 0;
+      const s = String(ts).trim().replace(',', '.');
+      const parts = s.split(':');
+      if (parts.length === 3) {
+        return parseFloat(parts[0]) * 3600 + parseFloat(parts[1]) * 60 + parseFloat(parts[2]);
+      }
+      if (parts.length === 2) {
+        return parseFloat(parts[0]) * 60 + parseFloat(parts[1]);
+      }
+      const val = parseFloat(s);
+      return isNaN(val) ? 0 : val;
+    }
+
+    function cleanMarkdownFences(str) {
+      if (!str) return '';
+      let s = String(str).trim();
+      if (s.startsWith('```')) {
+        s = s.replace(/^```[a-zA-Z0-9_-]*\s*\n?/, '').replace(/\n?```\s*$/, '').trim();
+      }
+      return s;
+    }
+
+    function parseAiSyncData(rawInput, baseSentences) {
+      const cleaned = cleanMarkdownFences(rawInput);
+      if (!cleaned) throw new Error('Dữ liệu nhập vào trống');
+
+      // Thử parse JSON
+      if (cleaned.startsWith('[') || cleaned.startsWith('{')) {
+        let parsed;
+        try {
+          parsed = JSON.parse(cleaned);
+        } catch (e) {
+          const match = cleaned.match(/\[\s*\{[\s\S]*\}\s*\]/);
+          if (match) {
+            try { parsed = JSON.parse(match[0]); } catch (e2) { throw new Error('Định dạng JSON không hợp lệ'); }
+          } else {
+            throw new Error('Định dạng JSON không hợp lệ');
+          }
+        }
+
+        const items = Array.isArray(parsed) ? parsed : (parsed.sentences || parsed.subtitles || parsed.cues || []);
+        if (!Array.isArray(items) || !items.length) {
+          throw new Error('JSON không chứa mảng câu hoặc từ hợp lệ');
+        }
+
+        // Mảng câu
+        if (items[0].text !== undefined || items[0].sentence !== undefined || items[0].words !== undefined) {
+          const out = items.map((it, idx) => {
+            const base = (baseSentences && baseSentences[idx]) || {};
+            const text = String(it.text || it.sentence || base.text || '').trim();
+            const start = parseTimestampToSeconds(it.startTime !== undefined ? it.startTime : it.start);
+            const end = parseTimestampToSeconds(it.endTime !== undefined ? it.endTime : it.end);
+            let words = null;
+            if (Array.isArray(it.words)) {
+              words = it.words.map((w) => ({
+                word: String(w.word || w.text || '').trim(),
+                startTime: parseTimestampToSeconds(w.startTime !== undefined ? w.startTime : w.start),
+                endTime: parseTimestampToSeconds(w.endTime !== undefined ? w.endTime : w.end)
+              })).filter((w) => w.word.length > 0);
+            }
+            return {
+              ...base,
+              id: it.id || base.id || idx + 1,
+              startTime: start,
+              endTime: Math.max(start + 0.5, end),
+              text,
+              words: words && words.length ? words : (base.words || undefined)
+            };
+          });
+          return { format: 'json-sentences', sentences: out, count: out.length };
+        }
+      }
+
+      // Thử parse SRT / WebVTT
+      const timeRegex = /((?:(\d{1,2}:)?\d{2}:\d{2}[.,]\d{3}))\s*-->\s*((?:(\d{1,2}:)?\d{2}:\d{2}[.,]\d{3}))/;
+      const blocks = cleaned.split(/\n\s*\n+/);
+      const cues = [];
+      for (const block of blocks) {
+        const lines = block.trim().split('\n').map((l) => l.trim()).filter(Boolean);
+        if (!lines.length) continue;
+        let timeLineIdx = -1;
+        for (let i = 0; i < lines.length; i++) {
+          if (timeRegex.test(lines[i])) { timeLineIdx = i; break; }
+        }
+        if (timeLineIdx !== -1) {
+          const match = lines[timeLineIdx].match(timeRegex);
+          const start = parseTimestampToSeconds(match[1]);
+          const end = parseTimestampToSeconds(match[3]);
+          const text = lines.slice(timeLineIdx + 1).join(' ').replace(/<[^>]+>/g, '').trim();
+          if (text) {
+            cues.push({ id: cues.length + 1, startTime: start, endTime: end, text });
+          }
+        }
+      }
+
+      if (cues.length > 0) {
+        return { format: 'vtt-srt', sentences: cues, count: cues.length };
+      }
+
+      throw new Error('Không nhận diện được dữ liệu JSON, WebVTT hoặc SRT');
+    }
+
+    function generateAiTimestampPrompt(title, sents) {
+      const list = (sents || []).map((s, i) => `${i + 1}. ${s.text}`).join('\n');
+      return `Bạn là chuyên gia căn chỉnh phụ đề âm thanh (Audio-Text Alignment).
+Tôi có file audio MP3 cho bài báo tiếng Pháp: "${title || 'Bài báo tiếng Pháp'}".
+Dưới đây là danh sách toàn bộ các câu trong bài:
+
+${list}
+
+YÊU CẦU:
+Hãy nghe và trả về mảng JSON chứa mốc thời gian phát âm (tính bằng giây, 2 chữ số thập phân) theo đúng cấu trúc sau (chỉ trả về khối mã JSON thuần túy, không thêm lời chào hay giải thích):
+[
+  {
+    "id": 1,
+    "startTime": 0.00,
+    "endTime": 3.50,
+    "text": "...",
+    "words": [
+      { "word": "...", "startTime": 0.00, "endTime": 0.80 }
+    ]
+  }
+]`;
+    }
+
+    window.openArtAiSyncModal = function() {
+      const modal = document.getElementById('modal-art-ai-sync');
+      if (!modal) return;
+      const preview = document.getElementById('art-sync-prompt-preview');
+      if (preview) {
+        preview.textContent = generateAiTimestampPrompt(currentVideoTitle, sentences);
+      }
+      const statusEl = document.getElementById('art-sync-status');
+      if (statusEl) {
+        statusEl.textContent = '';
+        statusEl.className = 'art-sync-status';
+      }
+      const copyLbl = document.getElementById('art-sync-copy-label');
+      if (copyLbl) copyLbl.textContent = 'Sao chép Prompt';
+      modal.style.display = 'flex';
+    };
+
+    window.closeArtAiSyncModal = function() {
+      const modal = document.getElementById('modal-art-ai-sync');
+      if (modal) modal.style.display = 'none';
+    };
+
+    window.copyArtAiPrompt = function() {
+      const promptText = generateAiTimestampPrompt(currentVideoTitle, sentences);
+      navigator.clipboard.writeText(promptText).then(() => {
+        const copyLbl = document.getElementById('art-sync-copy-label');
+        if (copyLbl) copyLbl.textContent = '✓ Đã sao chép!';
+        setTimeout(() => {
+          if (copyLbl) copyLbl.textContent = 'Sao chép Prompt';
+        }, 2000);
+      }).catch(err => {
+        showVocabToast('Không thể sao chép: ' + err.message, false);
+      });
+    };
+
+    window.applyArtAiSyncTranscript = function() {
+      const inputEl = document.getElementById('art-sync-input');
+      const statusEl = document.getElementById('art-sync-status');
+      if (!inputEl) return;
+      const val = inputEl.value.trim();
+      if (!val) {
+        if (statusEl) {
+          statusEl.textContent = 'Vui lòng dán nội dung timestamps vào ô trên.';
+          statusEl.className = 'art-sync-status is-error';
+        }
+        return;
+      }
+
+      try {
+        const parsed = parseAiSyncData(val, sentences);
+        if (!parsed.sentences || !parsed.sentences.length) {
+          throw new Error('Không trích xuất được câu nào từ nội dung dán vào.');
+        }
+
+        // Cập nhật sentences của bài báo hiện tại
+        sentences = parsed.sentences;
+
+        // Lưu vào Local History để duy trì trạng thái
+        if (currentVideoId) {
+          saveToLocalHistory({
+            videoId: currentVideoId,
+            title: currentVideoTitle,
+            duration: sentences[sentences.length - 1].endTime || 0,
+            format: 'text',
+            isText: true,
+            sentences: sentences
+          });
+        }
+
+        // Cập nhật giao diện phụ đề
+        currentSentenceIndex = 0;
+        renderSubtitleList();
+        renderArticleSidePanel(currentVideoId, currentVideoTitle, sentences);
+
+        // Cập nhật thời lượng thanh audio nếu có
+        const audioEl = document.getElementById('art-audio-el');
+        const durEl = document.getElementById('art-audio-dur-time');
+        const slider = document.getElementById('art-audio-slider');
+        if (audioEl && durEl && slider && !audioEl.duration && sentences.length) {
+          const maxDur = sentences[sentences.length - 1].endTime || 0;
+          durEl.textContent = formatArtTime(maxDur);
+          slider.max = maxDur;
+        }
+
+        if (statusEl) {
+          statusEl.textContent = `✓ Đã đồng bộ thành công ${parsed.count} câu với mốc thời gian AI!`;
+          statusEl.className = 'art-sync-status is-success';
+        }
+        showVocabToast(`Đã đồng bộ ${parsed.count} câu với mốc thời gian AI!`, true);
+        setTimeout(() => {
+          closeArtAiSyncModal();
+        }, 1200);
+      } catch (err) {
+        if (statusEl) {
+          statusEl.textContent = 'Lỗi: ' + err.message;
+          statusEl.className = 'art-sync-status is-error';
+        }
+      }
+    };
+
+    window.resetArticleTimestamps = function() {
+      if (!currentVideoId || !sentences || !sentences.length) return;
+      if (!confirm('Khôi phục timestamps mặc định (1 giây/câu) cho bài báo này?')) return;
+
+      sentences = sentences.map((s, idx) => ({
+        ...s,
+        startTime: idx,
+        endTime: idx + 1,
+        words: undefined
+      }));
+
+      saveToLocalHistory({
+        videoId: currentVideoId,
+        title: currentVideoTitle,
+        duration: sentences.length,
+        format: 'text',
+        isText: true,
+        sentences: sentences
+      });
+
+      renderSubtitleList();
+      renderArticleSidePanel(currentVideoId, currentVideoTitle, sentences);
+      closeArtAiSyncModal();
+      showVocabToast('Đã khôi phục timestamps mặc định cho bài viết', true);
+    };
+
     window.lookupArticleWord = function(word) {
       if (!word) return;
       if (window.speakFrench) window.speakFrench(word);
