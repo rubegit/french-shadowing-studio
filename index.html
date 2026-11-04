@@ -198,7 +198,7 @@
   
   <link rel="stylesheet" href="css/02-base.css?v=f2e312ff">
 
-  <link rel="stylesheet" href="css/03-layout.css?v=559873d3">
+  <link rel="stylesheet" href="css/03-layout.css?v=81fdaf0c">
   <link rel="stylesheet" href="css/04-view-reader.css?v=b192254f">
 
   <link rel="stylesheet" href="css/05-view-catalog.css?v=86f8be75" id="playlist-page-style">
@@ -2275,6 +2275,9 @@
           <h2><i data-lucide="bookmark" class="w-5 h-5 fs-text-warn"></i>Từ vựng đã lưu <span class="vocab-count-pill" id="vocab-count">0</span></h2>
         </div>
         <div class="vocab-actions">
+          <button type="button" id="vocab-auto-align-btn" class="vocab-btn primary" onclick="autoAlignVocabTimestamps()" title="Tự động đối chiếu phụ đề và căn mốc thời gian cho các từ vựng chưa có mốc">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg><span>Căn mốc tự động</span><span id="vocab-unaligned-badge" class="vocab-unaligned-badge" style="display:none">0</span>
+          </button>
           <button type="button" id="vocab-practice-btn" class="vocab-btn primary" onclick="if(window.openVocabPracticeHub) window.openVocabPracticeHub(vocabSource, vocabLevelFilter)" title="Trung tâm luyện tập: Trắc nghiệm 4 đáp án, Nghe điền từ, Ghép thẻ nhanh, Flashcard 3D">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><line x1="6" x2="10" y1="12" y2="12"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="15" x2="15.01" y1="13" y2="13"/><line x1="18" x2="18.01" y1="11" y2="11"/><rect width="20" height="12" x="2" y="6" rx="6"/></svg><span>Luyện tập</span><span id="vocab-due-badge-1" class="vocab-due-badge" style="display:none">0</span>
           </button>
@@ -3346,7 +3349,7 @@
 <script src="js/01d-player.js?v=46850f2e"></script>
 <script src="js/01e-translate-ai.js?v=a60456d6"></script>
 <script src="js/01f-lookup.js?v=bb67c688"></script>
-<script src="js/01g-vocab-list.js?v=fad16578"></script>
+<script src="js/01g-vocab-list.js?v=f6bfff77"></script>
 <script src="js/01h-ebook.js?v=52c35eec"></script>
 
   <script src="js/02-pv-helper.js?v=d2adcc44"></script>

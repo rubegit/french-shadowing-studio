@@ -1384,6 +1384,7 @@
     .vocab-ai-link:hover { color: var(--fs-accent-text); }
     .vocab-wordvi-input { flex: 1; min-width: 160px; padding: 8px 12px; background: var(--fs-surface); border: 1px solid #3b82f6; border-radius: 10px; color: var(--fs-ink); font-size: 14px; outline: none; }
     .vocab-missing-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9999px; background: var(--fs-error-text); color: #fff; font-size: 10px; font-weight: 800; margin-left: 4px; }
+    .vocab-unaligned-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9999px; background: var(--fs-warn-text); color: white; font-size: 10px; font-weight: 800; margin-left: 4px; }
     .vocab-due-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9999px; background: var(--fs-success-text); color: #fff; font-size: 10px; font-weight: 800; margin-left: 4px; }
 
 

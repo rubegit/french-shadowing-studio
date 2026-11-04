@@ -204,6 +204,7 @@
       const n = getVocab().length;
       document.querySelectorAll('.vocab-count-badge').forEach((el) => { el.textContent = n; el.style.display = n ? '' : 'none'; });
       updateVocabMissingBadge();
+      updateVocabUnalignedBadge();
       updateReviewBadges();
     }
 
@@ -687,14 +688,22 @@
       const x = getVocab().find((v) => v.id === id);
       if (!x || !x.videoId) return;
 
-      // Rule 1 & 2: Thẻ có t_known === false thì không tua, hiện thông báo
+      // Rule 1 & 2: Thẻ có t_known === false thì thử căn mốc tự động
       if (x.t_known === false) {
-        if (typeof showVocabToast === 'function') {
-          showVocabToast('Từ vựng này chưa căn mốc thời gian trong video', false);
+        const autoSuccess = tryAlignSingleVocabItem(x);
+        if (autoSuccess) {
+          saveVocab(getVocab());
+          renderVocabPage();
+          updateVocabBadges();
+          if (typeof showVocabToast === 'function') {
+            showVocabToast('Đã tự động căn mốc câu này!', true);
+          }
         } else {
-          alert('Từ vựng này chưa căn mốc thời gian trong video');
+          if (typeof showVocabToast === 'function') {
+            showVocabToast('Từ vựng này chưa căn mốc (đang mở bài học từ đầu)', false);
+          }
+          x.t = 0;
         }
-        return;
       }
 
       if (x.bookId) { vocabScrollY = window.scrollY; await bkOpenFromVocab(x); return; }
@@ -1281,6 +1290,146 @@
       badge.textContent = n;
       badge.style.display = n ? '' : 'none';
     }
+
+    function vocabItemsUnaligned() {
+      return getVocab().filter((v) => v.t_known === false);
+    }
+
+    function updateVocabUnalignedBadge() {
+      const badge = document.getElementById('vocab-unaligned-badge');
+      if (!badge) return;
+      const n = vocabItemsUnaligned().length;
+      badge.textContent = n;
+      badge.style.display = n ? '' : 'none';
+    }
+
+    function getSentencesForVocab(v) {
+      if (!v) return null;
+      if (typeof currentVideoId !== 'undefined' && currentVideoId && typeof sentences !== 'undefined' && Array.isArray(sentences) && sentences.length) {
+        if (v.videoId === currentVideoId || (v.videoTitle && typeof currentVideoTitle !== 'undefined' && currentVideoTitle && v.videoTitle === currentVideoTitle)) {
+          return sentences;
+        }
+      }
+      if (typeof getLocalHistory === 'function') {
+        try {
+          const hist = getLocalHistory();
+          if (Array.isArray(hist) && hist.length) {
+            let h = hist.find((x) => x && x.videoId === v.videoId && Array.isArray(x.sentences) && x.sentences.length);
+            if (h) return h.sentences;
+            if (v.videoTitle) {
+              const vNorm = String(v.videoTitle).trim().toLowerCase();
+              h = hist.find((x) => x && x.videoTitle && String(x.videoTitle).trim().toLowerCase() === vNorm && Array.isArray(x.sentences) && x.sentences.length);
+              if (h) return h.sentences;
+            }
+          }
+        } catch (e) {}
+      }
+      if (typeof sentences !== 'undefined' && Array.isArray(sentences) && sentences.length) {
+        return sentences;
+      }
+      return null;
+    }
+
+    function tryAlignSingleVocabItem(v) {
+      if (!v) return false;
+      const sents = getSentencesForVocab(v);
+      if (!sents || !sents.length) return false;
+
+      let aligned = null;
+      if (window.SchemaV02 && typeof window.SchemaV02.alignSubtitleForContext === 'function') {
+        aligned = window.SchemaV02.alignSubtitleForContext(v.en || v.source_text || '', v.text, sents, v.verb);
+      }
+      if (!aligned || !aligned.matched) {
+        const norm = (str) => String(str || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+        const cleanWord = norm(v.text);
+        const cleanEn = norm(v.en || v.source_text);
+        for (let i = 0; i < sents.length; i++) {
+          const s = sents[i];
+          const sTxt = norm(s.text);
+          if ((cleanEn && cleanEn.length >= 4 && (sTxt.includes(cleanEn) || cleanEn.includes(sTxt))) ||
+              (cleanWord && cleanWord.length >= 2 && sTxt.includes(cleanWord))) {
+            aligned = {
+              matched: true,
+              t: typeof s.startTime === 'number' ? s.startTime : 0,
+              en: s.text,
+              vi: s.vi || '',
+              hs: 0,
+              he: 0
+            };
+            break;
+          }
+        }
+      }
+
+      if (aligned && aligned.matched) {
+        v.t = aligned.t;
+        v.t_known = true;
+        if (aligned.hs >= 0 && aligned.he > aligned.hs) {
+          v.hs = aligned.hs;
+          v.he = aligned.he;
+        }
+        if (!v.en || v.en === v.text) v.en = aligned.en;
+        if (!v.vi && aligned.vi) v.vi = aligned.vi;
+        if (Array.isArray(v.contexts)) {
+          v.contexts.forEach((c) => {
+            if (c.t_known === false) {
+              const cSents = getSentencesForVocab(c) || sents;
+              if (cSents && window.SchemaV02) {
+                const cAligned = window.SchemaV02.alignSubtitleForContext(c.en || c.source_text || '', v.text, cSents, v.verb);
+                if (cAligned && cAligned.matched) {
+                  c.t = cAligned.t;
+                  c.t_known = true;
+                  c.hs = cAligned.hs;
+                  c.he = cAligned.he;
+                  if (!c.vi && cAligned.vi) c.vi = cAligned.vi;
+                }
+              }
+            }
+          });
+        }
+        return true;
+      }
+      return false;
+    }
+
+    function autoAlignVocabTimestamps() {
+      const all = getVocab();
+      if (!all || !all.length) {
+        if (typeof showVocabToast === 'function') showVocabToast('Chưa có từ vựng nào trong danh sách', false);
+        return;
+      }
+      const unaligned = all.filter((v) => v.t_known === false);
+      if (unaligned.length === 0) {
+        if (typeof showVocabToast === 'function') showVocabToast('Tất cả từ vựng đều đã có mốc thời gian!', true);
+        return;
+      }
+      let alignedCount = 0;
+      unaligned.forEach((v) => {
+        if (tryAlignSingleVocabItem(v)) {
+          alignedCount++;
+        }
+      });
+      if (alignedCount > 0) {
+        saveVocab(all);
+        renderVocabPage();
+        updateVocabBadges();
+        const msg = 'Đã căn mốc thành công ' + alignedCount + '/' + unaligned.length + ' từ vựng!';
+        if (typeof showVocabToast === 'function') {
+          showVocabToast(msg, true);
+        } else {
+          alert(msg);
+        }
+      } else {
+        const msg = 'Không tìm thấy phụ đề phù hợp trong các bài đã học để căn mốc ' + unaligned.length + ' từ vựng. Hãy mở bài học tương ứng trước khi bấm căn mốc.';
+        if (typeof showVocabToast === 'function') {
+          showVocabToast(msg, false);
+        } else {
+          alert(msg);
+        }
+      }
+    }
+    window.autoAlignVocabTimestamps = autoAlignVocabTimestamps;
+    window.tryAlignSingleVocabItem = tryAlignSingleVocabItem;
 
     function openVocabMeaningModal(specificId) {
       resetCopyButtons();
