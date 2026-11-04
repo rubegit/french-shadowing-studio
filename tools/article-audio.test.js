@@ -56,5 +56,23 @@ test('M2.3 HTML & Template Verification: Giao diện chứa đầy đủ thành 
   assert.ok(indexHtml.includes('id="art-audio-el"'), 'Có audio element art-audio-el');
   assert.ok(indexHtml.includes('id="art-audio-play-btn"'), 'Có nút Play/Pause art-audio-play-btn');
   assert.ok(indexHtml.includes('id="art-audio-slider"'), 'Có thanh scrubber art-audio-slider');
-  assert.ok(indexHtml.includes('id="art-audio-speed"'), 'Có bộ chọn tốc độ art-audio-speed');
+  assert.ok(indexHtml.includes('id="art-speeds"'), 'Có bộ chọn dải tốc độ art-speeds');
+});
+
+test('M4.1 Playing Time Seconds Format: Định dạng hiển thị giây chính xác cho Audio bài báo', () => {
+  function formatArtTime(seconds, mode = 'sec') {
+    if (isNaN(seconds) || seconds < 0) return mode === 'sec' ? '0.0s' : '0:00';
+    if (mode === 'sec') {
+      return Number(seconds).toFixed(1) + 's';
+    } else {
+      const m = Math.floor(seconds / 60);
+      const s = Math.floor(seconds % 60);
+      return `${m}:${s < 10 ? '0' : ''}${s}`;
+    }
+  }
+
+  assert.equal(formatArtTime(0), '0.0s', 'Giây 0');
+  assert.equal(formatArtTime(14.28), '14.3s', 'Giây 14.28 làm tròn 1 chữ số thập phân');
+  assert.equal(formatArtTime(74.64), '74.6s', 'Giây 74.64 hiển thị 74.6s (thay vì 1:14)');
+  assert.equal(formatArtTime(74.64, 'min'), '1:14', 'Chế độ min hiển thị 1:14');
 });

@@ -1007,18 +1007,18 @@
         const slider = document.getElementById('art-audio-slider');
         const curEl = document.getElementById('art-audio-cur-time');
         const durEl = document.getElementById('art-audio-dur-time');
-        const speedSel = document.getElementById('art-audio-speed');
-        if (speedSel) audioEl.playbackRate = parseFloat(speedSel.value) || 1.0;
+        const badgeVal = document.getElementById('art-ab-speed-val');
+        if (badgeVal) badgeVal.textContent = (audioEl.playbackRate || 1.0).toFixed(1) + 'x';
 
         audioEl.onloadedmetadata = () => {
-          if (durEl) durEl.textContent = formatTime(audioEl.duration || 0);
-          if (slider) { slider.max = String(Math.floor(audioEl.duration || 100)); slider.value = '0'; }
+          if (durEl) durEl.textContent = formatArtTime(audioEl.duration || 0);
+          if (slider) { slider.max = String(audioEl.duration || 100); slider.value = '0'; }
         };
 
         audioEl.ontimeupdate = () => {
           const ct = audioEl.currentTime || 0;
-          if (curEl) curEl.textContent = formatTime(ct);
-          if (slider && !slider._dragging) slider.value = String(Math.floor(ct));
+          if (curEl) curEl.textContent = formatArtTime(ct);
+          if (slider && !slider._dragging) slider.value = String(ct);
 
           if (isTextMode && sentences && sentences.length) {
             // Đồng bộ highlight câu theo mốc thời gian
@@ -1094,9 +1094,51 @@
       audioEl.currentTime = parseFloat(val) || 0;
     };
 
-    window.changeArtAudioSpeed = function(rate) {
+    let artTimeDisplayMode = 'sec'; // 'sec' hoặc 'min'
+
+    function formatArtTime(seconds) {
+      if (isNaN(seconds) || seconds < 0) return artTimeDisplayMode === 'sec' ? '0.0s' : '0:00';
+      if (artTimeDisplayMode === 'sec') {
+        return Number(seconds).toFixed(1) + 's';
+      } else {
+        const m = Math.floor(seconds / 60);
+        const s = Math.floor(seconds % 60);
+        return `${m}:${s < 10 ? '0' : ''}${s}`;
+      }
+    }
+    window.formatArtTime = formatArtTime;
+
+    window.toggleArtTimeMode = function() {
+      artTimeDisplayMode = artTimeDisplayMode === 'sec' ? 'min' : 'sec';
       const audioEl = document.getElementById('art-audio-el');
-      if (audioEl) audioEl.playbackRate = parseFloat(rate) || 1.0;
+      const curEl = document.getElementById('art-audio-cur-time');
+      const durEl = document.getElementById('art-audio-dur-time');
+      if (audioEl && curEl) curEl.textContent = formatArtTime(audioEl.currentTime || 0);
+      if (audioEl && durEl) {
+        const maxD = audioEl.duration || (sentences && sentences.length ? (sentences[sentences.length - 1].endTime || 0) : 0);
+        durEl.textContent = formatArtTime(maxD);
+      }
+    };
+
+    window.setArtAudioSpeed = function(rate) {
+      const audioEl = document.getElementById('art-audio-el');
+      const r = parseFloat(rate) || 1.0;
+      if (audioEl) audioEl.playbackRate = r;
+      const badge = document.getElementById('art-ab-speed-val');
+      if (badge) badge.textContent = r.toFixed(1) + 'x';
+      const btns = document.querySelectorAll('#art-speeds button');
+      btns.forEach(b => {
+        const sp = parseFloat(b.getAttribute('data-sp'));
+        if (Math.abs(sp - r) < 0.01) {
+          b.classList.add('on');
+        } else {
+          b.classList.remove('on');
+        }
+      });
+    };
+
+    window.changeArtAudioSpeed = function(rate) {
+      setArtAudioSpeed(rate);
     };
 
     window.uploadAudioForCurrentArticle = function(e) {

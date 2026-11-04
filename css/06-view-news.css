@@ -194,15 +194,45 @@
 
     .art-audio-bar {
       display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 8px 16px;
+      flex-direction: column;
+      gap: 8px;
+      padding: 10px 16px;
       background: var(--fs-surface-card);
       border-bottom: 1px solid var(--fs-border-control);
       flex-shrink: 0;
       z-index: 10;
       transition: all 0.2s ease;
+    }
+    .art-ab-tl-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+    }
+    .art-ab-time {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--fs-text-subtle);
+      cursor: pointer;
+      white-space: nowrap;
+      user-select: none;
+      transition: color 0.15s ease;
+      min-width: 48px;
+    }
+    .art-ab-time.cur {
+      color: var(--fs-text-primary);
+    }
+    .art-ab-time:hover {
+      color: var(--fs-accent);
+    }
+    .art-ab-ctrl-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      width: 100%;
+      flex-wrap: wrap;
     }
     .art-ab-controls {
       display: inline-flex;
@@ -265,27 +295,62 @@
       accent-color: var(--fs-accent);
       cursor: pointer;
     }
-    .art-ab-times {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    .art-ab-speed-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .art-ab-speed-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      border-radius: 8px;
+      background: var(--fs-card);
+      border: 1px solid var(--fs-border-control);
       font-size: 11px;
+      font-weight: 700;
+      color: var(--fs-text-primary);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    .art-speeds {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      padding: 2px;
+      border-radius: 9px;
+      background: var(--fs-surface-subtle);
+      border: 1px solid var(--fs-border-control);
+    }
+    .art-speeds button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3px 8px;
+      border-radius: 7px;
+      background: transparent;
+      border: none;
+      font-size: 11.5px;
       font-weight: 600;
       color: var(--fs-text-subtle);
-      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .art-speeds button i {
+      font-style: normal;
+    }
+    .art-speeds button:hover {
+      color: var(--fs-text-primary);
+    }
+    .art-speeds button.on {
+      background: var(--fs-accent);
+      color: var(--fs-text-inverse);
+      font-weight: 700;
     }
     .art-ab-tools {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-    }
-    .art-ab-speed {
-      padding: 3px 6px;
-      border-radius: 6px;
-      background: var(--fs-card);
-      border: 1px solid var(--fs-border-control);
-      color: var(--fs-text-primary);
-      font-size: 11px;
-      font-weight: 600;
-      cursor: pointer;
     }
     .art-ab-file-pill {
       display: inline-flex;
@@ -319,14 +384,15 @@
 
     @media (max-width: 640px) {
       .art-audio-bar {
-        flex-wrap: wrap;
-        gap: 8px;
-        padding: 6px 10px;
+        padding: 8px 12px;
       }
-      .art-ab-slider-wrap {
+      .art-ab-ctrl-row {
+        gap: 8px;
+      }
+      .art-ab-speed-group {
         order: 3;
         width: 100%;
-        flex: none;
+        justify-content: space-between;
       }
       .art-ab-file-pill {
         max-width: 110px;
