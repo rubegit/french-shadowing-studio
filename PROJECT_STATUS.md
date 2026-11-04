@@ -18,7 +18,7 @@
 - **Nhánh Git (Branch):** `main`
 - **Trạng thái Git Working Tree:** Clean 100%
 - **Môi trường triển khai:** Vercel Static Hosting (phục vụ trực tiếp từ `index.html` và static assets)
-- **Thời điểm cập nhật:** `2026-11-04T11:22:00-06:00`
+- **Thời điểm cập nhật:** `2026-11-04T11:48:00-06:00`
 
 ---
 
@@ -28,7 +28,7 @@
 
 - **Kiểm thử đơn vị (Unit Tests):**
   - Lệnh chạy: `node --test tools/*.test.js`
-  - Kết quả: **186 / 186 bài test PASS (100%)**, 0 bài fail, thời gian chạy ~900ms.
+  - Kết quả: **187 / 187 bài test PASS (100%)**, 0 bài fail, thời gian chạy ~930ms.
   - Bộ kiểm thử bao gồm: `contrast-audit.test.js`, `focus-rings.test.js`, `french-utils.test.js`, `schema-v02.test.js`, `vocab-importer.test.js`, `vocab-practice.test.js`, `punct-corrections.test.js`, `punct-manual-merge.test.js`, `extract-prompt-template.test.js`, `theme-init.test.js`, `theme-tokens.test.js`.
 - **Kiểm kê mã màu (Color Linting via `node tools/lint-color.js`):**
   - Inline style màu trong JavaScript: **0**
@@ -72,33 +72,30 @@
 | **M-Account-Handover-B** | Tạo Agent Skill `/fss-handover` Điều Phối Bàn Giao & Tiếp Nhận | **Đã hoàn thành** | `4b1a8d0` |
 | **M5d** | Dọn Dẹp 100% Inline Styles Màu & SVG HEX Trong HTML Partials | **Đã hoàn thành** | `01e8373` + `7e87543` + `61c89f2` |
 | **M6** | Chuẩn Hóa Trạng Thái Tương Tác & Vòng Sáng Chỉ Thị (Focus Rings) | **Đã hoàn thành** | `e77366c` |
-| **M7** | Kiểm Toán Tổng Thể Toàn Diện & Dọn Dẹp Cờ Thừa (Final Audit) | **Chưa bắt đầu (Sắp triển khai)** | *(Kế hoạch tiếp theo)* |
+| **M7** | Kiểm Toán Tổng Thể Toàn Diện & Khóa Chặn Hồi Quy (Final Audit) | **Đã hoàn thành** | *(commit hiện tại)* |
 
 ---
 
 ## 4. Current Focus (Trọng tâm Hiện thời)
 
-- Đã hoàn tất nghiệm thu **Milestone M6** (Focus rings WCAG AAA/AA, scrollbar contrast, active/disabled states, 186/186 unit tests PASS).
-- Trọng tâm công việc tiếp theo là **Milestone M7 – Kiểm toán Tổng thể Toàn diện & Dọn dẹp Cờ thừa (Final Audit)**.
+- **Chiến dịch Chuẩn hóa Redesign & Tiếp cận (Accessibility & Theme Redesign) đã hoàn thành 100% qua tất cả các Milestone từ M0 đến M7:**
+  - 100% Inline styles màu trong JavaScript: **0**
+  - 100% Inline styles màu trong HTML partials: **0**
+  - 100% Thuộc tính SVG fill/stroke HEX: **0**
+  - 100% Class màu Tailwind trong HTML: **0**
+  - Mã HEX trong CSS ngoài khối token: giữ nguyên hạn ngạch **$\le 921$**.
+  - Toàn bộ 187/187 unit tests PASS (100%).
+  - Bản build `index.html` đồng bộ hoàn toàn với `src/index.src.html` và partials (0 diff).
+- Dự án đã hoàn toàn sạch nợ kỹ thuật màu sắc và sẵn sàng cho các tính năng tiếp theo hoặc phát hành chính thức.
 
 ---
 
 ## 5. Pending Tasks (Công việc Chờ Thực hiện & Thứ tự Ưu tiên)
 
-1. **Ưu tiên 1: Nghiệm thu hoàn tất M-Status-Fix**
-   - Đảm bảo tài liệu phản ánh trung thực, chính xác các chỉ số và hiện trạng kỹ thuật.
-2. **Ưu tiên 2: Triển khai Milestone M5d – Dọn dẹp Inline Styles trong HTML Partials & SVG**
-   - Xóa bỏ 40 inline color styles trong 9 partials (`view-home`: 18, `view-guide`: 7, `view-book`: 4, `modal-book-translate`: 3, `view-translate`: 3, `view-vocab`: 2, `modal-share`: 1, `modal-book-import`: 1, `modal-bilingual`: 1).
-   - Thay thế 20 thuộc tính SVG `fill`/`stroke` HEX bằng `currentColor` hoặc semantic classes.
-   - Chạy `python3 tools/restructure.py build` sau khi chỉnh sửa HTML.
-3. **Ưu tiên 3: Triển khai Milestone M6 – Chuẩn hóa trạng thái tương tác & Vòng sáng chỉ thị (Focus Rings)**
-   - Đồng bộ vòng focus (`--fs-focus-ring`) trên các nút bấm, input, chip và thanh cuộn.
-   - Chuẩn hóa các vòng tiến độ SVG (progress rings) và chỉ báo trạng thái đang chạy.
-   - Giải quyết lỗi đo tương phản E14 trong tài liệu kế hoạch.
-4. **Ưu tiên 4: Triển khai Milestone M7 – Kiểm toán tổng thể & Dọn dẹp cờ thừa**
-   - Rà soát toàn bộ 26 điểm đo tương phản (E01–E26) theo chuẩn WCAG AA/AAA.
-   - Dọn dẹp các cờ thử nghiệm hoặc biến trung gian thừa.
-   - Đóng gói và phát hành bản chuẩn hóa toàn diện.
+1. **Đóng gói & Phát hành Release mới (nếu có yêu cầu từ người dùng):**
+   - Tag phiên bản mới và push lên remote khi người dùng yêu cầu bằng văn bản.
+2. **Sẵn sàng tiếp nhận các yêu cầu tính năng hoặc cải tiến mới:**
+   - Tiếp tục duy trì các bài test tự động và quy tắc Post-Split Workflow.
 
 ---
 

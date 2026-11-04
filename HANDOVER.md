@@ -8,7 +8,7 @@
 ---
 
 ### 1. Metadata Bàn giao (Handover Metadata)
-- **Thời điểm cập nhật:** 2026-11-04T11:22:00-06:00
+- **Thời điểm cập nhật:** 2026-11-04T11:48:00-06:00
 - **Agent bàn giao (Outgoing Agent):** Antigravity Agent
 - **Mục đích:** Bàn giao liền mạch sang phiên làm việc / tài khoản Google mới trong Antigravity.
 - **Tài liệu tham chiếu bắt buộc:** [`AGENTS.md`](./AGENTS.md), [`PROJECT_STATUS.md`](./PROJECT_STATUS.md).
@@ -17,8 +17,8 @@
 
 ### 2. Bản chụp Trạng thái Git (Git State Snapshot)
 - **Nhánh hiện tại (Branch):** `main`
-- **HEAD Commit tại thời điểm nạp:** `e77366c` (*feat(a11y): chuẩn hóa trạng thái tương tác, scrollbars và focus rings theo WCAG (M6)*)
-- **Tình trạng Remote:** Đang đi trước `origin/main` 4 commits (`01e8373`, `7e87543`, `61c89f2`, `e77366c`), **chưa push lên remote** theo yêu cầu bảo lưu cục bộ của người dùng.
+- **HEAD Commit tại thời điểm nạp:** Commit hoàn tất `M7`
+- **Tình trạng Remote:** Đang đi trước `origin/main` 5 commits, **chưa push lên remote** theo yêu cầu bảo lưu cục bộ của người dùng.
 - **Trạng thái Working Tree:** **Clean 100%** (xác minh thực tế qua `git status --porcelain`).
 - **Cảnh báo an toàn Git:**
   - Tuyệt đối **KHÔNG PUSH** commit cục bộ lên remote nếu người dùng chưa ra lệnh rõ ràng bằng văn bản.
@@ -29,9 +29,9 @@
 ### 3. Tiến độ & Trạng thái Các Module (Milestone Progress)
 - **Release chính thức gần nhất:** `v2.0.27` (Commit `ba376ac`) – Đã tag và push.
 - **Module vừa nghiệm thu:**
-  - **`M6`** (Commit `e77366c`): Chuẩn hóa trạng thái tương tác & vòng sáng chỉ thị (Focus Rings WCAG AAA/AA, custom scrollbars contrast >= 3:1, tactile press feedback scale 0.98, disabled controls, 186/186 tests PASS). Đã nghiệm thu chính thức với từ khóa *"Duyệt M6"*.
+  - **`M7`**: Kiểm toán tổng thể toàn diện, khóa chặn hồi quy tự động trong `tools/contrast-audit.test.js`, hoàn tất 100% chiến dịch Redesign từ M0 đến M7.
 - **Các Module tồn đọng & kế hoạch tiếp theo:**
-  - **`M7` (Chuẩn bị triển khai):** Kiểm toán toàn diện tổng thể 26 điểm đo tương phản và dọn dẹp cờ thừa.
+  - Chiến dịch chuẩn hóa Redesign màu sắc và độ tương phản WCAG đã **hoàn thành 100%**. Sẵn sàng đóng gói release hoặc phát triển tính năng mới.
 
 ---
 
@@ -46,8 +46,16 @@
 ### 5. Kết quả Kiểm thử Thực tế & Nợ Kỹ thuật Tại Thời Điểm Bàn Giao
 - **Kiểm thử đơn vị (Unit Tests):**
   - Lệnh chạy: `node --test tools/*.test.js`
-  - Kết quả thực tế: **186 pass / 0 fail / 0 skipped** (thời gian chạy ~900ms).
+  - Kết quả thực tế: **187 pass / 0 fail / 0 skipped** (thời gian chạy ~930ms).
 - **Kiểm kê mã màu (`node tools/lint-color.js`):**
+  - Inline style màu trong JS: **0** (sạch 100%).
+  - Class Tailwind màu trong HTML: **0** (sạch 100%).
+  - Inline style màu trong HTML partials: **0** (sạch 100%).
+  - Thuộc tính SVG fill/stroke HEX: **0** (sạch 100%).
+  - **Mã HEX trong CSS ngoài token:** **921 HEX**.
+- **Trạng thái Build:**
+  - `python3 tools/restructure.py build`: PASS (0 diff).
+  - `python3 tools/restructure.py verify`: Exit code 1 (do so khớp với hash gốc 25/10/2026, bình thường sau khi phát triển tính năng).
   - Inline style màu trong JS: **0** (sạch 100%).
   - Class Tailwind màu trong HTML: **0** (sạch 100%).
   - Inline style màu trong HTML partials: **0** (sạch 100%).

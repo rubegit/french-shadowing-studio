@@ -33,9 +33,11 @@ test('M1.2 Lint Color: Quét và thống kê chính xác số lượng mã màu 
   const result = runLint();
 
   assert.ok(result.summary, 'Phải có bảng summary');
-  assert.ok(result.summary.totalCssHexOutsideTokens > 0 && result.summary.totalCssHexOutsideTokens <= 2362, 'Số lượng mã hex trong CSS ngoài token phải giảm dần từ mốc baseline 2362');
+  assert.ok(result.summary.totalCssHexOutsideTokens <= 921, `Số lượng mã hex trong CSS ngoài token không được vượt quá 921 (thực tế: ${result.summary.totalCssHexOutsideTokens})`);
   assert.strictEqual(result.summary.totalJsInlineColorStyles, 0, 'Toàn bộ inline style màu trong JS đã được dọn sạch dứt điểm về 0');
   assert.strictEqual(result.summary.totalHtmlTailwindColors, 0, 'Toàn bộ class màu Tailwind trong HTML đã được dọn sạch về 0');
+  assert.strictEqual(result.summary.totalHtmlInlineColorStyles, 0, 'Toàn bộ inline style màu trong HTML partials đã được dọn sạch về 0');
+  assert.strictEqual(result.summary.totalHtmlSvgHex, 0, 'Toàn bộ thuộc tính SVG fill/stroke HEX đã được dọn sạch về 0');
 
   // Kiểm tra file js/vocab-practice.js đã được dọn sạch hoàn toàn inline style màu
   const vocabPracticeResult = result.jsResults.find(r => r.file.includes('vocab-practice.js'));
@@ -74,3 +76,14 @@ test('M5-fix: Khắc phục triệt để độ tương phản chip câu đang g
   // Thẻ tiếng Việt Flashcard 3D phải dùng --fs-accent-text
   assert.match(cssContent, /\.vph-fc-top-tag-vi\s*\{[^}]*color:\s*var\(--fs-accent-text\)/);
 });
+
+test('M7.1 Final Audit Hardening: Toàn bộ HTML partials và src/index.src.html sạch 100% mã màu cứng', () => {
+  const result = runLint();
+  assert.ok(result.htmlResults.length >= 17, 'Phải kiểm tra đủ index.src.html và toàn bộ partials');
+  for (const htmlRes of result.htmlResults) {
+    assert.strictEqual(htmlRes.inlineColorStylesCount, 0, `${htmlRes.file} không được chứa inline style màu`);
+    assert.strictEqual(htmlRes.svgHexCount, 0, `${htmlRes.file} không được chứa thuộc tính SVG fill/stroke HEX`);
+    assert.strictEqual(htmlRes.tailwindCount, 0, `${htmlRes.file} không được chứa class màu Tailwind`);
+  }
+});
+
