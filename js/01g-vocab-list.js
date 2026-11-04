@@ -683,10 +683,16 @@
 
 
 
+    const cleanVid = (id) => String(id || '').replace(/^(yt|video):/, '').trim();
+    const normTitle = (t) => String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[\s\-_|·]+/g, ' ').trim();
+    window.cleanVid = cleanVid;
+    window.normTitle = normTitle;
+
     // Mở video của từ vựng ngay trong app, tua tới đúng câu chứa từ đó.
     async function openVocabVideo(id) {
       const x = getVocab().find((v) => v.id === id);
-      if (!x || !x.videoId) return;
+      if (!x) return;
+      const targetVid = cleanVid(x.videoId);
 
       // Rule 1 & 2: Thẻ có t_known === false thì thử căn mốc tự động
       if (x.t_known === false) {
@@ -715,33 +721,51 @@
         ensurePageFocus();
       };
       const sentStart = () => {
-        const s = sentences[getSentenceIndexForTime(x.t || 0)];
+        const s = (typeof sentences !== 'undefined' && Array.isArray(sentences) && sentences.length) ? sentences[getSentenceIndexForTime(x.t || 0)] : null;
         return Math.max(0, s ? s.startTime : (x.t || 0));
       };
 
+      const cVid = cleanVid(typeof currentVideoId !== 'undefined' ? currentVideoId : '');
+      const isCurVideoMatch = (targetVid && cVid && targetVid === cVid) || (() => {
+        if (!x.videoTitle || typeof currentVideoTitle === 'undefined' || !currentVideoTitle) return false;
+        const vN = normTitle(x.videoTitle), cN = normTitle(currentVideoTitle);
+        return vN.length >= 6 && cN.length >= 6 && (vN === cN || vN.includes(cN) || cN.includes(vN));
+      })();
+
       // (a0) Bài văn bản đang mở sẵn -> chỉ cần quay lại và cuộn tới đúng câu
-      if (isTextMode && currentVideoId === x.videoId && sentences.length) {
+      if (isTextMode && isCurVideoMatch && sentences.length) {
         goPractice();
         triggerSmoothCenterScroll(getSentenceIndexForTime(x.t || 0), true);
         return;
       }
       // (a) Video đang mở sẵn trong player -> chỉ cần quay lại và tua
-      if (!isTextMode && currentVideoId === x.videoId && sentences.length && ytPlayer && isPlayerReady) {
+      if (!isTextMode && isCurVideoMatch && sentences.length && ytPlayer && isPlayerReady) {
         goPractice();
         seekToTime(sentStart(), undefined, true, null, true);
         return;
       }
       // (b) Có trong lịch sử luyện tập (đã lưu sẵn phụ đề)
-      if (getLocalHistory().some((h) => h.videoId === x.videoId && h.sentences && h.sentences.length)) {
-        const item = getLocalHistory().find((h) => h.videoId === x.videoId);
-        pendingSeekTime = (() => { const s = item.sentences.slice().reverse().find((z) => z.startTime <= (x.t || 0) + 0.05); return s ? s.startTime : (x.t || 0); })();
-        loadFromHistory(x.videoId);
+      const hist = getLocalHistory();
+      let histItem = targetVid ? hist.find((h) => cleanVid(h.videoId) === targetVid && h.sentences && h.sentences.length) : null;
+      if (!histItem && x.videoTitle) {
+        const vN = normTitle(x.videoTitle);
+        if (vN.length >= 6) {
+          histItem = hist.find((h) => {
+            if (!h || !Array.isArray(h.sentences) || !h.sentences.length) return false;
+            const hN = normTitle(h.title || h.videoTitle || '');
+            return hN.length >= 6 && (hN === vN || hN.includes(vN) || vN.includes(hN));
+          });
+        }
+      }
+      if (histItem) {
+        pendingSeekTime = (() => { const s = histItem.sentences.slice().reverse().find((z) => z.startTime <= (x.t || 0) + 0.05); return s ? s.startTime : (x.t || 0); })();
+        loadFromHistory(histItem.videoId);
         return;
       }
       // (c) Video thuộc thư viện có sẵn -> nạp phụ đề từ thư viện
       pendingSeekTime = Math.max(0, (x.t || 0) - 0.3);
       try {
-        const ok = await selectCategoryVideo(x.videoId, x.videoTitle);
+        const ok = await selectCategoryVideo(targetVid || x.videoId, x.videoTitle);
         if (ok) return;
       } catch (catErr) {
         console.warn('Không tải được video từ thư viện:', catErr);
@@ -749,7 +773,12 @@
 
       // (d) Video YouTube người dùng tự luyện (chưa/không còn lưu trọn bộ phụ đề trên máy):
       // Tuyệt đối KHÔNG mở tab YouTube ngoài! Mở ngay trong player của app, dựng phụ đề từ các câu từ vựng đã lưu.
-      const allMatchingVocab = getVocab().filter((v) => v.videoId === x.videoId && v.en && v.t_known !== false);
+      const effectiveVid = targetVid || cleanVid(x.videoId);
+      if (!effectiveVid) {
+        showVocabToast('Từ vựng này không có mã video YouTube', false);
+        return;
+      }
+      const allMatchingVocab = getVocab().filter((v) => cleanVid(v.videoId) === effectiveVid && v.en && v.t_known !== false);
       const mapByTime = new Map();
       allMatchingVocab.forEach((v) => {
         const tKey = Math.round((v.t || 0) * 2) / 2;
@@ -765,7 +794,7 @@
           if (!cur.vi && v.vi) cur.vi = v.vi;
         }
       });
-      if (mapByTime.size === 0 && x.en && x.t_known !== false) {
+      if (mapByTime.size === 0 && x.en) {
         mapByTime.set(0, {
           startTime: Math.max(0, (x.t || 0) - 0.5),
           endTime: (x.t || 0) + 5,
@@ -780,9 +809,9 @@
         }
       }
 
-      currentVideoId = x.videoId;
-      currentVideoTitle = x.videoTitle || `Video ${x.videoId}`;
-      sentences = builtSentences;
+      currentVideoId = effectiveVid;
+      currentVideoTitle = x.videoTitle || (histItem && (histItem.title || histItem.videoTitle)) || `Video ${effectiveVid}`;
+      sentences = builtSentences.length ? builtSentences : [{ startTime: 0, endTime: 10, text: x.en || x.text || 'Đang mở video...', vi: x.vi || '' }];
       subtitleFormat = 'srt';
       if (inputUrl) inputUrl.value = `https://www.youtube.com/watch?v=${currentVideoId}`;
       pendingSeekTime = Math.max(0, (x.t || 0) - 0.2);
@@ -811,7 +840,7 @@
       if (window.lucide && window.lucide.createIcons) { window.lucide.createIcons(); }
       ensurePageFocus();
       trackAndShowVideoStats(currentVideoId);
-      showVocabToast(`Đang mở video trong app với phụ đề câu từ vựng · ${formatTime(x.t || 0)}`, true);
+      showVocabToast(`Đang mở video trong app · ${formatTime(x.t || 0)}`, true);
     }
 
 
@@ -973,11 +1002,12 @@
     function vocabCardHtml(x) {
       const KIND = { word: 'Từ', phrase: 'Cụm từ', sentence: 'Câu' };
       const ctx = smartHighlightInContext(x.en, x.text, x.hs, x.he);
-      const yt = (x.videoId && x.t_known !== false) ? `https://www.youtube.com/watch?v=${encodeURIComponent(x.videoId)}&t=${Math.max(0, Math.floor((x.t || 0) - 2))}s` : (x.videoId ? `https://www.youtube.com/watch?v=${encodeURIComponent(x.videoId)}` : '');
+      const rawV = cleanVid(x.videoId);
+      const yt = (rawV && x.t_known !== false) ? `https://www.youtube.com/watch?v=${encodeURIComponent(rawV)}&t=${Math.max(0, Math.floor((x.t || 0) - 2))}s` : (rawV ? `https://www.youtube.com/watch?v=${encodeURIComponent(rawV)}` : '');
       const timeStr = (x.t_known === false) ? '(chưa căn mốc)' : formatTime(x.t || 0);
       const src = x.bookId ? `<a href="#" title="Mở lại đúng câu này trong sách" onclick="openVocabVideo('${x.id}'); return false;">📖 ${escHtml(x.videoTitle || 'Sách')}</a>`
         : x.srcUrl ? `<a href="${escHtml(x.srcUrl)}" target="_blank" rel="noopener" title="Mở trang web gốc">🌐 ${escHtml(x.videoTitle || x.srcUrl)}</a>`
-        : x.videoId ? `<a href="javascript:void(0)" title="Mở lại đúng câu này trong Shadowing Studio" onclick="openVocabVideo('${x.id}'); return false;">▶ ${escHtml(x.videoTitle || x.videoId)} · ${timeStr}</a>` : '<span></span>';
+        : rawV ? `<a href="javascript:void(0)" title="Mở lại đúng câu này trong Shadowing Studio" onclick="openVocabVideo('${x.id}'); return false;">▶ ${escHtml(x.videoTitle || rawV)} · ${timeStr}</a>` : '<span></span>';
 
       let wordViBlock;
       if (vocabEditIds.has(x.id)) {
@@ -1305,25 +1335,45 @@
 
     function getSentencesForVocab(v) {
       if (!v) return null;
-      if (typeof currentVideoId !== 'undefined' && currentVideoId && typeof sentences !== 'undefined' && Array.isArray(sentences) && sentences.length) {
-        if (v.videoId === currentVideoId || (v.videoTitle && typeof currentVideoTitle !== 'undefined' && currentVideoTitle && v.videoTitle === currentVideoTitle)) {
-          return sentences;
+      const rawVid = cleanVid(v.videoId);
+      const curVid = cleanVid(typeof currentVideoId !== 'undefined' ? currentVideoId : '');
+      const vNorm = v.videoTitle ? normTitle(v.videoTitle) : '';
+
+      // (1) Kiểm tra video đang mở trong player
+      if (curVid && typeof sentences !== 'undefined' && Array.isArray(sentences) && sentences.length) {
+        if (rawVid && rawVid === curVid) return sentences;
+        if (vNorm && typeof currentVideoTitle !== 'undefined' && currentVideoTitle) {
+          const cNorm = normTitle(currentVideoTitle);
+          if (vNorm.length >= 6 && cNorm.length >= 6 && (vNorm === cNorm || vNorm.includes(cNorm) || cNorm.includes(vNorm))) {
+            return sentences;
+          }
         }
       }
+
+      // (2) Tìm trong lịch sử luyện tập (getLocalHistory)
       if (typeof getLocalHistory === 'function') {
         try {
           const hist = getLocalHistory();
           if (Array.isArray(hist) && hist.length) {
-            let h = hist.find((x) => x && x.videoId === v.videoId && Array.isArray(x.sentences) && x.sentences.length);
-            if (h) return h.sentences;
-            if (v.videoTitle) {
-              const vNorm = String(v.videoTitle).trim().toLowerCase();
-              h = hist.find((x) => x && x.videoTitle && String(x.videoTitle).trim().toLowerCase() === vNorm && Array.isArray(x.sentences) && x.sentences.length);
+            // (a) Khớp theo videoId chuẩn hóa (bỏ tiền tố yt:)
+            if (rawVid) {
+              let h = hist.find((x) => x && cleanVid(x.videoId) === rawVid && Array.isArray(x.sentences) && x.sentences.length);
+              if (h) return h.sentences;
+            }
+            // (b) Khớp theo tiêu đề (hỗ trợ cả x.title lẫn x.videoTitle, tìm mờ / substring)
+            if (vNorm && vNorm.length >= 6) {
+              let h = hist.find((x) => {
+                if (!x || !Array.isArray(x.sentences) || !x.sentences.length) return false;
+                const hNorm = normTitle(x.title || x.videoTitle || '');
+                return hNorm.length >= 6 && (hNorm === vNorm || hNorm.includes(vNorm) || vNorm.includes(hNorm));
+              });
               if (h) return h.sentences;
             }
           }
         } catch (e) {}
       }
+
+      // (3) Fallback nếu player đang có phụ đề
       if (typeof sentences !== 'undefined' && Array.isArray(sentences) && sentences.length) {
         return sentences;
       }
@@ -1334,6 +1384,32 @@
       if (!v) return false;
       const sents = getSentencesForVocab(v);
       if (!sents || !sents.length) return false;
+
+      // Chuẩn hóa videoId nếu đang có tiền tố yt:
+      if (v.videoId && v.videoId.startsWith('yt:')) {
+        v.videoId = cleanVid(v.videoId);
+      }
+
+      // Tự động bù ID từ lịch sử nếu thẻ bị thiếu/lệch ID nhưng khớp tiêu đề
+      if ((!v.videoId || v.videoId === 'unknown') && typeof getLocalHistory === 'function') {
+        try {
+          const hist = getLocalHistory();
+          const vNorm = normTitle(v.videoTitle || '');
+          if (vNorm && vNorm.length >= 6) {
+            const h = hist.find((x) => {
+              if (!x || !Array.isArray(x.sentences) || !x.sentences.length) return false;
+              const hNorm = normTitle(x.title || x.videoTitle || '');
+              return hNorm.length >= 6 && (hNorm === vNorm || hNorm.includes(vNorm) || vNorm.includes(hNorm));
+            });
+            if (h && h.videoId) {
+              v.videoId = cleanVid(h.videoId);
+            }
+          }
+        } catch (e) {}
+      }
+      if ((!v.videoId || v.videoId === 'unknown') && typeof currentVideoId !== 'undefined' && currentVideoId) {
+        v.videoId = cleanVid(currentVideoId);
+      }
 
       let aligned = null;
       if (window.SchemaV02 && typeof window.SchemaV02.alignSubtitleForContext === 'function') {
@@ -1382,6 +1458,7 @@
                   c.hs = cAligned.hs;
                   c.he = cAligned.he;
                   if (!c.vi && cAligned.vi) c.vi = cAligned.vi;
+                  if (c.videoId && c.videoId.startsWith('yt:')) c.videoId = cleanVid(c.videoId);
                 }
               }
             }

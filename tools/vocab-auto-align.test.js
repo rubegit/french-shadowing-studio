@@ -60,3 +60,73 @@ test('M8.3 Auto-Align Filter: Lọc chính xác các mục chưa căn mốc', ()
   assert.equal(unaligned.length, 2, 'Tìm đúng 2 từ chưa căn mốc');
   assert.deepEqual(unaligned.map(v => v.id), ['2', '3'], 'Đúng các id chưa căn mốc');
 });
+
+test('M9.1 ID & Prefix Cleaning: cleanVid loại bỏ yt: và video: chính xác', () => {
+  const cleanVid = (id) => String(id || '').replace(/^(yt|video):/, '').trim();
+  assert.equal(cleanVid('yt:_CfHjzWCRUU'), '_CfHjzWCRUU', 'Gọt bỏ tiền tố yt:');
+  assert.equal(cleanVid('video:_CfHjzWCRUU'), '_CfHjzWCRUU', 'Gọt bỏ tiền tố video:');
+  assert.equal(cleanVid('_CfHjzWCRUU'), '_CfHjzWCRUU', 'Giữ nguyên ID sạch');
+  assert.equal(cleanVid(''), '', 'Chuỗi rỗng an toàn');
+});
+
+test('M9.2 Title Normalization: normTitle xử lý emoji, gạch nối và khoảng trắng', () => {
+  const normTitle = (t) => String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[\s\-_|·]+/g, ' ').trim();
+  const t1 = 'Progressive French Short Story A1 to B2 🇫🇷🎃';
+  const t2 = 'Progressive French Short Story A1 to B2 🇫🇷🎃 | The perfect French with Dylane';
+  const n1 = normTitle(t1);
+  const n2 = normTitle(t2);
+  assert.ok(n2.includes(n1), 'Tiêu đề đầy đủ trên YouTube chứa tiêu đề ngắn của thẻ từ vựng');
+});
+
+test('M9.3 Fuzzy & Prefix History Matching: Tìm thấy phụ đề khi lệch prefix yt: hoặc thừa tên kênh', () => {
+  const cleanVid = (id) => String(id || '').replace(/^(yt|video):/, '').trim();
+  const normTitle = (t) => String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[\s\-_|·]+/g, ' ').trim();
+
+  const history = [
+    {
+      videoId: '_CfHjzWCRUU',
+      title: 'Progressive French Short Story A1 to B2 🇫🇷🎃 | The perfect French with Dylane',
+      sentences: [
+        { startTime: 10.0, endTime: 14.5, text: "L'automne est enfin arrivé.", vi: 'Mùa thu cuối cùng đã đến.' }
+      ]
+    }
+  ];
+
+  function mockGetSentences(v) {
+    const rawVid = cleanVid(v.videoId);
+    const vNorm = v.videoTitle ? normTitle(v.videoTitle) : '';
+    // Check by clean videoId
+    if (rawVid) {
+      const h = history.find(x => cleanVid(x.videoId) === rawVid && x.sentences && x.sentences.length);
+      if (h) return h.sentences;
+    }
+    // Check by title fuzzy
+    if (vNorm && vNorm.length >= 6) {
+      const h = history.find(x => {
+        if (!x.sentences || !x.sentences.length) return false;
+        const hNorm = normTitle(x.title || x.videoTitle || '');
+        return hNorm.length >= 6 && (hNorm === vNorm || hNorm.includes(vNorm) || vNorm.includes(hNorm));
+      });
+      if (h) return h.sentences;
+    }
+    return null;
+  }
+
+  // Case 1: Thẻ có videoId mang tiền tố yt:
+  const cardWithPrefix = {
+    videoId: 'yt:_CfHjzWCRUU',
+    videoTitle: 'Progressive French Short Story A1 to B2 🇫🇷🎃',
+    text: 'est enfin arrivé'
+  };
+  const sents1 = mockGetSentences(cardWithPrefix);
+  assert.ok(sents1 && sents1.length === 1, 'Tìm thấy phụ đề cho thẻ có tiền tố yt:');
+
+  // Case 2: Thẻ khuyết videoId nhưng có tiêu đề ngắn
+  const cardWithoutVid = {
+    videoId: '',
+    videoTitle: 'Progressive French Short Story A1 to B2 🇫🇷🎃',
+    text: 'est enfin arrivé'
+  };
+  const sents2 = mockGetSentences(cardWithoutVid);
+  assert.ok(sents2 && sents2.length === 1, 'Tìm thấy phụ đề cho thẻ khuyết ID nhờ so khớp tiêu đề mờ');
+});
