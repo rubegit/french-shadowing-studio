@@ -14,11 +14,11 @@
 
 - **Tên dự án:** French Shadowing Studio
 - **Phiên bản phát hành gần nhất:** `v2.0.27` (Commit `ba376ac`)
-- **Current HEAD Commit:** `ccbfca3` (*feat(player): chuyển đổi thời lượng video sang dạng giây và bổ sung nút tốc độ 1.25x (M6)*)
+- **Current HEAD Commit:** `b59cb0b` (*fix(vocab): khắc phục lỗi ẩn chữ tiêu đề mục active trong sandwich menu luyện từ vựng (M7)*)
 - **Nhánh Git (Branch):** `main`
 - **Trạng thái Git Working Tree:** Clean 100%
 - **Môi trường triển khai:** Vercel Static Hosting (phục vụ trực tiếp từ `index.html` và static assets)
-- **Thời điểm cập nhật:** `2026-11-04T15:10:00-06:00`
+- **Thời điểm cập nhật:** `2026-11-04T15:32:00-06:00`
 
 ---
 
@@ -28,7 +28,7 @@
 
 - **Kiểm thử đơn vị (Unit Tests):**
   - Lệnh chạy: `node --test tools/*.test.js`
-  - Kết quả: **206 / 206 bài test PASS (100%)**, 0 bài fail, thời gian chạy ~920ms.
+  - Kết quả: **207 / 207 bài test PASS (100%)**, 0 bài fail, thời gian chạy ~920ms.
   - Bộ kiểm thử bao gồm: `contrast-audit.test.js`, `focus-rings.test.js`, `sentence-timestamp-edit.test.js`, `userscript-embed-guard.test.js`, `supabase-article-count.test.js`, `article-audio.test.js`, `article-sync.test.js`, `french-utils.test.js`, `schema-v02.test.js`, `vocab-importer.test.js`, `vocab-practice.test.js`, `punct-corrections.test.js`, `punct-manual-merge.test.js`, `extract-prompt-template.test.js`, `theme-init.test.js`, `theme-tokens.test.js`.
 - **Kiểm kê mã màu (Color Linting via `node tools/lint-color.js`):**
   - Inline style màu trong JavaScript: **0**
@@ -83,6 +83,7 @@
 | **M4 (Article Audio)** | Đồng Bộ Giao Diện Player Đọc Báo 2 Tầng Theo Video Player, Hiển Thị Giây & Dải Tốc Độ | **Đã hoàn thành** | `ccdaf36` |
 | **M5 (Player Styling)** | Chuẩn Hóa Độ Dày Thanh Tiến Độ 8px Ôm Khít & Bo Góc 11px Cụm Nút Tốc Độ Trên Cả 2 Player | **Đã hoàn thành** | `433246d` |
 | **M6 (Player Sync)** | Chuyển Đổi Thời Lượng Video Sang Dạng Giây & Bổ Sung Nút Tốc Độ 1.25x Trên Cả 2 Player | **Đã hoàn thành** | `ccbfca3` |
+| **M7 (Vocab Contrast)** | Khắc Phục Lỗi Ẩn Chữ Tiêu Đề Mục Active Trong Sandwich Menu Luyện Từ Vựng | **Đã hoàn thành** | `b59cb0b` |
 | **Offline Aligner** | Tool Tự Động Hóa MLX Whisper Căn Chỉnh Audio/Transcript Ngoại Tuyến Trên Apple Silicon (`offline_aligner/`) | **Đã hoàn thành** | Local Tool |
 
 ---
