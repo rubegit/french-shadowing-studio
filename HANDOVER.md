@@ -8,7 +8,7 @@
 ---
 
 ### 1. Metadata Bàn giao (Handover Metadata)
-- **Thời điểm cập nhật:** 2026-11-03T22:45:00-06:00
+- **Thời điểm cập nhật:** 2026-11-04T11:22:00-06:00
 - **Agent bàn giao (Outgoing Agent):** Antigravity Agent
 - **Mục đích:** Bàn giao liền mạch sang phiên làm việc / tài khoản Google mới trong Antigravity.
 - **Tài liệu tham chiếu bắt buộc:** [`AGENTS.md`](./AGENTS.md), [`PROJECT_STATUS.md`](./PROJECT_STATUS.md).
@@ -17,8 +17,8 @@
 
 ### 2. Bản chụp Trạng thái Git (Git State Snapshot)
 - **Nhánh hiện tại (Branch):** `main`
-- **HEAD Commit tại thời điểm nạp:** `61c89f2` (*style: hoàn tất dọn dẹp inline colors và svg hex trong view-home (M5d.3)*)
-- **Tình trạng Remote:** Đang đi trước `origin/main` 3 commits (`01e8373`, `7e87543`, `61c89f2`), **chưa push lên remote** theo yêu cầu bảo lưu cục bộ của người dùng.
+- **HEAD Commit tại thời điểm nạp:** `e77366c` (*feat(a11y): chuẩn hóa trạng thái tương tác, scrollbars và focus rings theo WCAG (M6)*)
+- **Tình trạng Remote:** Đang đi trước `origin/main` 4 commits (`01e8373`, `7e87543`, `61c89f2`, `e77366c`), **chưa push lên remote** theo yêu cầu bảo lưu cục bộ của người dùng.
 - **Trạng thái Working Tree:** **Clean 100%** (xác minh thực tế qua `git status --porcelain`).
 - **Cảnh báo an toàn Git:**
   - Tuyệt đối **KHÔNG PUSH** commit cục bộ lên remote nếu người dùng chưa ra lệnh rõ ràng bằng văn bản.
@@ -29,10 +29,9 @@
 ### 3. Tiến độ & Trạng thái Các Module (Milestone Progress)
 - **Release chính thức gần nhất:** `v2.0.27` (Commit `ba376ac`) – Đã tag và push.
 - **Module vừa nghiệm thu:**
-  - **`M5d`** (`M5d.1`, `M5d.2`, `M5d.3`): Dọn dẹp sạch sẽ 100% inline styles màu và thuộc tính SVG HEX trong toàn bộ 16 HTML partials và view-home. Đã nghiệm thu chính thức với các từ khóa *"Duyệt M5d.1"*, *"duyệt M5d.2"*, *"Duyệt M5d.3"*.
+  - **`M6`** (Commit `e77366c`): Chuẩn hóa trạng thái tương tác & vòng sáng chỉ thị (Focus Rings WCAG AAA/AA, custom scrollbars contrast >= 3:1, tactile press feedback scale 0.98, disabled controls, 186/186 tests PASS). Đã nghiệm thu chính thức với từ khóa *"Duyệt M6"*.
 - **Các Module tồn đọng & kế hoạch tiếp theo:**
-  - **`M6` (Chuẩn bị triển khai):** Chuẩn hóa tương tác & Vòng sáng chỉ thị (Focus rings, progress rings, lỗi E14).
-  - **`M7` (Dự kiến):** Kiểm toán toàn diện tổng thể 26 điểm đo tương phản và dọn dẹp cờ thừa.
+  - **`M7` (Chuẩn bị triển khai):** Kiểm toán toàn diện tổng thể 26 điểm đo tương phản và dọn dẹp cờ thừa.
 
 ---
 
@@ -47,12 +46,12 @@
 ### 5. Kết quả Kiểm thử Thực tế & Nợ Kỹ thuật Tại Thời Điểm Bàn Giao
 - **Kiểm thử đơn vị (Unit Tests):**
   - Lệnh chạy: `node --test tools/*.test.js`
-  - Kết quả thực tế: **181 pass / 0 fail / 0 skipped** (thời gian chạy ~2.1s).
+  - Kết quả thực tế: **186 pass / 0 fail / 0 skipped** (thời gian chạy ~900ms).
 - **Kiểm kê mã màu (`node tools/lint-color.js`):**
-  - Inline style màu trong JS: **0** (đã sạch hoàn toàn).
-  - Class Tailwind màu trong HTML: **0** (đã sạch hoàn toàn).
-  - **Inline style màu trong HTML partials:** **0** (đã dọn sạch 100% qua M5d).
-  - **Nợ kỹ thuật SVG fill/stroke HEX:** **0** (đã thay bằng currentColor/semantic class 100%).
+  - Inline style màu trong JS: **0** (sạch 100%).
+  - Class Tailwind màu trong HTML: **0** (sạch 100%).
+  - Inline style màu trong HTML partials: **0** (sạch 100%).
+  - Thuộc tính SVG fill/stroke HEX: **0** (sạch 100%).
   - **Mã HEX trong CSS ngoài token:** **921 HEX**.
 - **Trạng thái Build:**
   - `python3 tools/restructure.py build`: PASS (0 diff).

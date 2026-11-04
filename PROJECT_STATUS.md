@@ -14,11 +14,11 @@
 
 - **Tên dự án:** French Shadowing Studio
 - **Phiên bản phát hành gần nhất:** `v2.0.27` (Commit `ba376ac`)
-- **Current HEAD Commit:** `61c89f2` (*style: hoàn tất dọn dẹp inline colors và svg hex trong view-home (M5d.3)*)
+- **Current HEAD Commit:** `e77366c` (*feat(a11y): chuẩn hóa trạng thái tương tác, scrollbars và focus rings theo WCAG (M6)*)
 - **Nhánh Git (Branch):** `main`
 - **Trạng thái Git Working Tree:** Clean 100%
 - **Môi trường triển khai:** Vercel Static Hosting (phục vụ trực tiếp từ `index.html` và static assets)
-- **Thời điểm cập nhật:** `2026-11-03T22:45:00-06:00`
+- **Thời điểm cập nhật:** `2026-11-04T11:22:00-06:00`
 
 ---
 
@@ -28,23 +28,22 @@
 
 - **Kiểm thử đơn vị (Unit Tests):**
   - Lệnh chạy: `node --test tools/*.test.js`
-  - Kết quả: **181 / 181 bài test PASS (100%)**, 0 bài fail, thời gian chạy ~2.1s.
-  - Bộ kiểm thử bao gồm: `contrast-audit.test.js`, `french-utils.test.js`, `schema-v02.test.js`, `vocab-importer.test.js`, `vocab-practice.test.js`, `punct-corrections.test.js`, `punct-manual-merge.test.js`, `extract-prompt-template.test.js`, `theme-init.test.js`, `theme-tokens.test.js`.
+  - Kết quả: **186 / 186 bài test PASS (100%)**, 0 bài fail, thời gian chạy ~900ms.
+  - Bộ kiểm thử bao gồm: `contrast-audit.test.js`, `focus-rings.test.js`, `french-utils.test.js`, `schema-v02.test.js`, `vocab-importer.test.js`, `vocab-practice.test.js`, `punct-corrections.test.js`, `punct-manual-merge.test.js`, `extract-prompt-template.test.js`, `theme-init.test.js`, `theme-tokens.test.js`.
 - **Kiểm kê mã màu (Color Linting via `node tools/lint-color.js`):**
   - Inline style màu trong JavaScript: **0**
   - Class màu Tailwind trong HTML: **0**
-  - **Inline style màu trong HTML partials:** **0** *(đã dọn sạch 100% qua M5d.1, M5d.2, M5d.3)*
-  - **Thuộc tính SVG fill/stroke HEX:** **0** *(đã thay thế 100% bằng currentColor / semantic classes)*
-  - **Mã HEX trong CSS ngoài khối token:** **921** *(giữ nguyên hạn ngạch $\le 921$)*
+  - Inline style màu trong HTML partials: **0**
+  - Thuộc tính SVG fill/stroke HEX: **0**
+  - Mã HEX trong CSS ngoài khối token: **921** *(giữ nguyên hạn ngạch $\le 921$)*
 - **Kiểm toán độ tương phản (Contrast Audit):**
   - Lệnh chạy: `node tools/contrast-audit/audit-runner.js`
-  - Bản chất: Công cụ tính toán độ tương phản trên danh mục mẫu tĩnh gồm 25 cặp màu (`KNOWN_ERROR_CATALOG` từ Bảng 4 của Kế hoạch gốc) để duy trì tệp `baseline.json`. Đây là công cụ đo đạc đối chiếu danh mục lỗi mẫu, **chưa phải là công cụ dynamic runtime audit** quét toàn bộ DOM động khi ứng dụng đang chạy.
+  - Bản chất: Công cụ tính toán độ tương phản trên danh mục mẫu tĩnh gồm 25 cặp màu (`KNOWN_ERROR_CATALOG` từ Bảng 4 của Kế hoạch gốc) để duy trì tệp `baseline.json`.
 - **Trạng thái Build & Verify Template:**
   - Lệnh Build: `python3 tools/restructure.py build`
-    - Kết quả: **PASS (100%)** – Lắp ráp hoàn chỉnh `index.html` từ `src/index.src.html` và 16 partials; kết quả tạo ra **0 Git diff**, chứng minh bản build hoàn toàn đồng bộ với mã nguồn partials.
+    - Kết quả: **PASS (100%)** – Lắp ráp hoàn chỉnh `index.html` từ `src/index.src.html` và 16 partials; kết quả tạo ra **0 Git diff**.
   - Lệnh Verify: `python3 tools/restructure.py verify`
-    - Kết quả: **Exit code 1** (`KHÁC bản gốc`).
-    - Giải thích kỹ thuật: Lệnh so khớp SHA-256 của chuỗi lắp ráp với `original_sha256` trong `tools/split-manifest.json` (lưu snapshot của `index.html` nguyên khối tại thời điểm tách module ngày 25/10/2026). Sau ngày 25/10, dự án đã bổ sung liên tục các tính năng mới (SRS, TCF, token CSS ngữ nghĩa...), do đó việc khác biệt với bản gốc lịch sử 25/10 là hoàn toàn tất yếu.
+    - Kết quả: **Exit code 1** (`KHÁC bản gốc` 25/10/2026, tất yếu sau khi thêm các tính năng và token mới).
 
 ---
 
@@ -72,20 +71,15 @@
 | **M-Account-Handover-A** | Thiết lập Cơ chế & Biên bản Bàn giao Tài khoản Động (`HANDOVER.md`) | **Đã hoàn thành** | `f28088b` + `3c8594c` |
 | **M-Account-Handover-B** | Tạo Agent Skill `/fss-handover` Điều Phối Bàn Giao & Tiếp Nhận | **Đã hoàn thành** | `4b1a8d0` |
 | **M5d** | Dọn Dẹp 100% Inline Styles Màu & SVG HEX Trong HTML Partials | **Đã hoàn thành** | `01e8373` + `7e87543` + `61c89f2` |
-| **M6** | Chuẩn Hóa Trạng Thái Tương Tác & Vòng Sáng Chỉ Thị (Focus Rings) | **Chưa bắt đầu (Sắp triển khai)** | *(Kế hoạch tiếp theo)* |
-| **M7** | Kiểm Toán Tổng Thể Toàn Diện & Dọn Dẹp Cờ Thừa (Final Audit) | **Chưa bắt đầu (Dự kiến)** | *(Kế hoạch tiếp theo)* |
+| **M6** | Chuẩn Hóa Trạng Thái Tương Tác & Vòng Sáng Chỉ Thị (Focus Rings) | **Đã hoàn thành** | `e77366c` |
+| **M7** | Kiểm Toán Tổng Thể Toàn Diện & Dọn Dẹp Cờ Thừa (Final Audit) | **Chưa bắt đầu (Sắp triển khai)** | *(Kế hoạch tiếp theo)* |
 
 ---
 
 ## 4. Current Focus (Trọng tâm Hiện thời)
 
-- Đã dọn sạch triệt để:
-  - **100% Tailwind color classes trong HTML** (0 class)
-  - **100% inline styles màu trong JavaScript** (0 style)
-  - **100% inline styles màu trong HTML** (0 style)
-  - **100% thuộc tính SVG fill/stroke HEX** (0 thuộc tính)
-- Đã kiểm tra 181/181 unit tests PASS hoàn toàn.
-- Trọng tâm công việc tiếp theo là **Milestone M6** – Chuẩn hóa trạng thái tương tác & vòng sáng chỉ thị (Focus Rings, Progress Rings, lỗi E14).
+- Đã hoàn tất nghiệm thu **Milestone M6** (Focus rings WCAG AAA/AA, scrollbar contrast, active/disabled states, 186/186 unit tests PASS).
+- Trọng tâm công việc tiếp theo là **Milestone M7 – Kiểm toán Tổng thể Toàn diện & Dọn dẹp Cờ thừa (Final Audit)**.
 
 ---
 
