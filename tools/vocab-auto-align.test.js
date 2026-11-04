@@ -130,3 +130,10 @@ test('M9.3 Fuzzy & Prefix History Matching: Tìm thấy phụ đề khi lệch p
   const sents2 = mockGetSentences(cardWithoutVid);
   assert.ok(sents2 && sents2.length === 1, 'Tìm thấy phụ đề cho thẻ khuyết ID nhờ so khớp tiêu đề mờ');
 });
+
+test('M9.4 Storage Function: setVocab và alias saveVocab tồn tại và hoạt động an toàn', () => {
+  const code = fs.readFileSync(path.join(ROOT, 'js/01g-vocab-list.js'), 'utf8');
+  assert.ok(code.includes('function setVocab('), 'Định nghĩa function setVocab');
+  assert.ok(code.includes('const saveVocab = setVocab;'), 'Có alias saveVocab = setVocab');
+  assert.ok(!code.includes('saveVocab(all)'), 'Không còn gọi saveVocab(all) khi căn mốc tự động');
+});

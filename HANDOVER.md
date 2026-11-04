@@ -39,10 +39,11 @@
   - **`M6 (Player Sync)`** (Commit `ccbfca3`): Chuyển đổi thời lượng Video sang dạng giây (`XX.Xs` / `m:ss` toggle) và bổ sung nút tốc độ `1.25x` vào `#pv-speeds`.
   - **`M7 (Vocab Contrast)`** (Commit `b59cb0b`): Khắc phục lỗi tương phản làm ẩn tiêu đề mục active trong Sandwich Menu luyện từ vựng (`var(--fs-ink)`).
   - **`M8 (Vocab Auto-Align)`** (Commit `330d91e`): Bổ sung nút bấm `⚡ Căn mốc tự động` trên thanh tác vụ Sổ từ vựng, tự động đếm số từ chưa căn mốc và đối chiếu gắn timestamp từ phụ đề; hỗ trợ tự căn mốc khi click thẻ `(chưa căn mốc)`.
-  - **`M9 (Fuzzy Auto-Align)`** (Pending Commit): Chuẩn hóa tiền tố `yt:`, sửa lỗi tìm kiếm tiêu đề lịch sử `x.title || x.videoTitle`, khớp tiêu đề mờ (fuzzy) và tự động bù ID vào thẻ từ vựng khi căn mốc; sửa `openVocabVideo` dứt điểm lỗi `javascript:void(0)`.
+  - **`M9 (Fuzzy Auto-Align)`** (Commit `f94f144`): Chuẩn hóa tiền tố `yt:`, sửa lỗi tìm kiếm tiêu đề lịch sử `x.title || x.videoTitle`, khớp tiêu đề mờ (fuzzy) và tự động bù ID vào thẻ từ vựng khi căn mốc; sửa `openVocabVideo` dứt điểm lỗi `javascript:void(0)`.
+  - **`M9.1 (Vocab Save Defect)`** (Pending Commit): Sửa lỗi tham chiếu `saveVocab` sang `setVocab` và bổ sung alias an toàn khi căn mốc tự động.
   - **`Offline Aligner`** (Local Tool): Tích hợp engine MLX Whisper cục bộ và file script double-click `Chay_Dong_Bo.command` tự động quét cặp file audio/transcript, sinh JSON và chuyển vào thư mục Done.
 - **Bộ kiểm thử tự động:**
-  - `node --test tools/*.test.js`: **213 / 213 PASS (100%)**.
+  - `node --test tools/*.test.js`: **214 / 214 PASS (100%)**.
   - `node tools/lint-color.js`: **921 / 921 HEX**, **0 inline style**, **0 tailwind color**.
 
 ---

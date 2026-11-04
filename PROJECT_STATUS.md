@@ -85,7 +85,8 @@
 | **M6 (Player Sync)** | Chuyển Đổi Thời Lượng Video Sang Dạng Giây & Bổ Sung Nút Tốc Độ 1.25x Trên Cả 2 Player | **Đã hoàn thành** | `ccbfca3` |
 | **M7 (Vocab Contrast)** | Khắc Phục Lỗi Ẩn Chữ Tiêu Đề Mục Active Trong Sandwich Menu Luyện Từ Vựng | **Đã hoàn thành** | `b59cb0b` |
 | **M8 (Vocab Auto-Align)** | Nút Bấm & Cơ Chế Căn Mốc Thời Gian Tự Động Cho Từ Vựng Chưa Có Timestamp | **Đã hoàn thành** | `330d91e` |
-| **M9 (Fuzzy Auto-Align)** | Chuẩn Hóa ID yt:, Khớp Tiêu Đề Mờ & Tự Động Bù VideoId Cho Căn Mốc Từ Vựng | **Đã hoàn thành** | Pending Commit |
+| **M9 (Fuzzy Auto-Align)** | Chuẩn Hóa ID yt:, Khớp Tiêu Đề Mờ & Tự Động Bù VideoId Cho Căn Mốc Từ Vựng | **Đã hoàn thành** | `f94f144` |
+| **M9.1 (Vocab Save Defect)** | Bản Vá Lỗi Tham Chiếu Hàm Lưu Trữ `setVocab` / `saveVocab` Trong Sổ Từ Vựng | **Đã hoàn thành** | Pending Commit |
 | **Offline Aligner** | Tool Tự Động Hóa MLX Whisper Căn Chỉnh Audio/Transcript Ngoại Tuyến Trên Apple Silicon (`offline_aligner/`) | **Đã hoàn thành** | Local Tool |
 
 ---

@@ -175,6 +175,8 @@
         return true;
       } catch (e) { return false; }
     }
+    const saveVocab = setVocab;
+    window.saveVocab = setVocab;
 
     // Đánh tombstone cho một từ theo id (dùng cho deleteVocab và deleteSavedFromToast)
     function markVocabDeleted(id) {
@@ -698,7 +700,7 @@
       if (x.t_known === false) {
         const autoSuccess = tryAlignSingleVocabItem(x);
         if (autoSuccess) {
-          saveVocab(getVocab());
+          setVocab(getVocab());
           renderVocabPage();
           updateVocabBadges();
           if (typeof showVocabToast === 'function') {
@@ -1487,7 +1489,7 @@
         }
       });
       if (alignedCount > 0) {
-        saveVocab(all);
+        setVocab(all);
         renderVocabPage();
         updateVocabBadges();
         const msg = 'Đã căn mốc thành công ' + alignedCount + '/' + unaligned.length + ' từ vựng!';
