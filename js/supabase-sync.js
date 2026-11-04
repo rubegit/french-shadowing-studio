@@ -446,6 +446,47 @@
     };
   }
 
+  // Đếm phân loại video vs bài báo trong danh sách lịch sử
+  function countHistoryBreakdown(list) {
+    var arr = Array.isArray(list) ? list : [];
+    var videos = 0;
+    var articles = 0;
+    for (var i = 0; i < arr.length; i++) {
+      var item = arr[i];
+      if (!item || item._deleted) continue;
+      if (item.isText) {
+        articles++;
+      } else {
+        videos++;
+      }
+    }
+    return {
+      videos: videos,
+      articles: articles,
+      total: videos + articles
+    };
+  }
+
+  // Định dạng chuỗi hiển thị chi tiết (ví dụ: "3 video, 2 bài báo" hoặc "3 video")
+  function formatHistoryBreakdown(list) {
+    var c = countHistoryBreakdown(list);
+    var parts = [];
+    if (c.videos > 0) parts.push(c.videos + ' video');
+    if (c.articles > 0) parts.push(c.articles + ' bài báo');
+    if (parts.length === 0) return '0 bài';
+    return parts.join(', ');
+  }
+
+  // Định dạng chuỗi hiển thị với dấu chấm bullet (ví dụ: "3 video • 2 bài báo")
+  function formatHistoryBullet(list) {
+    var c = countHistoryBreakdown(list);
+    var parts = [];
+    if (c.videos > 0) parts.push(c.videos + ' video');
+    if (c.articles > 0) parts.push(c.articles + ' bài báo');
+    if (parts.length === 0) return '0 bài';
+    return parts.join(' &bull; ');
+  }
+
 
   // Gộp Tiến độ chép chính tả
   function mergeProgressObjs(localProg, cloudProg) {
@@ -498,7 +539,7 @@
     if (vRes.hasLocalNew || hRes.hasLocalNew || pRes.hasLocalNew) {
       await pushAllDataToCloud(vRes.merged, hRes.merged, pRes.merged);
     } else {
-      updateSyncStatus('synced', 'Đã đồng bộ ' + vRes.merged.filter(function(v){ return !v._deleted; }).length + ' từ, ' + hRes.merged.filter(function(h){ return !h._deleted; }).length + ' video');
+      updateSyncStatus('synced', 'Đã đồng bộ ' + vRes.merged.filter(function(v){ return !v._deleted; }).length + ' từ, ' + formatHistoryBreakdown(hRes.merged));
       recordLastSync(row.updated_at);
     }
   }
@@ -598,7 +639,7 @@
           updateSyncStatus('error', 'Lỗi lưu dữ liệu lên Cloud');
         }
       } else {
-        updateSyncStatus('synced', 'Đã đồng bộ ' + vocabList.length + ' từ, ' + cleanHistory.length + ' video');
+        updateSyncStatus('synced', 'Đã đồng bộ ' + vocabList.length + ' từ, ' + formatHistoryBreakdown(cleanHistory));
         recordLastSync();
       }
     } catch (err) {
@@ -653,7 +694,7 @@
     }
     var localVocab = getLocalVocab().filter(function(v) { return !v._deleted; });
     var localHist = getLocalHistory().filter(function(h) { return !h._deleted; });
-    var msg = 'Bạn có chắc chắn muốn lấy dữ liệu TRÊN MÁY NÀY (' + localVocab.length + ' từ, ' + localHist.length + ' video) để GHI ĐÈ HOÀN TOÀN lên Đám mây?\n\nLưu ý: Mọi dữ liệu trên Cloud sẽ được thay thế chính xác bằng dữ liệu của máy này.';
+    var msg = 'Bạn có chắc chắn muốn lấy dữ liệu TRÊN MÁY NÀY (' + localVocab.length + ' từ, ' + formatHistoryBreakdown(localHist) + ') để GHI ĐÈ HOÀN TOÀN lên Đám mây?\n\nLưu ý: Mọi dữ liệu trên Cloud sẽ được thay thế chính xác bằng dữ liệu của máy này.';
     if (!confirm(msg)) return;
 
     updateSyncStatus('syncing', 'Đang ghi đè dữ liệu lên Cloud…');
@@ -694,7 +735,7 @@
       var cloudHist = Array.isArray(row.history) ? row.history : [];
       var cloudProg = (row.progress && typeof row.progress === 'object') ? row.progress : {};
 
-      var msg = 'Bạn có chắc muốn LẤY DỮ LIỆU TỪ CLOUD (' + cloudVocab.filter(function(v){ return !v._deleted; }).length + ' từ, ' + cloudHist.filter(function(h){ return !h._deleted; }).length + ' video) ĐÈ LÊN MÁY NÀY?\n\nLưu ý: Dữ liệu chưa đồng bộ trên máy này sẽ bị thay thế bằng Cloud.';
+      var msg = 'Bạn có chắc muốn LẤY DỮ LIỆU TỪ CLOUD (' + cloudVocab.filter(function(v){ return !v._deleted; }).length + ' từ, ' + formatHistoryBreakdown(cloudHist) + ') ĐÈ LÊN MÁY NÀY?\n\nLưu ý: Dữ liệu chưa đồng bộ trên máy này sẽ bị thay thế bằng Cloud.';
       if (!confirm(msg)) {
         updateSyncStatus('synced', 'Đã hủy thao tác');
         return;
@@ -746,11 +787,11 @@
       '  <div class="grid grid-cols-2 gap-2 text-xs">',
       '    <div class="p-2.5 rounded-lg bg-[#070e22] border border-blue-950">',
       '      <div class="text-[11px] font-semibold text-slate-400">Trên máy này:</div>',
-      '      <div class="text-blue-300 font-bold mt-1">' + lVCount + ' từ &bull; ' + lHCount + ' video</div>',
+      '      <div class="text-blue-300 font-bold mt-1">' + lVCount + ' từ &bull; ' + formatHistoryBullet(getLocalHistory()) + '</div>',
       '    </div>',
       '    <div class="p-2.5 rounded-lg bg-[#070e22] border border-amber-950/60">',
       '      <div class="text-[11px] font-semibold text-amber-400">Trên Cloud:</div>',
-      '      <div class="text-amber-300 font-bold mt-1">' + cVCount + ' từ &bull; ' + cHCount + ' video</div>',
+      '      <div class="text-amber-300 font-bold mt-1">' + cVCount + ' từ &bull; ' + formatHistoryBullet(cloudHist) + '</div>',
       '    </div>',
       '  </div>',
       '  <p class="text-[11px] text-slate-300">Chọn cách bạn muốn đồng bộ:</p>',
@@ -970,7 +1011,7 @@
     else {
       var lastSyncStr = localStorage.getItem(LAST_SYNC_KEY) || 'Chưa đồng bộ lần nào';
       var localVocabCount = getLocalVocab().filter(function(v) { return !v._deleted; }).length;
-      var localHistCount = getLocalHistory().filter(function(h) { return !h._deleted; }).length;
+      var hBreakdown = countHistoryBreakdown(getLocalHistory());
       var localProgCount = Object.keys(getLocalProgress()).length;
 
       contentHtml = [
@@ -980,14 +1021,18 @@
         '      <span class="text-slate-400">Tài khoản:</span>',
         '      <span class="font-bold text-white truncate max-w-[200px]">' + (currentUser ? currentUser.email : 'Chưa đăng nhập') + '</span>',
         '    </div>',
-        '    <div class="grid grid-cols-3 gap-2 pt-1 border-t border-blue-950/60 text-center">',
+        '    <div class="grid grid-cols-4 gap-1.5 pt-1 border-t border-blue-950/60 text-center">',
         '      <div class="p-2 rounded-lg bg-[#070e22] border border-blue-950">',
         '        <div class="font-bold text-blue-300 text-sm">' + localVocabCount + '</div>',
         '        <div class="text-[10px] text-slate-400 mt-0.5">Từ vựng</div>',
         '      </div>',
         '      <div class="p-2 rounded-lg bg-[#070e22] border border-blue-950">',
-        '        <div class="font-bold text-rose-300 text-sm">' + localHistCount + '</div>',
-        '        <div class="text-[10px] text-slate-400 mt-0.5">Video / bài</div>',
+        '        <div class="font-bold text-rose-300 text-sm">' + hBreakdown.videos + '</div>',
+        '        <div class="text-[10px] text-slate-400 mt-0.5">Video</div>',
+        '      </div>',
+        '      <div class="p-2 rounded-lg bg-[#070e22] border border-blue-950">',
+        '        <div class="font-bold text-amber-300 text-sm">' + hBreakdown.articles + '</div>',
+        '        <div class="text-[10px] text-slate-400 mt-0.5">Bài báo</div>',
         '      </div>',
         '      <div class="p-2 rounded-lg bg-[#070e22] border border-blue-950">',
         '        <div class="font-bold text-emerald-300 text-sm">' + localProgCount + '</div>',
@@ -1237,7 +1282,10 @@
     syncHistoryDebounced: syncHistoryDebounced,
     syncProgressDebounced: syncProgressDebounced,
     pullAll: pullAllDataFromCloud,
-    pushAll: pushAllDataToCloud
+    pushAll: pushAllDataToCloud,
+    countHistoryBreakdown: countHistoryBreakdown,
+    formatHistoryBreakdown: formatHistoryBreakdown,
+    formatHistoryBullet: formatHistoryBullet
   };
 
   // Tự động khởi chạy khi tải trang
