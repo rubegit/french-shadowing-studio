@@ -34,7 +34,7 @@
       <textarea id="bk-tr-text" class="ai-textarea" spellcheck="false" placeholder="Dán câu trả lời của AI vào đây (xen kẽ câu tiếng Pháp và câu tiếng Việt)..."></textarea>
       <div class="bk-trfoot">
         <button type="button" class="ai-btn ai-btn-primary" onclick="bkTrApply()">Áp dụng bản dịch</button>
-        <span style="font-size:.72rem;color:#64748b">Nếu AI bị cắt giữa chừng, cứ áp dụng phần đã có, đợt kế tiếp sẽ tự bắt đầu từ chỗ AI dừng.</span>
+        <span class="fs-text-muted" style="font-size:.72rem;">Nếu AI bị cắt giữa chừng, cứ áp dụng phần đã có, đợt kế tiếp sẽ tự bắt đầu từ chỗ AI dừng.</span>
       </div>
       <div id="bk-tr-status" class="ai-status"></div>
       <details class="bk-details" style="margin-top:8px">
@@ -44,8 +44,8 @@
       <details class="bk-details">
         <summary>Quản lý bản dịch</summary>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
-          <button type="button" class="ai-btn ai-btn-ghost" style="color:#fca5a5" onclick="bkTrClear('chapter')">Xóa bản dịch chương này</button>
-          <button type="button" class="ai-btn ai-btn-ghost" style="color:#fca5a5" onclick="bkTrClear('book')">Xóa bản dịch cả sách</button>
+          <button type="button" class="ai-btn ai-btn-ghost fs-text-danger" onclick="bkTrClear('chapter')">Xóa bản dịch chương này</button>
+          <button type="button" class="ai-btn ai-btn-ghost fs-text-danger" onclick="bkTrClear('book')">Xóa bản dịch cả sách</button>
         </div>
       </details>
     </div>

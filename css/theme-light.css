@@ -93,6 +93,7 @@ html[data-ui="light"] {
   --fs-danger-bg: #FEF2F2;
   --fs-danger-border: #FCA5A5;
   --fs-danger-text: #B91C1C;
+  --fs-brand-claude: #D97757;
 
   --fs-warning: #F59E0B;
   --fs-warning-bg: #FFFBEB;
@@ -241,6 +242,7 @@ html[data-ui="light"].dark {
   --fs-danger-bg: rgba(239, 68, 68, 0.18);
   --fs-danger-border: rgba(239, 68, 68, 0.35);
   --fs-danger-text: #FCA5A5;
+  --fs-brand-claude: #D97757;
 
   --fs-warning: #FBBF24;
   --fs-warning-bg: rgba(245, 158, 11, 0.15);
@@ -292,6 +294,7 @@ html[data-ui="light"].dark {
 .fs-text-success { color: var(--fs-success-text) !important; }
 .fs-text-warn { color: var(--fs-warn-text) !important; }
 .fs-text-danger { color: var(--fs-danger-text) !important; }
+.fs-brand-claude { fill: var(--fs-brand-claude) !important; color: var(--fs-brand-claude) !important; }
 .fs-text-white { color: #ffffff !important; }
 
 .fs-surface-base { background-color: var(--fs-bg) !important; }

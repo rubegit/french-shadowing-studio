@@ -217,7 +217,7 @@
 <link rel="stylesheet" href="css/15-ipa-highlight.css?v=5b8c6b2b" id="ipa-hl-style">
 <link rel="stylesheet" href="css/16-own-video.css?v=211e741b" id="own-yt-style">
   <!-- Redesign Theme: Mint Pastel & Dark Mode (Spec 2026) -->
-  <link rel="stylesheet" href="css/theme-light.css?v=7a5d9e67">
+  <link rel="stylesheet" href="css/theme-light.css?v=4b2f184d">
 </head>
 <body class="fs-surface-base fs-text-primary min-h-screen flex flex-col antialiased" onclick="ensurePageFocus()">
 
@@ -236,7 +236,7 @@
         <button type="button" class="ai-btn ai-btn-copy" onclick="aiCopy('trans-player', this)">
           <i data-lucide="copy"></i><span>Copy prompt</span>
         </button>
-        <span class="ai-open-links"><a class="ai-btn ai-open-link" href="https://gemini.google.com/app" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="gmg-bl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4285f4"/><stop offset=".55" stop-color="#9b72cb"/><stop offset="1" stop-color="#d96570"/></linearGradient></defs><path fill="url(#gmg-bl)" d="M12 0C12 6.63 6.63 12 0 12c6.63 0 12 5.37 12 12 0-6.63 5.37-12 12-12-6.63 0-12-5.37-12-12z"/></svg><span>Mở Gemini</span></a><a class="ai-btn ai-open-link" href="https://claude.ai/" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><g fill="#d97757"><rect x="10.8" y="1" width="2.4" height="22" rx="1.2"/><rect x="10.8" y="1" width="2.4" height="22" rx="1.2" transform="rotate(45 12 12)"/><rect x="10.8" y="1" width="2.4" height="22" rx="1.2" transform="rotate(90 12 12)"/><rect x="10.8" y="1" width="2.4" height="22" rx="1.2" transform="rotate(135 12 12)"/></g></svg><span>Mở Claude</span></a></span>
+        <span class="ai-open-links"><a class="ai-btn ai-open-link" href="https://gemini.google.com/app" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="gmg-bl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4285f4"/><stop offset=".55" stop-color="#9b72cb"/><stop offset="1" stop-color="#d96570"/></linearGradient></defs><path fill="url(#gmg-bl)" d="M12 0C12 6.63 6.63 12 0 12c6.63 0 12 5.37 12 12 0-6.63 5.37-12 12-12-6.63 0-12-5.37-12-12z"/></svg><span>Mở Gemini</span></a><a class="ai-btn ai-open-link" href="https://claude.ai/" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><g class="fs-brand-claude" fill="currentColor"><rect x="10.8" y="1" width="2.4" height="22" rx="1.2"/><rect x="10.8" y="1" width="2.4" height="22" rx="1.2" transform="rotate(45 12 12)"/><rect x="10.8" y="1" width="2.4" height="22" rx="1.2" transform="rotate(90 12 12)"/><rect x="10.8" y="1" width="2.4" height="22" rx="1.2" transform="rotate(135 12 12)"/></g></svg><span>Mở Claude</span></a></span>
       </div>
       <textarea id="bl-textarea" class="ai-textarea" spellcheck="false" placeholder="Dán câu trả lời của AI vào đây (có thể dán nguyên cả codebox hoặc toàn bộ phản hồi xen kẽ Pháp - Việt)..."></textarea>
       <div class="ai-actions">
@@ -244,7 +244,7 @@
           <i data-lucide="check"></i><span>Áp dụng &amp; bật Song ngữ</span>
         </button>
         <button type="button" class="ai-btn ai-btn-ghost" onclick="closeBilingualModal()">Để sau</button>
-        <button type="button" id="bl-delete" class="ai-btn ai-btn-ghost ai-hide" onclick="deleteBilingual()" style="color:#fca5a5">
+        <button type="button" id="bl-delete" class="ai-btn ai-btn-ghost ai-hide fs-text-danger" onclick="deleteBilingual()">
           <i data-lucide="trash-2"></i><span>Xóa bản dịch</span>
         </button>
       </div>
@@ -344,7 +344,7 @@
       <input id="share-link-input" type="text" readonly onfocus="this.select()" class="ai-textarea" style="min-height:0;height:44px;resize:none;" />
       <p class="ai-step-text" style="margin-top:12px">Link này chỉ hoạt động sau khi file <strong id="share-file-name"></strong> (vừa được tải về máy) nằm trong <strong>thư mục subs</strong> trên hosting (cùng chỗ với các file phụ đề). Upload/ghi đè file đó là xong; file chứa phụ đề từng từ (karaoke) và bản dịch. Sửa bản dịch sau này thì bấm chia sẻ lại và upload đè file mới.</p>
       <p id="share-extra" class="ai-step-text"></p>
-      <p id="share-file-warn" class="ai-step-text" style="display:none;color:#fbbf24">Lưu ý: trang đang mở trực tiếp từ file trên máy nên người khác chưa mở được link, cần đưa cả thư mục lên hosting.</p>
+      <p id="share-file-warn" class="ai-step-text fs-text-warn" style="display:none">Lưu ý: trang đang mở trực tiếp từ file trên máy nên người khác chưa mở được link, cần đưa cả thư mục lên hosting.</p>
       <div class="ai-actions">
         <button type="button" class="ai-btn ai-btn-primary" onclick="copyShareLink(this)"><i data-lucide="copy"></i><span>Copy link</span></button>
         <button type="button" class="ai-btn ai-btn-ghost" onclick="closeShareModal()">Đóng</button>
@@ -386,7 +386,7 @@
           <button type="button" class="ai-btn ai-btn-copy" onclick="copyKeyVocabPrompt(this)">
             <i data-lucide="copy"></i><span>Copy prompt</span>
           </button>
-          <span class="ai-open-links"><a class="ai-btn ai-open-link" href="https://gemini.google.com/app" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="gmg-kv" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4285f4"/><stop offset=".55" stop-color="#9b72cb"/><stop offset="1" stop-color="#d96570"/></linearGradient></defs><path fill="url(#gmg-kv)" d="M12 0C12 6.63 6.63 12 0 12c6.63 0 12 5.37 12 12 0-6.63 5.37-12 12-12-6.63 0-12-5.37-12-12z"/></svg><span>Mở Gemini</span></a><a class="ai-btn ai-open-link" href="https://claude.ai/" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><g fill="#d97757"><rect x="10.8" y="1" width="2.4" height="22" rx="1.2"/><rect x="10.8" y="1" width="2.4" height="22" rx="1.2" transform="rotate(45 12 12)"/><rect x="10.8" y="1" width="2.4" height="22" rx="1.2" transform="rotate(90 12 12)"/><rect x="10.8" y="1" width="2.4" height="22" rx="1.2" transform="rotate(135 12 12)"/></g></svg><span>Mở Claude</span></a></span>
+          <span class="ai-open-links"><a class="ai-btn ai-open-link" href="https://gemini.google.com/app" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="gmg-kv" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4285f4"/><stop offset=".55" stop-color="#9b72cb"/><stop offset="1" stop-color="#d96570"/></linearGradient></defs><path fill="url(#gmg-kv)" d="M12 0C12 6.63 6.63 12 0 12c6.63 0 12 5.37 12 12 0-6.63 5.37-12 12-12-6.63 0-12-5.37-12-12z"/></svg><span>Mở Gemini</span></a><a class="ai-btn ai-open-link" href="https://claude.ai/" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><g class="fs-brand-claude" fill="currentColor"><rect x="10.8" y="1" width="2.4" height="22" rx="1.2"/><rect x="10.8" y="1" width="2.4" height="22" rx="1.2" transform="rotate(45 12 12)"/><rect x="10.8" y="1" width="2.4" height="22" rx="1.2" transform="rotate(90 12 12)"/><rect x="10.8" y="1" width="2.4" height="22" rx="1.2" transform="rotate(135 12 12)"/></g></svg><span>Mở Claude</span></a></span>
         </div>
         <textarea id="kv-textarea" class="ai-textarea" spellcheck="false" placeholder="Dán câu trả lời của AI vào đây..."></textarea>
         <div class="ai-actions">
@@ -413,7 +413,7 @@
         <button type="button" id="vm-copy-btn" class="ai-btn ai-btn-copy" onclick="copyVocabMeaningPrompt(this)">
           <i data-lucide="copy"></i><span>Copy prompt</span>
         </button>
-        <span class="ai-open-links"><a class="ai-btn ai-open-link" href="https://gemini.google.com/app" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="gmg-vm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4285f4"/><stop offset=".55" stop-color="#9b72cb"/><stop offset="1" stop-color="#d96570"/></linearGradient></defs><path fill="url(#gmg-vm)" d="M12 0C12 6.63 6.63 12 0 12c6.63 0 12 5.37 12 12 0-6.63 5.37-12 12-12-6.63 0-12-5.37-12-12z"/></svg><span>Mở Gemini</span></a><a class="ai-btn ai-open-link" href="https://claude.ai/" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><g fill="#d97757"><rect x="10.8" y="1" width="2.4" height="22" rx="1.2"/><rect x="10.8" y="1" width="2.4" height="22" rx="1.2" transform="rotate(45 12 12)"/><rect x="10.8" y="1" width="2.4" height="22" rx="1.2" transform="rotate(90 12 12)"/><rect x="10.8" y="1" width="2.4" height="22" rx="1.2" transform="rotate(135 12 12)"/></g></svg><span>Mở Claude</span></a></span>
+        <span class="ai-open-links"><a class="ai-btn ai-open-link" href="https://gemini.google.com/app" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="gmg-vm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4285f4"/><stop offset=".55" stop-color="#9b72cb"/><stop offset="1" stop-color="#d96570"/></linearGradient></defs><path fill="url(#gmg-vm)" d="M12 0C12 6.63 6.63 12 0 12c6.63 0 12 5.37 12 12 0-6.63 5.37-12 12-12-6.63 0-12-5.37-12-12z"/></svg><span>Mở Gemini</span></a><a class="ai-btn ai-open-link" href="https://claude.ai/" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><g class="fs-brand-claude" fill="currentColor"><rect x="10.8" y="1" width="2.4" height="22" rx="1.2"/><rect x="10.8" y="1" width="2.4" height="22" rx="1.2" transform="rotate(45 12 12)"/><rect x="10.8" y="1" width="2.4" height="22" rx="1.2" transform="rotate(90 12 12)"/><rect x="10.8" y="1" width="2.4" height="22" rx="1.2" transform="rotate(135 12 12)"/></g></svg><span>Mở Claude</span></a></span>
       </div>
       <textarea id="vm-textarea" class="ai-textarea" spellcheck="false" placeholder="Dán câu trả lời của AI vào đây (mỗi mục gồm dòng 'N. Nghĩa: ...' và 3 dòng VD...)"></textarea>
       <div class="ai-actions">
@@ -2356,7 +2356,7 @@
         <button type="button" class="ai-btn ai-btn-primary" onclick="bkImportConfirm()">Nhập sách và đọc ngay</button>
         <button type="button" class="ai-btn ai-btn-ghost" onclick="bkImportCancel()">Huỷ</button>
       </div>
-      <p class="ai-step-text" style="margin:10px 0 0;color:#64748b">Bỏ chọn những mục không cần (mục lục, bản quyền, lời khen…). Chương nào quá dài sẽ tự được chia nhỏ để đọc nhẹ hơn.</p>
+      <p class="ai-step-text fs-text-muted" style="margin:10px 0 0;">Bỏ chọn những mục không cần (mục lục, bản quyền, lời khen…). Chương nào quá dài sẽ tự được chia nhỏ để đọc nhẹ hơn.</p>
     </div>
   </div>
 
@@ -2396,7 +2396,7 @@
       <textarea id="bk-tr-text" class="ai-textarea" spellcheck="false" placeholder="Dán câu trả lời của AI vào đây (xen kẽ câu tiếng Pháp và câu tiếng Việt)..."></textarea>
       <div class="bk-trfoot">
         <button type="button" class="ai-btn ai-btn-primary" onclick="bkTrApply()">Áp dụng bản dịch</button>
-        <span style="font-size:.72rem;color:#64748b">Nếu AI bị cắt giữa chừng, cứ áp dụng phần đã có, đợt kế tiếp sẽ tự bắt đầu từ chỗ AI dừng.</span>
+        <span class="fs-text-muted" style="font-size:.72rem;">Nếu AI bị cắt giữa chừng, cứ áp dụng phần đã có, đợt kế tiếp sẽ tự bắt đầu từ chỗ AI dừng.</span>
       </div>
       <div id="bk-tr-status" class="ai-status"></div>
       <details class="bk-details" style="margin-top:8px">
@@ -2406,8 +2406,8 @@
       <details class="bk-details">
         <summary>Quản lý bản dịch</summary>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
-          <button type="button" class="ai-btn ai-btn-ghost" style="color:#fca5a5" onclick="bkTrClear('chapter')">Xóa bản dịch chương này</button>
-          <button type="button" class="ai-btn ai-btn-ghost" style="color:#fca5a5" onclick="bkTrClear('book')">Xóa bản dịch cả sách</button>
+          <button type="button" class="ai-btn ai-btn-ghost fs-text-danger" onclick="bkTrClear('chapter')">Xóa bản dịch chương này</button>
+          <button type="button" class="ai-btn ai-btn-ghost fs-text-danger" onclick="bkTrClear('book')">Xóa bản dịch cả sách</button>
         </div>
       </details>
     </div>
@@ -3222,7 +3222,7 @@
 <script id="own-yt-script" src="js/10-own-video.js?v=5fbca9ea"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabase-sync.js?v=c37efa65"></script>
-<script src="js/vocab-practice.js?v=c5dbb8ac"></script>
+<script src="js/vocab-practice.js?v=dc2a3dbd"></script>
 <script src="js/tcf-exam.js?v=f253fe8b"></script>
 <script src="js/schema-v02.js"></script>
 <script src="js/french-utils.js"></script>
