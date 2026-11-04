@@ -347,7 +347,7 @@ html[data-ui="light"] body {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* Custom Scrollbars */
+/* Custom Scrollbars (High-Contrast for Light & Dark) */
 html[data-ui="light"] ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -358,7 +358,7 @@ html[data-ui="light"] ::-webkit-scrollbar-track {
 }
 
 html[data-ui="light"] ::-webkit-scrollbar-thumb {
-  background: var(--fs-border);
+  background: var(--fs-border-control);
   border-radius: var(--fs-radius-pill);
 }
 
@@ -369,14 +369,76 @@ html[data-ui="light"] ::-webkit-scrollbar-thumb:hover {
 /* Firefox scrollbar */
 html[data-ui="light"] * {
   scrollbar-width: thin;
-  scrollbar-color: var(--fs-border) var(--fs-bg);
+  scrollbar-color: var(--fs-border-control) var(--fs-bg);
 }
 
-/* Accessible Focus Visible Ring */
+/* Accessible Focus Visible Ring (WCAG 2.4.7 & 2.4.11) */
 html[data-ui="light"] :focus-visible {
-  outline: 3px solid var(--fs-primary) !important;
+  outline: 2.5px solid var(--fs-accent) !important;
   outline-offset: 2px !important;
 }
+
+html[data-ui="light"].dark :focus-visible {
+  outline: 2.5px solid var(--fs-primary-strong) !important;
+  outline-offset: 2px !important;
+}
+
+html[data-ui="light"] button:focus-visible,
+html[data-ui="light"] a:focus-visible,
+html[data-ui="light"] input:focus-visible,
+html[data-ui="light"] textarea:focus-visible,
+html[data-ui="light"] select:focus-visible,
+html[data-ui="light"] [role="button"]:focus-visible,
+html[data-ui="light"] [tabindex]:focus-visible {
+  outline: 2.5px solid var(--fs-accent) !important;
+  outline-offset: 2px !important;
+  box-shadow: var(--fs-focus-ring) !important;
+}
+
+html[data-ui="light"].dark button:focus-visible,
+html[data-ui="light"].dark a:focus-visible,
+html[data-ui="light"].dark input:focus-visible,
+html[data-ui="light"].dark textarea:focus-visible,
+html[data-ui="light"].dark select:focus-visible,
+html[data-ui="light"].dark [role="button"]:focus-visible,
+html[data-ui="light"].dark [tabindex]:focus-visible {
+  outline: 2.5px solid var(--fs-primary-strong) !important;
+  outline-offset: 2px !important;
+  box-shadow: var(--fs-focus-ring) !important;
+}
+
+/* ====================================================================
+   MODULE M6: STANDARDIZED INTERACTION STATES (SPEC M9 & WCAG AAA)
+   ==================================================================== */
+
+/* Active tactile press feedback (scale 0.98) */
+html[data-ui="light"] button:not(:disabled):active,
+html[data-ui="light"] .fs-btn:not(:disabled):active,
+html[data-ui="light"] .btn:not(:disabled):active,
+html[data-ui="light"] .chip:active,
+html[data-ui="light"] .nav-tab:active {
+  transform: scale(0.98) !important;
+  transition: transform 0.08s ease !important;
+}
+
+/* Disabled controls: standard 0.5 opacity and not-allowed cursor */
+html[data-ui="light"] button:disabled,
+html[data-ui="light"] input:disabled,
+html[data-ui="light"] textarea:disabled,
+html[data-ui="light"] select:disabled,
+html[data-ui="light"] .fs-btn:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+}
+
+/* Hint pill contrast normalization (E14) */
+html[data-ui="light"] .vph-hint-pill {
+  background: var(--fs-tint) !important;
+  color: var(--fs-accent-text) !important;
+  border: 1px solid var(--fs-border-control) !important;
+}
+
 
 /* Respect user's motion preferences */
 @media (prefers-reduced-motion: reduce) {
