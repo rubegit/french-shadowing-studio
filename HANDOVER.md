@@ -8,7 +8,7 @@
 ---
 
 ### 1. Metadata Bàn giao (Handover Metadata)
-- **Thời điểm cập nhật:** 2026-11-04T15:32:00-06:00
+- **Thời điểm cập nhật:** 2026-11-04T15:55:00-06:00
 - **Agent bàn giao (Outgoing Agent):** Antigravity Agent
 - **Mục đích:** Bàn giao liền mạch sang phiên làm việc / tài khoản Google mới trong Antigravity.
 - **Tài liệu tham chiếu bắt buộc:** [`AGENTS.md`](./AGENTS.md), [`PROJECT_STATUS.md`](./PROJECT_STATUS.md).
@@ -17,7 +17,7 @@
 
 ### 2. Bản chụp Trạng thái Git (Git State Snapshot)
 - **Nhánh hiện tại (Branch):** `main`
-- **HEAD Commit tại thời điểm nạp:** `b59cb0b` (*fix(vocab): khắc phục lỗi ẩn chữ tiêu đề mục active trong sandwich menu luyện từ vựng (M7)*)
+- **HEAD Commit tại thời điểm nạp:** `330d91e` (*feat(vocab): bổ sung nút và cơ chế căn mốc tự động cho từ vựng chưa có timestamp (M8)*)
 - **Tình trạng Remote:** Sắp được push lên `origin/main` theo lệnh người dùng.
 - **Trạng thái Working Tree:** **Clean 100%** (xác minh thực tế qua `git status --porcelain`).
 - **Cảnh báo an toàn Git:**
@@ -38,9 +38,10 @@
   - **`M5 (Player Styling)`** (Commit `433246d`): Chuẩn hóa độ dày thanh tiến độ 8px ôm khít và giảm độ bo góc cụm nút tốc độ xuống 11px trên cả 2 players.
   - **`M6 (Player Sync)`** (Commit `ccbfca3`): Chuyển đổi thời lượng Video sang dạng giây (`XX.Xs` / `m:ss` toggle) và bổ sung nút tốc độ `1.25x` vào `#pv-speeds`.
   - **`M7 (Vocab Contrast)`** (Commit `b59cb0b`): Khắc phục lỗi tương phản làm ẩn tiêu đề mục active trong Sandwich Menu luyện từ vựng (`var(--fs-ink)`).
+  - **`M8 (Vocab Auto-Align)`** (Commit `330d91e`): Bổ sung nút bấm `⚡ Căn mốc tự động` trên thanh tác vụ Sổ từ vựng, tự động đếm số từ chưa căn mốc và đối chiếu gắn timestamp từ phụ đề; hỗ trợ tự căn mốc khi click thẻ `(chưa căn mốc)`.
   - **`Offline Aligner`** (Local Tool): Tích hợp engine MLX Whisper cục bộ và file script double-click `Chay_Dong_Bo.command` tự động quét cặp file audio/transcript, sinh JSON và chuyển vào thư mục Done.
 - **Bộ kiểm thử tự động:**
-  - `node --test tools/*.test.js`: **207 / 207 PASS (100%)**.
+  - `node --test tools/*.test.js`: **210 / 210 PASS (100%)**.
   - `node tools/lint-color.js`: **921 / 921 HEX**, **0 inline style**, **0 tailwind color**.
 
 ---
