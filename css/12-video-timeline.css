@@ -1,7 +1,8 @@
 
 /* ==================== THANH TIMELINE DƯỚI VIDEO ==================== */
 .tl { display: flex; align-items: center; gap: 12px; flex: 1 0 100%; width: 100%; padding: 0 2px; margin-bottom: -2px; user-select: none; -webkit-user-select: none; }
-.tl-time { flex: none; min-width: 36px; font: 600 11.5px/1 "Plus Jakarta Sans", system-ui, sans-serif; font-variant-numeric: tabular-nums; letter-spacing: .01em; color: var(--fs-muted); }
+.tl-time { flex: none; min-width: 44px; font: 600 11.5px/1 "Plus Jakarta Sans", system-ui, sans-serif; font-variant-numeric: tabular-nums; letter-spacing: .01em; color: var(--fs-muted); cursor: pointer; user-select: none; }
+.tl-time:hover { color: var(--fs-ink); }
 .tl-time.cur { text-align: right; color: var(--fs-ink); }
 .tl-track { position: relative; flex: 1; min-width: 0; height: 26px; cursor: pointer; touch-action: none; -webkit-tap-highlight-color: transparent; outline: none; }
 .tl-rail { position: absolute; left: 0; right: 0; top: 50%; height: 8px; margin-top: -4px; border-radius: 9999px; background: var(--fs-line); overflow: hidden; transition: height .14s ease, margin-top .14s ease; }

@@ -76,3 +76,26 @@ test('M4.1 Playing Time Seconds Format: Định dạng hiển thị giây chính
   assert.equal(formatArtTime(74.64), '74.6s', 'Giây 74.64 hiển thị 74.6s (thay vì 1:14)');
   assert.equal(formatArtTime(74.64, 'min'), '1:14', 'Chế độ min hiển thị 1:14');
 });
+
+test('M6.1 Video Player Speeds: Có nút 1.25x trong cụm pv-speeds đồng bộ với article player', () => {
+  const indexHtml = fs.readFileSync(path.resolve('index.html'), 'utf8');
+  assert.ok(indexHtml.includes('id="pv-speeds"'), 'Có cụm pv-speeds');
+  assert.ok(indexHtml.includes('data-sp="1.25"'), 'Có nút data-sp="1.25" trong giao diện');
+});
+
+test('M6.2 Video Player Seconds Format: Định dạng hiển thị giây chính xác cho Video timeline', () => {
+  function fmtVideo(t, mode = 'sec') {
+    if (isNaN(t) || t < 0) t = 0;
+    if (mode === 'sec') {
+      return t.toFixed(1) + 's';
+    }
+    t = Math.floor(t);
+    const h = Math.floor(t / 3600), m = Math.floor((t % 3600) / 60), s = t % 60;
+    return h ? h + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0') : m + ':' + String(s).padStart(2, '0');
+  }
+
+  assert.equal(fmtVideo(0), '0.0s', 'Giây 0');
+  assert.equal(fmtVideo(5.42), '5.4s', 'Giây 5.42 làm tròn 5.4s');
+  assert.equal(fmtVideo(744.38), '744.4s', 'Giây 744.38 hiển thị 744.4s');
+  assert.equal(fmtVideo(744.38, 'min'), '12:24', 'Chế độ min hiển thị 12:24');
+});

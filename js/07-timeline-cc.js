@@ -109,13 +109,27 @@
 
   /* ---------- Thanh timeline ---------- */
   const track = $('tl-track');
-  const TL = { drag: false, t: 0, dur: 0, durAt: 0, hold: null, rect: null, pct: -1, buf: -1, sec: -1, durSec: -1, vid: null };
+  const TL = { drag: false, t: 0, dur: 0, durAt: 0, hold: null, rect: null, pct: -1, buf: -1, curStr: '', durStr: '', vid: null };
   const sp = $('screen-practice');
+  window.videoTimeMode = window.videoTimeMode || 'sec'; // 'sec' hoặc 'min'
   function fmt(t) {
-    t = Math.max(0, Math.floor(t));
+    if (isNaN(t) || t < 0) t = 0;
+    if (window.videoTimeMode === 'sec') {
+      return t.toFixed(1) + 's';
+    }
+    t = Math.floor(t);
     const h = Math.floor(t / 3600), m = Math.floor((t % 3600) / 60), s = t % 60;
     return h ? h + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0') : m + ':' + String(s).padStart(2, '0');
   }
+  window.formatVideoTime = fmt;
+  window.toggleVideoTimeMode = function() {
+    window.videoTimeMode = (window.videoTimeMode === 'sec') ? 'min' : 'sec';
+    TL.curStr = '';
+    TL.durStr = '';
+    const curEl = $('tl-cur'), durEl = $('tl-dur');
+    if (curEl) curEl.textContent = fmt(TL.disp >= 0 ? TL.disp : 0);
+    if (durEl) durEl.textContent = fmt(TL.dur);
+  };
   function getDur() {
     let d = 0;
     try { if (ytPlayer && isPlayerReady && ytPlayer.getDuration) d = ytPlayer.getDuration() || 0; } catch (e) {}
@@ -130,6 +144,14 @@
   if (track) {
     const fill = $('tl-fill'), buf = $('tl-buf'), hov = $('tl-hov'), thumb = $('tl-thumb'), tip = $('tl-tip');
     const curEl = $('tl-cur'), durEl = $('tl-dur');
+    if (curEl) {
+      curEl.addEventListener('click', window.toggleVideoTimeMode);
+      curEl.title = 'Bấm để đổi dạng giây / phút';
+    }
+    if (durEl) {
+      durEl.addEventListener('click', window.toggleVideoTimeMode);
+      durEl.title = 'Bấm để đổi dạng giây / phút';
+    }
     let tipW = 0, tipTxt = '';
 
     function setPct(p) {
@@ -171,13 +193,13 @@
       if (!tlActive()) return;
       const now = performance.now();
       let vid = ''; try { vid = currentVideoId; } catch (e) {}
-      if (vid !== TL.vid) { TL.vid = vid; TL.hold = null; TL.durAt = 0; TL.pct = -1; TL.buf = -1; TL.sec = -1; }
+      if (vid !== TL.vid) { TL.vid = vid; TL.hold = null; TL.durAt = 0; TL.pct = -1; TL.buf = -1; TL.curStr = ''; TL.durStr = ''; }
       if (now - TL.durAt > 400) {
         TL.durAt = now;
         const d = getDur();
         if (d !== TL.dur) { TL.dur = d; track.setAttribute('aria-valuemax', String(Math.round(d))); }
-        const ds = Math.floor(d);
-        if (ds !== TL.durSec) { TL.durSec = ds; durEl.textContent = fmt(d); }
+        const ds = fmt(d);
+        if (ds !== TL.durStr) { TL.durStr = ds; durEl.textContent = ds; }
         try {
           const lf = (ytPlayer && isPlayerReady && ytPlayer.getVideoLoadedFraction) ? (ytPlayer.getVideoLoadedFraction() || 0) : 0;
           if (Math.abs(lf - TL.buf) > 0.001) { TL.buf = lf; buf.style.transform = 'scaleX(' + clamp(lf, 0, 1) + ')'; }
@@ -195,8 +217,8 @@
       }
       const d = TL.dur;
       setPct(d > 0 ? clamp(cur / d, 0, 1) : 0);
-      const s = Math.floor(cur);
-      if (s !== TL.sec) { TL.sec = s; curEl.textContent = fmt(cur); track.setAttribute('aria-valuenow', String(s)); }
+      const s = fmt(cur);
+      if (s !== TL.curStr) { TL.curStr = s; curEl.textContent = s; track.setAttribute('aria-valuenow', String(Math.floor(cur))); }
     }
     requestAnimationFrame(frame);
 
