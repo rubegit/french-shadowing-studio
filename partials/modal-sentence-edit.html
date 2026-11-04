@@ -6,13 +6,34 @@
         <i data-lucide="x"></i>
       </button>
     </div>
-    <p id="se-desc" class="ai-step-text" style="margin-bottom:12px">Sửa lỗi chính tả tiếng Pháp hoặc bản dịch tiếng Việt của câu này. App sẽ tự động cập nhật và lưu vào lịch sử:</p>
+    <p id="se-desc" class="ai-step-text" style="margin-bottom:12px">Sửa lỗi chính tả, bản dịch hoặc mốc thời gian của câu này. App sẽ tự động lưu vào lịch sử:</p>
 
     <label class="block text-xs font-semibold fs-text-subtle mb-1.5">Câu tiếng Pháp:</label>
     <textarea id="se-text-fr" class="ai-textarea" style="min-height:75px;font-family:inherit" spellcheck="false" placeholder="Nhập câu tiếng Pháp đã sửa..."></textarea>
 
     <label id="se-label-vi" class="block text-xs font-semibold fs-text-subtle mb-1.5 mt-3">Bản dịch tiếng Việt (tùy chọn):</label>
     <textarea id="se-text-vi" class="ai-textarea" style="min-height:65px;font-family:inherit" spellcheck="false" placeholder="Bản dịch tiếng Việt tương ứng..."></textarea>
+
+    <!-- Mốc thời gian câu -->
+    <div class="mt-3.5 pt-3 border-t fs-border-base">
+      <div class="flex items-center justify-between mb-1.5">
+        <label class="text-xs font-semibold fs-text-subtle">Mốc thời gian phát câu (giây hoặc mm:ss.xx):</label>
+        <button type="button" class="text-xs font-semibold fs-text-accent hover:underline cursor-pointer" onclick="resetTimeInModal()" title="Khôi phục mốc thời gian YouTube gốc ban đầu">↺ Khôi phục mốc gốc</button>
+      </div>
+      <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+        <div class="flex-1 flex items-center gap-1.5 min-w-[140px]">
+          <span class="text-xs fs-text-muted shrink-0">Bắt đầu:</span>
+          <input type="text" id="se-start-time" class="ts-in w-full text-xs font-mono text-center" style="height:32px;padding:2px 4px" placeholder="0:00.00" />
+          <button type="button" class="ai-btn ai-btn-ghost text-xs px-2 py-1 shrink-0" style="height:32px" onclick="captureTimeForModal('start')" title="Lấy mốc thời gian video hiện tại">⏱️</button>
+        </div>
+        <div class="flex-1 flex items-center gap-1.5 min-w-[140px]">
+          <span class="text-xs fs-text-muted shrink-0">Kết thúc:</span>
+          <input type="text" id="se-end-time" class="ts-in w-full text-xs font-mono text-center" style="height:32px;padding:2px 4px" placeholder="0:00.00" />
+          <button type="button" class="ai-btn ai-btn-ghost text-xs px-2 py-1 shrink-0" style="height:32px" onclick="captureTimeForModal('end')" title="Lấy mốc thời gian video hiện tại">⏱️</button>
+        </div>
+        <button type="button" class="ai-btn ai-btn-ghost text-xs px-2.5 py-1 shrink-0" style="height:32px" onclick="previewTimeInModal()" title="Phát thử đoạn thời gian này">▶ Nghe thử</button>
+      </div>
+    </div>
 
     <div class="ai-actions" style="margin-top:16px;align-items:center;justify-content:space-between">
       <div class="flex items-center gap-2">

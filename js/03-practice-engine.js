@@ -464,6 +464,9 @@
     const TS_RW = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 19 2 12 11 5 11 19"/><polygon points="22 19 13 12 22 5 22 19"/></svg>';
     const TS_FF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 19 22 12 13 5 13 19"/><polygon points="2 19 11 12 2 5 2 19"/></svg>';
     const TS_RS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>';
+    const TS_CAP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+    const TS_SAVE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>';
+    const TS_ORIG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg>';
     function tsSync() {
         const sig = allSig();
         if (TS.vid === currentVideoId && TS.sig === sig) return;
@@ -520,11 +523,15 @@
             '<button type="button" class="ts-step" data-ts="s-" title="Lùi thời gian bắt đầu 0.2 giây (câu bắt đầu sớm hơn)" aria-label="Lùi thời gian bắt đầu 0.2 giây">' + TS_RW + '</button>' +
             '<input type="text" class="ts-in" data-ts-in="s" inputmode="decimal" autocomplete="off" spellcheck="false" maxlength="10" title="Thời gian bắt đầu câu: bấm vào để gõ tay (vd 1:23.45 hoặc 83.45), ↑/↓ chỉnh từng 0.05 giây" aria-label="Thời gian bắt đầu câu">' +
             '<button type="button" class="ts-step" data-ts="s+" title="Tăng thời gian bắt đầu 0.2 giây (câu bắt đầu muộn hơn)" aria-label="Tăng thời gian bắt đầu 0.2 giây">' + TS_FF + '</button>' +
+            '<button type="button" class="ts-step ts-cap" data-ts="cap-s" title="⏱️ Lấy giờ video hiện tại làm mốc Bắt đầu" aria-label="Lấy giờ video hiện tại làm mốc Bắt đầu">' + TS_CAP + '</button>' +
             '<span class="ts-sep">–</span>' +
             '<button type="button" class="ts-step" data-ts="e-" title="Lùi thời gian kết thúc 0.2 giây (câu kết thúc sớm hơn)" aria-label="Lùi thời gian kết thúc 0.2 giây">' + TS_RW + '</button>' +
             '<input type="text" class="ts-in" data-ts-in="e" inputmode="decimal" autocomplete="off" spellcheck="false" maxlength="10" title="Thời gian kết thúc câu: bấm vào để gõ tay (vd 1:25.10 hoặc 85.1), ↑/↓ chỉnh từng 0.05 giây" aria-label="Thời gian kết thúc câu">' +
             '<button type="button" class="ts-step" data-ts="e+" title="Tăng thời gian kết thúc 0.2 giây (câu kéo dài thêm)" aria-label="Tăng thời gian kết thúc 0.2 giây">' + TS_FF + '</button>' +
-            '<button type="button" class="ts-step ts-reset" data-ts="reset" title="Đưa thời gian bắt đầu và kết thúc về mốc gốc" aria-label="Đặt lại thời gian về mốc gốc">' + TS_RS + '</button>';
+            '<button type="button" class="ts-step ts-cap" data-ts="cap-e" title="⏱️ Lấy giờ video hiện tại làm mốc Kết thúc" aria-label="Lấy giờ video hiện tại làm mốc Kết thúc">' + TS_CAP + '</button>' +
+            '<button type="button" class="ts-step ts-save" data-ts="save" title="💾 Lưu mốc thời gian vĩnh viễn vào phụ đề câu này" aria-label="Lưu mốc thời gian vĩnh viễn">' + TS_SAVE + '</button>' +
+            '<button type="button" class="ts-step ts-reset" data-ts="reset" title="↺ Hủy thay đổi tạm, quay về mốc đã lưu của câu" aria-label="Hủy thay đổi tạm">' + TS_RS + '</button>' +
+            '<button type="button" class="ts-step ts-orig" data-ts="reset-orig" title="⏮ Khôi phục mốc gốc YouTube ban đầu của câu" aria-label="Khôi phục mốc gốc YouTube">' + TS_ORIG + '</button>';
     }
     function tsIdx() {
         if (view === 'dictation') return DC.idx;
@@ -541,21 +548,32 @@
         const i = tsIdx();
         if (i < 0 || !sentences[i]) return;
         const t = tsGet(i);
+        const sObj = sentences[i];
         document.querySelectorAll('.ts-ctl').forEach((ctl) => {
             ctl.classList.toggle('pv-x', !!isTextMode);   // bài văn bản không có mốc thời gian âm thanh
             const a = ctl.querySelector('[data-ts-in="s"]'), b = ctl.querySelector('[data-ts-in="e"]');
             if (a && document.activeElement !== a) a.value = tsFmt(t.s);
             if (b && document.activeElement !== b) b.value = tsFmt(t.e);
             const bs = tsBase(i);
+            const hasMod = Math.abs(t.s - bs.s) > 0.0005 || Math.abs(t.e - bs.e) > 0.0005 || !!TS.map[i];
             if (a) a.classList.toggle('mod', Math.abs(t.s - bs.s) > 0.0005);
             if (b) b.classList.toggle('mod', Math.abs(t.e - bs.e) > 0.0005);
             const rb = ctl.querySelector('[data-ts="reset"]');
             if (rb) {
-                const hasMod = !!TS.map[i];
                 rb.classList.toggle('has-mod', hasMod);
-                // Giữ nút luôn tương tác được để người dùng có thể bấm reset/replay mốc gốc bất kỳ lúc nào
                 rb.disabled = false;
-                rb.style.opacity = hasMod ? '1' : '0.6';
+                rb.style.opacity = hasMod ? '1' : '0.5';
+            }
+            const sv = ctl.querySelector('[data-ts="save"]');
+            if (sv) {
+                sv.classList.toggle('has-mod', hasMod);
+                sv.style.opacity = hasMod ? '1' : '0.6';
+            }
+            const ob = ctl.querySelector('[data-ts="reset-orig"]');
+            if (ob) {
+                const hasOrig = sObj && typeof sObj.origStartTime === 'number';
+                ob.classList.toggle('has-orig', hasOrig);
+                ob.style.opacity = hasOrig ? '1' : '0.4';
             }
         });
     }
@@ -572,9 +590,15 @@
                 if ((b - a) * nd < DC_MIN_SEC) dcClearSel(); else { dcSyncSel(); dcPlacePop(); }
             }
         }
-        // Giao diện Mặc định: phát lại câu từ mốc bắt đầu mới để nghe ngay kết quả (dừng ở mốc kết thúc nếu đang bật "Tự dừng")
+        // Giao diện Mặc định: tua tới mốc bắt đầu mới nhưng KHÔNG tự ý phát nếu người dùng đang tạm dừng
         if (view === 'default' && !isTextMode) {
-            try { seekToTime(tsGet(i).s, i, true, null, false); } catch (e) {}
+            let isCurrentPlaying = false;
+            try {
+                const pb = document.getElementById('btn-toggle-play');
+                if (pb) isCurrentPlaying = pb.classList.contains('is-playing');
+                else if (typeof isPlaying !== 'undefined') isCurrentPlaying = !!isPlaying;
+            } catch (_) {}
+            try { seekToTime(tsGet(i).s, i, isCurrentPlaying, null, false); } catch (e) {}
             return;
         }
         if (view === 'dictation' && !DC.playing && !DC.tts && !isTextMode) {
@@ -589,19 +613,126 @@
         if (!tsApply(i, s, e)) { toast('Thời gian kết thúc phải sau thời gian bắt đầu'); return; }
         tsAfter(i, { s: t.s, e: t.e });
     }
+    function tsCapture(which) {
+        const i = tsIdx(); if (i < 0 || !sentences[i]) return;
+        let curTime = 0;
+        try {
+            if (typeof ytPlayer !== 'undefined' && ytPlayer && ytPlayer.getCurrentTime) {
+                curTime = ytPlayer.getCurrentTime() || 0;
+            }
+        } catch (_) {}
+        curTime = Math.round(curTime * 100) / 100;
+        const t = tsGet(i);
+        const s = which === 's' ? curTime : t.s;
+        const e = which === 'e' ? curTime : t.e;
+        if (e <= s) {
+            toast(which === 's' ? 'Mốc bắt đầu phải trước thời gian kết thúc (' + tsFmt(t.e) + ')' : 'Mốc kết thúc phải sau thời gian bắt đầu (' + tsFmt(t.s) + ')');
+            return;
+        }
+        if (!tsApply(i, s, e)) { toast('Thời gian không hợp lệ'); return; }
+        tsAfter(i, { s: t.s, e: t.e });
+        toast(which === 's' ? 'Đã lấy mốc bắt đầu: ' + tsFmt(s) : 'Đã lấy mốc kết thúc: ' + tsFmt(e));
+    }
+    function tsSavePermanent() {
+        const i = tsIdx(); if (i < 0 || !sentences[i]) return;
+        const t = tsGet(i);
+        const s = sentences[i];
+        if (s.origStartTime === undefined) s.origStartTime = s.startTime;
+        if (s.origEndTime === undefined) s.origEndTime = s.endTime;
+        if (Array.isArray(s.words) && s.words.length > 0 && !s.origWords) {
+            s.origWords = JSON.parse(JSON.stringify(s.words));
+        }
+
+        const oldStart = s.startTime, oldEnd = s.endTime;
+        s.startTime = t.s;
+        s.endTime = t.e;
+
+        // Tái phân bổ tỷ lệ thời gian cho từng từ con (words) để giữ chuẩn xác cho Karaoke và tra từ
+        if (Array.isArray(s.words) && s.words.length > 0) {
+            const oldDur = Math.max(0.1, (oldEnd || s.endTime) - (oldStart || s.startTime));
+            const newDur = Math.max(0.2, s.endTime - s.startTime);
+            s.words.forEach((w) => {
+                if (typeof w.startTime === 'number') {
+                    const ratio = Math.max(0, Math.min(1, (w.startTime - oldStart) / oldDur));
+                    w.startTime = Number((s.startTime + ratio * newDur).toFixed(3));
+                }
+                if (typeof w.endTime === 'number') {
+                    const ratio = Math.max(0, Math.min(1, (w.endTime - oldStart) / oldDur));
+                    w.endTime = Number((s.startTime + ratio * newDur).toFixed(3));
+                }
+            });
+        }
+
+        // Xóa override tạm trong map vì mốc gốc đã trở thành mốc mới đã lưu
+        delete TS.map[i];
+        tsSave();
+
+        // Ghi vĩnh viễn vào localStorage (shadowing_history)
+        if (typeof persistSentencesToHistory === 'function') {
+            persistSentencesToHistory();
+        } else if (typeof saveToLocalHistory === 'function') {
+            saveToLocalHistory({
+                videoId: currentVideoId,
+                title: (typeof currentVideoTitle === 'string' ? currentVideoTitle : '') || `Video ${currentVideoId}`,
+                sentences: sentences
+            });
+        }
+
+        // Đẩy lên Supabase Cloud Sync
+        if (window.FSS_SUPABASE && typeof window.FSS_SUPABASE.syncHistoryDebounced === 'function') {
+            try {
+                const allHist = typeof getRawHistory === 'function' ? getRawHistory() : (typeof getLocalHistory === 'function' ? getLocalHistory() : []);
+                window.FSS_SUPABASE.syncHistoryDebounced(allHist);
+            } catch (_) {}
+        }
+
+        if (typeof renderSubtitleList === 'function') {
+            try { renderSubtitleList(); } catch (_) {}
+        }
+        tsRefresh();
+        toast('Đã lưu mốc thời gian câu #' + (i + 1) + ' vào phụ đề');
+    }
+    function tsResetOriginal() {
+        const i = tsIdx(); if (i < 0 || !sentences[i]) return;
+        const s = sentences[i];
+        if (s && typeof s.origStartTime === 'number') {
+            s.startTime = s.origStartTime;
+            s.endTime = typeof s.origEndTime === 'number' ? s.origEndTime : s.endTime;
+            if (Array.isArray(s.origWords)) {
+                s.words = JSON.parse(JSON.stringify(s.origWords));
+            }
+            delete s.origStartTime;
+            delete s.origEndTime;
+            delete s.origWords;
+            delete TS.map[i];
+            tsSave();
+
+            if (typeof persistSentencesToHistory === 'function') persistSentencesToHistory();
+            if (typeof renderSubtitleList === 'function') {
+                try { renderSubtitleList(); } catch (_) {}
+            }
+            tsRefresh();
+            toast('Đã khôi phục mốc gốc YouTube ban đầu cho câu #' + (i + 1));
+        } else {
+            delete TS.map[i];
+            tsSave();
+            tsRefresh();
+            toast('Câu #' + (i + 1) + ' đang ở mốc thời gian gốc ban đầu');
+        }
+    }
     function tsReset() {
         const i = tsIdx(); if (i < 0 || !sentences[i]) return;
         tsSync();
         if (!TS.map[i]) {
             // Dù chưa có map override, phát lại câu từ mốc gốc để người dùng nghe lại
             if (view === 'default' && !isTextMode) {
-                try { seekToTime(tsBase(i).s, i, true, null, false); } catch (e) {}
+                try { seekToTime(tsBase(i).s, i, false, null, false); } catch (e) {}
             }
-            toast('Thời gian câu đang ở mốc gốc');
+            toast('Thời gian câu đang ở mốc đã lưu');
             return;
         }
         const t0 = tsGet(i); delete TS.map[i]; tsSave(); tsAfter(i, { s: t0.s, e: t0.e });
-        toast('Đã đưa thời gian về mốc gốc');
+        toast('Đã hủy thay đổi tạm, quay về mốc câu đã lưu');
     }
     function tsCommit(inp) {
         const i = tsIdx(); if (i < 0 || !sentences[i]) return;
@@ -618,7 +749,15 @@
         e.preventDefault();
         if (view === 'default') { try { b.blur(); } catch (er) {} }   // giao diện Mặc định có phím tắt (Space...) nên không để nút giữ focus
         const k = b.getAttribute('data-ts');
-        if (k === 's-') tsStep('s', -TS_STEP); else if (k === 's+') tsStep('s', TS_STEP); else if (k === 'e-') tsStep('e', -TS_STEP); else if (k === 'e+') tsStep('e', TS_STEP); else if (k === 'reset') tsReset();
+        if (k === 's-') tsStep('s', -TS_STEP);
+        else if (k === 's+') tsStep('s', TS_STEP);
+        else if (k === 'e-') tsStep('e', -TS_STEP);
+        else if (k === 'e+') tsStep('e', TS_STEP);
+        else if (k === 'cap-s') tsCapture('s');
+        else if (k === 'cap-e') tsCapture('e');
+        else if (k === 'save') tsSavePermanent();
+        else if (k === 'reset') tsReset();
+        else if (k === 'reset-orig') tsResetOriginal();
     });
     document.addEventListener('change', (e) => { const el = e.target; if (el && el.matches && el.matches('input[data-ts-in]')) tsCommit(el); });
     document.addEventListener('focusin', (e) => { const el = e.target; if (el && el.matches && el.matches('input[data-ts-in]')) el.select(); });

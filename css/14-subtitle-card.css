@@ -245,6 +245,14 @@
       margin-left: 2px;
       flex: 0 0 auto;
     }
+    .cs-ts .ts-save.has-mod {
+      color: var(--fs-accent-text) !important;
+      border-color: var(--fs-accent-base) !important;
+      background: var(--fs-tint) !important;
+    }
+    .cs-ts .ts-orig.has-orig {
+      color: var(--fs-accent-text) !important;
+    }
   }
 
   /* Ẩn dải công cụ nằm ngang cũ trên toàn bộ màn hình */

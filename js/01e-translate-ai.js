@@ -1056,6 +1056,16 @@
         txtVi.value = String(s.vi || '').trim();
       }
 
+      const txtSt = document.getElementById('se-start-time');
+      const txtEn = document.getElementById('se-end-time');
+      const fmtF = typeof tsFmt === 'function' ? tsFmt : (x) => String(x);
+      if (txtSt) {
+        txtSt.value = fmtF(typeof s.startTime === 'number' ? s.startTime : 0);
+      }
+      if (txtEn) {
+        txtEn.value = fmtF(typeof s.endTime === 'number' ? s.endTime : 0);
+      }
+
       modal.classList.add('open');
       if (txtFr) {
         setTimeout(() => { txtFr.focus(); txtFr.select(); }, 60);
@@ -1063,6 +1073,47 @@
       if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
     }
     window.openSentenceEditModal = openSentenceEditModal;
+
+    function captureTimeForModal(which) {
+      let cur = 0;
+      try {
+        if (typeof ytPlayer !== 'undefined' && ytPlayer && ytPlayer.getCurrentTime) {
+          cur = ytPlayer.getCurrentTime() || 0;
+        }
+      } catch (_) {}
+      cur = Math.round(cur * 100) / 100;
+      const fmtF = typeof tsFmt === 'function' ? tsFmt : (x) => String(x);
+      const el = document.getElementById(which === 'start' ? 'se-start-time' : 'se-end-time');
+      if (el) el.value = fmtF(cur);
+    }
+    window.captureTimeForModal = captureTimeForModal;
+
+    function resetTimeInModal() {
+      if (_editingSentenceId == null) return;
+      const s = sentences.find((x) => x.id === _editingSentenceId);
+      if (!s) return;
+      const origS = typeof s.origStartTime === 'number' ? s.origStartTime : s.startTime;
+      const origE = typeof s.origEndTime === 'number' ? s.origEndTime : s.endTime;
+      const fmtF = typeof tsFmt === 'function' ? tsFmt : (x) => String(x);
+      const txtSt = document.getElementById('se-start-time');
+      const txtEn = document.getElementById('se-end-time');
+      if (txtSt) txtSt.value = fmtF(origS);
+      if (txtEn) txtEn.value = fmtF(origE);
+      if (typeof showVocabToast === 'function') {
+        showVocabToast('Đã điền lại mốc thời gian gốc của câu', false);
+      }
+    }
+    window.resetTimeInModal = resetTimeInModal;
+
+    function previewTimeInModal() {
+      const txtSt = document.getElementById('se-start-time');
+      const parseF = typeof tsParse === 'function' ? tsParse : parseFloat;
+      const stVal = txtSt && txtSt.value ? parseF(txtSt.value) : null;
+      if (stVal != null && !isNaN(stVal) && typeof seekToTime === 'function') {
+        seekToTime(stVal, undefined, true, null, false);
+      }
+    }
+    window.previewTimeInModal = previewTimeInModal;
 
     function closeSentenceEditModal() {
       const modal = document.getElementById('sentence-edit-modal');
@@ -1094,7 +1145,45 @@
         delete s.vi;
       }
 
-      // Cập nhật lại danh sách từ (words) nếu có
+      // Xử lý cập nhật mốc thời gian nếu có nhập mốc mới
+      const txtSt = document.getElementById('se-start-time');
+      const txtEn = document.getElementById('se-end-time');
+      const parseF = typeof tsParse === 'function' ? tsParse : parseFloat;
+      const parsedStart = txtSt && txtSt.value ? parseF(txtSt.value) : null;
+      const parsedEnd = txtEn && txtEn.value ? parseF(txtEn.value) : null;
+      let timeChanged = false;
+
+      if (parsedStart != null && !isNaN(parsedStart) && parsedEnd != null && !isNaN(parsedEnd)) {
+        if (parsedEnd > parsedStart + 0.1) {
+          if (s.origStartTime === undefined) s.origStartTime = s.startTime;
+          if (s.origEndTime === undefined) s.origEndTime = s.endTime;
+          if (Array.isArray(s.words) && s.words.length > 0 && !s.origWords) {
+            s.origWords = JSON.parse(JSON.stringify(s.words));
+          }
+          const oldStart = s.startTime, oldEnd = s.endTime;
+          s.startTime = Math.round(parsedStart * 1000) / 1000;
+          s.endTime = Math.round(parsedEnd * 1000) / 1000;
+          timeChanged = true;
+
+          // Tái phân bổ mốc thời gian từng từ con (words)
+          if (Array.isArray(s.words) && s.words.length > 0) {
+            const oldDur = Math.max(0.1, (oldEnd || s.endTime) - (oldStart || s.startTime));
+            const newDur = Math.max(0.2, s.endTime - s.startTime);
+            s.words.forEach((w) => {
+              if (typeof w.startTime === 'number') {
+                const ratio = Math.max(0, Math.min(1, (w.startTime - oldStart) / oldDur));
+                w.startTime = Number((s.startTime + ratio * newDur).toFixed(3));
+              }
+              if (typeof w.endTime === 'number') {
+                const ratio = Math.max(0, Math.min(1, (w.endTime - oldStart) / oldDur));
+                w.endTime = Number((s.startTime + ratio * newDur).toFixed(3));
+              }
+            });
+          }
+        }
+      }
+
+      // Cập nhật lại danh sách từ (words) nếu câu chữ thay đổi số lượng từ
       if (Array.isArray(s.words) && s.words.length > 0) {
         const rawTokens = newFr.split(/\s+/).filter(Boolean);
         if (rawTokens.length === s.words.length) {
