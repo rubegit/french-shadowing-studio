@@ -14,11 +14,11 @@
 
 - **Tên dự án:** French Shadowing Studio
 - **Phiên bản phát hành gần nhất:** `v2.0.27` (Commit `ba376ac`)
-- **Current HEAD Commit:** `9e2ea06` (Khởi tạo `PROJECT_STATUS.md` và triển khai `M-Status-Fix`)
+- **Current HEAD Commit:** `61c89f2` (*style: hoàn tất dọn dẹp inline colors và svg hex trong view-home (M5d.3)*)
 - **Nhánh Git (Branch):** `main`
-- **Trạng thái Git Working Tree:** Đang thực hiện `M-Status-Fix` (chỉ sửa `PROJECT_STATUS.md`, không sửa source code)
+- **Trạng thái Git Working Tree:** Clean 100%
 - **Môi trường triển khai:** Vercel Static Hosting (phục vụ trực tiếp từ `index.html` và static assets)
-- **Thời điểm cập nhật:** `2026-11-03T08:35:00-06:00`
+- **Thời điểm cập nhật:** `2026-11-03T22:45:00-06:00`
 
 ---
 
@@ -28,23 +28,14 @@
 
 - **Kiểm thử đơn vị (Unit Tests):**
   - Lệnh chạy: `node --test tools/*.test.js`
-  - Kết quả: **180 / 180 bài test PASS (100%)**, 0 bài fail, thời gian chạy ~880ms.
+  - Kết quả: **181 / 181 bài test PASS (100%)**, 0 bài fail, thời gian chạy ~2.1s.
   - Bộ kiểm thử bao gồm: `contrast-audit.test.js`, `french-utils.test.js`, `schema-v02.test.js`, `vocab-importer.test.js`, `vocab-practice.test.js`, `punct-corrections.test.js`, `punct-manual-merge.test.js`, `extract-prompt-template.test.js`, `theme-init.test.js`, `theme-tokens.test.js`.
 - **Kiểm kê mã màu (Color Linting via `node tools/lint-color.js`):**
-  - Inline style màu trong JavaScript: **0** *(đã dọn sạch toàn bộ từ mốc ban đầu 64 ở M5a, M5b)*
-  - Class màu Tailwind trong HTML: **0** *(đã dọn sạch 100% từ mốc ban đầu 266 ở M3a, M3b, M3c)*
-  - **Nợ kỹ thuật còn tồn đọng trong HTML partials:** **40 inline color styles** *(kế hoạch ban đầu ghi 41, chênh lệch 1 style do `modal-vocab-import.html` đã được dọn sạch trong đợt M3c/M4a)*:
-    - `partials/view-home.html`: 18
-    - `partials/view-guide.html`: 7
-    - `partials/view-book.html`: 4
-    - `partials/modal-book-translate.html`: 3
-    - `partials/view-translate.html`: 3
-    - `partials/view-vocab.html`: 2
-    - `partials/modal-share.html`: 1
-    - `partials/modal-book-import.html`: 1
-    - `partials/modal-bilingual.html`: 1
-  - **Nợ kỹ thuật SVG:** **20 thuộc tính `fill`/`stroke` HEX** trong các biểu tượng SVG tại partials.
-  - **Mã HEX trong CSS ngoài khối token:** **921** *(đã giảm từ mốc ban đầu 2.362 qua các đợt M4a–M4f)*.
+  - Inline style màu trong JavaScript: **0**
+  - Class màu Tailwind trong HTML: **0**
+  - **Inline style màu trong HTML partials:** **0** *(đã dọn sạch 100% qua M5d.1, M5d.2, M5d.3)*
+  - **Thuộc tính SVG fill/stroke HEX:** **0** *(đã thay thế 100% bằng currentColor / semantic classes)*
+  - **Mã HEX trong CSS ngoài khối token:** **921** *(giữ nguyên hạn ngạch $\le 921$)*
 - **Kiểm toán độ tương phản (Contrast Audit):**
   - Lệnh chạy: `node tools/contrast-audit/audit-runner.js`
   - Bản chất: Công cụ tính toán độ tương phản trên danh mục mẫu tĩnh gồm 25 cặp màu (`KNOWN_ERROR_CATALOG` từ Bảng 4 của Kế hoạch gốc) để duy trì tệp `baseline.json`. Đây là công cụ đo đạc đối chiếu danh mục lỗi mẫu, **chưa phải là công cụ dynamic runtime audit** quét toàn bộ DOM động khi ứng dụng đang chạy.
@@ -77,22 +68,24 @@
 | **M5a** | Dọn Dẹp Inline Styles Màu Trong `js/vocab-practice.js` | **Đã hoàn thành** | `v2.0.25` (`8379385`) |
 | **M5-fix** | Sửa Độ Tương Phản Chip Câu Ghép, Pill Từ Trọng Tâm & Gợi Ý SRS | **Đã hoàn thành** | `v2.0.26` (`06a85fe`) |
 | **M5b** | Dọn Dẹp Dứt Điểm Toàn Bộ Inline Styles Màu Trong Các File JS Còn Lại | **Đã hoàn thành** | `v2.0.27` (`ba376ac`) |
-| **M-Status** | Thiết lập & Hiệu chỉnh Tài Liệu Trạng Thái `PROJECT_STATUS.md` | **Đã triển khai, chờ nghiệm thu** | `9e2ea06` + `M-Status-Fix` |
-| **M-Account-Handover-A** | Thiết lập Cơ chế & Biên bản Bàn giao Tài khoản Động (`HANDOVER.md`) | **Đã nghiệm thu** | `f28088b` + `3c8594c` |
-| **M-Account-Handover-B** | Tạo Agent Skill `/fss-handover` Điều Phối Bàn Giao & Tiếp Nhận | **Đã triển khai, chờ nghiệm thu** | *(commit hiện tại)* |
-| **M5d** | Dọn Dẹp Inline Styles Màu & SVG HEX Trong HTML Partials *(Kế hoạch gốc)* | **Chưa thực hiện (Pending)** | *(Tồn đọng 40 inline styles & 20 SVG HEX)* |
-| **M6** | Chuẩn Hóa Trạng Thái Tương Tác & Vòng Sáng Chỉ Thị (Focus Rings) | **Chưa bắt đầu (Dự kiến)** | *(Kế hoạch tiếp theo)* |
+| **M-Status** | Thiết lập & Hiệu chỉnh Tài Liệu Trạng Thái `PROJECT_STATUS.md` | **Đã hoàn thành** | `9e2ea06` + `2f02b09` |
+| **M-Account-Handover-A** | Thiết lập Cơ chế & Biên bản Bàn giao Tài khoản Động (`HANDOVER.md`) | **Đã hoàn thành** | `f28088b` + `3c8594c` |
+| **M-Account-Handover-B** | Tạo Agent Skill `/fss-handover` Điều Phối Bàn Giao & Tiếp Nhận | **Đã hoàn thành** | `4b1a8d0` |
+| **M5d** | Dọn Dẹp 100% Inline Styles Màu & SVG HEX Trong HTML Partials | **Đã hoàn thành** | `01e8373` + `7e87543` + `61c89f2` |
+| **M6** | Chuẩn Hóa Trạng Thái Tương Tác & Vòng Sáng Chỉ Thị (Focus Rings) | **Chưa bắt đầu (Sắp triển khai)** | *(Kế hoạch tiếp theo)* |
 | **M7** | Kiểm Toán Tổng Thể Toàn Diện & Dọn Dẹp Cờ Thừa (Final Audit) | **Chưa bắt đầu (Dự kiến)** | *(Kế hoạch tiếp theo)* |
 
 ---
 
 ## 4. Current Focus (Trọng tâm Hiện thời)
 
-- Đã dọn sạch triệt để **100% Tailwind color classes trong HTML** và **100% inline styles màu trong JavaScript**.
-- Đang hoàn tất nghiệm thu tài liệu **`PROJECT_STATUS.md`** (Module `M-Status` / `M-Status-Fix`) làm cơ sở bàn giao minh bạch.
-- **Hiện trạng nợ kỹ thuật cần xử lý:**
-  - Dự án **chưa sạch màu tuyệt đối**. Vẫn còn tồn tại **40 inline color styles** trong các HTML partials và **20 thuộc tính SVG HEX** (thuộc phạm vi của milestone **M5d** trong Kế hoạch gốc).
-  - Vẫn còn **921 mã HEX** trong các file CSS ngoài vùng định nghĩa token.
+- Đã dọn sạch triệt để:
+  - **100% Tailwind color classes trong HTML** (0 class)
+  - **100% inline styles màu trong JavaScript** (0 style)
+  - **100% inline styles màu trong HTML** (0 style)
+  - **100% thuộc tính SVG fill/stroke HEX** (0 thuộc tính)
+- Đã kiểm tra 181/181 unit tests PASS hoàn toàn.
+- Trọng tâm công việc tiếp theo là **Milestone M6** – Chuẩn hóa trạng thái tương tác & vòng sáng chỉ thị (Focus Rings, Progress Rings, lỗi E14).
 
 ---
 
