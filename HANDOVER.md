@@ -8,7 +8,7 @@
 ---
 
 ### 1. Metadata Bàn giao (Handover Metadata)
-- **Thời điểm cập nhật:** 2026-11-04T15:00:00-06:00
+- **Thời điểm cập nhật:** 2026-11-04T15:10:00-06:00
 - **Agent bàn giao (Outgoing Agent):** Antigravity Agent
 - **Mục đích:** Bàn giao liền mạch sang phiên làm việc / tài khoản Google mới trong Antigravity.
 - **Tài liệu tham chiếu bắt buộc:** [`AGENTS.md`](./AGENTS.md), [`PROJECT_STATUS.md`](./PROJECT_STATUS.md).
@@ -17,8 +17,8 @@
 
 ### 2. Bản chụp Trạng thái Git (Git State Snapshot)
 - **Nhánh hiện tại (Branch):** `main`
-- **HEAD Commit tại thời điểm nạp:** `433246d` (*style: chuẩn hóa độ dày thanh tiến độ 8px ôm khít và bo góc 11px cụm nút tốc độ trên cả 2 player (M5)*)
-- **Tình trạng Remote:** Đang có 3 commit cục bộ chưa push lên `origin/main` (`0f65b62`, `ccdaf36`, `433246d`).
+- **HEAD Commit tại thời điểm nạp:** `ccbfca3` (*feat(player): chuyển đổi thời lượng video sang dạng giây và bổ sung nút tốc độ 1.25x (M6)*)
+- **Tình trạng Remote:** Sắp được push lên `origin/main` theo lệnh người dùng.
 - **Trạng thái Working Tree:** **Clean 100%** (xác minh thực tế qua `git status --porcelain`).
 - **Cảnh báo an toàn Git:**
   - Tuyệt đối **KHÔNG PUSH** commit cục bộ lên remote nếu người dùng chưa ra lệnh rõ ràng bằng văn bản.
@@ -36,9 +36,10 @@
   - **`M3.1 (Article Audio)`** (Commit `912c060`): Bộ chuyển đổi 2 chế độ Prompt AI (Căn chỉnh bài đọc hiện tại & Trích xuất từ Audio thuần).
   - **`M4 (Article Audio)`** (Commit `ccdaf36`): Tái thiết kế thanh Audio Player bài báo thành 2 tầng đồng bộ với Video Player (Tầng 1: Timeline hiển thị giây `XX.Xs`, Tầng 2: Cụm điều khiển, pills tốc độ nhanh, bỏ nút CC).
   - **`M5 (Player Styling)`** (Commit `433246d`): Chuẩn hóa độ dày thanh tiến độ 8px ôm khít và giảm độ bo góc cụm nút tốc độ xuống 11px trên cả 2 players.
+  - **`M6 (Player Sync)`** (Commit `ccbfca3`): Chuyển đổi thời lượng Video sang dạng giây (`XX.Xs` / `m:ss` toggle) và bổ sung nút tốc độ `1.25x` vào `#pv-speeds`.
   - **`Offline Aligner`** (Local Tool): Tích hợp engine MLX Whisper cục bộ và file script double-click `Chay_Dong_Bo.command` tự động quét cặp file audio/transcript, sinh JSON và chuyển vào thư mục Done.
 - **Bộ kiểm thử tự động:**
-  - `node --test tools/*.test.js`: **204 / 204 PASS (100%)**.
+  - `node --test tools/*.test.js`: **206 / 206 PASS (100%)**.
   - `node tools/lint-color.js`: **921 / 921 HEX**, **0 inline style**, **0 tailwind color**.
 
 ---
