@@ -3384,12 +3384,14 @@ html[data-ui="light"] #pv-ctl {
 
 /* Timeline */
 html[data-ui="light"] .tl-track {
-  background: var(--fs-line) !important;
-  border-radius: var(--fs-radius-pill) !important;
+  background: transparent !important;
 }
 
 html[data-ui="light"] .tl-rail {
-  background: transparent !important;
+  background: var(--fs-line) !important;
+  height: 8px !important;
+  margin-top: -4px !important;
+  border-radius: var(--fs-radius-pill) !important;
 }
 
 html[data-ui="light"] .tl-buf {
@@ -11760,11 +11762,12 @@ html[data-ui="light"] .page-nav-btn:hover:not(:disabled) {
 #pv-ctl .pv-speeds {
   gap: 3px !important;
   padding: 3px !important;
+  border-radius: 11px !important;
 }
 
 #pv-ctl .pv-speeds button {
   padding: 0 8px !important;
-  border-radius: 6px !important;
+  border-radius: 7px !important;
 }
 
 /* Ô tìm kiếm phụ đề và các nút chia sẻ, copy (#sub-search-bar .search-row) */
