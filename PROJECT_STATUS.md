@@ -14,11 +14,11 @@
 
 - **Tên dự án:** French Shadowing Studio
 - **Phiên bản phát hành gần nhất:** `v2.0.27` (Commit `ba376ac`)
-- **Current HEAD Commit:** `a809e71` (*feat(userscript): chặn hiển thị nút trên embed/studio, bỏ nhãn version trên giao diện (M-Userscript-No-Embed)*)
+- **Current HEAD Commit:** `c7e7d19` (*feat(sync): phân tách số lượng video và bài báo trên Cloud Sync (M1 - M-Cloud-Article-Distinction)*)
 - **Nhánh Git (Branch):** `main`
 - **Trạng thái Git Working Tree:** Clean 100%
 - **Môi trường triển khai:** Vercel Static Hosting (phục vụ trực tiếp từ `index.html` và static assets)
-- **Thời điểm cập nhật:** `2026-11-04T13:18:00-06:00`
+- **Thời điểm cập nhật:** `2026-11-04T13:33:00-06:00`
 
 ---
 
@@ -28,8 +28,8 @@
 
 - **Kiểm thử đơn vị (Unit Tests):**
   - Lệnh chạy: `node --test tools/*.test.js`
-  - Kết quả: **193 / 193 bài test PASS (100%)**, 0 bài fail, thời gian chạy ~2.1s.
-  - Bộ kiểm thử bao gồm: `contrast-audit.test.js`, `focus-rings.test.js`, `sentence-timestamp-edit.test.js`, `userscript-embed-guard.test.js`, `french-utils.test.js`, `schema-v02.test.js`, `vocab-importer.test.js`, `vocab-practice.test.js`, `punct-corrections.test.js`, `punct-manual-merge.test.js`, `extract-prompt-template.test.js`, `theme-init.test.js`, `theme-tokens.test.js`.
+  - Kết quả: **196 / 196 bài test PASS (100%)**, 0 bài fail, thời gian chạy ~910ms.
+  - Bộ kiểm thử bao gồm: `contrast-audit.test.js`, `focus-rings.test.js`, `sentence-timestamp-edit.test.js`, `userscript-embed-guard.test.js`, `supabase-article-count.test.js`, `french-utils.test.js`, `schema-v02.test.js`, `vocab-importer.test.js`, `vocab-practice.test.js`, `punct-corrections.test.js`, `punct-manual-merge.test.js`, `extract-prompt-template.test.js`, `theme-init.test.js`, `theme-tokens.test.js`.
 - **Kiểm kê mã màu (Color Linting via `node tools/lint-color.js`):**
   - Inline style màu trong JavaScript: **0**
   - Class màu Tailwind trong HTML: **0**
@@ -75,6 +75,7 @@
 | **M7** | Kiểm Toán Tổng Thể Toàn Diện & Khóa Chặn Hồi Quy (Final Audit) | **Đã hoàn thành** | `580edc2` |
 | **M-Timeline-Timestamp-Bar** | Lưu Timestamp Vĩnh Viễn, Bắt Mốc Thời Gian Thực, Khôi Phục Mốc Gốc & Sửa Lỗi Play Forward | **Đã hoàn thành** | `dfc0c68` |
 | **M-Userscript-No-Embed** | Chặn Nút Userscript Trong Iframe Embed & Xóa Nhãn Version Khỏi Giao Diện | **Đã hoàn thành** | `a809e71` |
+| **M1 (Article Audio)** | Phân Tách Số Lượng Video vs Bài Báo Trên Supabase Cloud Sync (`M-Cloud-Article-Distinction`) | **Đã hoàn thành** | `c7e7d19` |
 
 ---
 

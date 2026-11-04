@@ -8,7 +8,7 @@
 ---
 
 ### 1. Metadata Bàn giao (Handover Metadata)
-- **Thời điểm cập nhật:** 2026-11-04T13:18:00-06:00
+- **Thời điểm cập nhật:** 2026-11-04T13:33:00-06:00
 - **Agent bàn giao (Outgoing Agent):** Antigravity Agent
 - **Mục đích:** Bàn giao liền mạch sang phiên làm việc / tài khoản Google mới trong Antigravity.
 - **Tài liệu tham chiếu bắt buộc:** [`AGENTS.md`](./AGENTS.md), [`PROJECT_STATUS.md`](./PROJECT_STATUS.md).
@@ -17,8 +17,8 @@
 
 ### 2. Bản chụp Trạng thái Git (Git State Snapshot)
 - **Nhánh hiện tại (Branch):** `main`
-- **HEAD Commit tại thời điểm nạp:** `a809e71` (*feat(userscript): chặn hiển thị nút trên embed/studio, bỏ nhãn version trên giao diện (M-Userscript-No-Embed)*)
-- **Tình trạng Remote:** Đang đi trước `origin/main` 1 commit (`a809e71`), chưa push lên remote theo quy tắc an toàn.
+- **HEAD Commit tại thời điểm nạp:** `c7e7d19` (*feat(sync): phân tách số lượng video và bài báo trên Cloud Sync (M1 - M-Cloud-Article-Distinction)*)
+- **Tình trạng Remote:** Đang đi trước `origin/main` 1 commit (`c7e7d19`), chưa push lên remote theo quy tắc an toàn.
 - **Trạng thái Working Tree:** **Clean 100%** (xác minh thực tế qua `git status --porcelain`).
 - **Cảnh báo an toàn Git:**
   - Tuyệt đối **KHÔNG PUSH** commit cục bộ lên remote nếu người dùng chưa ra lệnh rõ ràng bằng văn bản.
@@ -29,16 +29,18 @@
 ### 3. Tiến độ & Trạng thái Các Module (Milestone Progress)
 - **Release chính thức gần nhất:** `v2.0.27` (Commit `ba376ac`) – Đã tag và push.
 - **Module vừa nghiệm thu:**
+  - **`M1 (Article Audio)`** (Commit `c7e7d19`): Phân tách rạch ròi bộ đếm Video vs Bài báo trên Supabase Cloud Sync, hiển thị dạng 4 cột KPI và báo cáo chính xác "X video, Y bài báo".
   - **`M-Userscript-No-Embed`** (Commit `a809e71`): Bổ sung `@noframes` và guards chặn nút Userscript trên iframe/embed của YouTube và trang web của studio; xóa nhãn cứng `v1.3.1` trên nút hướng dẫn cài đặt.
   - **`M-Timeline-Timestamp-Bar`** (Commit `dfc0c68`): Bổ sung tính năng Lưu timestamp vĩnh viễn (`💾`), Bắt mốc thời gian thực từ video (`⏱️`), Khôi phục mốc gốc YouTube (`↺ Gốc`), Scale lại mốc từng từ karaoke (`words`), và khắc phục triệt để lỗi ép auto-play khi tua mốc.
-  - **`M7`**: Kiểm toán tổng thể toàn diện, khóa chặn hồi quy tự động trong `tools/contrast-audit.test.js`, hoàn tất 100% chiến dịch Redesign từ M0 đến M7.
-- **Các Module tồn đọng & kế hoạch tiếp theo:**
-  - Tính năng và kiểm toán đều hoạt động hoàn hảo. Sẵn sàng đóng gói release hoặc phát triển tính năng mới.
+- **Các Module tiếp theo trong lộ trình Audio bài báo:**
+  - **`M2 (Article Audio)`**: Bộ nạp Audio (chỉ nhận file `.mp3`) & Trình phát Audio Player đồng bộ câu/từ cho bài báo.
+  - **`M3 (Article Audio)`**: Công cụ nhập Transcript có word-timestamp từ AI (Prompt mẫu + Parser).
 
 ---
 
 ### 4. Quyết định Kỹ thuật & Giới hạn Đã Được Phê Duyệt
 - **Zero-Bundler & Classic Scripts:** Toàn bộ JavaScript nạp qua `<script src="...">` không dùng `type="module"`, không thêm `defer`/`async` làm hỏng inline event handlers và biến toàn cục.
+- **Ràng buộc âm thanh bài báo:** Chỉ cho phép tải lên duy nhất tệp định dạng `.mp3`, không hỗ trợ định dạng khác.
 - **Quy tắc sửa HTML (Post-Split):** Không sửa trực tiếp `index.html`. Mọi sửa đổi phải thực hiện trong `src/index.src.html` hoặc `partials/`, sau đó chạy `python3 tools/restructure.py build` để đồng bộ lại `index.html`.
 - **Quy tắc Mã màu Semantic:** Khởi động mặc định luôn là Light Mode (`data-ui="light"`). Bắt buộc dùng CSS variable semantic tokens (`--fs-*`). Tuyệt đối không thêm mã HEX cứng hay inline style màu mới.
 - **Bảo mật tuyệt đối:** Không lưu thông tin đăng nhập, mật khẩu, token, API key hay dữ liệu nhạy cảm trong bất kỳ tệp tài liệu nào.
@@ -48,7 +50,7 @@
 ### 5. Kết quả Kiểm thử Thực tế & Nợ Kỹ thuật Tại Thời Điểm Bàn Giao
 - **Kiểm thử đơn vị (Unit Tests):**
   - Lệnh chạy: `node --test tools/*.test.js`
-  - Kết quả thực tế: **193 pass / 0 fail / 0 skipped** (thời gian chạy ~2.1s).
+  - Kết quả thực tế: **196 pass / 0 fail / 0 skipped** (thời gian chạy ~910ms).
 - **Kiểm kê mã màu (`node tools/lint-color.js`):**
   - Inline style màu trong JS: **0** (sạch 100%).
   - Class Tailwind màu trong HTML: **0** (sạch 100%).
