@@ -429,6 +429,35 @@
       font-weight: 600;
       color: var(--fs-text-primary);
     }
+    .art-sync-tabs {
+      display: flex;
+      gap: 6px;
+      padding: 3px;
+      background: var(--fs-surface-subtle);
+      border: 1px solid var(--fs-border-control);
+      border-radius: 10px;
+    }
+    .art-sync-tab {
+      flex: 1;
+      padding: 6px 10px;
+      border-radius: 8px;
+      background: transparent;
+      border: none;
+      color: var(--fs-text-subtle);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s ease;
+    }
+    .art-sync-tab:hover {
+      color: var(--fs-text-primary);
+    }
+    .art-sync-tab.on {
+      background: var(--fs-card);
+      color: var(--fs-accent);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
     .art-sync-prompt-box {
       position: relative;
       border: 1px solid var(--fs-border-control);

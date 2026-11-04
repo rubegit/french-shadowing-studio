@@ -1256,13 +1256,64 @@ Hãy nghe và trả về mảng JSON chứa mốc thời gian phát âm (tính b
 ]`;
     }
 
+    function generateAiTranscriptionPrompt(title) {
+      return `Bạn là chuyên gia phiên âm và tạo phụ đề tiếng Pháp chuyên nghiệp (Speech-to-Text Transcription & Alignment).
+Đính kèm là file âm thanh tiếng Pháp cho bài: "${title || 'Bài báo tiếng Pháp'}".
+
+YÊU CẦU:
+1. Nghe kỹ toàn bộ file âm thanh và phiên âm chính xác từng câu tiếng Pháp chuẩn ngữ pháp, chính tả, dấu câu.
+2. Tách thành từng câu hoàn chỉnh và xác định mốc thời gian bắt đầu và kết thúc (tính bằng giây, 2 chữ số thập phân).
+3. Đánh dấu mốc thời gian chi tiết cho từng từ (word-level timestamps) để phục vụ luyện đọc Karaoke/Shadowing.
+4. Trả về DUY NHẤT mảng JSON thuần túy (không kèm lời chào hay giải thích ngoài khối JSON) theo đúng cấu trúc sau:
+[
+  {
+    "id": 1,
+    "startTime": 0.00,
+    "endTime": 3.20,
+    "text": "Nội dung câu tiếng Pháp thứ nhất.",
+    "words": [
+      { "word": "Từ1", "startTime": 0.00, "endTime": 0.60 },
+      { "word": "Từ2", "startTime": 0.65, "endTime": 1.10 }
+    ]
+  }
+]`;
+    }
+
+    let currentArtPromptMode = 'align';
+
+    window.switchArtPromptTab = function(mode) {
+      currentArtPromptMode = mode === 'transcribe' ? 'transcribe' : 'align';
+      const btnAlign = document.getElementById('art-sync-tab-align');
+      const btnTranscribe = document.getElementById('art-sync-tab-transcribe');
+      const preview = document.getElementById('art-sync-prompt-preview');
+
+      if (btnAlign && btnTranscribe) {
+        if (currentArtPromptMode === 'align') {
+          btnAlign.classList.add('on');
+          btnAlign.setAttribute('aria-selected', 'true');
+          btnTranscribe.classList.remove('on');
+          btnTranscribe.setAttribute('aria-selected', 'false');
+        } else {
+          btnTranscribe.classList.add('on');
+          btnTranscribe.setAttribute('aria-selected', 'true');
+          btnAlign.classList.remove('on');
+          btnAlign.setAttribute('aria-selected', 'false');
+        }
+      }
+
+      if (preview) {
+        if (currentArtPromptMode === 'align') {
+          preview.textContent = generateAiTimestampPrompt(currentVideoTitle, sentences);
+        } else {
+          preview.textContent = generateAiTranscriptionPrompt(currentVideoTitle);
+        }
+      }
+    };
+
     window.openArtAiSyncModal = function() {
       const modal = document.getElementById('modal-art-ai-sync');
       if (!modal) return;
-      const preview = document.getElementById('art-sync-prompt-preview');
-      if (preview) {
-        preview.textContent = generateAiTimestampPrompt(currentVideoTitle, sentences);
-      }
+      switchArtPromptTab(currentArtPromptMode || 'align');
       const statusEl = document.getElementById('art-sync-status');
       if (statusEl) {
         statusEl.textContent = '';
@@ -1279,7 +1330,9 @@ Hãy nghe và trả về mảng JSON chứa mốc thời gian phát âm (tính b
     };
 
     window.copyArtAiPrompt = function() {
-      const promptText = generateAiTimestampPrompt(currentVideoTitle, sentences);
+      const promptText = currentArtPromptMode === 'transcribe'
+        ? generateAiTranscriptionPrompt(currentVideoTitle)
+        : generateAiTimestampPrompt(currentVideoTitle, sentences);
       navigator.clipboard.writeText(promptText).then(() => {
         const copyLbl = document.getElementById('art-sync-copy-label');
         if (copyLbl) copyLbl.textContent = '✓ Đã sao chép!';

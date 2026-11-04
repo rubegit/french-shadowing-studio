@@ -513,6 +513,15 @@
                     <span class="art-sync-step-num">1</span>
                     <span class="art-sync-step-label">Lấy Prompt mẫu gửi cho AI (ChatGPT, Claude, Gemini hoặc Whisper)</span>
                   </div>
+                  <!-- Bộ chọn 2 chế độ Prompt (Module M3.1) -->
+                  <div class="art-sync-tabs" role="tablist" aria-label="Chế độ Prompt">
+                    <button type="button" class="art-sync-tab on" id="art-sync-tab-align" role="tab" aria-selected="true" onclick="switchArtPromptTab('align')">
+                      <span>1. Căn chỉnh bài đọc hiện tại</span>
+                    </button>
+                    <button type="button" class="art-sync-tab" id="art-sync-tab-transcribe" role="tab" aria-selected="false" onclick="switchArtPromptTab('transcribe')">
+                      <span>2. Trích xuất từ Audio thuần</span>
+                    </button>
+                  </div>
                   <div class="art-sync-prompt-box">
                     <pre id="art-sync-prompt-preview" class="art-sync-prompt-text"></pre>
                     <button type="button" class="art-sync-copy-btn" id="art-sync-copy-btn" onclick="copyArtAiPrompt()">
