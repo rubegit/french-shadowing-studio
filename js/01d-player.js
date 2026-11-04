@@ -534,6 +534,7 @@
       if (window.pvReset) pvReset();
       stopSubtitleLoop();      // tắt loop + ẩn popup "Đang loop" vì không còn luyện video này nữa
       resetSubtitleSearch();   // xoá từ khoá đã gõ ở ô tìm kiếm phụ đề
+      stopArticleAudio();      // tắt audio bài báo nếu đang phát
       isTextMode = false;
       document.body.classList.remove('text-mode');
       const backLabel = document.getElementById('practice-back-btn-label');
@@ -722,6 +723,22 @@
       if (ttl) { ttl.textContent = currentVideoTitle; ttl.style.display = 'block'; }
       renderArticleSidePanel(docId, currentVideoTitle, parsed);
 
+      // Khởi tạo trình phát Audio cho bài báo
+      if (pendingTextAudioFile) {
+        const audioFile = pendingTextAudioFile;
+        pendingTextAudioFile = null;
+        clearTextAudioInput();
+        saveArticleAudioBlob(docId, audioFile).then(() => {
+          initArticleAudioPlayer(docId);
+          renderArticleSidePanel(docId, currentVideoTitle, parsed);
+        }).catch(err => {
+          console.error('[Article Audio] Lỗi lưu MP3 vào IndexedDB:', err);
+          initArticleAudioPlayer(docId);
+        });
+      } else {
+        initArticleAudioPlayer(docId);
+      }
+
       if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
       ensurePageFocus();
     }
@@ -808,6 +825,11 @@
               <i data-lucide="languages" class="w-4 h-4"></i>
               <span>Dịch song ngữ</span>
             </button>
+            <label class="art-btn" style="cursor:pointer;" title="Đính kèm hoặc đổi file âm thanh MP3 cho bài đọc này">
+              <input type="file" id="art-side-audio-file-input" accept=".mp3,audio/mpeg" style="display:none;" onchange="uploadAudioForCurrentArticle(event)">
+              <i data-lucide="music" class="w-4 h-4"></i>
+              <span id="art-side-audio-label">Kèm Audio MP3</span>
+            </label>
             <button type="button" class="art-btn" onclick="copyFullArticleText()" title="Sao chép toàn bộ nội dung bài viết">
               <i data-lucide="copy" class="w-4 h-4"></i>
               <span>Sao chép bài</span>
@@ -833,7 +855,276 @@
         </div>
       `;
       if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+      getArticleAudioBlob(docId).then(rec => {
+        const lbl = document.getElementById('art-side-audio-label');
+        if (lbl && rec) {
+          lbl.textContent = 'Đổi Audio MP3';
+        }
+      });
     }
+
+    // =========================================================================
+    // ARTICLE AUDIO ENGINE: QUẢN LÝ ÂM THANH MP3 CHO BÀI BÁO (INDEXEDDB)
+    // =========================================================================
+    const ART_AUDIO_DB_NAME = 'shadowing_article_audio_v1';
+    let artAudioDbPromise = null;
+    let pendingTextAudioFile = null;
+    let currentArtAudioObjUrl = null;
+
+    function getArtAudioDb() {
+      if (artAudioDbPromise) return artAudioDbPromise;
+      artAudioDbPromise = new Promise((resolve, reject) => {
+        if (!window.indexedDB) { reject(new Error('IndexedDB không được hỗ trợ')); return; }
+        const req = indexedDB.open(ART_AUDIO_DB_NAME, 1);
+        req.onupgradeneeded = () => {
+          const db = req.result;
+          if (!db.objectStoreNames.contains('audios')) {
+            db.createObjectStore('audios', { keyPath: 'id' });
+          }
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+      artAudioDbPromise.catch(() => { artAudioDbPromise = null; });
+      return artAudioDbPromise;
+    }
+
+    function saveArticleAudioBlob(docId, file) {
+      if (!docId || !file) return Promise.resolve(false);
+      return getArtAudioDb().then(db => new Promise((resolve, reject) => {
+        const tx = db.transaction('audios', 'readwrite');
+        const store = tx.objectStore('audios');
+        store.put({
+          id: docId,
+          name: file.name,
+          size: file.size,
+          type: file.type || 'audio/mpeg',
+          blob: file,
+          updatedAt: Date.now()
+        });
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => reject(tx.error);
+      }));
+    }
+
+    function getArticleAudioBlob(docId) {
+      if (!docId) return Promise.resolve(null);
+      return getArtAudioDb().then(db => new Promise((resolve) => {
+        const tx = db.transaction('audios', 'readonly');
+        const store = tx.objectStore('audios');
+        const req = store.get(docId);
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror = () => resolve(null);
+      })).catch(() => null);
+    }
+
+    function deleteArticleAudioBlob(docId) {
+      if (!docId) return Promise.resolve(false);
+      return getArtAudioDb().then(db => new Promise((resolve) => {
+        const tx = db.transaction('audios', 'readwrite');
+        const store = tx.objectStore('audios');
+        store.delete(docId);
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => resolve(false);
+      })).catch(() => false);
+    }
+
+    function isMp3File(file) {
+      if (!file || !file.name) return false;
+      const name = file.name.toLowerCase();
+      return name.endsWith('.mp3') || file.type === 'audio/mpeg' || file.type === 'audio/mp3';
+    }
+
+    window.handleTextAudioInput = function(e) {
+      const file = e.target && e.target.files && e.target.files[0];
+      if (!file) return;
+      if (!isMp3File(file)) {
+        showVocabToast('Chỉ cho phép tải lên file âm thanh định dạng .mp3', false);
+        e.target.value = '';
+        return;
+      }
+      pendingTextAudioFile = file;
+      const fnEl = document.getElementById('text-audio-filename');
+      if (fnEl) fnEl.textContent = file.name;
+      const badge = document.getElementById('text-audio-badge');
+      if (badge) badge.style.display = 'inline-flex';
+      const lbl = document.getElementById('lbl-text-audio-input');
+      if (lbl) lbl.style.display = 'none';
+      showVocabToast('Đã đính kèm audio MP3: ' + file.name, true);
+    };
+
+    window.clearTextAudioInput = function() {
+      pendingTextAudioFile = null;
+      const inp = document.getElementById('text-audio-input');
+      if (inp) inp.value = '';
+      const badge = document.getElementById('text-audio-badge');
+      if (badge) badge.style.display = 'none';
+      const lbl = document.getElementById('lbl-text-audio-input');
+      if (lbl) lbl.style.display = 'inline-flex';
+    };
+
+    function stopArticleAudio() {
+      const audioEl = document.getElementById('art-audio-el');
+      if (audioEl) {
+        try { audioEl.pause(); } catch (e) {}
+        audioEl.currentTime = 0;
+        if (currentArtAudioObjUrl) {
+          URL.revokeObjectURL(currentArtAudioObjUrl);
+          currentArtAudioObjUrl = null;
+        }
+        audioEl.removeAttribute('src');
+      }
+      const bar = document.getElementById('art-audio-bar');
+      if (bar) bar.style.display = 'none';
+    }
+
+    function initArticleAudioPlayer(docId) {
+      const audioEl = document.getElementById('art-audio-el');
+      const bar = document.getElementById('art-audio-bar');
+      if (!audioEl || !bar) return;
+
+      getArticleAudioBlob(docId).then(record => {
+        if (!record || !record.blob) {
+          bar.style.display = 'none';
+          if (currentArtAudioObjUrl) {
+            URL.revokeObjectURL(currentArtAudioObjUrl);
+            currentArtAudioObjUrl = null;
+          }
+          audioEl.removeAttribute('src');
+          return;
+        }
+
+        if (currentArtAudioObjUrl) {
+          URL.revokeObjectURL(currentArtAudioObjUrl);
+        }
+        currentArtAudioObjUrl = URL.createObjectURL(record.blob);
+        audioEl.src = currentArtAudioObjUrl;
+        bar.style.display = 'flex';
+
+        const pillName = document.getElementById('art-ab-pill-name');
+        if (pillName) pillName.textContent = record.name || 'Audio.mp3';
+
+        const slider = document.getElementById('art-audio-slider');
+        const curEl = document.getElementById('art-audio-cur-time');
+        const durEl = document.getElementById('art-audio-dur-time');
+        const speedSel = document.getElementById('art-audio-speed');
+        if (speedSel) audioEl.playbackRate = parseFloat(speedSel.value) || 1.0;
+
+        audioEl.onloadedmetadata = () => {
+          if (durEl) durEl.textContent = formatTime(audioEl.duration || 0);
+          if (slider) { slider.max = String(Math.floor(audioEl.duration || 100)); slider.value = '0'; }
+        };
+
+        audioEl.ontimeupdate = () => {
+          const ct = audioEl.currentTime || 0;
+          if (curEl) curEl.textContent = formatTime(ct);
+          if (slider && !slider._dragging) slider.value = String(Math.floor(ct));
+
+          if (isTextMode && sentences && sentences.length) {
+            // Đồng bộ highlight câu theo mốc thời gian
+            const matchIdx = sentences.findIndex(s => typeof s.startTime === 'number' && ct >= s.startTime && ct <= (typeof s.endTime === 'number' ? s.endTime : (s.startTime + 15)));
+            if (matchIdx !== -1 && matchIdx !== currentSentenceIndex) {
+              currentSentenceIndex = matchIdx;
+              updateActiveSentenceDisplay();
+              if (settings && settings.autoScroll && !shouldPreventAutoScroll()) {
+                triggerSmoothCenterScroll(matchIdx, false, ct);
+              }
+            }
+
+            // Đồng bộ highlight từ karaoke
+            if (currentSentenceIndex >= 0 && sentences[currentSentenceIndex] && sentences[currentSentenceIndex].words) {
+              const ws = sentences[currentSentenceIndex].words;
+              const wIdx = ws.findIndex(w => typeof w.startTime === 'number' && ct >= w.startTime && ct <= w.endTime);
+              const container = document.getElementById('subtitles-scroll-container');
+              if (container && wIdx !== -1) {
+                const sentEl = container.querySelector(`.sentence-text-line[data-id="${sentences[currentSentenceIndex].id}"]`);
+                if (sentEl) {
+                  const wordEls = sentEl.querySelectorAll('.sub-word-unit');
+                  if (wordEls[wIdx]) {
+                    if (currentHighlightedWordEl && currentHighlightedWordEl !== wordEls[wIdx]) {
+                      currentHighlightedWordEl.classList.remove('karaoke-word-active');
+                    }
+                    wordEls[wIdx].classList.add('karaoke-word-active');
+                    currentHighlightedWordEl = wordEls[wIdx];
+                  }
+                }
+              }
+            }
+          }
+        };
+
+        const playIco = bar.querySelector('.art-ab-play-ico');
+        const pauseIco = bar.querySelector('.art-ab-pause-ico');
+        audioEl.onplay = () => {
+          if (playIco) playIco.style.display = 'none';
+          if (pauseIco) pauseIco.style.display = 'block';
+        };
+        audioEl.onpause = () => {
+          if (playIco) playIco.style.display = 'block';
+          if (pauseIco) pauseIco.style.display = 'none';
+        };
+        audioEl.onended = () => {
+          if (playIco) playIco.style.display = 'block';
+          if (pauseIco) pauseIco.style.display = 'none';
+          if (slider) slider.value = '0';
+        };
+      });
+    }
+
+    window.toggleArtAudioPlay = function() {
+      const audioEl = document.getElementById('art-audio-el');
+      if (!audioEl || !audioEl.src) return;
+      if (audioEl.paused) {
+        audioEl.play().catch(e => console.warn('[Article Audio] Lỗi phát audio:', e));
+      } else {
+        audioEl.pause();
+      }
+    };
+
+    window.seekArtAudioBy = function(delta) {
+      const audioEl = document.getElementById('art-audio-el');
+      if (!audioEl || !audioEl.src) return;
+      const target = Math.max(0, Math.min(audioEl.duration || 9999, (audioEl.currentTime || 0) + delta));
+      audioEl.currentTime = target;
+    };
+
+    window.onArtAudioSliderInput = function(val) {
+      const audioEl = document.getElementById('art-audio-el');
+      if (!audioEl || !audioEl.src) return;
+      audioEl.currentTime = parseFloat(val) || 0;
+    };
+
+    window.changeArtAudioSpeed = function(rate) {
+      const audioEl = document.getElementById('art-audio-el');
+      if (audioEl) audioEl.playbackRate = parseFloat(rate) || 1.0;
+    };
+
+    window.uploadAudioForCurrentArticle = function(e) {
+      const file = e.target && e.target.files && e.target.files[0];
+      if (!file || !currentVideoId) return;
+      if (!isMp3File(file)) {
+        showVocabToast('Chỉ cho phép tải lên file âm thanh định dạng .mp3', false);
+        e.target.value = '';
+        return;
+      }
+      saveArticleAudioBlob(currentVideoId, file).then(() => {
+        showVocabToast('Đã nạp file MP3 cho bài đọc: ' + file.name, true);
+        initArticleAudioPlayer(currentVideoId);
+        renderArticleSidePanel(currentVideoId, currentVideoTitle, sentences);
+      }).catch(err => {
+        showVocabToast('Lỗi lưu audio: ' + (err.message || err), false);
+      });
+    };
+
+    window.removeCurrentArticleAudio = function() {
+      if (!currentVideoId) return;
+      if (!confirm('Bạn có chắc muốn gỡ file âm thanh khỏi bài viết này?')) return;
+      stopArticleAudio();
+      deleteArticleAudioBlob(currentVideoId).then(() => {
+        showVocabToast('Đã gỡ file audio khỏi bài viết', true);
+        renderArticleSidePanel(currentVideoId, currentVideoTitle, sentences);
+      });
+    };
 
     window.lookupArticleWord = function(word) {
       if (!word) return;
@@ -1940,6 +2231,11 @@
     function togglePlay() {
       tpRetrigger(document.getElementById('btn-toggle-play'), 'tp-press', 200);
       if (isTextMode) {
+        const artEl = document.getElementById('art-audio-el');
+        if (artEl && artEl.src) {
+          toggleArtAudioPlay();
+          return;
+        }
         if (window._activeAudioPlayer || (window.speechSynthesis && window.speechSynthesis.speaking)) {
           if (window._activeAudioPlayer) {
             try { window._activeAudioPlayer.pause(); } catch(e) {}
@@ -2039,7 +2335,13 @@
       }
 
       if (isTextMode) {
-        if (autoPlay) {
+        const artEl = document.getElementById('art-audio-el');
+        if (artEl && artEl.src && !isNaN(artEl.duration) && artEl.duration > 0) {
+          artEl.currentTime = Math.max(0, seconds);
+          if (autoPlay && artEl.paused) {
+            artEl.play().catch(() => {});
+          }
+        } else if (autoPlay) {
           if (specificElement && specificElement.textContent) {
             window.playFrenchAudio(specificElement.textContent.trim(), (settings && settings.playbackRate) || 1.0);
           } else {
@@ -2062,6 +2364,12 @@
       const s = sentences[currentSentenceIndex];
       if (!s) return;
       if (isTextMode) {
+        const artEl = document.getElementById('art-audio-el');
+        if (artEl && artEl.src && typeof s.startTime === 'number') {
+          artEl.currentTime = s.startTime;
+          if (artEl.paused) artEl.play().catch(() => {});
+          return;
+        }
         if (s.text) window.playFrenchAudio(s.text, (settings && settings.playbackRate) || 1.0);
         return;
       }

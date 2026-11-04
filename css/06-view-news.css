@@ -157,4 +157,179 @@
         height: auto !important; width: 100%;
       }
     }
+
+    /* =====================================================================
+       BỘ PHÁT AUDIO CHO BÀI BÁO (ARTICLE AUDIO ENGINE)
+       ===================================================================== */
+    .txt-audio-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      background: var(--fs-surface-card);
+      padding: 4px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--fs-border-control);
+      color: var(--fs-text-primary);
+    }
+    .txt-audio-fname {
+      max-width: 180px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-weight: 600;
+    }
+    .txt-audio-del {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: var(--fs-text-subtle);
+      font-size: 13px;
+      padding: 0 3px;
+      transition: color 0.15s ease;
+    }
+    .txt-audio-del:hover {
+      color: var(--fs-danger);
+    }
+
+    .art-audio-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 8px 16px;
+      background: var(--fs-surface-card);
+      border-bottom: 1px solid var(--fs-border-control);
+      flex-shrink: 0;
+      z-index: 10;
+      transition: all 0.2s ease;
+    }
+    .art-ab-controls {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .art-ab-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      padding: 4px 8px;
+      border-radius: 8px;
+      background: var(--fs-card);
+      border: 1px solid var(--fs-border-control);
+      color: var(--fs-text-primary);
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease;
+    }
+    .art-ab-btn:hover {
+      transform: scale(1.04);
+      border-color: var(--fs-accent);
+    }
+    .art-ab-btn:active {
+      transform: scale(0.97);
+    }
+    .art-ab-play {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--fs-accent);
+      color: var(--fs-text-inverse);
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
+      transition: transform 0.15s ease, filter 0.15s ease;
+    }
+    .art-ab-play:hover {
+      transform: scale(1.06);
+      filter: brightness(1.1);
+    }
+    .art-ab-play:active {
+      transform: scale(0.95);
+    }
+    .art-ab-slider-wrap {
+      display: flex;
+      flex: 1;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+    .art-ab-slider {
+      flex: 1;
+      height: 5px;
+      border-radius: 9999px;
+      accent-color: var(--fs-accent);
+      cursor: pointer;
+    }
+    .art-ab-times {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--fs-text-subtle);
+      white-space: nowrap;
+    }
+    .art-ab-tools {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .art-ab-speed {
+      padding: 3px 6px;
+      border-radius: 6px;
+      background: var(--fs-card);
+      border: 1px solid var(--fs-border-control);
+      color: var(--fs-text-primary);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .art-ab-file-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 8px;
+      border-radius: 9999px;
+      background: var(--fs-card);
+      border: 1px solid var(--fs-border-control);
+      font-size: 11px;
+      color: var(--fs-text-primary);
+      max-width: 140px;
+    }
+    .art-ab-pill-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .art-ab-pill-del {
+      background: transparent;
+      border: none;
+      color: var(--fs-text-subtle);
+      font-size: 12px;
+      cursor: pointer;
+      padding: 0;
+      line-height: 1;
+    }
+    .art-ab-pill-del:hover {
+      color: var(--fs-danger);
+    }
+
+    @media (max-width: 640px) {
+      .art-audio-bar {
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 6px 10px;
+      }
+      .art-ab-slider-wrap {
+        order: 3;
+        width: 100%;
+        flex: none;
+      }
+      .art-ab-file-pill {
+        max-width: 110px;
+      }
+    }
   

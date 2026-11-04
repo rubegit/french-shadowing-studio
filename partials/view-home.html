@@ -287,6 +287,16 @@
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                   Tải file (.txt, .docx, .md)
                 </label>
+                <label class="txt-file-btn" id="lbl-text-audio-input" title="Đính kèm file âm thanh MP3 tương ứng với bài báo (tùy chọn)">
+                  <input type="file" id="text-audio-input" accept=".mp3,audio/mpeg" style="display:none;" onchange="handleTextAudioInput(event)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                  <span id="text-audio-btn-label">Kèm Audio (.mp3)</span>
+                </label>
+                <div id="text-audio-badge" class="txt-audio-badge" style="display:none;">
+                  <span class="fs-text-accent">🎵</span>
+                  <span id="text-audio-filename" class="txt-audio-fname"></span>
+                  <button type="button" onclick="clearTextAudioInput()" title="Hủy file audio này" class="txt-audio-del">✕</button>
+                </div>
                 <button type="button" id="text-clear-btn" class="txt-clear">Xóa trắng</button>
               </div>
             </div>
