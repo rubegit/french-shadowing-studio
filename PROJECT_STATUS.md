@@ -14,11 +14,11 @@
 
 - **Tên dự án:** French Shadowing Studio
 - **Phiên bản phát hành gần nhất:** `v2.0.27` (Commit `ba376ac`)
-- **Current HEAD Commit:** `580edc2` (*test(audit): hoàn tất kiểm toán tổng thể toàn diện và khóa chặn hồi quy CI (M7)*)
-- **Nhánh Git (Branch):** `main`
+- **Current HEAD Commit:** `dfc0c68` (*feat(player): cho phép lưu timestamp vĩnh viễn, bắt mốc video và reset gốc (M-Timeline-Timestamp-Bar)*)
+- **Nhánh Git (Branch):** `main` (đồng bộ hoàn toàn với `origin/main`)
 - **Trạng thái Git Working Tree:** Clean 100%
 - **Môi trường triển khai:** Vercel Static Hosting (phục vụ trực tiếp từ `index.html` và static assets)
-- **Thời điểm cập nhật:** `2026-11-04T12:26:00-06:00`
+- **Thời điểm cập nhật:** `2026-11-04T13:06:00-06:00`
 
 ---
 
@@ -28,8 +28,8 @@
 
 - **Kiểm thử đơn vị (Unit Tests):**
   - Lệnh chạy: `node --test tools/*.test.js`
-  - Kết quả: **187 / 187 bài test PASS (100%)**, 0 bài fail, thời gian chạy ~930ms.
-  - Bộ kiểm thử bao gồm: `contrast-audit.test.js`, `focus-rings.test.js`, `french-utils.test.js`, `schema-v02.test.js`, `vocab-importer.test.js`, `vocab-practice.test.js`, `punct-corrections.test.js`, `punct-manual-merge.test.js`, `extract-prompt-template.test.js`, `theme-init.test.js`, `theme-tokens.test.js`.
+  - Kết quả: **190 / 190 bài test PASS (100%)**, 0 bài fail, thời gian chạy ~2.1s.
+  - Bộ kiểm thử bao gồm: `contrast-audit.test.js`, `focus-rings.test.js`, `sentence-timestamp-edit.test.js`, `french-utils.test.js`, `schema-v02.test.js`, `vocab-importer.test.js`, `vocab-practice.test.js`, `punct-corrections.test.js`, `punct-manual-merge.test.js`, `extract-prompt-template.test.js`, `theme-init.test.js`, `theme-tokens.test.js`.
 - **Kiểm kê mã màu (Color Linting via `node tools/lint-color.js`):**
   - Inline style màu trong JavaScript: **0**
   - Class màu Tailwind trong HTML: **0**
@@ -73,6 +73,7 @@
 | **M5d** | Dọn Dẹp 100% Inline Styles Màu & SVG HEX Trong HTML Partials | **Đã hoàn thành** | `01e8373` + `7e87543` + `61c89f2` |
 | **M6** | Chuẩn Hóa Trạng Thái Tương Tác & Vòng Sáng Chỉ Thị (Focus Rings) | **Đã hoàn thành** | `e77366c` |
 | **M7** | Kiểm Toán Tổng Thể Toàn Diện & Khóa Chặn Hồi Quy (Final Audit) | **Đã hoàn thành** | `580edc2` |
+| **M-Timeline-Timestamp-Bar** | Lưu Timestamp Vĩnh Viễn, Bắt Mốc Thời Gian Thực, Khôi Phục Mốc Gốc & Sửa Lỗi Play Forward | **Đã hoàn thành** | `dfc0c68` |
 
 ---
 

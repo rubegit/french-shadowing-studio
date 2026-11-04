@@ -8,7 +8,7 @@
 ---
 
 ### 1. Metadata Bàn giao (Handover Metadata)
-- **Thời điểm cập nhật:** 2026-11-04T11:48:00-06:00
+- **Thời điểm cập nhật:** 2026-11-04T13:06:00-06:00
 - **Agent bàn giao (Outgoing Agent):** Antigravity Agent
 - **Mục đích:** Bàn giao liền mạch sang phiên làm việc / tài khoản Google mới trong Antigravity.
 - **Tài liệu tham chiếu bắt buộc:** [`AGENTS.md`](./AGENTS.md), [`PROJECT_STATUS.md`](./PROJECT_STATUS.md).
@@ -17,8 +17,8 @@
 
 ### 2. Bản chụp Trạng thái Git (Git State Snapshot)
 - **Nhánh hiện tại (Branch):** `main`
-- **HEAD Commit tại thời điểm nạp:** `580edc2` (*test(audit): hoàn tất kiểm toán tổng thể toàn diện và khóa chặn hồi quy CI (M7)*)
-- **Tình trạng Remote:** Đang đi trước `origin/main` 5 commits (`01e8373`, `7e87543`, `61c89f2`, `e77366c`, `580edc2`), **chưa push lên remote** theo yêu cầu bảo lưu cục bộ của người dùng.
+- **HEAD Commit tại thời điểm nạp:** `dfc0c68` (*feat(player): cho phép lưu timestamp vĩnh viễn, bắt mốc video và reset gốc (M-Timeline-Timestamp-Bar)*)
+- **Tình trạng Remote:** Đã push toàn bộ lên `origin/main` theo sự đồng ý của người dùng. Trạng thái `up to date with origin/main`.
 - **Trạng thái Working Tree:** **Clean 100%** (xác minh thực tế qua `git status --porcelain`).
 - **Cảnh báo an toàn Git:**
   - Tuyệt đối **KHÔNG PUSH** commit cục bộ lên remote nếu người dùng chưa ra lệnh rõ ràng bằng văn bản.
@@ -29,9 +29,10 @@
 ### 3. Tiến độ & Trạng thái Các Module (Milestone Progress)
 - **Release chính thức gần nhất:** `v2.0.27` (Commit `ba376ac`) – Đã tag và push.
 - **Module vừa nghiệm thu:**
+  - **`M-Timeline-Timestamp-Bar`** (Commit `dfc0c68`): Bổ sung tính năng Lưu timestamp vĩnh viễn (`💾`), Bắt mốc thời gian thực từ video (`⏱️`), Khôi phục mốc gốc YouTube (`↺ Gốc`), Scale lại mốc từng từ karaoke (`words`), và khắc phục triệt để lỗi ép auto-play khi tua mốc.
   - **`M7`**: Kiểm toán tổng thể toàn diện, khóa chặn hồi quy tự động trong `tools/contrast-audit.test.js`, hoàn tất 100% chiến dịch Redesign từ M0 đến M7.
 - **Các Module tồn đọng & kế hoạch tiếp theo:**
-  - Chiến dịch chuẩn hóa Redesign màu sắc và độ tương phản WCAG đã **hoàn thành 100%**. Sẵn sàng đóng gói release hoặc phát triển tính năng mới.
+  - Tính năng và kiểm toán đều hoạt động hoàn hảo. Sẵn sàng đóng gói release hoặc phát triển tính năng mới.
 
 ---
 
@@ -46,7 +47,7 @@
 ### 5. Kết quả Kiểm thử Thực tế & Nợ Kỹ thuật Tại Thời Điểm Bàn Giao
 - **Kiểm thử đơn vị (Unit Tests):**
   - Lệnh chạy: `node --test tools/*.test.js`
-  - Kết quả thực tế: **187 pass / 0 fail / 0 skipped** (thời gian chạy ~930ms).
+  - Kết quả thực tế: **190 pass / 0 fail / 0 skipped** (thời gian chạy ~2.1s).
 - **Kiểm kê mã màu (`node tools/lint-color.js`):**
   - Inline style màu trong JS: **0** (sạch 100%).
   - Class Tailwind màu trong HTML: **0** (sạch 100%).
