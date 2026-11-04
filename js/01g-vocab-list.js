@@ -686,7 +686,14 @@
 
 
     const cleanVid = (id) => String(id || '').replace(/^(yt|video):/, '').trim();
-    const normTitle = (t) => String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[\s\-_|·]+/g, ' ').trim();
+    const normTitle = (t) => String(t || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\s*[\u2018\u2019\u201B\u0060\u00B4ʻʼ']\s*/g, "'")
+      .replace(/[.,;:\?!¿¡\(\)\[\]\{\}"«»“”]/g, ' ')
+      .replace(/[\s\-_|·]+/g, ' ')
+      .trim();
     window.cleanVid = cleanVid;
     window.normTitle = normTitle;
 
@@ -762,6 +769,16 @@
       if (histItem) {
         pendingSeekTime = (() => { const s = histItem.sentences.slice().reverse().find((z) => z.startTime <= (x.t || 0) + 0.05); return s ? s.startTime : (x.t || 0); })();
         loadFromHistory(histItem.videoId);
+        if (histItem.isText) {
+          const targetSentIdx = histItem.sentences.findIndex((s) => (typeof s.startTime === 'number' && typeof x.t === 'number' && Math.abs(s.startTime - x.t) < 0.1) || s.startTime === pendingSeekTime);
+          if (targetSentIdx >= 0) {
+            setTimeout(() => {
+              if (typeof triggerSmoothCenterScroll === 'function') {
+                triggerSmoothCenterScroll(targetSentIdx, true);
+              }
+            }, 120);
+          }
+        }
         return;
       }
       // (c) Video thuộc thư viện có sẵn -> nạp phụ đề từ thư viện
@@ -1005,11 +1022,14 @@
       const KIND = { word: 'Từ', phrase: 'Cụm từ', sentence: 'Câu' };
       const ctx = smartHighlightInContext(x.en, x.text, x.hs, x.he);
       const rawV = cleanVid(x.videoId);
-      const yt = (rawV && x.t_known !== false) ? `https://www.youtube.com/watch?v=${encodeURIComponent(rawV)}&t=${Math.max(0, Math.floor((x.t || 0) - 2))}s` : (rawV ? `https://www.youtube.com/watch?v=${encodeURIComponent(rawV)}` : '');
+      const srcInfo = vocabSourceInfo(x);
+      const isArticle = srcInfo.type === 'article' || /^(art|txt)_/.test(rawV);
+      const icon = isArticle ? '📰' : '▶';
+      const yt = (rawV && !isArticle && x.t_known !== false) ? `https://www.youtube.com/watch?v=${encodeURIComponent(rawV)}&t=${Math.max(0, Math.floor((x.t || 0) - 2))}s` : (rawV && !isArticle ? `https://www.youtube.com/watch?v=${encodeURIComponent(rawV)}` : '');
       const timeStr = (x.t_known === false) ? '(chưa căn mốc)' : formatTime(x.t || 0);
       const src = x.bookId ? `<a href="#" title="Mở lại đúng câu này trong sách" onclick="openVocabVideo('${x.id}'); return false;">📖 ${escHtml(x.videoTitle || 'Sách')}</a>`
         : x.srcUrl ? `<a href="${escHtml(x.srcUrl)}" target="_blank" rel="noopener" title="Mở trang web gốc">🌐 ${escHtml(x.videoTitle || x.srcUrl)}</a>`
-        : rawV ? `<a href="javascript:void(0)" title="Mở lại đúng câu này trong Shadowing Studio" onclick="openVocabVideo('${x.id}'); return false;">▶ ${escHtml(x.videoTitle || rawV)} · ${timeStr}</a>` : '<span></span>';
+        : rawV ? `<a href="javascript:void(0)" title="Mở lại bài này trong Shadowing Studio" onclick="openVocabVideo('${x.id}'); return false;">${icon} ${escHtml(x.videoTitle || rawV)} · ${timeStr}</a>` : '<span></span>';
 
       let wordViBlock;
       if (vocabEditIds.has(x.id)) {
@@ -1038,10 +1058,13 @@
               </summary>
               <div class="vocab-multi-ctx-body">
                 ${extraContexts.map((c) => {
-                  const cYt = (c.videoId && c.t_known !== false) ? `https://www.youtube.com/watch?v=${encodeURIComponent(c.videoId)}&t=${Math.max(0, Math.floor((c.t || 0) - 2))}s` : (c.videoId ? `https://www.youtube.com/watch?v=${encodeURIComponent(c.videoId)}` : '');
+                  const cInfo = vocabSourceInfo(c);
+                  const cIsArticle = cInfo.type === 'article' || /^(art|txt)_/.test(c.videoId || '');
+                  const cIcon = cIsArticle ? '📰' : '▶';
+                  const cYt = (c.videoId && !cIsArticle && c.t_known !== false) ? `https://www.youtube.com/watch?v=${encodeURIComponent(c.videoId)}&t=${Math.max(0, Math.floor((c.t || 0) - 2))}s` : (c.videoId && !cIsArticle ? `https://www.youtube.com/watch?v=${encodeURIComponent(c.videoId)}` : '');
                   const cTimeStr = (c.t_known === false) ? '(chưa căn mốc)' : formatTime(c.t || 0);
                   const cSrc = c.bookId ? `📖 ${escHtml(c.videoTitle || 'Sách')}`
-                    : c.videoId ? `<a href="${cYt}" target="_blank" rel="noopener">▶ ${escHtml(c.videoTitle || c.videoId)} · ${cTimeStr}</a>`
+                    : c.videoId ? (cIsArticle ? `<a href="javascript:void(0)" onclick="openVocabVideo('${x.id}'); return false;">${cIcon} ${escHtml(c.videoTitle || c.videoId)} · ${cTimeStr}</a>` : `<a href="${cYt}" target="_blank" rel="noopener">${cIcon} ${escHtml(c.videoTitle || c.videoId)} · ${cTimeStr}</a>`)
                     : '';
                   return `
                     <div class="vocab-ctx-item">
@@ -1393,7 +1416,7 @@
       }
 
       // Tự động bù ID từ lịch sử nếu thẻ bị thiếu/lệch ID nhưng khớp tiêu đề
-      if ((!v.videoId || v.videoId === 'unknown') && typeof getLocalHistory === 'function') {
+      if (typeof getLocalHistory === 'function') {
         try {
           const hist = getLocalHistory();
           const vNorm = normTitle(v.videoTitle || '');
@@ -1404,13 +1427,29 @@
               return hNorm.length >= 6 && (hNorm === vNorm || hNorm.includes(vNorm) || vNorm.includes(hNorm));
             });
             if (h && h.videoId) {
-              v.videoId = cleanVid(h.videoId);
+              const hVid = cleanVid(h.videoId);
+              if (!v.videoId || v.videoId === 'unknown' || (h.isText && !/^(art|txt)_/.test(v.videoId))) {
+                v.videoId = hVid;
+              }
+              if (!v.videoTitle && (h.title || h.videoTitle)) {
+                v.videoTitle = h.title || h.videoTitle;
+              }
             }
           }
         } catch (e) {}
       }
-      if ((!v.videoId || v.videoId === 'unknown') && typeof currentVideoId !== 'undefined' && currentVideoId) {
-        v.videoId = cleanVid(currentVideoId);
+      if (typeof currentVideoId !== 'undefined' && currentVideoId) {
+        const vNorm = normTitle(v.videoTitle || '');
+        const cNorm = (typeof currentVideoTitle !== 'undefined' && currentVideoTitle) ? normTitle(currentVideoTitle) : '';
+        if (vNorm && cNorm && vNorm.length >= 6 && cNorm.length >= 6 && (vNorm === cNorm || vNorm.includes(cNorm) || cNorm.includes(vNorm))) {
+          const cVid = cleanVid(currentVideoId);
+          if (!v.videoId || v.videoId === 'unknown' || (typeof isTextMode !== 'undefined' && isTextMode && !/^(art|txt)_/.test(v.videoId))) {
+            v.videoId = cVid;
+          }
+          if (!v.videoTitle && currentVideoTitle) {
+            v.videoTitle = currentVideoTitle;
+          }
+        }
       }
 
       let aligned = null;
@@ -1418,7 +1457,14 @@
         aligned = window.SchemaV02.alignSubtitleForContext(v.en || v.source_text || '', v.text, sents, v.verb);
       }
       if (!aligned || !aligned.matched) {
-        const norm = (str) => String(str || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+        const norm = (str) => String(str || '')
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .replace(/\s*[\u2018\u2019\u201B\u0060\u00B4ʻʼ']\s*/g, "'")
+          .replace(/[.,;:\?!¿¡\(\)\[\]\{\}"«»“”]/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim();
         const cleanWord = norm(v.text);
         const cleanEn = norm(v.en || v.source_text);
         for (let i = 0; i < sents.length; i++) {
@@ -2335,9 +2381,40 @@
 
     // Nguồn của 1 mục từ vựng: video YouTube, bài viết/văn bản (id bắt đầu bằng art_ hoặc txt_) hoặc sách
     function vocabSourceInfo(x) {
+      if (!x) return { key: 'none', type: 'other', title: 'Không rõ nguồn' };
       if (x.bookId) return { key: 'book:' + x.bookId, type: 'book', title: x.videoTitle || 'Sách' };
       const id = String(x.videoId || '');
       if (/^(art|txt)_/.test(id)) return { key: 'text:' + id, type: 'article', title: x.videoTitle || 'Bài viết' };
+      if (typeof getLocalHistory === 'function') {
+        try {
+          const hist = getLocalHistory();
+          if (Array.isArray(hist) && hist.length) {
+            const h = hist.find((hItem) => {
+              if (!hItem || !hItem.isText) return false;
+              if (id && cleanVid(hItem.videoId) === cleanVid(id)) return true;
+              if (x.videoTitle) {
+                const vN = normTitle(x.videoTitle);
+                const hN = normTitle(hItem.title || hItem.videoTitle || '');
+                return vN.length >= 6 && hN.length >= 6 && (vN === hN || vN.includes(hN) || hN.includes(vN));
+              }
+              return false;
+            });
+            if (h) return { key: 'text:' + cleanVid(h.videoId), type: 'article', title: x.videoTitle || h.title || 'Bài viết' };
+          }
+        } catch (e) {}
+      }
+      if (typeof currentVideoId !== 'undefined' && currentVideoId && typeof isTextMode !== 'undefined' && isTextMode) {
+        if (id && cleanVid(currentVideoId) === cleanVid(id)) {
+          return { key: 'text:' + cleanVid(currentVideoId), type: 'article', title: x.videoTitle || (typeof currentVideoTitle !== 'undefined' ? currentVideoTitle : 'Bài viết') };
+        }
+        if (x.videoTitle && typeof currentVideoTitle !== 'undefined' && currentVideoTitle) {
+          const vN = normTitle(x.videoTitle);
+          const cN = normTitle(currentVideoTitle);
+          if (vN.length >= 6 && cN.length >= 6 && (vN === cN || vN.includes(cN) || cN.includes(vN))) {
+            return { key: 'text:' + cleanVid(currentVideoId), type: 'article', title: x.videoTitle || currentVideoTitle };
+          }
+        }
+      }
       if (id) return { key: 'video:' + id, type: 'video', title: x.videoTitle || id };
       return { key: 'none', type: 'other', title: 'Không rõ nguồn' };
     }
