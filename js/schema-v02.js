@@ -188,7 +188,7 @@
     if (!str || typeof str !== 'string') return '';
     return str.normalize('NFC')
       .replace(RE_SOUND_TAG, ' ')
-      .replace(/[\u2018\u2019\u201B\u0060\u00B4]/g, "'")
+      .replace(/\s*[\u2018\u2019\u201B\u0060\u00B4ʻʼ']\s*/g, "'")
       .toLowerCase()
       .replace(/[.,;:\?!¿¡\(\)\[\]\{\}"«»“”]/g, ' ')
       .replace(/\s+/g, ' ')
@@ -228,7 +228,7 @@
    * - frText: từ/cụm từ cần tìm
    * - sentences: mảng câu phụ đề [{ text, vi, startTime, endTime }, ...]
    */
-  function alignSubtitleForContext(candText, frText, sentences, verbData) {
+  function alignSubtitleForContext(candText, frText, sentences, verbData, targetT) {
     if (!Array.isArray(sentences) || !sentences.length) {
       return {
         matched: false,
@@ -257,9 +257,20 @@
       }
     }
 
-    if (candMatches.length === 1) {
-      var sObj = candMatches[0].sentence;
-      var sIdx = candMatches[0].index;
+    if (candMatches.length === 1 || (candMatches.length > 1 && typeof targetT === 'number' && targetT > 0)) {
+      var bestIdx = 0;
+      if (candMatches.length > 1) {
+        var minDiff = Infinity;
+        for (var k = 0; k < candMatches.length; k++) {
+          var diff = Math.abs((candMatches[k].sentence.startTime || 0) - targetT);
+          if (diff < minDiff) {
+            minDiff = diff;
+            bestIdx = k;
+          }
+        }
+      }
+      var sObj = candMatches[bestIdx].sentence;
+      var sIdx = candMatches[bestIdx].index;
       var span = findHighlightSpanWithSoundTags(sObj.text, frText, verbData);
       var prevText = (sIdx > 0 && sentences[sIdx - 1]) ? String(sentences[sIdx - 1].text || '').trim() : '';
       var matchedT = typeof sObj.startTime === 'number' ? sObj.startTime : 0;
@@ -290,7 +301,7 @@
     }
 
     if (candMatches.length > 1) {
-      // Nhiều câu cùng khớp: KHÔNG tự lấy câu đầu, đặt t_known=false và t=null
+      // Nhiều câu cùng khớp: KHÔNG tự lấy câu đầu nếu không có targetT
       return {
         matched: false,
         status: 'MULTIPLE',

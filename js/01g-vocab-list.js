@@ -1364,7 +1364,7 @@
       const curVid = cleanVid(typeof currentVideoId !== 'undefined' ? currentVideoId : '');
       const vNorm = v.videoTitle ? normTitle(v.videoTitle) : '';
 
-      // (1) Kiểm tra video đang mở trong player
+      // (1) Kiểm tra video/bài đọc đang mở trong player
       if (curVid && typeof sentences !== 'undefined' && Array.isArray(sentences) && sentences.length) {
         if (rawVid && rawVid === curVid) return sentences;
         if (vNorm && typeof currentVideoTitle !== 'undefined' && currentVideoTitle) {
@@ -1380,19 +1380,58 @@
         try {
           const hist = getLocalHistory();
           if (Array.isArray(hist) && hist.length) {
+            // Lọc bỏ bản ghi giả lập chứa câu rác "Đang mở video..."
+            const validHist = hist.filter((x) => {
+              if (!x || !Array.isArray(x.sentences) || !x.sentences.length) return false;
+              if (x.sentences.length === 1 && String(x.sentences[0].text || '').includes('Đang mở video')) return false;
+              return true;
+            });
+
             // (a) Khớp theo videoId chuẩn hóa (bỏ tiền tố yt:)
             if (rawVid) {
-              let h = hist.find((x) => x && cleanVid(x.videoId) === rawVid && Array.isArray(x.sentences) && x.sentences.length);
+              const h = validHist.find((x) => cleanVid(x.videoId) === rawVid);
               if (h) return h.sentences;
             }
-            // (b) Khớp theo tiêu đề (hỗ trợ cả x.title lẫn x.videoTitle, tìm mờ / substring)
+
+            // (b) Khớp theo tiêu đề (ưu tiên isText hoặc bài có nhiều câu hơn)
             if (vNorm && vNorm.length >= 6) {
-              let h = hist.find((x) => {
-                if (!x || !Array.isArray(x.sentences) || !x.sentences.length) return false;
+              const matches = validHist.filter((x) => {
                 const hNorm = normTitle(x.title || x.videoTitle || '');
                 return hNorm.length >= 6 && (hNorm === vNorm || hNorm.includes(vNorm) || vNorm.includes(hNorm));
               });
-              if (h) return h.sentences;
+              if (matches.length > 1) {
+                matches.sort((a, b) => {
+                  const aScore = (a.isText ? 50 : 0) + (a.sentences ? a.sentences.length : 0);
+                  const bScore = (b.isText ? 50 : 0) + (b.sentences ? b.sentences.length : 0);
+                  return bScore - aScore;
+                });
+              }
+              if (matches.length) return matches[0].sentences;
+            }
+
+            // (c) Fallback tìm theo câu ngữ cảnh trên toàn bộ lịch sử (Context Search)
+            const norm = (str) => String(str || '')
+              .toLowerCase()
+              .normalize('NFD')
+              .replace(/[\u0300-\u036f]/g, '')
+              .replace(/\s*[\u2018\u2019\u201B\u0060\u00B4ʻʼ']\s*/g, "'")
+              .replace(/[.,;:\?!¿¡\(\)\[\]\{\}"«»“”]/g, ' ')
+              .replace(/\s+/g, ' ')
+              .trim();
+            const cleanEn = norm(v.en || v.source_text);
+            if (cleanEn && cleanEn.length >= 6) {
+              for (let i = 0; i < validHist.length; i++) {
+                const h = validHist[i];
+                const found = h.sentences.some((s) => {
+                  const sTxt = norm(s.text);
+                  return sTxt.includes(cleanEn) || cleanEn.includes(sTxt);
+                });
+                if (found) {
+                  v.videoId = cleanVid(h.videoId);
+                  if (h.title) v.videoTitle = h.title;
+                  return h.sentences;
+                }
+              }
             }
           }
         } catch (e) {}
@@ -1454,7 +1493,7 @@
 
       let aligned = null;
       if (window.SchemaV02 && typeof window.SchemaV02.alignSubtitleForContext === 'function') {
-        aligned = window.SchemaV02.alignSubtitleForContext(v.en || v.source_text || '', v.text, sents, v.verb);
+        aligned = window.SchemaV02.alignSubtitleForContext(v.en || v.source_text || '', v.text, sents, v.verb, typeof v.t === 'number' ? v.t : 0);
       }
       if (!aligned || !aligned.matched) {
         const norm = (str) => String(str || '')
@@ -1467,21 +1506,37 @@
           .trim();
         const cleanWord = norm(v.text);
         const cleanEn = norm(v.en || v.source_text);
+        const candidates = [];
         for (let i = 0; i < sents.length; i++) {
           const s = sents[i];
           const sTxt = norm(s.text);
-          if ((cleanEn && cleanEn.length >= 4 && (sTxt.includes(cleanEn) || cleanEn.includes(sTxt))) ||
-              (cleanWord && cleanWord.length >= 2 && sTxt.includes(cleanWord))) {
-            aligned = {
-              matched: true,
-              t: typeof s.startTime === 'number' ? s.startTime : 0,
-              en: s.text,
-              vi: s.vi || '',
-              hs: 0,
-              he: 0
-            };
-            break;
+          const isEnMatch = cleanEn && cleanEn.length >= 4 && (sTxt.includes(cleanEn) || cleanEn.includes(sTxt));
+          const isWordMatch = cleanWord && cleanWord.length >= 2 && sTxt.includes(cleanWord);
+          if (isEnMatch || isWordMatch) {
+            candidates.push({
+              s: s,
+              score: (isEnMatch ? 10 : 0) + (isWordMatch ? 5 : 0)
+            });
           }
+        }
+        if (candidates.length > 0) {
+          let chosen = candidates[0].s;
+          if (candidates.length > 1) {
+            const maxScore = Math.max(...candidates.map((c) => c.score));
+            const topCandidates = candidates.filter((c) => c.score === maxScore);
+            if (typeof v.t === 'number' && v.t > 0) {
+              topCandidates.sort((a, b) => Math.abs((a.s.startTime || 0) - v.t) - Math.abs((b.s.startTime || 0) - v.t));
+            }
+            chosen = topCandidates[0].s;
+          }
+          aligned = {
+            matched: true,
+            t: typeof chosen.startTime === 'number' ? chosen.startTime : 0,
+            en: chosen.text,
+            vi: chosen.vi || '',
+            hs: 0,
+            he: 0
+          };
         }
       }
 
