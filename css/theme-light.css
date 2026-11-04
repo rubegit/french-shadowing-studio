@@ -132,6 +132,18 @@ html[data-ui="light"] {
   --fs-badge-adj-bg: #ECFDF5;
   --fs-badge-adj-text: #047857;
 
+  /* Text mode and chip tokens */
+  --fs-chip-cyan-bg: rgba(34, 211, 238, 0.16);
+  --fs-chip-cyan: #0891B2;
+  --fs-chip-amber-bg: rgba(251, 191, 36, 0.16);
+  --fs-chip-amber: #B45309;
+  --fs-chip-purple-bg: rgba(167, 139, 250, 0.18);
+  --fs-chip-purple: #7C3AED;
+  --fs-chip-emerald-bg: rgba(52, 211, 153, 0.16);
+  --fs-chip-emerald: #059669;
+  --fs-ico-fold: #FDE047;
+  --fs-ico-lines: #14B8A6;
+
   /* Spec Tokens for Vocabulary Practice Hub & Status (Practice-Center-Spec) */
   --g1b: #D6F5E6;
   --g1t: #0B5A3C;
@@ -305,7 +317,7 @@ html[data-ui="light"].dark {
 .fs-text-warn { color: var(--fs-warn-text) !important; }
 .fs-text-danger { color: var(--fs-danger-text) !important; }
 .fs-brand-claude { fill: var(--fs-brand-claude) !important; color: var(--fs-brand-claude) !important; }
-.fs-text-white { color: #ffffff !important; }
+.fs-text-white { color: white !important; }
 
 .fs-surface-base { background-color: var(--fs-bg) !important; }
 .fs-surface-card { background-color: var(--fs-card) !important; }
@@ -4331,6 +4343,15 @@ html[data-ui="light"] .txt-chip i svg {
   width: 14px !important;
   height: 14px !important;
 }
+
+html[data-ui="light"] .txt-chip-cyan { background: var(--fs-chip-cyan-bg) !important; color: var(--fs-chip-cyan) !important; }
+html[data-ui="light"] .txt-chip-amber { background: var(--fs-chip-amber-bg) !important; color: var(--fs-chip-amber) !important; }
+html[data-ui="light"] .txt-chip-purple { background: var(--fs-chip-purple-bg) !important; color: var(--fs-chip-purple) !important; }
+html[data-ui="light"] .txt-chip-emerald { background: var(--fs-chip-emerald-bg) !important; color: var(--fs-chip-emerald) !important; }
+
+html[data-ui="light"] .txt-ico-bg { color: var(--fs-surface, white) !important; }
+html[data-ui="light"] .txt-ico-fold { color: var(--fs-ico-fold) !important; }
+html[data-ui="light"] .txt-ico-lines { color: var(--fs-ico-lines) !important; }
 
 /* Khung 6 trang báo khuyên đọc (.fr-news-wrap) */
 html[data-ui="light"] .fr-news-wrap {

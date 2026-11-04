@@ -72,3 +72,52 @@
     box-shadow: none;
     filter: none;
   }
+
+  /* Dán trực tiếp transcript / phụ đề */
+  .oy-paste-sub-wrap {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding: 10px 12px;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: 12px;
+  }
+  .oy-paste-sub-wrap span {
+    font-size: 13px;
+    color: rgb(203, 213, 225);
+    font-weight: 600;
+  }
+  #oy-toggle-paste-sub {
+    font-size: 12px;
+    color: rgb(96, 165, 250);
+    font-weight: 600;
+    cursor: pointer;
+    background: rgba(37, 99, 235, 0.15);
+    border: 1px solid rgba(37, 99, 235, 0.4);
+    border-radius: 6px;
+    padding: 3px 8px;
+  }
+  #oy-sub-textarea {
+    width: 100%;
+    border-radius: 8px;
+    background: rgb(7, 13, 30);
+    border: 1px solid rgb(30, 58, 138);
+    color: rgb(241, 245, 249);
+    padding: 8px 10px;
+    font-size: 12px;
+    font-family: monospace;
+    resize: vertical;
+    box-sizing: border-box;
+  }
+  #oy-apply-sub-btn {
+    margin-top: 6px;
+    padding: 6px 14px;
+    background: rgb(37, 99, 235);
+    color: white;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+  }
+
