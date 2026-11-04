@@ -85,4 +85,6 @@ test('M-Cloud-Article.3 Codebase Audit: js/supabase-sync.js tích hợp 4 cột 
   assert.ok(code.includes('grid-cols-4'), 'Modal cloud dùng layout 4 cột KPI');
   assert.ok(code.includes('hBreakdown.videos'), 'Hiển thị KPI Video riêng');
   assert.ok(code.includes('hBreakdown.articles'), 'Hiển thị KPI Bài báo riêng');
+  assert.ok(code.includes('cursor-help'), 'Có cursor-help khi rê chuột vào KPI');
+  assert.ok(code.includes('chép chính tả'), 'Có chú thích chi tiết cho Tiến độ bài');
 });
