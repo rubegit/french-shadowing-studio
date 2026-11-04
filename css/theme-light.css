@@ -113,6 +113,16 @@ html[data-ui="light"] {
 
   --fs-badge-verb-bg: #EDE9FE;
   --fs-badge-verb-text: #5B21B6;
+
+  /* Book reader theme chip preview tokens */
+  --bk-night-bg: #0B1120;
+  --bk-night-fg: #DFE5F1;
+  --bk-dim-bg: #1A1B1F;
+  --bk-dim-fg: #D4D4D8;
+  --bk-sepia-bg: #F3EAD6;
+  --bk-sepia-fg: #4A3B2A;
+  --bk-paper-bg: #FBFAF7;
+  --bk-paper-fg: #27272A;
   --fs-badge-nm-bg: #E0F2FE;
   --fs-badge-nm-text: #0369A1;
   --fs-badge-nf-bg: #FCE7F3;
@@ -6255,11 +6265,13 @@ html[data-ui="light"] .dc-leg-dot {
 }
 
 html[data-ui="light"] .dc-leg-item.perfect .dc-leg-dot,
+html[data-ui="light"] .dc-dot-done,
 html[data-ui="light"] .dc-legend span:nth-child(1) i {
   background: #22c55e !important;
 }
 
 html[data-ui="light"] .dc-leg-item.partial .dc-leg-dot,
+html[data-ui="light"] .dc-dot-typed,
 html[data-ui="light"] .dc-legend span:nth-child(2) i {
   background: #f59e0b !important;
 }
@@ -6270,6 +6282,7 @@ html[data-ui="light"] .dc-legend span:nth-child(3) i {
 }
 
 html[data-ui="light"] .dc-leg-item.todo .dc-leg-dot,
+html[data-ui="light"] .dc-dot-todo,
 html[data-ui="light"] .dc-legend span:nth-child(4) i {
   background: #f1f5f9 !important;
   border: 1.5px solid #94a3b8 !important;
@@ -7263,6 +7276,11 @@ html[data-ui="light"] .bk-theme-chip {
   align-items: center !important;
   justify-content: center !important;
 }
+
+html[data-ui="light"] .bk-theme-chip[data-theme="night"] { background: var(--bk-night-bg) !important; color: var(--bk-night-fg) !important; }
+html[data-ui="light"] .bk-theme-chip[data-theme="dim"] { background: var(--bk-dim-bg) !important; color: var(--bk-dim-fg) !important; }
+html[data-ui="light"] .bk-theme-chip[data-theme="sepia"] { background: var(--bk-sepia-bg) !important; color: var(--bk-sepia-fg) !important; }
+html[data-ui="light"] .bk-theme-chip[data-theme="paper"] { background: var(--bk-paper-bg) !important; color: var(--bk-paper-fg) !important; }
 
 html[data-ui="light"] #screen-book[data-theme="night"] .bk-theme-chip[data-theme="night"],
 html[data-ui="light"] #screen-book[data-theme="dim"] .bk-theme-chip[data-theme="dim"],
@@ -9665,6 +9683,16 @@ html[data-ui="light"] #screen-guide .gd-chip {
   border: 1px solid var(--fs-line) !important;
 }
 
+html[data-ui="light"] #screen-guide .gd-card.gd-card-accent {
+  border: 1.5px solid var(--fs-accent) !important;
+  background: var(--fs-tint) !important;
+}
+
+html[data-ui="light"] #screen-guide .gd-num.gd-num-accent {
+  background: var(--fs-accent) !important;
+  color: var(--fs-surface, white) !important;
+}
+
 html[data-ui="light"] #screen-guide .gd-cta {
   background: var(--fs-primary) !important;
   color: var(--fs-on-primary) !important;
@@ -9675,6 +9703,13 @@ html[data-ui="light"] #screen-guide .gd-cta {
   box-shadow: 0 4px 14px rgba(168, 230, 207, 0.45) !important;
   padding: 10px 22px !important;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+html[data-ui="light"] #screen-guide .gd-cta.gd-cta-ghost {
+  background: var(--fs-surface-subtle) !important;
+  color: var(--fs-ink) !important;
+  border: 1px solid var(--fs-border-control) !important;
+  box-shadow: none !important;
 }
 
 html[data-ui="light"] #screen-guide .gd-cta:hover {

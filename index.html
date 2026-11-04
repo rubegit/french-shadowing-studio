@@ -217,7 +217,7 @@
 <link rel="stylesheet" href="css/15-ipa-highlight.css?v=5b8c6b2b" id="ipa-hl-style">
 <link rel="stylesheet" href="css/16-own-video.css?v=211e741b" id="own-yt-style">
   <!-- Redesign Theme: Mint Pastel & Dark Mode (Spec 2026) -->
-  <link rel="stylesheet" href="css/theme-light.css?v=4b2f184d">
+  <link rel="stylesheet" href="css/theme-light.css?v=8e19e53f">
 </head>
 <body class="fs-surface-base fs-text-primary min-h-screen flex flex-col antialiased" onclick="ensurePageFocus()">
 
@@ -2196,7 +2196,7 @@
       <div class="dc-side-meta" id="vt-side-meta"></div>
     </div>
     <div class="dc-side-grid" id="vt-side-grid"></div>
-    <div class="dc-legend"><span><i style="background:#22c55e"></i>Đã xem bản dịch</span><span><i style="background:#f59e0b"></i>Đã gõ, chưa xem</span><span><i style="background:#17213f;border:1px solid #2b3f7a"></i>Chưa làm</span></div>
+    <div class="dc-legend"><span><i class="dc-dot-done"></i>Đã xem bản dịch</span><span><i class="dc-dot-typed"></i>Đã gõ, chưa xem</span><span><i class="dc-dot-todo"></i>Chưa làm</span></div>
   </aside>
   <div class="vt-main" id="vt-main">
     <div class="sh-wrap">
@@ -2241,10 +2241,10 @@
       <div class="vocab-top">
         <div class="vocab-top-header">
           <button type="button" class="vocab-btn vocab-back-btn" onclick="closeVocabScreen()"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i><span>Quay lại</span></button>
-          <h2><i data-lucide="bookmark" class="w-5 h-5" style="color:#fbbf24"></i>Từ vựng đã lưu <span class="vocab-count-pill" id="vocab-count">0</span></h2>
+          <h2><i data-lucide="bookmark" class="w-5 h-5 fs-text-warn"></i>Từ vựng đã lưu <span class="vocab-count-pill" id="vocab-count">0</span></h2>
         </div>
         <div class="vocab-actions">
-          <button type="button" id="vocab-practice-btn" class="vocab-btn primary" onclick="if(window.openVocabPracticeHub) window.openVocabPracticeHub(vocabSource, vocabLevelFilter)" title="Trung tâm luyện tập: Trắc nghiệm 4 đáp án, Nghe điền từ, Ghép thẻ nhanh, Flashcard 3D" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 0 14px rgba(99,102,241,0.35)">
+          <button type="button" id="vocab-practice-btn" class="vocab-btn primary" onclick="if(window.openVocabPracticeHub) window.openVocabPracticeHub(vocabSource, vocabLevelFilter)" title="Trung tâm luyện tập: Trắc nghiệm 4 đáp án, Nghe điền từ, Ghép thẻ nhanh, Flashcard 3D">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><line x1="6" x2="10" y1="12" y2="12"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="15" x2="15.01" y1="13" y2="13"/><line x1="18" x2="18.01" y1="11" y2="11"/><rect width="20" height="12" x="2" y="6" rx="6"/></svg><span>Luyện tập</span><span id="vocab-due-badge-1" class="vocab-due-badge" style="display:none">0</span>
           </button>
           <button type="button" class="vocab-btn primary" onclick="openVocabMeaningModal()" title="Nhờ AI điền nghĩa riêng và 3 ví dụ cho các từ chưa có"><i data-lucide="languages" class="w-3.5 h-3.5"></i><span>Điền nghĩa (AI)</span><span id="vocab-missing-badge" class="vocab-missing-badge" style="display:none">0</span></button>
@@ -2296,22 +2296,22 @@
       <ol class="gd-steps">
         <!-- Cài đặt Userscript Tampermonkey -->
         <li class="gd-step">
-          <span class="gd-num" style="background:linear-gradient(135deg, #10b981, #2563eb)" aria-hidden="true">★</span>
-          <div class="gd-card" style="border:1.5px solid rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.06);">
-            <h2 style="color:#6ee7b7">Cài đặt Userscript cho Tampermonkey (Khuyên dùng)</h2>
-            <p style="color:#cbd5e1; font-size:14px; margin: 8px 0 12px; line-height:1.5;">
+          <span class="gd-num gd-num-accent" aria-hidden="true">★</span>
+          <div class="gd-card gd-card-accent">
+            <h2 class="fs-text-accent">Cài đặt Userscript cho Tampermonkey (Khuyên dùng)</h2>
+            <p style="font-size:14px; margin: 8px 0 12px; line-height:1.5;">
               Tự động thêm nút <b>"🇫🇷 Luyện Shadowing"</b> và <b>"⬇️ Tải .json3"</b> ngay trên giao diện YouTube. Bấm 1 cú click là video kèm phụ đề chuẩn word-level timestamp tự động nạp thẳng vào studio để học ngay!
             </p>
             <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center;">
-              <a class="gd-cta" href="userscript/french-shadowing-youtube.user.js" target="_blank" style="background: linear-gradient(135deg, #059669, #2563eb);">
+              <a class="gd-cta" href="userscript/french-shadowing-youtube.user.js" target="_blank">
                 <span class="gd-cta-ico">⚡</span>
                 <span>Cài đặt / Cập nhật Userscript v1.3.1 (1-Click)</span>
               </a>
-              <a class="gd-cta" href="https://www.tampermonkey.net/" target="_blank" rel="noopener" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2);">
+              <a class="gd-cta gd-cta-ghost" href="https://www.tampermonkey.net/" target="_blank" rel="noopener">
                 <span>Chưa có Tampermonkey? Tải tại đây</span>
               </a>
             </div>
-            <p style="color:#94a3b8; font-size:12px; margin-top:10px; line-height:1.4;">
+            <p class="fs-text-subtle" style="font-size:12px; margin-top:10px; line-height:1.4;">
               💡 <i>Lưu ý:</i> Sau khi Tampermonkey mở ra và bấm <b>Install / Update</b>, hãy <b>tải lại (F5) trang YouTube</b>. Bạn sẽ thấy ngay nút nổi màu gradient <b>"🇫🇷 Luyện Shadowing"</b> ở góc dưới bên phải màn hình!
             </p>
           </div>
@@ -2458,10 +2458,10 @@
         <div class="bk-sg">
           <label>Nền</label>
           <div class="bk-seg">
-            <button type="button" class="bk-theme-chip" data-theme="night" onclick="bkSetPref('theme','night')" style="background:#0b1120;color:#dfe5f1">Aa</button>
-            <button type="button" class="bk-theme-chip" data-theme="dim" onclick="bkSetPref('theme','dim')" style="background:#1a1b1f;color:#d4d4d8">Aa</button>
-            <button type="button" class="bk-theme-chip" data-theme="sepia" onclick="bkSetPref('theme','sepia')" style="background:#f3ead6;color:#4a3b2a">Aa</button>
-            <button type="button" class="bk-theme-chip" data-theme="paper" onclick="bkSetPref('theme','paper')" style="background:#fbfaf7;color:#27272a">Aa</button>
+            <button type="button" class="bk-theme-chip" data-theme="night" onclick="bkSetPref('theme','night')">Aa</button>
+            <button type="button" class="bk-theme-chip" data-theme="dim" onclick="bkSetPref('theme','dim')">Aa</button>
+            <button type="button" class="bk-theme-chip" data-theme="sepia" onclick="bkSetPref('theme','sepia')">Aa</button>
+            <button type="button" class="bk-theme-chip" data-theme="paper" onclick="bkSetPref('theme','paper')">Aa</button>
           </div>
         </div>
         <div class="bk-sg">
@@ -2882,9 +2882,9 @@
                     <path d="M66.52 7.74c-.78-2.93-2.49-5.41-5.42-6.19C55.79.13 34 0 34 0S12.21.13 6.9 1.55C3.97 2.33 2.27 4.81 1.48 7.74C.06 13.05 0 24 0 24s.06 10.95 1.48 16.26c.78 2.93 2.49 5.41 5.42 6.19C12.21 47.87 34 48 34 48s21.79-.13 27.1-1.55c2.93-.78 4.64-3.26 5.42-6.19C67.94 34.95 68 24 68 24S67.94 13.05 66.52 7.74z" fill="url(#tpBody)"/>
                     <path class="tp-edge" d="M66.52 7.74c-.78-2.93-2.49-5.41-5.42-6.19C55.79.13 34 0 34 0S12.21.13 6.9 1.55C3.97 2.33 2.27 4.81 1.48 7.74C.06 13.05 0 24 0 24s.06 10.95 1.48 16.26c.78 2.93 2.49 5.41 5.42 6.19C12.21 47.87 34 48 34 48s21.79-.13 27.1-1.55c2.93-.78 4.64-3.26 5.42-6.19C67.94 34.95 68 24 68 24S67.94 13.05 66.52 7.74z" fill="none" stroke-width="1" vector-effect="non-scaling-stroke"/>
                   </svg>
-                  <svg class="tp-glyph" viewBox="0 0 24 24" aria-hidden="true">
-                    <path class="tp-ic-play" d="M9.6 6.8v10.4L18 12z" fill="#fff" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/>
-                    <g class="tp-ic-pause" fill="#fff"><rect x="7" y="6" width="3.8" height="12" rx="1.2"/><rect x="13.2" y="6" width="3.8" height="12" rx="1.2"/></g>
+                  <svg class="tp-glyph fs-text-white" viewBox="0 0 24 24" aria-hidden="true">
+                    <path class="tp-ic-play" d="M9.6 6.8v10.4L18 12z" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                    <g class="tp-ic-pause" fill="currentColor"><rect x="7" y="6" width="3.8" height="12" rx="1.2"/><rect x="13.2" y="6" width="3.8" height="12" rx="1.2"/></g>
                   </svg>
                 </button>
               <div class="pc-r1">
