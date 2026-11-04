@@ -14,11 +14,11 @@
 
 - **Tên dự án:** French Shadowing Studio
 - **Phiên bản phát hành gần nhất:** `v2.0.27` (Commit `ba376ac`)
-- **Current HEAD Commit:** `912c060` (*feat(article): tích hợp bộ chuyển đổi 2 chế độ Prompt AI (Căn chỉnh bài đọc & Trích xuất từ Audio thuần) (M3.1)*)
+- **Current HEAD Commit:** `433246d` (*style: chuẩn hóa độ dày thanh tiến độ 8px ôm khít và bo góc 11px cụm nút tốc độ trên cả 2 player (M5)*)
 - **Nhánh Git (Branch):** `main`
 - **Trạng thái Git Working Tree:** Clean 100%
 - **Môi trường triển khai:** Vercel Static Hosting (phục vụ trực tiếp từ `index.html` và static assets)
-- **Thời điểm cập nhật:** `2026-11-04T14:02:00-06:00`
+- **Thời điểm cập nhật:** `2026-11-04T15:00:00-06:00`
 
 ---
 
@@ -28,7 +28,7 @@
 
 - **Kiểm thử đơn vị (Unit Tests):**
   - Lệnh chạy: `node --test tools/*.test.js`
-  - Kết quả: **203 / 203 bài test PASS (100%)**, 0 bài fail, thời gian chạy ~920ms.
+  - Kết quả: **204 / 204 bài test PASS (100%)**, 0 bài fail, thời gian chạy ~920ms.
   - Bộ kiểm thử bao gồm: `contrast-audit.test.js`, `focus-rings.test.js`, `sentence-timestamp-edit.test.js`, `userscript-embed-guard.test.js`, `supabase-article-count.test.js`, `article-audio.test.js`, `article-sync.test.js`, `french-utils.test.js`, `schema-v02.test.js`, `vocab-importer.test.js`, `vocab-practice.test.js`, `punct-corrections.test.js`, `punct-manual-merge.test.js`, `extract-prompt-template.test.js`, `theme-init.test.js`, `theme-tokens.test.js`.
 - **Kiểm kê mã màu (Color Linting via `node tools/lint-color.js`):**
   - Inline style màu trong JavaScript: **0**
@@ -80,6 +80,9 @@
 | **M2 (Article Audio)** | Bộ Nạp Audio MP3 & Trình Phát Đồng Bộ Cho Bài Báo (IndexedDB Blob + Player Bar) | **Đã hoàn thành** | `d5cbb2f` |
 | **M3 (Article Audio)** | Đồng Bộ Timestamps Từ AI Cho Bài Báo (Prompt Generator + Parser JSON/SRT/VTT) | **Đã hoàn thành** | `56e8e5b` |
 | **M3.1 (Article Audio)** | Bộ Chọn 2 Chế Độ Prompt AI (Căn Chỉnh Bài Đọc & Trích Xuất Từ Audio Thuần) | **Đã hoàn thành** | `912c060` |
+| **M4 (Article Audio)** | Đồng Bộ Giao Diện Player Đọc Báo 2 Tầng Theo Video Player, Hiển Thị Giây & Dải Tốc Độ | **Đã hoàn thành** | `ccdaf36` |
+| **M5 (Player Styling)** | Chuẩn Hóa Độ Dày Thanh Tiến Độ 8px Ôm Khít & Bo Góc 11px Cụm Nút Tốc Độ Trên Cả 2 Player | **Đã hoàn thành** | `433246d` |
+| **Offline Aligner** | Tool Tự Động Hóa MLX Whisper Căn Chỉnh Audio/Transcript Ngoại Tuyến Trên Apple Silicon (`offline_aligner/`) | **Đã hoàn thành** | Local Tool |
 
 ---
 
