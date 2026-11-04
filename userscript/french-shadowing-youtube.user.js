@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         French Shadowing Studio - Trợ thủ YouTube (Word Timestamps & 1-Click Import)
 // @namespace    https://french-shadowing-studio.vercel.app/
-// @version      1.3.7
+// @version      1.3.8
 // @description  Tự động trích xuất phụ đề tiếng Pháp dạng JSON3 trên YouTube: Tải file .json3 về máy hoặc 1-click chuyển video sang French Shadowing Studio.
 // @author       French Shadowing Studio
 // @downloadURL  https://french-shadowing-studio.vercel.app/userscript/french-shadowing-youtube.user.js
@@ -26,6 +26,7 @@
 // @match        *://french-shadowing-studio.vercel.app/*
 // @match        *://localhost/*
 // @include      *://french-shadowing-studio.vercel.app/*
+// @noframes
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_deleteValue
@@ -39,7 +40,7 @@
   var STUDIO_URL = 'https://french-shadowing-studio.vercel.app/';
   var uWin = (typeof unsafeWindow !== 'undefined') ? unsafeWindow : window;
 
-  console.log('[French Shadowing Studio] Userscript v1.3.6 active on:', location.href);
+  console.log('[French Shadowing Studio] Userscript v1.3.8 active on:', location.href);
 
   // Xử lý dữ liệu dự phòng an toàn cho localStorage nếu thiếu GM_setValue
   var _setValue = (typeof GM_setValue !== 'undefined') ? GM_setValue : function (key, val) {
@@ -84,6 +85,33 @@
   // 2. NẾU ĐANG Ở TRANG YOUTUBE (DESKTOP & MOBILE WEB): THÊM NÚT VÀO GIAO DIỆN
   // (Lưu ý: YouTube áp dụng CSP Trusted Types nghiêm ngặt, TUYỆT ĐỐI không dùng .innerHTML)
   // =========================================================================
+
+  // 1. Chặn tuyệt đối nếu đang chạy trong iframe hoặc trang embed (ví dụ: YouTube embed trong French Shadowing Studio)
+  if (window.self !== window.top) {
+    return;
+  }
+
+  // 2. Chặn nếu URL là trang embed (/embed/...)
+  if (window.location.pathname.indexOf('/embed/') === 0) {
+    return;
+  }
+
+  // 3. Chặn nếu referrer hoặc ancestorOrigins đến từ French Shadowing Studio hoặc localhost
+  try {
+    var ref = document.referrer || '';
+    if (ref.indexOf('french-shadowing-studio') !== -1 || ref.indexOf('localhost') !== -1 || ref.indexOf('127.0.0.1') !== -1) {
+      return;
+    }
+    if (window.location.ancestorOrigins && window.location.ancestorOrigins.length) {
+      for (var a = 0; a < window.location.ancestorOrigins.length; a++) {
+        var anc = window.location.ancestorOrigins[a] || '';
+        if (anc.indexOf('french-shadowing-studio') !== -1 || anc.indexOf('localhost') !== -1 || anc.indexOf('127.0.0.1') !== -1) {
+          return;
+        }
+      }
+    }
+  } catch (e) {}
+
   var INLINE_BAR_ID = 'fss-yt-inline-toolbar';
   var FLOAT_BAR_ID = 'fss-yt-float-pill';
 
@@ -97,8 +125,8 @@
     if (vid && vid.length === 11) return vid;
     var shortsMatch = window.location.pathname.match(/\/shorts\/([a-zA-Z0-9_-]{11})/);
     if (shortsMatch) return shortsMatch[1];
-    var embedMatch = window.location.pathname.match(/\/embed\/([a-zA-Z0-9_-]{11})/);
-    return embedMatch ? embedMatch[1] : null;
+    // Không nhận diện video trong trang nhúng /embed/ để tránh hiển thị nút trên các trang web tích hợp
+    return null;
   }
 
   async function getCaptionTracks(videoId) {
