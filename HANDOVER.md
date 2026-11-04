@@ -8,7 +8,7 @@
 ---
 
 ### 1. Metadata Bàn giao (Handover Metadata)
-- **Thời điểm cập nhật:** 2026-11-04T13:06:00-06:00
+- **Thời điểm cập nhật:** 2026-11-04T13:18:00-06:00
 - **Agent bàn giao (Outgoing Agent):** Antigravity Agent
 - **Mục đích:** Bàn giao liền mạch sang phiên làm việc / tài khoản Google mới trong Antigravity.
 - **Tài liệu tham chiếu bắt buộc:** [`AGENTS.md`](./AGENTS.md), [`PROJECT_STATUS.md`](./PROJECT_STATUS.md).
@@ -17,8 +17,8 @@
 
 ### 2. Bản chụp Trạng thái Git (Git State Snapshot)
 - **Nhánh hiện tại (Branch):** `main`
-- **HEAD Commit tại thời điểm nạp:** `dfc0c68` (*feat(player): cho phép lưu timestamp vĩnh viễn, bắt mốc video và reset gốc (M-Timeline-Timestamp-Bar)*)
-- **Tình trạng Remote:** Đã push toàn bộ lên `origin/main` theo sự đồng ý của người dùng. Trạng thái `up to date with origin/main`.
+- **HEAD Commit tại thời điểm nạp:** `a809e71` (*feat(userscript): chặn hiển thị nút trên embed/studio, bỏ nhãn version trên giao diện (M-Userscript-No-Embed)*)
+- **Tình trạng Remote:** Đang đi trước `origin/main` 1 commit (`a809e71`), chưa push lên remote theo quy tắc an toàn.
 - **Trạng thái Working Tree:** **Clean 100%** (xác minh thực tế qua `git status --porcelain`).
 - **Cảnh báo an toàn Git:**
   - Tuyệt đối **KHÔNG PUSH** commit cục bộ lên remote nếu người dùng chưa ra lệnh rõ ràng bằng văn bản.
@@ -29,6 +29,7 @@
 ### 3. Tiến độ & Trạng thái Các Module (Milestone Progress)
 - **Release chính thức gần nhất:** `v2.0.27` (Commit `ba376ac`) – Đã tag và push.
 - **Module vừa nghiệm thu:**
+  - **`M-Userscript-No-Embed`** (Commit `a809e71`): Bổ sung `@noframes` và guards chặn nút Userscript trên iframe/embed của YouTube và trang web của studio; xóa nhãn cứng `v1.3.1` trên nút hướng dẫn cài đặt.
   - **`M-Timeline-Timestamp-Bar`** (Commit `dfc0c68`): Bổ sung tính năng Lưu timestamp vĩnh viễn (`💾`), Bắt mốc thời gian thực từ video (`⏱️`), Khôi phục mốc gốc YouTube (`↺ Gốc`), Scale lại mốc từng từ karaoke (`words`), và khắc phục triệt để lỗi ép auto-play khi tua mốc.
   - **`M7`**: Kiểm toán tổng thể toàn diện, khóa chặn hồi quy tự động trong `tools/contrast-audit.test.js`, hoàn tất 100% chiến dịch Redesign từ M0 đến M7.
 - **Các Module tồn đọng & kế hoạch tiếp theo:**
@@ -47,7 +48,7 @@
 ### 5. Kết quả Kiểm thử Thực tế & Nợ Kỹ thuật Tại Thời Điểm Bàn Giao
 - **Kiểm thử đơn vị (Unit Tests):**
   - Lệnh chạy: `node --test tools/*.test.js`
-  - Kết quả thực tế: **190 pass / 0 fail / 0 skipped** (thời gian chạy ~2.1s).
+  - Kết quả thực tế: **193 pass / 0 fail / 0 skipped** (thời gian chạy ~2.1s).
 - **Kiểm kê mã màu (`node tools/lint-color.js`):**
   - Inline style màu trong JS: **0** (sạch 100%).
   - Class Tailwind màu trong HTML: **0** (sạch 100%).
