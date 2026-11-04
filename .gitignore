@@ -12,3 +12,8 @@ mockup-ref/
 # Local backups
 backup/
 
+# Offline Whisper Forced Aligner (Side project, local only)
+offline_aligner/
+*.mp3
+aligned_*.json
+
