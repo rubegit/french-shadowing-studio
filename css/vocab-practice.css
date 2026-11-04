@@ -2369,10 +2369,17 @@ html[data-ui="light"] .vph-sandwich-item:hover {
 html[data-ui="light"] .vph-sandwich-item.active {
   background: var(--fs-tint);
   border-color: var(--fs-border-control);
-  color: var(--fs-primary);
+  color: var(--fs-ink);
 }
 html[data-ui="light"] .vph-sandwich-item.active .vph-sandwich-item-title {
-  color: var(--fs-primary);
+  color: var(--fs-ink);
+  font-weight: 800;
+}
+html[data-ui="light"] .vph-sandwich-item.active .vph-sandwich-item-desc {
+  color: var(--fs-ink-subtle);
+}
+html[data-ui="light"] .vph-sandwich-item.active .vph-sandwich-item-check {
+  color: var(--fs-success-text);
 }
 html[data-ui="light"] .vph-sandwich-item-title {
   color: var(--fs-ink);

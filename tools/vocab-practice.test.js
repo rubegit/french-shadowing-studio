@@ -708,6 +708,14 @@ test('M45.3 Sandwich Menu: switchMode chuyển chế độ, cập nhật tiêu �
   hub.close();
 });
 
+test('M45.4 Sandwich Menu: Mục active trong Light Mode có màu chữ tiêu đề tương phản cao var(--fs-ink)', () => {
+  const css = fs.readFileSync(path.resolve('css/vocab-practice.css'), 'utf8');
+  assert.ok(css.includes('html[data-ui="light"] .vph-sandwich-item.active .vph-sandwich-item-title'), 'Có rule riêng cho title active trong Light Mode');
+  const activeTitleBlock = css.split('html[data-ui="light"] .vph-sandwich-item.active .vph-sandwich-item-title')[1].split('}')[0];
+  assert.ok(activeTitleBlock.includes('var(--fs-ink)'), 'Title active dùng màu var(--fs-ink) rõ nét');
+  assert.ok(!activeTitleBlock.includes('var(--fs-primary)'), 'Không dùng var(--fs-primary) bị trùng nền');
+});
+
 // ============================================================================
 // TEST 14: Phím tắt gợi ý: Ctrl+/ và '?' (tránh xung đột macOS Cmd+H/Cmd+/)
 // ============================================================================
