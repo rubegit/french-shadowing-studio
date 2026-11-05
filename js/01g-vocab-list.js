@@ -1572,6 +1572,80 @@
       return null;
     }
 
+    function scoreSentenceForVocab(v, s) {
+      if (!v || !s || !s.text) return { score: 0, span: null, reason: 'EMPTY', sentence: s };
+
+      const norm = (str) => String(str || '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/\s*[\u2018\u2019\u201B\u0060\u00B4ʻʼ']\s*/g, "'")
+        .replace(/[.,;:\?!¿¡\(\)\[\]\{\}"«»“”]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      const cleanEn = norm(v.en || v.source_text || '');
+      const sTxt = norm(s.text);
+      const cleanWord = norm(v.text);
+
+      let score = 0;
+      let reasons = [];
+
+      // 1. Khớp ngữ cảnh câu gốc (context sentence)
+      const isEnExact = cleanEn && cleanEn.length >= 6 && sTxt === cleanEn;
+      const isEnMatch = cleanEn && cleanEn.length >= 4 && (sTxt.includes(cleanEn) || cleanEn.includes(sTxt));
+      if (isEnExact) {
+        score += 15;
+        reasons.push('EN_EXACT');
+      } else if (isEnMatch) {
+        score += 10;
+        reasons.push('EN_SUB');
+      }
+
+      // 2. Khớp từ vựng hoặc biến thể hình thái trên s.text gốc
+      let span = null;
+      if (typeof findVariantSpan === 'function') {
+        span = findVariantSpan(s.text, v.text);
+      }
+      if (!span && typeof findWordSpanInString === 'function') {
+        span = findWordSpanInString(s.text, v.text);
+      }
+
+      if (span) {
+        const isExactForm = (span.match.toLowerCase() === v.text.trim().toLowerCase());
+        if (isExactForm) {
+          score += 6;
+          reasons.push('WORD_EXACT');
+        } else {
+          score += 4;
+          reasons.push('WORD_VARIANT');
+        }
+      } else {
+        // Fallback: ranh giới từ trên chuỗi đã chuẩn hóa
+        const escWord = cleanWord ? cleanWord.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : '';
+        const reWordBound = (cleanWord && cleanWord.length >= 2)
+          ? new RegExp('(^|[^\\p{L}\x27\u2019])' + escWord + '(?=$|[^\\p{L}\x27\u2019])', 'u')
+          : null;
+        if (reWordBound && reWordBound.test(sTxt)) {
+          score += 3;
+          reasons.push('WORD_BOUND');
+        }
+      }
+
+      // Phạt từ cực ngắn (<= 2 ký tự) nếu không có context match để không thiên vị các từ ngẫu nhiên
+      if (cleanWord.length <= 2 && !isEnMatch && !isEnExact) {
+        score = Math.max(0, score - 2);
+      }
+
+      return {
+        score: score,
+        span: span,
+        reason: reasons.join(' '),
+        sentence: s
+      };
+    }
+    window.scoreSentenceForVocab = scoreSentenceForVocab;
+
     function tryAlignSingleVocabItem(v) {
       if (!v) return false;
       const sents = getSentencesForVocab(v);
@@ -1623,56 +1697,56 @@
       if (window.SchemaV02 && typeof window.SchemaV02.alignSubtitleForContext === 'function') {
         aligned = window.SchemaV02.alignSubtitleForContext(v.en || v.source_text || '', v.text, sents, v.verb, typeof v.t === 'number' ? v.t : 0);
       }
+
+      // TÔN TRỌNG MULTIPLE: nếu SchemaV02 báo nhiều câu trùng khớp mà không có mốc v.t để phân xử, từ chối tự gán
+      if (aligned && aligned.status === 'MULTIPLE' && !(typeof v.t === 'number' && v.t > 0)) {
+        return false;
+      }
+
       if (!aligned || !aligned.matched) {
-        const norm = (str) => String(str || '')
-          .toLowerCase()
-          .normalize('NFD')
-          .replace(/[\u0300-\u036f]/g, '')
-          .replace(/\s*[\u2018\u2019\u201B\u0060\u00B4ʻʼ']\s*/g, "'")
-          .replace(/[.,;:\?!¿¡\(\)\[\]\{\}"«»“”]/g, ' ')
-          .replace(/\s+/g, ' ')
-          .trim();
-        const cleanWord = norm(v.text);
-        const cleanEn = norm(v.en || v.source_text);
-        const escWord = cleanWord ? cleanWord.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : '';
-        const reWordBound = (cleanWord && cleanWord.length >= 2)
-          ? new RegExp('(^|[^\\p{L}\x27\u2019])' + escWord + '(?=$|[^\\p{L}\x27\u2019])', 'u')
-          : null;
         const candidates = [];
         for (let i = 0; i < sents.length; i++) {
-          const s = sents[i];
-          const sTxt = norm(s.text);
-          const isEnMatch = cleanEn && cleanEn.length >= 4 && (sTxt.includes(cleanEn) || cleanEn.includes(sTxt));
-          const isWordMatch = !!(reWordBound && reWordBound.test(sTxt));
-          if (isEnMatch || isWordMatch) {
-            candidates.push({
-              s: s,
-              score: (isEnMatch ? 10 : 0) + (isWordMatch ? 5 : 0)
-            });
+          const scored = scoreSentenceForVocab(v, sents[i]);
+          if (scored.score >= 4) {
+            candidates.push(scored);
           }
         }
+
         if (candidates.length > 0) {
-          let chosen = candidates[0].s;
-          if (candidates.length > 1) {
-            const maxScore = Math.max(...candidates.map((c) => c.score));
-            const topCandidates = candidates.filter((c) => c.score === maxScore);
-            if (typeof v.t === 'number' && v.t > 0) {
-              topCandidates.sort((a, b) => Math.abs((a.s.startTime || 0) - v.t) - Math.abs((b.s.startTime || 0) - v.t));
+          candidates.sort((a, b) => b.score - a.score);
+          const top1 = candidates[0];
+          let chosen = null;
+
+          if (candidates.length === 1) {
+            chosen = top1;
+          } else {
+            const top2 = candidates[1];
+            const hasTargetT = (typeof v.t === 'number' && v.t > 0);
+
+            // Ca 1: Top 1 vượt trội (chênh lệch điểm >= 3 hoặc score >= 10)
+            if ((top1.score - top2.score >= 3) || (top1.score >= 10 && top1.score > top2.score)) {
+              chosen = top1;
+            } else if (hasTargetT) {
+              // Ca 2: Điểm sát nhau nhưng có targetT để phân xử
+              const topTies = candidates.filter((c) => c.score === top1.score);
+              topTies.sort((a, b) => Math.abs((a.sentence.startTime || 0) - v.t) - Math.abs((b.sentence.startTime || 0) - v.t));
+              chosen = topTies[0];
+            } else {
+              // Ca 3: Điểm sát nhau và không có targetT -> TÔN TRỌNG MULTIPLE, từ chối gán nhầm
+              return false;
             }
-            chosen = topCandidates[0].s;
           }
-          let spanCalc = null;
-          if (typeof findWordSpanInString === 'function') {
-            spanCalc = findWordSpanInString(chosen.text, v.text);
+
+          if (chosen) {
+            aligned = {
+              matched: true,
+              t: typeof chosen.sentence.startTime === 'number' ? chosen.sentence.startTime : 0,
+              en: chosen.sentence.text,
+              vi: chosen.sentence.vi || '',
+              hs: (chosen.span && typeof chosen.span.start === 'number') ? chosen.span.start : 0,
+              he: (chosen.span && typeof chosen.span.end === 'number' && chosen.span.end > chosen.span.start) ? chosen.span.end : 0
+            };
           }
-          aligned = {
-            matched: true,
-            t: typeof chosen.startTime === 'number' ? chosen.startTime : 0,
-            en: chosen.text,
-            vi: chosen.vi || '',
-            hs: (spanCalc && typeof spanCalc.start === 'number') ? spanCalc.start : 0,
-            he: (spanCalc && typeof spanCalc.end === 'number' && spanCalc.end > spanCalc.start) ? spanCalc.end : 0
-          };
         }
       }
 
@@ -1692,14 +1766,29 @@
           v.contexts.forEach((c) => {
             if (c.t_known === false) {
               const cSents = getSentencesForVocab(c) || sents;
-              if (cSents && window.SchemaV02) {
-                const cAligned = window.SchemaV02.alignSubtitleForContext(c.en || c.source_text || '', v.text, cSents, v.verb);
-                if (cAligned && cAligned.matched) {
-                  c.t = cAligned.t;
+              if (cSents && cSents.length) {
+                let cChosen = null;
+                const cCand = [];
+                for (let j = 0; j < cSents.length; j++) {
+                  const sc = scoreSentenceForVocab({ text: v.text, en: c.en || c.source_text, verb: v.verb }, cSents[j]);
+                  if (sc.score >= 4) cCand.push(sc);
+                }
+                if (cCand.length > 0) {
+                  cCand.sort((a, b) => b.score - a.score);
+                  if (cCand.length === 1 || (cCand[0].score - cCand[1].score >= 3)) {
+                    cChosen = cCand[0];
+                  } else if (typeof c.t === 'number' && c.t > 0) {
+                    const cTies = cCand.filter((x) => x.score === cCand[0].score);
+                    cTies.sort((a, b) => Math.abs((a.sentence.startTime || 0) - c.t) - Math.abs((b.sentence.startTime || 0) - c.t));
+                    cChosen = cTies[0];
+                  }
+                }
+                if (cChosen) {
+                  c.t = cChosen.sentence.startTime || 0;
                   c.t_known = true;
-                  c.hs = cAligned.hs;
-                  c.he = cAligned.he;
-                  if (!c.vi && cAligned.vi) c.vi = cAligned.vi;
+                  c.hs = cChosen.span ? cChosen.span.start : 0;
+                  c.he = cChosen.span ? cChosen.span.end : 0;
+                  if (!c.vi && cChosen.sentence.vi) c.vi = cChosen.sentence.vi;
                   if (c.videoId && c.videoId.startsWith('yt:')) c.videoId = cleanVid(c.videoId);
                 }
               }
@@ -1721,6 +1810,12 @@
       if (unaligned.length === 0) {
         if (typeof showVocabToast === 'function') showVocabToast('Tất cả từ vựng đều đã có mốc thời gian!', true);
         return;
+      }
+      // Lưu snapshot trước khi cập nhật để có thể hoàn tác
+      try {
+        window._vocabAlignSnapshot = JSON.parse(JSON.stringify(all));
+      } catch (e) {
+        window._vocabAlignSnapshot = null;
       }
       let alignedCount = 0;
       unaligned.forEach((v) => {
@@ -1749,6 +1844,26 @@
     }
     window.autoAlignVocabTimestamps = autoAlignVocabTimestamps;
     window.tryAlignSingleVocabItem = tryAlignSingleVocabItem;
+
+    function undoAutoAlignVocabTimestamps() {
+      if (!window._vocabAlignSnapshot || !Array.isArray(window._vocabAlignSnapshot)) {
+        if (typeof showVocabToast === 'function') {
+          showVocabToast('Không có bản sao lưu nào để hoàn tác!', false);
+        } else {
+          alert('Không có bản sao lưu nào để hoàn tác!');
+        }
+        return false;
+      }
+      setVocab(window._vocabAlignSnapshot);
+      window._vocabAlignSnapshot = null;
+      renderVocabPage();
+      updateVocabBadges();
+      if (typeof showVocabToast === 'function') {
+        showVocabToast('Đã hoàn tác căn mốc thời gian từ vựng thành công!', true);
+      }
+      return true;
+    }
+    window.undoAutoAlignVocabTimestamps = undoAutoAlignVocabTimestamps;
 
     function openVocabMeaningModal(specificId) {
       resetCopyButtons();
