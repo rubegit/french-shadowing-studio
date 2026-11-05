@@ -492,12 +492,27 @@
       if (he <= hs) return null;
       const text = en.slice(hs, he).trim();
       const n = text.split(/\s+/).length;
+
+      // Xác định tính hợp lệ của mốc thời gian âm thanh
+      let tKnown = true;
+      if (typeof isTextMode !== 'undefined' && isTextMode) {
+        const artEl = document.getElementById('art-audio-el');
+        const hasArtAudio = artEl && artEl.src && !isNaN(artEl.duration) && artEl.duration > 0;
+        if (!hasArtAudio && (!hit.length || t === 0)) {
+          tKnown = false;
+        }
+      } else if (typeof t !== 'number' || t < 0) {
+        tKnown = false;
+      }
+
       return {
         id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
         text, kind: n === 1 ? 'word' : (n <= 6 ? 'phrase' : 'sentence'),
         en, hs, he, vi,
         prev: (prevIdx >= 0 && sentences[prevIdx]) ? String(sentences[prevIdx].text || '').trim() : '',   // câu đứng ngay trước (làm ngữ cảnh cho AI)
-        videoId: currentVideoId, videoTitle: currentVideoTitle || '', t, createdAt: Date.now(),
+        videoId: currentVideoId, videoTitle: currentVideoTitle || '', t,
+        t_known: tKnown,
+        createdAt: Date.now(),
         bookId: (bkActive() && bkBook) ? bkBook.id : undefined, ch: (bkActive() && bkBook) ? bkCh : undefined
       };
     }

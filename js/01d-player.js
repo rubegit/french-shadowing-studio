@@ -929,6 +929,10 @@
       })).catch(() => false);
     }
 
+    window.getArticleAudioBlob = getArticleAudioBlob;
+    window.saveArticleAudioBlob = saveArticleAudioBlob;
+    window.deleteArticleAudioBlob = deleteArticleAudioBlob;
+
     function isMp3File(file) {
       if (!file || !file.name) return false;
       const name = file.name.toLowerCase();
@@ -1021,6 +1025,19 @@
           if (slider && !slider._dragging) slider.value = String(ct);
 
           if (isTextMode && sentences && sentences.length) {
+            // Tự dừng cuối câu khi bật sentenceAutoStop cho bài báo
+            if ((settings && settings.sentenceAutoStop) && currentSentenceIndex >= 0 && sentences[currentSentenceIndex]) {
+              const curSent = sentences[currentSentenceIndex];
+              const sEnd = typeof curSent.endTime === 'number' ? curSent.endTime : (curSent.startTime + 15);
+              if (ct >= sEnd - 0.04 && handledSentenceEndId !== curSent.id) {
+                audioEl.pause();
+                handledSentenceEndId = curSent.id;
+                pausedByAutoPauseId = curSent.id;
+                pausedAtSentenceIndex = currentSentenceIndex;
+                return;
+              }
+            }
+
             // Đồng bộ highlight câu theo mốc thời gian
             const matchIdx = sentences.findIndex(s => typeof s.startTime === 'number' && ct >= s.startTime && ct <= (typeof s.endTime === 'number' ? s.endTime : (s.startTime + 15)));
             if (matchIdx !== -1 && matchIdx !== currentSentenceIndex) {

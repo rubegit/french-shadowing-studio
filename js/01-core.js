@@ -316,12 +316,32 @@
     };
 
     // ==================== BACKGROUND VIDEO AUDIO ENGINE ====================
-    // Phát âm thanh trích đoạn từ video gốc YouTube (chạy nền, không chiếu video)
+    // Phát âm thanh trích đoạn từ video gốc YouTube hoặc file audio bài báo (chạy nền, không chiếu video)
     window._bgYtPlayer = null;
     window._bgYtReady = false;
     window._bgYtCurrentVid = '';
     window._bgYtTimer = null;
     window._bgYtActiveOnEnd = null;
+
+    window._bgArtAudioElement = null;
+    window._bgArtCurrentDocId = '';
+    window._bgArtObjUrl = null;
+    window._bgArtTimer = null;
+    window._bgArtActiveOnEnd = null;
+    window._bgArtPlayingMain = false;
+
+    function isArticleVideoId(vid) {
+      if (!vid || typeof vid !== 'string') return false;
+      const clean = vid.replace(/^yt:/, '');
+      return clean.startsWith('txt_') || clean.startsWith('local:txt_') || clean.startsWith('text:');
+    }
+    window.isArticleVideoId = isArticleVideoId;
+
+    function cleanArticleDocId(vid) {
+      if (!vid || typeof vid !== 'string') return '';
+      return vid.replace(/^yt:/, '').replace(/^local:/, '').replace(/^text:/, '');
+    }
+    window.cleanArticleDocId = cleanArticleDocId;
 
     window.stopVideoAudioSegment = function() {
       if (window._bgYtTimer) {
@@ -334,6 +354,23 @@
       }
       if (window._bgYtPlayer && window._bgYtReady) {
         try { window._bgYtPlayer.pauseVideo(); } catch (e) {}
+      }
+      // Dừng audio bài báo nếu đang phát trích đoạn
+      if (window._bgArtTimer) {
+        clearInterval(window._bgArtTimer);
+        window._bgArtTimer = null;
+      }
+      if (window._bgArtActiveOnEnd) {
+        try { window._bgArtActiveOnEnd(); } catch (e) {}
+        window._bgArtActiveOnEnd = null;
+      }
+      if (window._bgArtAudioElement) {
+        try { window._bgArtAudioElement.pause(); } catch (e) {}
+      }
+      const mainArtEl = document.getElementById('art-audio-el');
+      if (mainArtEl && !mainArtEl.paused && window._bgArtPlayingMain) {
+        try { mainArtEl.pause(); } catch (e) {}
+        window._bgArtPlayingMain = false;
       }
     };
 
@@ -457,6 +494,114 @@
       const startSec = Math.max(0, Number(startTime) || 0);
       const durSec = Math.max(1.5, Math.min(15, Number(duration) || 4));
       const endSec = startSec + durSec;
+
+      // ==================== NHÁNH 1: BÀI BÁO / VĂN BẢN (txt_ / local:) ====================
+      if (isArticleVideoId(videoId)) {
+        const docId = cleanArticleDocId(videoId);
+        return new Promise((resolve) => {
+          let hasTriggeredStart = false;
+          let isDone = false;
+
+          const finishArt = (success) => {
+            if (isDone) return;
+            isDone = true;
+            if (window._bgArtTimer) {
+              clearInterval(window._bgArtTimer);
+              window._bgArtTimer = null;
+            }
+            window._bgArtActiveOnEnd = null;
+            if (window._bgArtAudioElement) {
+              try { window._bgArtAudioElement.pause(); } catch (e) {}
+            }
+            const mainArtEl = document.getElementById('art-audio-el');
+            if (mainArtEl && !mainArtEl.paused && window._bgArtPlayingMain) {
+              try { mainArtEl.pause(); } catch (e) {}
+              window._bgArtPlayingMain = false;
+            }
+            if (success) {
+              if (typeof onEnd === 'function') onEnd();
+            } else {
+              if (typeof onError === 'function') onError('no_article_audio');
+            }
+            resolve(success);
+          };
+
+          window._bgArtActiveOnEnd = () => {
+            if (!isDone) {
+              isDone = true;
+              if (typeof onEnd === 'function') onEnd();
+              resolve(true);
+            }
+          };
+
+          const playWithAudioEl = (el, isMain) => {
+            try {
+              if (isMain) window._bgArtPlayingMain = true;
+              el.currentTime = startSec;
+              el.playbackRate = rate;
+              const p = el.play();
+              if (p && typeof p.then === 'function') {
+                p.then(() => {
+                  hasTriggeredStart = true;
+                  if (typeof onStart === 'function') onStart();
+                }).catch(() => {
+                  finishArt(false);
+                });
+              } else {
+                hasTriggeredStart = true;
+                if (typeof onStart === 'function') onStart();
+              }
+
+              window._bgArtTimer = setInterval(() => {
+                if (!el) return;
+                const curr = el.currentTime || 0;
+                if (curr >= endSec || el.paused || el.ended) {
+                  finishArt(true);
+                }
+              }, 50);
+            } catch (err) {
+              finishArt(false);
+            }
+          };
+
+          // 1. Kiểm tra nếu player trên màn hình bài báo đã nạp sẵn file của bài này
+          const mainArtEl = document.getElementById('art-audio-el');
+          const isMainLoaded = mainArtEl && mainArtEl.src && typeof currentVideoId !== 'undefined' && cleanArticleDocId(currentVideoId) === docId;
+          if (isMainLoaded) {
+            playWithAudioEl(mainArtEl, true);
+            return;
+          }
+
+          // 2. Nếu chưa nạp ở player chính, truy xuất IndexedDB
+          const getBlobPromise = (typeof window.getArticleAudioBlob === 'function')
+            ? window.getArticleAudioBlob(docId)
+            : Promise.resolve(null);
+
+          getBlobPromise.then((rec) => {
+            if (!rec || !rec.blob) {
+              finishArt(false);
+              return;
+            }
+            if (!window._bgArtAudioElement) {
+              window._bgArtAudioElement = new Audio();
+            }
+            const bgAudio = window._bgArtAudioElement;
+            if (window._bgArtCurrentDocId !== docId || !bgAudio.src) {
+              if (window._bgArtObjUrl) {
+                try { URL.revokeObjectURL(window._bgArtObjUrl); } catch (e) {}
+              }
+              window._bgArtObjUrl = URL.createObjectURL(rec.blob);
+              bgAudio.src = window._bgArtObjUrl;
+              window._bgArtCurrentDocId = docId;
+            }
+            playWithAudioEl(bgAudio, false);
+          }).catch(() => {
+            finishArt(false);
+          });
+        });
+      }
+
+      // ==================== NHÁNH 2: YOUTUBE VIDEO ====================
 
       return new Promise((resolve) => {
         let hasTriggeredStart = false;
@@ -738,7 +883,7 @@
         onEnd: () => { if (btn) btn.classList.remove('playing'); },
         onError: () => {
           if (btn) btn.classList.remove('playing');
-          window.playFrenchAudio(item.text);
+          window.playFrenchAudio(item.en || item.text);
         }
       });
     };
