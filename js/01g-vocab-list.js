@@ -888,8 +888,11 @@
       patterns.add(cleanTerm);
       if (cleanP !== cleanTerm) patterns.add(cleanP);
 
-      // Nếu có FrenchMorphology: mở rộng biến thể chia thì của động từ
-      if (morph && typeof morph.getVerbConjugations === 'function') {
+      // Nếu có FrenchMorphology: mở rộng biến thể (hỗ trợ cả động từ, danh từ, tính từ và cụm từ)
+      if (morph && typeof morph.expandVocabVariants === 'function') {
+        const variants = morph.expandVocabVariants(cleanTerm);
+        variants.forEach((v) => patterns.add(v));
+      } else if (morph && typeof morph.getVerbConjugations === 'function') {
         const firstWord = words[0].toLowerCase().replace(/[\x27\u2019]/g, "'");
         const restWords = words.slice(1).join(' ');
 

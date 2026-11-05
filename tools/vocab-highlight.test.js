@@ -136,3 +136,23 @@ test('M14a: hlExample - Hoạt động chuẩn xác với các câu ví dụ', (
   const res = hlExample(ex, "prendre rendez-vous");
   assert.ok(res.includes('<mark>pris rendez-vous</mark>'), 'hlExample phải tô sáng cụm pris rendez-vous');
 });
+
+test('M13b: findVariantSpan & smartHighlightInContext - Danh từ & Tính từ biến thể', () => {
+  // 1. nouveau -> nouvelle
+  const sNouvelle = "C'est une nouvelle méthode très efficace.";
+  const spanNouveau = findVariantSpan(sNouvelle, 'nouveau');
+  assert.ok(spanNouveau, 'Phải tìm thấy biến thể nouvelle từ nouveau');
+  assert.equal(spanNouveau.match, 'nouvelle');
+
+  const hlNouvelle = smartHighlightInContext(sNouvelle, 'nouveau');
+  assert.ok(hlNouvelle.includes('<mark class="vocab-hl">nouvelle</mark>'), 'smartHighlightInContext phải tô sáng nouvelle');
+
+  // 2. travail -> travaux
+  const sTravaux = 'Les travaux de rénovation commencent lundi.';
+  const spanTravail = findVariantSpan(sTravaux, 'travail');
+  assert.ok(spanTravail, 'Phải tìm thấy biến thể travaux từ travail');
+  assert.equal(spanTravail.match, 'travaux');
+
+  const hlTravaux = smartHighlightInContext(sTravaux, 'travail');
+  assert.ok(hlTravaux.includes('<mark class="vocab-hl">travaux</mark>'), 'smartHighlightInContext phải tô sáng travaux');
+});

@@ -276,3 +276,94 @@ test('M13a: Golden Test Suite - 30 Standard French Verbs', () => {
     });
   });
 });
+
+test('M13b: French Morphology - getNounVariants (Số nhiều danh từ)', () => {
+  // Quy tắc -al -> -aux và ngoại lệ
+  const cheval = new Set(FrenchMorphology.getNounVariants('cheval'));
+  assert.ok(cheval.has('chevaux'), 'cheval -> chevaux');
+
+  const journal = new Set(FrenchMorphology.getNounVariants('journal'));
+  assert.ok(journal.has('journaux'), 'journal -> journaux');
+
+  const carnaval = new Set(FrenchMorphology.getNounVariants('carnaval'));
+  assert.ok(carnaval.has('carnavals'), 'carnaval -> carnavals (ngoại lệ)');
+
+  // Quy tắc -eau/-eu -> -x và ngoại lệ
+  const chateau = new Set(FrenchMorphology.getNounVariants('château'));
+  assert.ok(chateau.has('châteaux'), 'château -> châteaux');
+
+  const pneu = new Set(FrenchMorphology.getNounVariants('pneu'));
+  assert.ok(pneu.has('pneus'), 'pneu -> pneus (ngoại lệ)');
+
+  // Bất quy tắc đặc biệt: travail -> travaux
+  const travail = new Set(FrenchMorphology.getNounVariants('travail'));
+  assert.ok(travail.has('travaux'), 'travail -> travaux');
+
+  // Đuôi -s, -x, -z giữ nguyên
+  const temps = FrenchMorphology.getNounVariants('temps');
+  assert.equal(temps.length, 1);
+  assert.equal(temps[0], 'temps');
+
+  const prix = FrenchMorphology.getNounVariants('prix');
+  assert.equal(prix.length, 1);
+  assert.equal(prix[0], 'prix');
+});
+
+test('M13b: French Morphology - getAdjVariants (4 dạng Giống & Số tính từ)', () => {
+  // 1. grand -> grande, grands, grandes
+  const grand = new Set(FrenchMorphology.getAdjVariants('grand'));
+  ['grand', 'grande', 'grands', 'grandes'].forEach(f => {
+    assert.ok(grand.has(f), `grand phải có ${f}`);
+  });
+
+  // 2. heureux -> heureuse, heureuses
+  const heureux = new Set(FrenchMorphology.getAdjVariants('heureux'));
+  ['heureux', 'heureuse', 'heureuses'].forEach(f => {
+    assert.ok(heureux.has(f), `heureux phải có ${f}`);
+  });
+
+  // 3. premier -> première, premiers, premières
+  const premier = new Set(FrenchMorphology.getAdjVariants('premier'));
+  ['premier', 'première', 'premiers', 'premières'].forEach(f => {
+    assert.ok(premier.has(f), `premier phải có ${f}`);
+  });
+
+  // 4. actif -> active, actifs, actives
+  const actif = new Set(FrenchMorphology.getAdjVariants('actif'));
+  ['actif', 'active', 'actifs', 'actives'].forEach(f => {
+    assert.ok(actif.has(f), `actif phải có ${f}`);
+  });
+
+  // 5. bon -> bonne, bons, bonnes
+  const bon = new Set(FrenchMorphology.getAdjVariants('bon'));
+  ['bon', 'bonne', 'bons', 'bonnes'].forEach(f => {
+    assert.ok(bon.has(f), `bon phải có ${f}`);
+  });
+
+  // 6. nouveau -> nouvel, nouvelle, nouveaux, nouvelles
+  const nouveau = new Set(FrenchMorphology.getAdjVariants('nouveau'));
+  ['nouveau', 'nouvel', 'nouvelle', 'nouveaux', 'nouvelles'].forEach(f => {
+    assert.ok(nouveau.has(f), `nouveau phải có ${f}`);
+  });
+
+  // 7. beau -> bel, belle, beaux, belles
+  const beau = new Set(FrenchMorphology.getAdjVariants('beau'));
+  ['beau', 'bel', 'belle', 'beaux', 'belles'].forEach(f => {
+    assert.ok(beau.has(f), `beau phải có ${f}`);
+  });
+});
+
+test('M13b: French Morphology - expandVocabVariants (Cụm từ & Tổng quát)', () => {
+  // 1. Cụm động từ
+  const rdv = new Set(FrenchMorphology.expandVocabVariants('prendre rendez-vous'));
+  assert.ok(rdv.has('pris rendez-vous'), 'prendre rendez-vous -> pris rendez-vous');
+  assert.ok(rdv.has('prends rendez-vous'), 'prendre rendez-vous -> prends rendez-vous');
+
+  // 2. Cụm danh từ
+  const plan = new Set(FrenchMorphology.expandVocabVariants("plan d'investissement"));
+  assert.ok(plan.has("plans d'investissement"), 'plan -> plans d\'investissement');
+
+  // 3. Cụm cố định
+  const expr = new Set(FrenchMorphology.expandVocabVariants('au fur et à mesure'));
+  assert.ok(expr.has('au fur et à mesure'));
+});

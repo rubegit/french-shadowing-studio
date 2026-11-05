@@ -701,9 +701,279 @@
     return [];
   }
 
+  // --- M13b: DANH TỪ, TÍNH TỪ & CỤM TỪ (NOUNS, ADJECTIVES & PHRASES) ---
+
+  // Bảng tính từ bất quy tắc cốt lõi
+  var IRREGULAR_ADJS = {
+    'beau': ['beau', 'bel', 'belle', 'beaux', 'belles'],
+    'nouveau': ['nouveau', 'nouvel', 'nouvelle', 'nouveaux', 'nouvelles'],
+    'vieux': ['vieux', 'vieil', 'vieille', 'vieilles'],
+    'fou': ['fou', 'fol', 'folle', 'fous', 'folles'],
+    'mou': ['mou', 'mol', 'molle', 'mous', 'molles'],
+    'blanc': ['blanc', 'blanche', 'blancs', 'blanches'],
+    'franc': ['franc', 'franche', 'francs', 'franches'],
+    'long': ['long', 'longue', 'longs', 'longues'],
+    'frais': ['frais', 'fraîche', 'fraiche', 'fraîches', 'fraiches'],
+    'gros': ['gros', 'grosse', 'grosses'],
+    'faux': ['faux', 'fausse', 'fausses'],
+    'doux': ['doux', 'douce', 'douces'],
+    'sec': ['sec', 'sèche', 'seche', 'secs', 'sèches', 'seches'],
+    'public': ['public', 'publique', 'publics', 'publiques']
+  };
+
+  // Ngoại lệ danh từ đuôi -al lấy -s
+  var AL_EXCEPTIONS_S = new Set(['bal', 'carnaval', 'festival', 'chacal', 'récital', 'recital', 'cal', 'régal', 'regal']);
+  // Ngoại lệ danh từ đuôi -eau/-eu/-au lấy -s
+  var EAU_EXCEPTIONS_S = new Set(['bleu', 'pneu', 'émeu', 'emeu', 'landau']);
+  // 7 danh từ đuôi -ou lấy -x
+  var OU_EXCEPTIONS_X = new Set(['bijou', 'caillou', 'chou', 'genou', 'hibou', 'joujou', 'pou']);
+
+  // Sinh các biến thể số nhiều của danh từ
+  function getNounVariants(noun) {
+    if (!noun || typeof noun !== 'string') return [];
+    var n = noun.trim().toLowerCase().replace(/[\u2018\u2019\u201B\u0060\u00B4ʻʼ]/g, "'");
+    if (!n) return [];
+
+    var forms = new Set();
+    forms.add(n);
+
+    // Ngoại lệ đặc biệt
+    if (n === 'travail') {
+      forms.add('travaux');
+      return Array.from(forms);
+    }
+    if (n === 'œil' || n === 'oeil') {
+      forms.add('yeux');
+      forms.add('œils');
+      forms.add('oeils');
+      return Array.from(forms);
+    }
+    if (n === 'monsieur') {
+      forms.add('messieurs');
+      return Array.from(forms);
+    }
+    if (n === 'madame') {
+      forms.add('mesdames');
+      return Array.from(forms);
+    }
+
+    // Tận cùng -s, -x, -z: giữ nguyên ở số nhiều
+    if (/[sxz]$/.test(n)) {
+      return Array.from(forms);
+    }
+
+    // Tận cùng -al
+    if (n.endsWith('al')) {
+      if (AL_EXCEPTIONS_S.has(n)) {
+        forms.add(n + 's');
+      } else {
+        forms.add(n.slice(0, -2) + 'aux');
+      }
+      return Array.from(forms);
+    }
+
+    // Tận cùng -eau, -eu, -au
+    if (n.endsWith('eau') || n.endsWith('eu') || n.endsWith('au')) {
+      if (EAU_EXCEPTIONS_S.has(n)) {
+        forms.add(n + 's');
+      } else {
+        forms.add(n + 'x');
+      }
+      return Array.from(forms);
+    }
+
+    // Tận cùng -ou
+    if (n.endsWith('ou')) {
+      if (OU_EXCEPTIONS_X.has(n)) {
+        forms.add(n + 'x');
+      } else {
+        forms.add(n + 's');
+      }
+      return Array.from(forms);
+    }
+
+    // Mặc định: thêm -s
+    forms.add(n + 's');
+    return Array.from(forms);
+  }
+
+  // Sinh các biến thể giống cái và số nhiều của tính từ (4 dạng)
+  function getAdjVariants(adj) {
+    if (!adj || typeof adj !== 'string') return [];
+    var a = adj.trim().toLowerCase().replace(/[\u2018\u2019\u201B\u0060\u00B4ʻʼ]/g, "'");
+    if (!a) return [];
+
+    var forms = new Set();
+    forms.add(a);
+
+    // 1. Kiểm tra bảng bất quy tắc
+    if (Object.prototype.hasOwnProperty.call(IRREGULAR_ADJS, a)) {
+      IRREGULAR_ADJS[a].forEach(function (f) { forms.add(f); });
+      return Array.from(forms);
+    }
+    // Tra ngược nếu a là một dạng trong IRREGULAR_ADJS
+    for (var k in IRREGULAR_ADJS) {
+      if (IRREGULAR_ADJS[k].indexOf(a) !== -1) {
+        IRREGULAR_ADJS[k].forEach(function (f) { forms.add(f); });
+        return Array.from(forms);
+      }
+    }
+
+    // 2. Tính dạng giống cái số ít (fem)
+    var fem = a + 'e';
+    if (a.endsWith('e')) {
+      fem = a;
+    } else if (a.endsWith('er')) {
+      fem = a.slice(0, -2) + 'ère';
+      forms.add(a.slice(0, -2) + 'ere');
+    } else if (a.endsWith('eux')) {
+      fem = a.slice(0, -3) + 'euse';
+    } else if (a.endsWith('f')) {
+      fem = a.slice(0, -1) + 've';
+    } else if (a.endsWith('el') || a.endsWith('eil')) {
+      fem = a + 'le';
+    } else if (a.endsWith('en') || a.endsWith('on')) {
+      fem = a + 'ne';
+    } else if (a.endsWith('et')) {
+      if (a === 'complet') { fem = 'complète'; forms.add('complete'); }
+      else if (a === 'inquiet') { fem = 'inquiète'; forms.add('inquiete'); }
+      else if (a === 'secret') { fem = 'secrète'; forms.add('secrete'); }
+      else { fem = a + 'te'; }
+    } else if (a.endsWith('teur')) {
+      fem = a.slice(0, -4) + 'trice';
+    } else if (a.endsWith('eur')) {
+      var eurExceptions = new Set(['meilleur', 'majeur', 'mineur', 'supérieur', 'superieur', 'inférieur', 'inferieur', 'extérieur', 'exterieur', 'intérieur', 'interieur', 'antérieur', 'anterieur', 'postérieur', 'posterieur']);
+      if (eurExceptions.has(a)) {
+        fem = a + 'e';
+      } else {
+        fem = a.slice(0, -3) + 'euse';
+      }
+    }
+    forms.add(fem);
+
+    // 3. Tính số nhiều giống đực
+    getNounVariants(a).forEach(function (m) { forms.add(m); });
+
+    // 4. Tính số nhiều giống cái
+    if (fem.endsWith('s') || fem.endsWith('x')) {
+      forms.add(fem);
+    } else {
+      forms.add(fem + 's');
+    }
+
+    return Array.from(forms);
+  }
+
+  // Hàm tổng quát: Mở rộng mọi biến thể hình thái cho một từ vựng hoặc cụm từ
+  function expandVocabVariants(term, opts) {
+    if (!term || typeof term !== 'string') return [];
+    var clean = term.trim().replace(/^[«»"“”()]+/, '').replace(/[!?,;.:«»"“”()]+$/, '').trim();
+    if (!clean) return [];
+
+    var optKind = (opts && opts.kind) ? String(opts.kind).toLowerCase() : 'auto';
+    var forms = new Set();
+    forms.add(clean);
+
+    var isReflexive = /^(se|s\x27|s’)\s*/i.test(clean);
+    var baseTerm = clean.replace(/^(se|s\x27|s’)\s*/i, '').trim();
+    var words = baseTerm.split(/\s+/).filter(Boolean);
+
+    // 1. Cụm từ có nhiều hơn 1 từ
+    if (words.length > 1) {
+      var firstWord = words[0].toLowerCase().replace(/[\x27\u2019]/g, "'");
+      var restWords = words.slice(1).join(' ');
+
+      // Kiểm tra xem từ đầu có phải là động từ không
+      var isVerbFirst = isReflexive ||
+        Object.prototype.hasOwnProperty.call(IRREGULAR_ROOTS, firstWord) ||
+        DRE_VERBS.indexOf(firstWord) !== -1 ||
+        Object.prototype.hasOwnProperty.call(NDRE_VERBS, firstWord) ||
+        UIRE_VERBS.indexOf(firstWord) !== -1 ||
+        GROUP2_VERBS.has(firstWord) ||
+        firstWord.endsWith('er') ||
+        firstWord.endsWith('ir') ||
+        (findLemmasForForm(firstWord).length > 0);
+
+      if (isVerbFirst) {
+        var vConjs = getVerbConjugations(firstWord);
+        // Tra ngược thêm lemma nếu từ đầu là dạng chia sẵn
+        var revs = findLemmasForForm(firstWord);
+        revs.forEach(function (r) {
+          getVerbConjugations(r).forEach(function (vf) {
+            if (vConjs.indexOf(vf) === -1) vConjs.push(vf);
+          });
+        });
+
+        // Bỏ các dạng cực ngắn nếu verb là avoir/être
+        if ((firstWord === 'avoir' || firstWord === 'être' || firstWord === 'etre') && clean.length > 3) {
+          vConjs = vConjs.filter(function (f) { return f.length >= 3 && f !== 'est'; });
+        }
+
+        vConjs.forEach(function (vf) {
+          forms.add(vf + ' ' + restWords);
+        });
+      } else {
+        // Cụm danh từ / tính từ (ví dụ 'plan d'investissement' -> 'plans d'investissement')
+        getNounVariants(words[0]).forEach(function (nw) {
+          forms.add(nw + ' ' + restWords);
+        });
+      }
+
+      return Array.from(forms);
+    }
+
+    // 2. Từ đơn lẻ
+    var w = baseTerm.toLowerCase().replace(/[\x27\u2019]/g, "'");
+
+    if (optKind === 'verb' || isReflexive) {
+      getVerbConjugations(w).forEach(function (f) { forms.add(f); });
+      findLemmasForForm(w).forEach(function (lm) {
+        getVerbConjugations(lm).forEach(function (f) { forms.add(f); });
+      });
+      return Array.from(forms);
+    }
+
+    if (optKind === 'adj') {
+      getAdjVariants(w).forEach(function (f) { forms.add(f); });
+      return Array.from(forms);
+    }
+
+    if (optKind === 'noun') {
+      getNounVariants(w).forEach(function (f) { forms.add(f); });
+      return Array.from(forms);
+    }
+
+    // 'auto' mode: sinh hợp lý theo hình thái
+    // Nếu là động từ hoặc dạng chia của động từ
+    var isVerbCandidate = Object.prototype.hasOwnProperty.call(IRREGULAR_ROOTS, w) ||
+      DRE_VERBS.indexOf(w) !== -1 ||
+      Object.prototype.hasOwnProperty.call(NDRE_VERBS, w) ||
+      UIRE_VERBS.indexOf(w) !== -1 ||
+      GROUP2_VERBS.has(w) ||
+      w.endsWith('er') ||
+      w.endsWith('ir') ||
+      (findLemmasForForm(w).length > 0);
+
+    if (isVerbCandidate) {
+      getVerbConjugations(w).forEach(function (f) { forms.add(f); });
+      findLemmasForForm(w).forEach(function (lm) {
+        getVerbConjugations(lm).forEach(function (f) { forms.add(f); });
+      });
+    }
+
+    // Đồng thời sinh số nhiều danh từ / tính từ
+    getNounVariants(w).forEach(function (f) { forms.add(f); });
+    getAdjVariants(w).forEach(function (f) { forms.add(f); });
+
+    return Array.from(forms);
+  }
+
   return {
     normalizeLemma: normalizeLemma,
     getVerbConjugations: getVerbConjugations,
-    findLemmasForForm: findLemmasForForm
+    findLemmasForForm: findLemmasForForm,
+    getNounVariants: getNounVariants,
+    getAdjVariants: getAdjVariants,
+    expandVocabVariants: expandVocabVariants
   };
 });
