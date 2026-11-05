@@ -1506,12 +1506,16 @@
           .trim();
         const cleanWord = norm(v.text);
         const cleanEn = norm(v.en || v.source_text);
+        const escWord = cleanWord ? cleanWord.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : '';
+        const reWordBound = (cleanWord && cleanWord.length >= 2)
+          ? new RegExp('(^|[^\\p{L}\x27\u2019])' + escWord + '(?=$|[^\\p{L}\x27\u2019])', 'u')
+          : null;
         const candidates = [];
         for (let i = 0; i < sents.length; i++) {
           const s = sents[i];
           const sTxt = norm(s.text);
           const isEnMatch = cleanEn && cleanEn.length >= 4 && (sTxt.includes(cleanEn) || cleanEn.includes(sTxt));
-          const isWordMatch = cleanWord && cleanWord.length >= 2 && sTxt.includes(cleanWord);
+          const isWordMatch = !!(reWordBound && reWordBound.test(sTxt));
           if (isEnMatch || isWordMatch) {
             candidates.push({
               s: s,
@@ -1529,13 +1533,17 @@
             }
             chosen = topCandidates[0].s;
           }
+          let spanCalc = null;
+          if (typeof findWordSpanInString === 'function') {
+            spanCalc = findWordSpanInString(chosen.text, v.text);
+          }
           aligned = {
             matched: true,
             t: typeof chosen.startTime === 'number' ? chosen.startTime : 0,
             en: chosen.text,
             vi: chosen.vi || '',
-            hs: 0,
-            he: 0
+            hs: (spanCalc && typeof spanCalc.start === 'number') ? spanCalc.start : 0,
+            he: (spanCalc && typeof spanCalc.end === 'number' && spanCalc.end > spanCalc.start) ? spanCalc.end : 0
           };
         }
       }
@@ -1546,6 +1554,9 @@
         if (aligned.hs >= 0 && aligned.he > aligned.hs) {
           v.hs = aligned.hs;
           v.he = aligned.he;
+        } else {
+          v.hs = 0;
+          v.he = 0;
         }
         if (!v.en || v.en === v.text) v.en = aligned.en;
         if (!v.vi && aligned.vi) v.vi = aligned.vi;
