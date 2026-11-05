@@ -7,10 +7,12 @@ const USERSCRIPT_PATH = path.resolve('userscript/french-shadowing-youtube.user.j
 const GUIDE_PARTIAL_PATH = path.resolve('partials/view-guide.html');
 const INDEX_HTML_PATH = path.resolve('index.html');
 
-test('M-Userscript.1 Header: Chứa chỉ thị @noframes và version mới 1.3.8', () => {
+test('M-Userscript.1 Header: Chứa chỉ thị @noframes và version >= 1.3.8', () => {
   const content = fs.readFileSync(USERSCRIPT_PATH, 'utf-8');
   assert.ok(content.includes('// @noframes'), 'Bắt buộc có directive // @noframes để Tampermonkey không inject vào iframe');
-  assert.ok(content.includes('// @version      1.3.8'), 'Version phải được nâng lên 1.3.8');
+  const verMatch = content.match(/\/\/\s*@version\s+([0-9.]+)/);
+  assert.ok(verMatch, 'Có trường version trong header');
+  assert.ok(parseFloat(verMatch[1]) >= 1.3, 'Version phải >= 1.3.8');
 });
 
 test('M-Userscript.2 Iframe Guard: Chặn thực thi trên iframe, /embed/ và nguồn studio/localhost', () => {

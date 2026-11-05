@@ -188,15 +188,23 @@
       <div class="vt-bar"><i style="width:${pct}%"></i></div></div></div>`;
   }
   function syncExtStrip() {
-    const on = !!document.documentElement.dataset.shadowingViExtension, btn = $('vt-ext-btn');
-    if (!btn) return;
-    btn.style.display = on ? 'none' : ''; $('vt-ext-hint').style.display = on ? 'none' : '';
-    $('vt-ext-text').innerHTML = on ? '✓ Đã cài extension. Mở một video YouTube tiếng Việt rồi bấm nút <b>Luyện dịch Việt → Pháp</b> dưới video, hoặc bôi đen một đoạn văn / bài báo tiếng Việt → chuột phải → <b>Luyện dịch Việt - Anh</b> để đưa vào đây.'
-      : 'Để tự import video Youtube hoặc bài viết / bài báo tiếng Việt của riêng bạn,<br>vui lòng cài extension sau:';
+    const on = !!document.documentElement.dataset.shadowingViExtension, btn = $('vt-ext-btn'), hint = $('vt-ext-hint'), txt = $('vt-ext-text');
+    if (btn) btn.style.display = on ? 'none' : '';
+    if (hint) hint.style.display = on ? 'none' : '';
+    if (txt) {
+      txt.innerHTML = on
+        ? '✓ <b>Trợ thủ YouTube đã sẵn sàng:</b> Mở video YouTube tiếng Việt bất kỳ có phụ đề rồi bấm nút <b>[🇻🇳 Luyện dịch]</b> ở góc video để bắt đầu.'
+        : '💡 <b>Mẹo:</b> Mở video YouTube tiếng Việt bất kỳ có phụ đề và bấm nút <b>[🇻🇳 Luyện dịch]</b> để bắt đầu. <a href="userscript/french-shadowing-youtube.user.js" class="vt-install-link" target="_blank" rel="noopener">Cài đặt Trợ thủ YouTube (Userscript)</a> nếu chưa cài.';
+    }
   }
   new MutationObserver(syncExtStrip).observe(document.documentElement, { attributes: true, attributeFilter: ['data-shadowing-vi-extension'] });
   async function renderLanding() {
-    const eb = $('vt-ext-btn'); eb.href = VT_EXT_URL; if (!/^https?:/i.test(VT_EXT_URL)) eb.setAttribute('download', ''); else eb.removeAttribute('download');
+    const eb = $('vt-ext-btn');
+    if (eb) {
+      eb.href = VT_EXT_URL;
+      if (!/^https?:/i.test(VT_EXT_URL)) eb.setAttribute('download', '');
+      else eb.removeAttribute('download');
+    }
     syncExtStrip();
     if (!libLoaded) await loadLib();
     await refreshFromDB();
