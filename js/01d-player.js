@@ -896,13 +896,19 @@
         const store = tx.objectStore('audios');
         store.put({
           id: docId,
-          name: file.name,
+          name: file.name || (docId + '.mp3'),
           size: file.size,
           type: file.type || 'audio/mpeg',
           blob: file,
           updatedAt: Date.now()
         });
-        tx.oncomplete = () => resolve(true);
+        tx.oncomplete = () => {
+          // Tự động đẩy file MP3 lên Supabase Storage (nếu đã đăng nhập)
+          if (window.FSS_SUPABASE && typeof window.FSS_SUPABASE.uploadArticleAudio === 'function') {
+            try { window.FSS_SUPABASE.uploadArticleAudio(docId, file); } catch (e) {}
+          }
+          resolve(true);
+        };
         tx.onerror = () => reject(tx.error);
       }));
     }
@@ -913,7 +919,33 @@
         const tx = db.transaction('audios', 'readonly');
         const store = tx.objectStore('audios');
         const req = store.get(docId);
-        req.onsuccess = () => resolve(req.result || null);
+        req.onsuccess = () => {
+          const res = req.result || null;
+          if (res && res.blob) {
+            resolve(res);
+            return;
+          }
+          // Nếu máy mới chưa có trong IndexedDB -> Tự động kéo từ Supabase Storage về nạp vào máy
+          if (window.FSS_SUPABASE && typeof window.FSS_SUPABASE.downloadArticleAudio === 'function') {
+            window.FSS_SUPABASE.downloadArticleAudio(docId).then((blob) => {
+              if (blob) {
+                saveArticleAudioBlob(docId, blob);
+                resolve({
+                  id: docId,
+                  name: docId + '.mp3',
+                  size: blob.size,
+                  type: blob.type || 'audio/mpeg',
+                  blob: blob,
+                  updatedAt: Date.now()
+                });
+              } else {
+                resolve(null);
+              }
+            }).catch(() => resolve(null));
+          } else {
+            resolve(null);
+          }
+        };
         req.onerror = () => resolve(null);
       })).catch(() => null);
     }

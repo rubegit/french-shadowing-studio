@@ -1272,6 +1272,49 @@
     });
   };
 
+  // ==================== SUPABASE STORAGE: ARTICLE AUDIO MP3 ====================
+  var AUDIO_BUCKET = 'article-audios';
+
+  function uploadArticleAudioToSupabase(docId, fileOrBlob) {
+    if (!client || !currentUser || !docId || !fileOrBlob) {
+      return Promise.resolve(null);
+    }
+    var cleanDocId = String(docId).replace(/^yt:/, '').replace(/^local:/, '').replace(/^text:/, '').trim();
+    var filePath = currentUser.id + '/' + cleanDocId + '.mp3';
+    var mime = fileOrBlob.type || 'audio/mpeg';
+
+    return client.storage.from(AUDIO_BUCKET).upload(filePath, fileOrBlob, {
+      upsert: true,
+      contentType: mime
+    }).then(function (res) {
+      if (res.error) {
+        console.warn('[Supabase Storage] Lỗi upload audio bài báo:', res.error.message || res.error);
+        return null;
+      }
+      return { path: filePath };
+    }).catch(function (err) {
+      console.warn('[Supabase Storage] Lỗi mạng khi upload audio bài báo:', err);
+      return null;
+    });
+  }
+
+  function downloadArticleAudioFromSupabase(docId) {
+    if (!client || !currentUser || !docId) {
+      return Promise.resolve(null);
+    }
+    var cleanDocId = String(docId).replace(/^yt:/, '').replace(/^local:/, '').replace(/^text:/, '').trim();
+    var filePath = currentUser.id + '/' + cleanDocId + '.mp3';
+
+    return client.storage.from(AUDIO_BUCKET).download(filePath).then(function (res) {
+      if (res.error) {
+        return null;
+      }
+      return res.data || null;
+    }).catch(function () {
+      return null;
+    });
+  }
+
   // Export API cho app
   window.FSS_SUPABASE = {
     getClient: function () { return client; },
@@ -1283,6 +1326,8 @@
     syncProgressDebounced: syncProgressDebounced,
     pullAll: pullAllDataFromCloud,
     pushAll: pushAllDataToCloud,
+    uploadArticleAudio: uploadArticleAudioToSupabase,
+    downloadArticleAudio: downloadArticleAudioFromSupabase,
     countHistoryBreakdown: countHistoryBreakdown,
     formatHistoryBreakdown: formatHistoryBreakdown,
     formatHistoryBullet: formatHistoryBullet

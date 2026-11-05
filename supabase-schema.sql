@@ -30,3 +30,34 @@ drop policy if exists "Users can update own data" on public.fss_user_data;
 create policy "Users can update own data" 
   on public.fss_user_data for update 
   using (auth.uid() = user_id);
+
+-- ============================================================================
+-- 4. Tạo Bucket lưu trữ file âm thanh MP3 bài báo (article-audios)
+-- ============================================================================
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('article-audios', 'article-audios', false, 26214400, array['audio/mpeg', 'audio/mp3'])
+on conflict (id) do update set
+  public = false,
+  file_size_limit = 26214400,
+  allowed_mime_types = array['audio/mpeg', 'audio/mp3'];
+
+-- 5. Chính sách bảo mật Storage: Mỗi người dùng chỉ đọc/ghi file trong thư mục của chính mình (auth.uid()/*)
+drop policy if exists "Users can upload their own article audios" on storage.objects;
+create policy "Users can upload their own article audios"
+  on storage.objects for insert
+  with check (bucket_id = 'article-audios' and auth.uid()::text = (storage.foldername(name))[1]);
+
+drop policy if exists "Users can update their own article audios" on storage.objects;
+create policy "Users can update their own article audios"
+  on storage.objects for update
+  using (bucket_id = 'article-audios' and auth.uid()::text = (storage.foldername(name))[1]);
+
+drop policy if exists "Users can view their own article audios" on storage.objects;
+create policy "Users can view their own article audios"
+  on storage.objects for select
+  using (bucket_id = 'article-audios' and auth.uid()::text = (storage.foldername(name))[1]);
+
+drop policy if exists "Users can delete their own article audios" on storage.objects;
+create policy "Users can delete their own article audios"
+  on storage.objects for delete
+  using (bucket_id = 'article-audios' and auth.uid()::text = (storage.foldername(name))[1]);
