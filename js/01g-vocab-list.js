@@ -863,6 +863,115 @@
     }
 
 
+    // Hàm thuần tìm toạ độ span của term hoặc các biến thể chia thì/hình thái của nó trong text
+    function findVariantSpan(text, term, opts) {
+      if (!text || !term) return null;
+      text = String(text);
+      term = String(term).trim();
+      if (!text || !term) return null;
+
+      const escRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const cleanTerm = term.replace(/[!?,;.:«»"“”()]+$/, '').replace(/^[«»"“”()]+/, '').trim();
+      if (!cleanTerm) return null;
+
+      const isReflexive = /^(se|s\x27|s’)\s*/i.test(cleanTerm);
+      const cleanP = cleanTerm.replace(/^(se|s\x27|s’)\s*/i, '');
+      const words = cleanP.split(/\s+/).filter(Boolean);
+      if (!words.length) return null;
+
+      const morph = (typeof window !== 'undefined' && window.FrenchMorphology)
+        ? window.FrenchMorphology
+        : (typeof FrenchMorphology !== 'undefined' ? FrenchMorphology : null);
+
+      const patterns = new Set();
+      // Luôn có dạng exact match của term gốc
+      patterns.add(cleanTerm);
+      if (cleanP !== cleanTerm) patterns.add(cleanP);
+
+      // Nếu có FrenchMorphology: mở rộng biến thể chia thì của động từ
+      if (morph && typeof morph.getVerbConjugations === 'function') {
+        const firstWord = words[0].toLowerCase().replace(/[\x27\u2019]/g, "'");
+        const restWords = words.slice(1).join(' ');
+
+        // 1. Trường hợp từ đơn lẻ là động từ hoặc cụm bắt đầu bằng động từ
+        let verbForms = morph.getVerbConjugations(firstWord);
+        // Nếu firstWord là dạng chia sẵn (ví dụ pris, sait, saurai), tra ngược lấy thêm lemma
+        if (typeof morph.findLemmasForForm === 'function') {
+          const revLemmas = morph.findLemmasForForm(firstWord);
+          revLemmas.forEach((rl) => {
+            const forms = morph.getVerbConjugations(rl);
+            forms.forEach((f) => { if (verbForms.indexOf(f) === -1) verbForms.push(f); });
+          });
+        }
+
+        // Lọc bớt các dạng cực ngắn (<=2 ký tự như a, ai, es, est) của động từ tần suất cao (avoir, être)
+        // để tránh nhiễu trợ động từ khắp câu, trừ khi chính term người dùng lưu là từ ngắn đó
+        const isHighFreqAux = (firstWord === 'avoir' || firstWord === 'être' || firstWord === 'etre');
+        if (isHighFreqAux && cleanTerm.length > 3) {
+          verbForms = verbForms.filter((f) => f.length >= 3 && f !== 'est');
+        }
+
+        if (verbForms && verbForms.length) {
+          verbForms.forEach((vf) => {
+            if (restWords) {
+              patterns.add(vf + ' ' + restWords);
+            } else {
+              patterns.add(vf);
+            }
+          });
+        }
+      }
+
+      // Sắp xếp patterns theo độ dài giảm dần (ưu tiên khớp dài nhất trước)
+      const sorted = Array.from(patterns).sort((a, b) => b.length - a.length);
+
+      // Tiền tố phản thân đi kèm (nếu term có phản thân)
+      const reflPrefix = isReflexive
+        ? '(?:(?:se|s[\x27\u2019]|me|m[\x27\u2019]|te|t[\x27\u2019]|nous|vous)\\s+)?'
+        : '';
+
+      // Thu thập tất cả các kết quả khớp trong text
+      const matches = [];
+
+      for (let i = 0; i < sorted.length; i++) {
+        const p = sorted[i];
+        const tokens = p.split(/\s+/).filter(Boolean);
+        if (!tokens.length) continue;
+
+        // Biểu thức chính quy cho pattern p, chấp nhận nháy cong/thẳng
+        const pReStr = tokens.map((t) => escRe(t).replace(/[\x27\u2019]/g, "[\x27\u2019]?")).join('\\s+');
+        // Ranh giới từ tiếng Pháp:
+        // Phía trước: đầu chuỗi, hoặc ký tự không phải chữ/nháy, hoặc mạo từ/tiền tố lược âm (l', d', j', c', qu')
+        // Phía sau: cuối chuỗi hoặc ký tự không phải chữ/nháy
+        const fullRe = new RegExp('(^|[^\\p{L}\x27\u2019]|(?:[ldjsc]|qu)[\x27\u2019])(' + reflPrefix + pReStr + ')(?=$|[^\\p{L}\x27\u2019])', 'giu');
+        let m;
+        while ((m = fullRe.exec(text)) !== null) {
+          const start = m.index + m[1].length;
+          const end = start + m[2].length;
+          matches.push({
+            start: start,
+            end: end,
+            match: m[2],
+            lemma: cleanTerm,
+            len: end - start
+          });
+          // Tránh vòng lặp vô tận nếu match rỗng
+          if (fullRe.lastIndex === m.index) fullRe.lastIndex++;
+        }
+      }
+
+      if (!matches.length) return null;
+
+      // Sắp xếp: Ưu tiên xuất hiện trước (start ASC), nếu cùng vị trí thì ưu tiên dài hơn (len DESC)
+      matches.sort((a, b) => {
+        if (a.start !== b.start) return a.start - b.start;
+        return b.len - a.len;
+      });
+
+      return matches[0];
+    }
+    window.findVariantSpan = findVariantSpan;
+
     // Xác định toạ độ [start, end] của từ/cụm từ trong ngữ cảnh hoặc câu ví dụ
     // Hỗ trợ cả thể nguyên mẫu, chia thì, động từ phản thân (se/me/te/nous/vous/s'), mạo từ, giới từ, số nhiều và dấu câu
     function findWordSpanInString(text, term) {
@@ -936,9 +1045,15 @@
         : (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
       if (!term) return _esc(en);
 
-      const span = findWordSpanInString(en, term);
+      const span = (typeof findVariantSpan === 'function' ? findVariantSpan(en, term) : null) || findWordSpanInString(en, term);
       if (span) {
-        return _esc(en.slice(0, span.start)) + '<mark>' + _esc(en.slice(span.start, span.end)) + '</mark>' + _esc(en.slice(span.end));
+        let sStart = span.start;
+        let sEnd = span.end;
+        while (sStart < sEnd && /\s/.test(en[sStart])) sStart++;
+        while (sEnd > sStart && /\s/.test(en[sEnd - 1])) sEnd--;
+        if (sEnd > sStart) {
+          return _esc(en.slice(0, sStart)) + '<mark>' + _esc(en.slice(sStart, sEnd)) + '</mark>' + _esc(en.slice(sEnd));
+        }
       }
       return _esc(en);
     }
@@ -996,22 +1111,32 @@
         ? escHtml
         : (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-      // 1. Kiểm tra hs, he cũ nếu hợp lệ và thực sự trỏ đúng từ cần highlight
-      if (typeof hs === 'number' && typeof he === 'number' && he > hs && he <= en.length) {
-        const sub = en.slice(hs, he).trim();
-        if (sub.length > 1 && !/^[.,;:!?]+$/.test(sub)) {
-          // Chỉ tin cậy hs, he nếu chuỗi trích ra khớp hoặc có chứa biến thể của term
-          if (!term || findWordSpanInString(sub, term)) {
-            return _esc(en.slice(0, hs)) + '<mark class="vocab-hl">' + _esc(en.slice(hs, he)) + '</mark>' + _esc(en.slice(he));
+      // 1. Kiểm tra hs, he cũ nếu hợp lệ và term không rỗng
+      if (term && typeof hs === 'number' && typeof he === 'number' && he > hs && he <= en.length) {
+        let sStart = hs;
+        let sEnd = he;
+        while (sStart < sEnd && /\s/.test(en[sStart])) sStart++;
+        while (sEnd > sStart && /\s/.test(en[sEnd - 1])) sEnd--;
+        if (sEnd > sStart) {
+          const sub = en.slice(sStart, sEnd);
+          const checkSpan = (typeof findVariantSpan === 'function' ? findVariantSpan(sub, term) : null) || findWordSpanInString(sub, term);
+          if (checkSpan) {
+            return _esc(en.slice(0, sStart)) + '<mark class="vocab-hl">' + _esc(en.slice(sStart, sEnd)) + '</mark>' + _esc(en.slice(sEnd));
           }
         }
       }
 
       if (!term) return _esc(en);
 
-      const span = findWordSpanInString(en, term);
+      const span = (typeof findVariantSpan === 'function' ? findVariantSpan(en, term) : null) || findWordSpanInString(en, term);
       if (span) {
-        return _esc(en.slice(0, span.start)) + '<mark class="vocab-hl">' + _esc(en.slice(span.start, span.end)) + '</mark>' + _esc(en.slice(span.end));
+        let sStart = span.start;
+        let sEnd = span.end;
+        while (sStart < sEnd && /\s/.test(en[sStart])) sStart++;
+        while (sEnd > sStart && /\s/.test(en[sEnd - 1])) sEnd--;
+        if (sEnd > sStart) {
+          return _esc(en.slice(0, sStart)) + '<mark class="vocab-hl">' + _esc(en.slice(sStart, sEnd)) + '</mark>' + _esc(en.slice(sEnd));
+        }
       }
 
       return _esc(en);
