@@ -57,7 +57,7 @@ def update_cache_busters(t):
 
 def build():
     # Đồng bộ duy nhất một nguồn: tools/ -> js/
-    for fn in ['schema-v02.js', 'french-utils.js', 'extract-prompt-template.js']:
+    for fn in ['schema-v02.js', 'french-utils.js', 'extract-prompt-template.js', 'french-morphology.js']:
         src = P('tools') / fn
         if src.exists():
             (P('js') / fn).write_text(src.read_text(encoding='utf-8'), encoding='utf-8')
