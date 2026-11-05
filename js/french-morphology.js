@@ -335,7 +335,21 @@
       'vaudrais', 'vaudrait',
       'vaille', 'vailles',
       'valant'
+    ],
+    'suffire': [
+      'suffis', 'suffit', 'suffisons', 'suffisez', 'suffisent',
+      'suffisais', 'suffisait', 'suffisions', 'suffisiez', 'suffisaient',
+      'suffi',
+      'suffirai', 'suffiras', 'suffira', 'suffirons', 'suffirez', 'suffiront',
+      'suffirais', 'suffirait', 'suffirions', 'suffiriez', 'suffiraient',
+      'suffise', 'suffises', 'suffisant'
     ]
+  };
+
+  // Bảng ưu tiên từ đồng dạng (Homograph Priority)
+  // Khi dạng chia trùng nhau giữa hai lemma mà không có ngữ cảnh, ưu tiên lemma tần suất cao
+  var HOMOGRAPH_PRIORITY = {
+    'suis': 'être'
   };
 
   // Tiền tố dẫn xuất cho các động từ Nhóm 3 (Prefix derivations)
@@ -391,6 +405,33 @@
     'conduire', 'produire', 'traduire', 'construire', 'détruire', 'detruire',
     'séduire', 'seduire', 'réduire', 'reduire', 'introduire', 'reproduire', 'cuire'
   ];
+
+  // 3b. Họ -cevoir (recevoir, apercevoir, concevoir, décevoir, percevoir)
+  var CEVOIR_VERBS = {
+    'recevoir': 're',
+    'apercevoir': 'aper',
+    'concevoir': 'con',
+    'décevoir': 'dé',
+    'decevoir': 'de',
+    'percevoir': 'per'
+  };
+
+  function conjugateCevoir(inf) {
+    var prefix = CEVOIR_VERBS[inf];
+    if (prefix === undefined) return [];
+    return [
+      prefix + 'çois', prefix + 'cois',
+      prefix + 'çoit', prefix + 'coit',
+      prefix + 'cevons', prefix + 'cevez',
+      prefix + 'çoivent', prefix + 'çoivent', prefix + 'coivent',
+      prefix + 'cevais', prefix + 'cevait', prefix + 'cevions', prefix + 'ceviez', prefix + 'cevaient',
+      prefix + 'çu', prefix + 'cu', prefix + 'çue', prefix + 'cue', prefix + 'çus', prefix + 'cus', prefix + 'çues', prefix + 'cues',
+      prefix + 'çut', prefix + 'cut', prefix + 'çûmes', prefix + 'cumes', prefix + 'çurent', prefix + 'curent',
+      prefix + 'cevrai', prefix + 'cevras', prefix + 'cevra', prefix + 'cevrons', prefix + 'cevrez', prefix + 'cevront',
+      prefix + 'cevrais', prefix + 'cevrait', prefix + 'cevrions', prefix + 'cevriez', prefix + 'cevraient',
+      prefix + 'çoive', prefix + 'coive', prefix + 'çoives', prefix + 'coives', prefix + 'cevant'
+    ];
+  }
 
   // 4. Các động từ Nhóm 2 (-ir) phổ biến
   var GROUP2_VERBS = new Set([
@@ -606,6 +647,10 @@
       conjugateUire(inf).forEach(function (f) { forms.add(f); });
       return Array.from(forms);
     }
+    if (Object.prototype.hasOwnProperty.call(CEVOIR_VERBS, inf)) {
+      conjugateCevoir(inf).forEach(function (f) { forms.add(f); });
+      return Array.from(forms);
+    }
 
     // 4. Kiểm tra Nhóm 2 (-ir với -issant)
     if (GROUP2_VERBS.has(inf)) {
@@ -675,6 +720,11 @@
     UIRE_VERBS.forEach(function (v) {
       conjugateUire(v).forEach(function (f) { addMapping(f, v); });
     });
+    for (var cv in CEVOIR_VERBS) {
+      if (Object.prototype.hasOwnProperty.call(CEVOIR_VERBS, cv)) {
+        conjugateCevoir(cv).forEach(function (f) { addMapping(f, cv); });
+      }
+    }
 
     // 3. Nạp danh sách Nhóm 2
     GROUP2_VERBS.forEach(function (v) {
@@ -874,6 +924,19 @@
     var forms = new Set();
     forms.add(clean);
 
+    // Bóc tách mạo từ đứng đầu danh từ (un, une, le, la, les, des, l') để mở rộng cho danh từ gốc
+    var artMatch = clean.match(/^(?:un|une|le|la|les|des)\s+(.+)$/i) || clean.match(/^(?:l[\x27\u2019])(.+)$/i);
+    if (artMatch) {
+      var baseNoun = artMatch[1].trim();
+      forms.add(baseNoun);
+      getNounVariants(baseNoun).forEach(function (nv) {
+        forms.add(nv);
+      });
+      getAdjVariants(baseNoun).forEach(function (av) {
+        forms.add(av);
+      });
+    }
+
     var isReflexive = /^(se|s\x27|s’)\s*/i.test(clean);
     var baseTerm = clean.replace(/^(se|s\x27|s’)\s*/i, '').trim();
     var words = baseTerm.split(/\s+/).filter(Boolean);
@@ -889,6 +952,7 @@
         DRE_VERBS.indexOf(firstWord) !== -1 ||
         Object.prototype.hasOwnProperty.call(NDRE_VERBS, firstWord) ||
         UIRE_VERBS.indexOf(firstWord) !== -1 ||
+        Object.prototype.hasOwnProperty.call(CEVOIR_VERBS, firstWord) ||
         GROUP2_VERBS.has(firstWord) ||
         firstWord.endsWith('er') ||
         firstWord.endsWith('ir') ||
@@ -904,8 +968,9 @@
           });
         });
 
-        // Bỏ các dạng cực ngắn nếu verb là avoir/être
-        if ((firstWord === 'avoir' || firstWord === 'être' || firstWord === 'etre') && clean.length > 3) {
+        // Bỏ các dạng cực ngắn nếu verb là avoir/être đứng một mình (để tránh nhiễu trợ động từ)
+        // Nhưng nếu là cụm từ ghép (có restWords), giữ nguyên dạng chia (ví dụ 'ai mal à')
+        if ((firstWord === 'avoir' || firstWord === 'être' || firstWord === 'etre') && !restWords) {
           vConjs = vConjs.filter(function (f) { return f.length >= 3 && f !== 'est'; });
         }
 
@@ -974,6 +1039,7 @@
     findLemmasForForm: findLemmasForForm,
     getNounVariants: getNounVariants,
     getAdjVariants: getAdjVariants,
-    expandVocabVariants: expandVocabVariants
+    expandVocabVariants: expandVocabVariants,
+    HOMOGRAPH_PRIORITY: HOMOGRAPH_PRIORITY
   };
 });

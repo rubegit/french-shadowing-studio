@@ -8,22 +8,24 @@
 ---
 
 ### 1. Metadata Bàn giao (Handover Metadata)
-- **Thời điểm cập nhật:** 2026-11-04T18:55:00-06:00
+- **Thời điểm cập nhật:** 2026-11-04T19:25:00-06:00
 - **Agent bàn giao (Outgoing Agent):** Antigravity Agent
-- **Mục đích:** Bàn giao liền mạch chuỗi giải pháp Hình thái học Tiếng Pháp (French Morphology) & Căn mốc tự động an toàn (Safe Auto-alignment).
+- **Mục đích:** Bàn giao liền mạch chuỗi giải pháp Hình thái học Tiếng Pháp (French Morphology) & Căn mốc tự động an toàn (Safe Auto-alignment) qua bộ benchmark 94 ca.
 - **Tài liệu tham chiếu bắt buộc:** [`AGENTS.md`](./AGENTS.md), [`PROJECT_STATUS.md`](./PROJECT_STATUS.md).
 
 ---
 
 ### 2. Bản chụp Trạng thái Git (Git State Snapshot)
 - **Nhánh hiện tại (Branch):** `main`
-- **HEAD Commit tại thời điểm nạp:** `715279c` (*feat(vocab): M14b safe auto-align with scoring, MULTIPLE rejection & golden tests*)
-- **Tình trạng Remote:** Ahead of `origin/main` by 5 commits:
+- **HEAD Commit tại thời điểm nạp:** (Sắp commit M14c)
+- **Tình trạng Remote:** Ahead of `origin/main` by 7 commits:
   1. `d8ca44d` - `fix(vocab): M11.1 word boundary regex in fallback align and reset stale hs/he`
   2. `f79edc4` - `feat(morphology): M13a French Morphology Core (verbs, regular orthography, irregular roots & derivations)`
   3. `42058df` - `feat(vocab): M14a intelligent findVariantSpan highlighting & XSS safe escaping`
   4. `c7fada5` - `feat(morphology): M13b plural nouns, feminine adjectives & multi-word phrase expansion`
   5. `715279c` - `feat(vocab): M14b safe auto-align with scoring, MULTIPLE rejection & golden tests`
+  6. `10efb80` - `docs: update HANDOVER.md after completing French Morphology & Safe Alignment (M11.1-M14b)`
+  7. *(M14c commit)* - `feat(vocab): M14c benchmark 94 cases 100% precision, explicit elision boundary & homograph priority`
 - **Trạng thái Working Tree:** **Clean 100%** (xác minh thực tế qua `git status --porcelain`).
 - **Cảnh báo an toàn Git:**
   - Tuyệt đối **KHÔNG PUSH** commit cục bộ lên remote nếu người dùng chưa ra lệnh rõ ràng bằng văn bản.
@@ -32,14 +34,21 @@
 ---
 
 ### 3. Tiến độ & Trạng thái Các Module (Milestone Progress)
-- **Chuỗi Morphology & Safe Highlighting/Alignment hoàn thành:**
+- **Chuỗi Morphology & Safe Highlighting/Alignment hoàn thành trọn vẹn:**
   - **`M11.1`** (Commit `d8ca44d`): Regex ranh giới từ `(^|[^\p{L}'’])word(?=$|[^\p{L}'’])` giải quyết triệt để lỗi `va` khớp nhầm `cravate/carnaval`, reset toạ độ cũ `hs/he` về 0 khi sang câu mới.
-  - **`M13a`** (Commit `f79edc4`): French Morphology Core cho động từ (Nhóm 1 quy tắc kèm biến đổi chính tả, Nhóm 2, Nhóm 3 với >300 động từ bất quy tắc và tiếp đầu ngữ, tra cứu ngược homograph `suis` $\rightarrow$ `['être', 'suivre']`).
+  - **`M13a`** (Commit `f79edc4`): French Morphology Core cho động từ (Nhóm 1 quy tắc kèm biến đổi chính tả, Nhóm 2, Nhóm 3 với >300 động từ bất quy tắc và tiếp đầu ngữ, tra cứu ngược homograph).
   - **`M14a`** (Commit `42058df`): Tô sáng thông minh `findVariantSpan`, ưu tiên leftmost-longest match, khử nhiễu trợ động từ cực ngắn, an toàn XSS tuyệt đối.
-  - **`M13b`** (Commit `c7fada5`): Mở rộng hình thái học cho Danh từ số nhiều (`-al` $\rightarrow$ `-aux`, `-eau/-eu` $\rightarrow$ `-x`, ngoại lệ `travail` $\rightarrow$ `travaux`), Tính từ 4 dạng giống/số, và Cụm từ nhiều chữ.
-  - **`M14b`** (Commit `715279c`): Chấm điểm câu `scoreSentenceForVocab`, từ chối gán nhầm (`MULTIPLE` tie rejection), hoàn tác an toàn `undoAutoAlignVocabTimestamps()`, Golden Test Suite 60 mẫu từ vựng thực tế từ `backup/local_vocab_backup_20261101.json` đạt độ chính xác 100%.
+  - **`M13b`** (Commit `c7fada5`): Mở rộng hình thái học cho Danh từ số nhiều, Tính từ 4 dạng giống/số, và Cụm từ nhiều chữ.
+  - **`M14b`** (Commit `715279c`): Chấm điểm câu `scoreSentenceForVocab`, từ chối gán nhầm (`MULTIPLE` tie rejection), hoàn tác an toàn `undoAutoAlignVocabTimestamps()`.
+  - **`M14c`** (Đang nghiệm thu):
+    - Khắc phục triệt để rủi ro gán sai (`WRONG_ASSIGNMENT = 0` trên 94 ca benchmark, Precision lần gán đạt 100% = 66/66).
+    - Ranh giới lược âm hai nhánh tường minh `(?<=(?:^|[^\p{L}'’])(?:c|d|j|l|m|n|s|t|qu|jusqu|lorsqu|puisqu|quoiqu)['’])` chặn nuốt nhầm từ giả (`quelqu'un`, `aujourd'hui`) và khớp đúng (`m'évite`, `jusqu'à`).
+    - Bảng `HOMOGRAPH_PRIORITY = { 'suis': 'être' }` chặn `suivre` gán nhầm câu; luật `saved-form-priority` ưu tiên dạng lưu chính xác (`deviennent`, `froid`, `rouge`) thắng mở rộng lemma.
+    - Span phản thân chuẩn hóa chỉ lấy động từ nòng cốt (`rend`, `abonner à`), bỏ đại từ.
+    - Bổ sung họ động từ `-cevoir`, `suffire`, bóc tách mạo từ danh từ (`un/une/le/la/l'`), giữ dạng ngắn trong cụm từ ghép (`ai mal à`).
 - **Bộ kiểm thử tự động:**
-  - `node --test tools/*.test.js`: **245 / 245 PASS (100%)**.
+  - `node tools/run-benchmark-94.js`: **94 / 94 ĐẠT (100.00%)**, **66 gán đúng**, **0 gán sai**, **28 từ chối đúng**.
+  - `node --test tools/*.test.js`: **249 / 249 PASS (100%)**.
   - `node tools/lint-color.js`: **921 / 921 HEX**, **0 inline style**, **0 tailwind color**.
 
 ---

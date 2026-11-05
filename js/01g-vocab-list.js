@@ -884,14 +884,25 @@
         : (typeof FrenchMorphology !== 'undefined' ? FrenchMorphology : null);
 
       const patterns = new Set();
-      // Luôn có dạng exact match của term gốc
-      patterns.add(cleanTerm);
-      if (cleanP !== cleanTerm) patterns.add(cleanP);
+      // Nếu là reflexive, chỉ nạp cleanP (động từ nòng cốt) vào patterns để không tô đại từ vào span
+      if (isReflexive) {
+        patterns.add(cleanP);
+      } else {
+        patterns.add(cleanTerm);
+        if (cleanP !== cleanTerm) patterns.add(cleanP);
+      }
 
       // Nếu có FrenchMorphology: mở rộng biến thể (hỗ trợ cả động từ, danh từ, tính từ và cụm từ)
       if (morph && typeof morph.expandVocabVariants === 'function') {
         const variants = morph.expandVocabVariants(cleanTerm);
-        variants.forEach((v) => patterns.add(v));
+        variants.forEach((v) => {
+          if (isReflexive) {
+            const pureV = v.replace(/^(?:se|s[\x27\u2019])\s*/i, '').trim();
+            if (pureV) patterns.add(pureV);
+          } else {
+            patterns.add(v);
+          }
+        });
       } else if (morph && typeof morph.getVerbConjugations === 'function') {
         const firstWord = words[0].toLowerCase().replace(/[\x27\u2019]/g, "'");
         const restWords = words.slice(1).join(' ');
@@ -908,9 +919,9 @@
         }
 
         // Lọc bớt các dạng cực ngắn (<=2 ký tự như a, ai, es, est) của động từ tần suất cao (avoir, être)
-        // để tránh nhiễu trợ động từ khắp câu, trừ khi chính term người dùng lưu là từ ngắn đó
+        // để tránh nhiễu trợ động từ khắp câu, trừ khi term là cụm từ ghép có restWords
         const isHighFreqAux = (firstWord === 'avoir' || firstWord === 'être' || firstWord === 'etre');
-        if (isHighFreqAux && cleanTerm.length > 3) {
+        if (isHighFreqAux && cleanTerm.length > 3 && !restWords) {
           verbForms = verbForms.filter((f) => f.length >= 3 && f !== 'est');
         }
 
@@ -928,10 +939,17 @@
       // Sắp xếp patterns theo độ dài giảm dần (ưu tiên khớp dài nhất trước)
       const sorted = Array.from(patterns).sort((a, b) => b.length - a.length);
 
-      // Tiền tố phản thân đi kèm (nếu term có phản thân)
+      // Tiền tố phản thân đi kèm (nếu term có phản thân) - tách riêng để chỉ tính span cho động từ
       const reflPrefix = isReflexive
-        ? '(?:(?:se|s[\x27\u2019]|me|m[\x27\u2019]|te|t[\x27\u2019]|nous|vous)\\s+)?'
-        : '';
+        ? '((?:(?:se|s[\x27\u2019]|me|m[\x27\u2019]|te|t[\x27\u2019]|nous|vous)\\s+)?)'
+        : '()';
+
+      // Ranh giới từ tiếng Pháp (hai nhánh an toàn):
+      // Nhánh 1: Đầu chuỗi hoặc ký tự không phải chữ cái và không phải dấu nháy: (^|[^\p{L}'’])
+      // Nhánh 2: Dấu nháy đứng ngay sau tiền tố hợp lệ đứng đầu từ:
+      //          (?<=(?:^|[^\p{L}'’])(?:c|d|j|l|m|n|s|t|qu|jusqu|lorsqu|puisqu|quoiqu)['’])
+      const elisionPrefixes = '(?:c|d|j|l|m|n|s|t|qu|jusqu|lorsqu|puisqu|quoiqu)[\x27\u2019]';
+      const leftBoundary = '(^|[^\\p{L}\x27\u2019]|(?<=(?:^|[^\\p{L}\x27\u2019])' + elisionPrefixes + '))';
 
       // Thu thập tất cả các kết quả khớp trong text
       const matches = [];
@@ -943,18 +961,15 @@
 
         // Biểu thức chính quy cho pattern p, chấp nhận nháy cong/thẳng
         const pReStr = tokens.map((t) => escRe(t).replace(/[\x27\u2019]/g, "[\x27\u2019]?")).join('\\s+');
-        // Ranh giới từ tiếng Pháp:
-        // Phía trước: đầu chuỗi, hoặc ký tự không phải chữ/nháy, hoặc mạo từ/tiền tố lược âm (l', d', j', c', qu')
-        // Phía sau: cuối chuỗi hoặc ký tự không phải chữ/nháy
-        const fullRe = new RegExp('(^|[^\\p{L}\x27\u2019]|(?:[ldjsc]|qu)[\x27\u2019])(' + reflPrefix + pReStr + ')(?=$|[^\\p{L}\x27\u2019])', 'giu');
+        const fullRe = new RegExp(leftBoundary + reflPrefix + '(' + pReStr + ')(?=$|[^\\p{L}\x27\u2019])', 'giu');
         let m;
         while ((m = fullRe.exec(text)) !== null) {
-          const start = m.index + m[1].length;
-          const end = start + m[2].length;
+          const start = m.index + m[1].length + m[2].length;
+          const end = start + m[3].length;
           matches.push({
             start: start,
             end: end,
-            match: m[2],
+            match: m[3],
             lemma: cleanTerm,
             len: end - start
           });
@@ -965,13 +980,31 @@
 
       if (!matches.length) return null;
 
+      // Lọc bỏ match nếu vi phạm homograph-priority (trừ khi saved-form-priority thắng)
+      const homographMap = (morph && morph.HOMOGRAPH_PRIORITY)
+        ? morph.HOMOGRAPH_PRIORITY
+        : { 'suis': 'être' };
+
+      const normTerm = cleanTerm.toLowerCase().replace(/[\x27\u2019]/g, "'");
+      const validMatches = matches.filter((matchObj) => {
+        const normMatch = matchObj.match.toLowerCase().replace(/[\x27\u2019]/g, "'");
+        if (normMatch === normTerm) return true; // saved-form-priority thắng homograph-priority!
+        if (homographMap[normMatch]) {
+          const prioLemma = homographMap[normMatch];
+          if (normTerm !== prioLemma) return false;
+        }
+        return true;
+      });
+
+      if (!validMatches.length) return null;
+
       // Sắp xếp: Ưu tiên xuất hiện trước (start ASC), nếu cùng vị trí thì ưu tiên dài hơn (len DESC)
-      matches.sort((a, b) => {
+      validMatches.sort((a, b) => {
         if (a.start !== b.start) return a.start - b.start;
         return b.len - a.len;
       });
 
-      return matches[0];
+      return validMatches[0];
     }
     window.findVariantSpan = findVariantSpan;
 
@@ -1614,7 +1647,8 @@
       if (span) {
         const isExactForm = (span.match.toLowerCase() === v.text.trim().toLowerCase());
         if (isExactForm) {
-          score += 6;
+          // Luật saved-form-priority: dạng lưu chính xác đạt 7 điểm, vượt trội so với dạng biến thể (4 điểm, chênh lệch >= 3)
+          score += 7;
           reasons.push('WORD_EXACT');
         } else {
           score += 4;

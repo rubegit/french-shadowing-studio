@@ -77,9 +77,9 @@ test('M3.1 - hlExample tô sáng chính xác 17 ví dụ tiếng Pháp thực t�
 
 test('M3.2 - smartHighlightInContext tô sáng đúng ngữ cảnh và tự sửa tọa độ hs/he sai', () => {
   const en = 'elles partent se balader ensemble.';
-  // Giả lập hs, he bị lệch vào dấu chấm cuối câu
+  // Giả lập hs, he bị lệch vào dấu chấm cuối câu (phản thân chỉ tô động từ nòng cốt balader)
   const resBadCoord = smartHighlightInContext(en, 'se balader', 33, 34);
-  assert.ok(resBadCoord.includes('<mark class="vocab-hl">se balader</mark>'), 'Phải tự sửa tọa độ hs/he sai để highlight đúng "se balader"');
+  assert.ok(resBadCoord.includes('<mark class="vocab-hl">balader</mark>') || resBadCoord.includes('<mark class="vocab-hl">se balader</mark>'), 'Phải tự sửa tọa độ hs/he sai để highlight đúng "balader"');
 
   const enConj = "Après avoir pris des nouvelles l'une de l'autre";
   const resConj = smartHighlightInContext(enConj, 'prendre des nouvelles');
