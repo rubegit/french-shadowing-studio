@@ -53,8 +53,14 @@
   - Nút xóa thùng rác (`yt-card-remove`) được đặt gọn gàng cạnh huy hiệu cấp độ ở góc trên bên phải, xóa bài an toàn và không bị che khuất.
   - Bổ sung hộp thoại hỏi xác nhận (`confirm`) chi tiết trước khi xóa bất kỳ bài đọc/video nào để chống bấm nhầm: người dùng bấm Cancel/Hủy sẽ hủy lệnh xóa an toàn; nêu rõ tên bài và lưu ý tự động backup song ngữ nếu có.
   - Đồng bộ `artCardHTML` trong `js/01d-player.js` sang cấu trúc `.art-sample-row`.
+- **M36** (Lưới bài báo đã luyện, xóa bài mẫu và thu gọn ô nhập bài báo - Đã hoàn thành):
+  - Xóa bỏ hoàn toàn mục "Thử đọc bài viết có sẵn" (`#art-lib-grid`) khỏi giao diện trang chủ `partials/view-home.html`.
+  - Chuyển đổi hàng "Văn bản Bạn Đã Luyện" từ thanh cuộn ngang Netflix row đơn hàng sang lưới Responsive Grid đa cột (`art-history-grid` sử dụng `.art-sample-list`), tự động dàn 1 cột trên mobile và 2–3 cột trên desktop.
+  - Thu gọn mặc định khung "Nhập hoặc dán bài báo tiếng Pháp" thành một thanh accordion gọn gàng (`.txt-collapsible-card`), nhấn vào thì trượt mở form ra, tự động mở khi tải file.
+  - Tự động xóa sạch nội dung trong các ô tiêu đề, textarea, file audio đính kèm và thu gọn form sau khi bấm "Bắt đầu đọc bài viết" để người dùng không phải xóa thủ công khi quay lại.
 - **Bộ kiểm thử tự động:**
-  - 312 bài kiểm thử tự động toàn diện chạy qua `node --test tools/*.test.js` đạt 312/312 passed 100%.
+  - 316 bài kiểm thử tự động toàn diện chạy qua `node --test tools/*.test.js` đạt 316/316 passed 100%.
+  - Ngân sách mã màu giữ nguyên mức 921 mã hex, 0 inline colors, 0 Tailwind colors (`node tools/lint-color.js`).
   - Ngân sách mã màu giữ nguyên mức 921 mã hex, 0 inline colors, 0 Tailwind colors (`node tools/lint-color.js`).
   - `node --test tools/*.test.js`: **308 / 308 PASS (100%)**.
   - `node tools/lint-color.js`: **921 / 921 HEX**, **0 inline style**, **0 tailwind color**.

@@ -4554,6 +4554,57 @@ html[data-ui="light"] #text-input-mode .txt-card {
   gap: 14px !important;
 }
 
+html[data-ui="light"] .txt-collapsible-card {
+  transition: all 0.25s ease !important;
+}
+
+html[data-ui="light"] .txt-collapse-trigger {
+  width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  background: transparent !important;
+  border: none !important;
+  cursor: pointer !important;
+  padding: 0 !important;
+  outline: none !important;
+  text-align: left !important;
+}
+
+html[data-ui="light"] .txt-collapse-hint {
+  font-size: 13px !important;
+  font-style: normal !important;
+  color: var(--fs-muted) !important;
+  font-weight: 500 !important;
+  margin-left: 6px !important;
+}
+
+html[data-ui="light"] .txt-collapse-icon {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: var(--fs-radius-md) !important;
+  background: var(--fs-surface-subtle) !important;
+  color: var(--fs-muted) !important;
+  transition: all 0.2s ease !important;
+}
+
+html[data-ui="light"] .txt-collapsible-card.is-expanded .txt-collapse-icon {
+  transform: rotate(180deg) !important;
+  color: var(--fs-primary) !important;
+}
+
+html[data-ui="light"] .txt-collapse-body {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 14px !important;
+  margin-top: 14px !important;
+  padding-top: 14px !important;
+  border-top: 1px dashed var(--fs-line) !important;
+}
+
 html[data-ui="light"] .txt-label {
   display: flex !important;
   align-items: center !important;
@@ -4783,9 +4834,10 @@ html[data-ui="light"] #text-history-container .netflix-scroll-inner {
 }
 
 html[data-ui="light"] #text-history-container .art-sample-row {
-  flex: 0 0 290px !important;
-  min-width: 290px !important;
-  max-width: 320px !important;
+  flex: none !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
   min-height: 170px !important;
   padding: 18px 20px !important;
   background: var(--fs-surface) !important;

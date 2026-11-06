@@ -421,17 +421,30 @@
       `;
     }
 
-    // Hàng "Văn bản Bạn Đã Luyện" nằm ở tab "Đọc báo/IELTS" (không còn nằm trong THƯ VIỆN VIDEO)
+    // Hàng "Văn bản Bạn Đã Luyện" hiển thị dạng Grid bài báo (tương tự thư viện bài/video)
     function renderTextHistoryRow() {
       const box = document.getElementById('text-history-container');
       if (!box) return;
       const textHistory = getLocalHistory().filter((h) => h.isText && h.sentences && h.sentences.length);
       box.innerHTML = '';
       if (textHistory.length > 0) {
-        const rowContainer = document.createElement('div');
-        rowContainer.className = 'netflix-row-wrapper relative flex flex-col gap-3 my-2';
-        rowContainer.innerHTML = buildNetflixRowHTML('netflix-row-text-history', 'article_pro', 'text-teal-400', 'Văn bản Bạn Đã Luyện', `${textHistory.length}`, textHistory.map((item) => buildTextHistoryCardHTML(item)).join(''));
-        box.appendChild(rowContainer);
+        const wrap = document.createElement('div');
+        wrap.className = 'art-history-section flex flex-col gap-3.5 my-3';
+        wrap.innerHTML = `
+          <div class="row-head flex items-center justify-between px-1">
+            <div class="flex items-center gap-2.5">
+              <div class="row-icon-wrap w-7 h-7 rounded-lg flex items-center justify-center bg-teal-500/10 text-teal-600">
+                <i data-lucide="book-open" class="w-4 h-4"></i>
+              </div>
+              <h4 class="text-base font-extrabold text-[var(--fs-ink)] tracking-wide">Văn bản Bạn Đã Luyện</h4>
+              <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-[var(--fs-muted)]">${textHistory.length}</span>
+            </div>
+          </div>
+          <div class="art-history-grid art-sample-list">
+            ${textHistory.map((item) => buildTextHistoryCardHTML(item)).join('')}
+          </div>
+        `;
+        box.appendChild(wrap);
       }
       if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
       setTimeout(() => {

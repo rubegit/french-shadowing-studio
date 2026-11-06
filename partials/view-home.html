@@ -267,13 +267,20 @@
             </div>
           </div>
 
-          <!-- Khung dán bài báo tiếng Pháp trực tiếp -->
-          <div class="txt-card">
-            <div class="txt-label">
-              <svg class="fs-text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-              <span>Nhập hoặc dán bài báo tiếng Pháp</span>
-              <em>(Dán nội dung bài viết từ các trang báo trên vào đây)</em>
-            </div>
+          <!-- Khung dán bài báo tiếng Pháp (mặc định thu gọn, bấm để mở ra) -->
+          <div class="txt-card txt-collapsible-card" id="text-input-card">
+            <button type="button" id="text-input-toggle-btn" class="txt-collapse-trigger" onclick="toggleTextInputCollapse()" aria-expanded="false" title="Bấm để mở khung nhập bài mới">
+              <div class="txt-label pointer-events-none">
+                <svg class="fs-text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                <span>Nhập hoặc dán bài báo tiếng Pháp</span>
+                <em class="txt-collapse-hint">(Bấm để mở khung nhập bài)</em>
+              </div>
+              <span class="txt-collapse-icon">
+                <svg class="txt-chev-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </span>
+            </button>
+
+            <div id="text-input-collapse-body" class="txt-collapse-body" style="display:none;">
 
             <input id="text-shadow-title-input" type="text" placeholder="Tiêu đề bài viết (tùy chọn — nếu bỏ trống, câu đầu tiên sẽ làm tiêu đề)" />
 
@@ -321,19 +328,10 @@
               <span>Bắt đầu đọc bài viết</span>
             </button>
           </div>
+        </div>
 
-          <!-- Văn bản Bạn Đã Luyện: hàng thẻ lịch sử các bài đã đọc (vẽ bởi renderTextHistoryRow) -->
+          <!-- Văn bản Bạn Đã Luyện: lưới các bài đã đọc (vẽ bởi renderTextHistoryRow) -->
           <div id="text-history-container"></div>
-
-          <!-- Thử đọc bài viết có sẵn: đọc từ thư mục articles/ (cùng chỗ với index.html) -->
-          <div class="art-lib">
-            <div class="art-lib-head">
-              <span class="art-lib-ico"><svg class="fs-text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M8 7h8M8 11h6"/></svg></span>
-              <h4>Thử đọc bài viết có sẵn</h4>
-              <small>bấm vào bài để đọc</small>
-            </div>
-            <div id="art-lib-grid" class="art-lib-grid"></div>
-          </div>
         </div>
         <!-- ==================== ĐỌC SÁCH: KHU NHẬP SÁCH + THƯ VIỆN SÁCH ==================== -->
 <!-- ===== Pane Luyện dịch Việt → Pháp (trong main-card) ===== -->

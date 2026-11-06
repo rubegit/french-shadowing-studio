@@ -1942,6 +1942,7 @@ ${truncated}`;
     let currentTextJsonRawInvalid = '';
 
     window.handleTextJsonFileInput = function(e) {
+      if (typeof window.toggleTextInputCollapse === 'function') window.toggleTextInputCollapse(true);
       const file = e.target && e.target.files && e.target.files[0];
       if (!file) return;
       const baseName = file.name.replace(/\.[^.]+$/, '');
@@ -2056,16 +2057,51 @@ ${truncated}`;
       });
     };
 
+    window.toggleTextInputCollapse = function(forceOpen) {
+      const card = document.getElementById('text-input-card');
+      const btn = document.getElementById('text-input-toggle-btn');
+      const body = document.getElementById('text-input-collapse-body');
+      if (!body) return;
+      const isOpening = forceOpen !== undefined ? forceOpen : body.style.display === 'none';
+      body.style.display = isOpening ? 'flex' : 'none';
+      if (card) card.classList.toggle('is-expanded', isOpening);
+      if (btn) btn.setAttribute('aria-expanded', isOpening ? 'true' : 'false');
+      const hint = card ? card.querySelector('.txt-collapse-hint') : null;
+      if (hint) hint.textContent = isOpening ? '(Bấm để thu gọn)' : '(Bấm để mở khung nhập bài)';
+    };
+
+    window.clearTextInputFields = function() {
+      const ta = document.getElementById('text-shadow-textarea');
+      const ti = document.getElementById('text-shadow-title-input');
+      const fi = document.getElementById('text-file-input');
+      const ji = document.getElementById('text-json-input');
+      const wc = document.getElementById('text-wc');
+      if (ta) ta.value = '';
+      if (ti) ti.value = '';
+      if (fi) fi.value = '';
+      if (ji) ji.value = '';
+      if (wc) wc.textContent = '0';
+      if (typeof clearTextAudioInput === 'function') clearTextAudioInput();
+      const fixBox = document.getElementById('text-json-ai-fix-box');
+      if (fixBox) fixBox.style.display = 'none';
+    };
+
     function startTextShadowingFromPaste() {
       const raw = (document.getElementById('text-shadow-textarea').value || '').trim();
       if (!raw) { showVocabToast('Hãy dán văn bản vào ô bên trên trước đã', false); return; }
       const title = (document.getElementById('text-shadow-title-input').value || '').trim();
       const customSentences = window.__pendingArticleJsonSentences || null;
       window.__pendingArticleJsonSentences = null;
+
+      // Xóa nội dung trong các ô đã điền và thu gọn để người dùng nhập bài mới mà không phải xóa thủ công
+      if (typeof window.clearTextInputFields === 'function') window.clearTextInputFields();
+      if (typeof window.toggleTextInputCollapse === 'function') window.toggleTextInputCollapse(false);
+
       enterTextShadowing(raw, title, null, customSentences);
     }
 
     window.handleTextFileInput = function(e) {
+      if (typeof window.toggleTextInputCollapse === 'function') window.toggleTextInputCollapse(true);
       const file = e.target && e.target.files && e.target.files[0];
       if (!file) return;
       const baseName = file.name.replace(/\.[^.]+$/, '');
