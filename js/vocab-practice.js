@@ -791,34 +791,66 @@
     }
   }
 
-  // Helper: Che từ cần học trong câu ví dụ một cách an toàn, tuyệt đối không làm lộ câu gốc
-  function maskWordInSentence(sentence, targetWord, hs = 0, he = 0) {
-    const s = String(sentence || '').trim();
-    if (!s) return { masked: `<span class="vph-cloze-blank-pill" id="vph-blank-pill">_______</span>`, targetWordInCtx: targetWord };
+  // Helper: Kiểm tra một chuỗi trích xuất có khớp với từ/thể chia của từ cần học hay không
+  function checkWordMatches(sub, term) {
+    if (!sub || !term) return false;
+    const cleanSub = sub.trim().toLowerCase().replace(/^[«»"“”'’()]+|[!?,;.:«»"“”'’()]+$/g, '');
+    const cleanTerm = term.trim().toLowerCase().replace(/^[«»"“”'’()]+|[!?,;.:«»"“”'’()]+$/g, '');
+    if (!cleanSub || !cleanTerm) return false;
+    if (cleanSub === cleanTerm) return true;
+    if (typeof window !== 'undefined' && typeof window.findVariantSpan === 'function' && window.findVariantSpan(sub, term)) return true;
+    if (typeof window !== 'undefined' && typeof window.findWordSpanInString === 'function' && window.findWordSpanInString(sub, term)) return true;
+    if (typeof findVariantSpan === 'function' && findVariantSpan(sub, term)) return true;
+    if (typeof findWordSpanInString === 'function' && findWordSpanInString(sub, term)) return true;
 
-    if (he > hs && he <= s.length) {
-      const wordInCtx = s.slice(hs, he);
-      return {
-        masked: escHtml(s.slice(0, hs)) + `<span class="vph-cloze-blank-pill" id="vph-blank-pill">_______</span>` + escHtml(s.slice(he)),
-        targetWordInCtx: wordInCtx
-      };
+    // So khớp gốc từ cơ bản (bỏ đuôi thì / giống / số nhiều tiếng Pháp)
+    const baseSub = cleanSub.replace(/(er|ir|re|ez|ent|ons|ant|é|és|ée|ées|e|s|ais|ait|aient|ions|iez)$/i, '');
+    const baseTerm = cleanTerm.replace(/(er|ir|re|ez|ent|ons|ant|é|és|ée|ées|e|s|ais|ait|aient|ions|iez)$/i, '');
+    return baseSub.length >= 3 && baseSub === baseTerm;
+  }
+
+  // Helper: Xác định vị trí chính xác của từ mục tiêu trong câu ví dụ (tự phục hồi nếu hs/he bị lệch)
+  function resolveTargetWordSpan(sentence, targetWord, hs = 0, he = 0) {
+    const s = String(sentence || '').trim();
+    if (!s || !targetWord) return null;
+
+    // 1. Kiểm tra nếu hs, he đã cho là chính xác
+    if (typeof hs === 'number' && typeof he === 'number' && he > hs && he <= s.length) {
+      const sub = s.slice(hs, he);
+      if (checkWordMatches(sub, targetWord)) {
+        return { start: hs, end: he, match: sub };
+      }
     }
 
-    // Khớp nguyên từ không phân biệt hoa thường
+    // 2. Tìm kiếm thông minh bằng findVariantSpan hoặc findWordSpanInString của hệ thống
+    const finder = (typeof window !== 'undefined' && window.findVariantSpan) || (typeof findVariantSpan === 'function' ? findVariantSpan : null);
+    if (finder) {
+      const sp = finder(s, targetWord);
+      if (sp && typeof sp.start === 'number' && typeof sp.end === 'number' && sp.end > sp.start) {
+        return { start: sp.start, end: sp.end, match: sp.match || s.slice(sp.start, sp.end) };
+      }
+    }
+
+    const wordFinder = (typeof window !== 'undefined' && window.findWordSpanInString) || (typeof findWordSpanInString === 'function' ? findWordSpanInString : null);
+    if (wordFinder) {
+      const sp = wordFinder(s, targetWord);
+      if (sp && typeof sp.start === 'number' && typeof sp.end === 'number' && sp.end > sp.start) {
+        return { start: sp.start, end: sp.end, match: sp.match || s.slice(sp.start, sp.end) };
+      }
+    }
+
+    // 3. Fallback: Khớp nguyên từ không phân biệt hoa thường
     const escWord = targetWord.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     let re = new RegExp(`(^|[^\\p{L}])(${escWord})([^\\p{L}]|$)`, 'iu');
     let m = re.exec(s);
     if (m) {
       const start = m.index + m[1].length;
       const end = start + m[2].length;
-      return {
-        masked: escHtml(s.slice(0, start)) + `<span class="vph-cloze-blank-pill" id="vph-blank-pill">_______</span>` + escHtml(s.slice(end)),
-        targetWordInCtx: m[2]
-      };
+      return { start, end, match: m[2] };
     }
 
-    // Khớp theo gốc từ (bỏ đuôi chia động từ / số nhiều: er, ir, re, ez, ent, ons, ant, é, és, ée, ées, e, s)
-    const base = targetWord.trim().split(/\s+/)[0].replace(/(er|ir|re|ez|ent|ons|ant|é|és|ée|ées|e|s)$/i, '');
+    // 4. Fallback: Khớp theo gốc từ
+    const base = targetWord.trim().split(/\s+/)[0].replace(/(er|ir|re|ez|ent|ons|ant|é|és|ée|ées|e|s|ais|ait|aient|ions|iez)$/i, '');
     if (base.length >= 3) {
       const escBase = base.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       re = new RegExp(`(^|[^\\p{L}])(${escBase}[\\p{L}']*)([^\\p{L}]|$)`, 'iu');
@@ -826,17 +858,36 @@
       if (m) {
         const start = m.index + m[1].length;
         const end = start + m[2].length;
-        return {
-          masked: escHtml(s.slice(0, start)) + `<span class="vph-cloze-blank-pill" id="vph-blank-pill">_______</span>` + escHtml(s.slice(end)),
-          targetWordInCtx: m[2]
-        };
+        return { start, end, match: m[2] };
       }
+    }
+
+    return null;
+  }
+  window.resolveTargetWordSpan = resolveTargetWordSpan;
+  window.checkWordMatches = checkWordMatches;
+
+  // Helper: Che từ cần học trong câu ví dụ một cách an toàn, tuyệt đối không làm lộ câu gốc
+  function maskWordInSentence(sentence, targetWord, hs = 0, he = 0) {
+    const s = String(sentence || '').trim();
+    if (!s) return { masked: `<span class="vph-cloze-blank-pill" id="vph-blank-pill">_______</span>`, targetWordInCtx: targetWord, hs: 0, he: 0 };
+
+    const span = resolveTargetWordSpan(s, targetWord, hs, he);
+    if (span) {
+      return {
+        masked: escHtml(s.slice(0, span.start)) + `<span class="vph-cloze-blank-pill" id="vph-blank-pill">_______</span>` + escHtml(s.slice(span.end)),
+        targetWordInCtx: span.match,
+        hs: span.start,
+        he: span.end
+      };
     }
 
     // Tuyệt đối không in lộ câu gốc nếu không xác định được vị trí
     return {
       masked: `<span class="vph-cloze-blank-pill" id="vph-blank-pill">_______</span>`,
-      targetWordInCtx: targetWord
+      targetWordInCtx: targetWord,
+      hs: 0,
+      he: 0
     };
   }
 
@@ -902,8 +953,8 @@
         correctAnswer,
         options,
         ctx: item.en || '',
-        hs: item.hs || 0,
-        he: item.he || 0,
+        hs: ctxResult.hs,
+        he: ctxResult.he,
         maskedCtx: ctxResult.masked,
         targetWordInCtx: ctxResult.targetWordInCtx,
         frenchWord: item.text,
@@ -1687,11 +1738,15 @@
 
     let ctxHtml = '';
     if (q.ctx) {
+      const span = resolveTargetWordSpan(q.ctx, q.frenchWord, q.hs, q.he);
+      const targetWord = (span && span.match) || q.targetWordInCtx || q.frenchWord;
+      const validHs = span ? span.start : (q.hs || 0);
+      const validHe = span ? span.end : (q.he || 0);
+
       if (q.isFrToVi) {
         // Hướng Pháp -> Việt: Prompt đã là tiếng Pháp, câu ví dụ tô sáng từ tiếng Pháp để hiểu ngữ cảnh
-        const targetWord = q.targetWordInCtx || q.frenchWord;
-        if (q.he > q.hs && q.he <= q.ctx.length) {
-          ctxHtml = escHtml(q.ctx.slice(0, q.hs)) + `<mark class="vph-revealed-ctx">${escHtml(q.ctx.slice(q.hs, q.he))}</mark>` + escHtml(q.ctx.slice(q.he));
+        if (span) {
+          ctxHtml = escHtml(q.ctx.slice(0, validHs)) + `<mark class="vph-revealed-ctx">${escHtml(q.ctx.slice(validHs, validHe))}</mark>` + escHtml(q.ctx.slice(validHe));
         } else if (q.maskedCtx) {
           ctxHtml = q.maskedCtx.replace('id="vph-blank-pill">_______</span>', `class="vph-revealed-ctx">${escHtml(targetWord)}</span>`);
         } else {
@@ -1699,10 +1754,10 @@
         }
       } else {
         // Hướng Việt -> Pháp: Prompt là tiếng Việt, câu ví dụ PHẢI CHE TỪ TIẾNG PHÁP bằng [ _______ ]
-        if (q.maskedCtx) {
+        if (span) {
+          ctxHtml = escHtml(q.ctx.slice(0, validHs)) + `<mark class="vph-blank-ctx" id="vph-quiz-ctx-mark">_______</mark>` + escHtml(q.ctx.slice(validHe));
+        } else if (q.maskedCtx) {
           ctxHtml = q.maskedCtx.replace('id="vph-blank-pill"', 'id="vph-quiz-ctx-mark" class="vph-blank-ctx"');
-        } else if (q.he > q.hs && q.he <= q.ctx.length) {
-          ctxHtml = escHtml(q.ctx.slice(0, q.hs)) + `<mark class="vph-blank-ctx" id="vph-quiz-ctx-mark">_______</mark>` + escHtml(q.ctx.slice(q.he));
         } else {
           ctxHtml = `<mark class="vph-blank-ctx" id="vph-quiz-ctx-mark">_______</mark>`;
         }
@@ -2377,8 +2432,9 @@
     const prevEasy = srsFormatDelta(srsCompute(curSrs, 'easy').due - Date.now());
 
     let ctxHtml = item.en || '';
-    if (item.he > item.hs && item.he <= ctxHtml.length) {
-      ctxHtml = escHtml(ctxHtml.slice(0, item.hs)) + `<b class="fs-text-warn" style="text-decoration:underline">${escHtml(ctxHtml.slice(item.hs, item.he))}</b>` + escHtml(ctxHtml.slice(item.he));
+    const span = resolveTargetWordSpan(ctxHtml, item.text, item.hs, item.he);
+    if (span) {
+      ctxHtml = escHtml(ctxHtml.slice(0, span.start)) + `<b class="fs-text-warn" style="text-decoration:underline">${escHtml(ctxHtml.slice(span.start, span.end))}</b>` + escHtml(ctxHtml.slice(span.end));
     } else {
       ctxHtml = escHtml(ctxHtml);
     }
@@ -3782,6 +3838,9 @@
 
   // Expose to window & CommonJS
   const exportedApi = {
+    resolveTargetWordSpan: resolveTargetWordSpan,
+    checkWordMatches: checkWordMatches,
+    maskWordInSentence: maskWordInSentence,
     open: openVocabPracticeHub,
     close: closeVocabPracticeHub,
     switchMode: switchMode,
