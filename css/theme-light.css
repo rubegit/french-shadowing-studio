@@ -8173,7 +8173,8 @@ html[data-ui="light"][data-theme="dark"] .vph-modal {
 }
 
 html[data-ui="light"][data-theme="dark"] .vph-level-select,
-html[data-ui="light"][data-theme="dark"] .vph-scope-select {
+html[data-ui="light"][data-theme="dark"] .vph-scope-select,
+html[data-ui="light"][data-theme="dark"] .vph-daily-goal-select {
   color-scheme: dark !important;
 }
 
@@ -8330,9 +8331,10 @@ html[data-ui="light"] .vph-srs-filter-btn.active b {
   color: var(--g1t) !important;
 }
 
-/* 2 Ô Select Cấp độ & Phạm vi (Mục 8) */
+/* 3 Ô Select Mục tiêu, Cấp độ & Phạm vi (Mục 8) */
 html[data-ui="light"] .vph-level-select,
-html[data-ui="light"] .vph-scope-select {
+html[data-ui="light"] .vph-scope-select,
+html[data-ui="light"] .vph-daily-goal-select {
   height: 42px !important;
   min-height: 42px !important;
   border-radius: 12px !important;

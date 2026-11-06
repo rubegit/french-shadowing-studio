@@ -361,7 +361,8 @@
 }
 
 .vph-scope-select,
-.vph-level-select {
+.vph-level-select,
+.vph-daily-goal-select {
   background: rgba(2, 6, 23, 0.65);
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--fs-ink-subtle);
@@ -408,6 +409,24 @@
 .vph-dot.learning { background: var(--fs-accent); }
 .vph-dot.mastered { background: var(--fs-success-text); }
 .vph-dot.relearning { background: var(--fs-warning); }
+
+.vph-daily-goal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 8px;
+  background: rgba(99, 102, 241, 0.12);
+  color: var(--fs-accent);
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px solid rgba(99, 102, 241, 0.25);
+}
+.vph-daily-goal-badge.completed {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--fs-success-text);
+  border-color: rgba(16, 185, 129, 0.3);
+}
 
 .vph-stats-strip {
   display: flex;
@@ -1519,7 +1538,8 @@
     border-radius: 8px;
   }
   .vph-scope-select,
-  .vph-level-select {
+  .vph-level-select,
+  .vph-daily-goal-select {
     flex: 1;
     max-width: 140px;
     padding: 4px 6px;

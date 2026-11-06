@@ -151,6 +151,7 @@
         reps,
         lapses: (s.lapses || 0) + 1,
         relearning: wasMastered || Boolean(s.relearning || s.lastReview),
+        firstLearnedAt: s.firstLearnedAt || (s.reps === 0 ? now : null),
         due: now + 10 * 60 * 1000,
         lastReview: now
       };
@@ -178,6 +179,7 @@
       reps,
       lapses: s.lapses || 0,
       relearning: false,
+      firstLearnedAt: s.firstLearnedAt || (s.reps === 0 ? now : null),
       due: now + interval * 24 * 60 * 60 * 1000,
       lastReview: now
     };
@@ -359,9 +361,86 @@
     return newSrs;
   }
 
+  // ==================== DAILY NEW VOCAB GOAL ENGINE (M26) ====================
+  const DAILY_GOAL_STORAGE_KEY = 'fss_daily_new_vocab_limit';
+
+  function getDailyGoal() {
+    if (typeof localStorage === 'undefined') return 20;
+    const raw = localStorage.getItem(DAILY_GOAL_STORAGE_KEY);
+    if (raw === 'all') return Infinity;
+    const n = parseInt(raw, 10);
+    return (!isNaN(n) && n > 0) ? n : 20;
+  }
+
+  function setDailyGoal(val) {
+    if (typeof localStorage === 'undefined') return;
+    localStorage.setItem(DAILY_GOAL_STORAGE_KEY, String(val));
+    state.dailyGoal = (val === 'all' || val === Infinity) ? Infinity : Math.max(1, parseInt(val, 10) || 20);
+  }
+
+  function getTodayYmd() {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  function isItemLearnedToday(item, todayYmd) {
+    const ymd = todayYmd || getTodayYmd();
+    const ts = item?.srs?.firstLearnedAt || (item?.srs?.reps === 1 ? item?.srs?.lastReview : null);
+    if (!ts) return false;
+    try {
+      return new Date(ts).toISOString().slice(0, 10) === ymd;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function countTodayNewVocab(items, todayYmd) {
+    if (!Array.isArray(items)) return 0;
+    const ymd = todayYmd || getTodayYmd();
+    return items.filter(it => isItemLearnedToday(it, ymd)).length;
+  }
+
+  function prioritizeSessionItems(items, dailyGoal = state.dailyGoal, todayNewCount = state.todayNewCount) {
+    if (!Array.isArray(items) || items.length <= 1) return items || [];
+    const isGoalReached = (dailyGoal !== Infinity && todayNewCount >= dailyGoal);
+
+    const reviewItems = [];
+    const brandNewItems = [];
+
+    items.forEach(it => {
+      const s = getSrs(it);
+      const isBrandNew = (s.reps === 0 && !s.lastReview && !s.relearning);
+      if (isBrandNew) {
+        brandNewItems.push(it);
+      } else {
+        reviewItems.push(it);
+      }
+    });
+
+    if (isGoalReached) {
+      // Khi đã hoàn thành chỉ tiêu từ mới hôm nay:
+      // Nếu có đủ từ cần ôn tập (>= 5 từ), lọc bỏ từ mới để tập trung 100% ôn tập
+      if (reviewItems.length >= 5) {
+        return reviewItems;
+      }
+      return [...reviewItems, ...brandNewItems];
+    }
+
+    // Khi chưa đạt chỉ tiêu: ưu tiên từ đến hạn -> từ mới -> từ chưa đến hạn
+    const dueItems = [];
+    const notDueReviewItems = [];
+    reviewItems.forEach(it => {
+      if (srsIsDue(it)) dueItems.push(it);
+      else notDueReviewItems.push(it);
+    });
+
+    return [...dueItems, ...brandNewItems, ...notDueReviewItems];
+  }
+
   // Global Hub State
   const state = {
     isOpen: false,
+    dailyGoal: 20,
+    todayNewCount: 0,
     currentMode: 'quiz', // 'quiz' | 'cloze' | 'match' | 'flashcard' | 'translate' | 'reorder'
     m3SubMode: 'match',  // 'match' | 'flashcard' (giữ tương thích)
     scope: 'all',
@@ -1297,6 +1376,17 @@
               <b id="vph-due-badge">0</b>
             </button>
 
+            <!-- Daily New Words Goal Selector (M26) -->
+            <select class="vph-daily-goal-select" id="vph-daily-goal-select" aria-label="Chỉ tiêu từ mới mỗi ngày" title="Chỉ tiêu từ mới mỗi ngày">
+              <option value="10">🎯 10 từ mới / ngày</option>
+              <option value="20" selected>🎯 20 từ mới / ngày</option>
+              <option value="30">🎯 30 từ mới / ngày</option>
+              <option value="40">🎯 40 từ mới / ngày</option>
+              <option value="50">🎯 50 từ mới / ngày</option>
+              <option value="custom">✏️ Tự điền số lượng...</option>
+              <option value="all">∞ Không giới hạn</option>
+            </select>
+
             <!-- CEFR Level Selector -->
             <select class="vph-level-select" id="vph-level-select" aria-label="Lọc theo cấp độ CEFR">
               <option value="all">Tất cả cấp độ</option>
@@ -1324,7 +1414,10 @@
             <span class="vph-mastery-tag"><span class="vph-dot mastered"></span> Đã ghi nhớ: <b id="vph-stat-mastered">0</b></span>
             <span class="vph-mastery-tag" id="vph-relearning-tag" style="display:none;"><span class="vph-dot relearning"></span> Cần học lại: <b id="vph-stat-relearning">0</b></span>
           </div>
-          <div class="vph-scope-label-box" id="vph-scope-label">Đang xem: Toàn bộ bài học</div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div class="vph-daily-goal-badge" id="vph-daily-goal-badge" title="Tiến độ học từ mới hôm nay">🎯 Hôm nay: <b id="vph-today-new">0</b>/<span id="vph-goal-target">20</span> từ mới</div>
+            <div class="vph-scope-label-box" id="vph-scope-label">Đang xem: Toàn bộ bài học</div>
+          </div>
         </div>
 
         <!-- Score & Streak Strip -->
@@ -1403,6 +1496,57 @@
     if (levelSel) {
       levelSel.addEventListener('change', () => {
         state.level = levelSel.value;
+        startSession();
+      });
+    }
+
+    // Daily New Vocab Goal selector (M26)
+    const goalSel = document.getElementById('vph-daily-goal-select');
+    if (goalSel) {
+      const savedGoal = getDailyGoal();
+      state.dailyGoal = savedGoal;
+      if (savedGoal === Infinity) {
+        goalSel.value = 'all';
+      } else if (['10', '20', '30', '40', '50'].includes(String(savedGoal))) {
+        goalSel.value = String(savedGoal);
+      } else {
+        let customOpt = goalSel.querySelector('option[data-custom="true"]');
+        if (!customOpt) {
+          customOpt = document.createElement('option');
+          customOpt.setAttribute('data-custom', 'true');
+          goalSel.insertBefore(customOpt, goalSel.querySelector('option[value="custom"]'));
+        }
+        customOpt.value = String(savedGoal);
+        customOpt.textContent = `🎯 ${savedGoal} từ mới / ngày`;
+        customOpt.selected = true;
+      }
+
+      goalSel.addEventListener('change', () => {
+        const val = goalSel.value;
+        if (val === 'custom') {
+          const cur = state.dailyGoal === Infinity ? 20 : state.dailyGoal;
+          const userVal = prompt('Nhập số lượng từ mới muốn học mỗi ngày (ví dụ: 15, 25, 60):', String(cur));
+          const num = parseInt(userVal, 10);
+          if (!isNaN(num) && num > 0) {
+            setDailyGoal(num);
+            let customOpt = goalSel.querySelector('option[data-custom="true"]');
+            if (!customOpt) {
+              customOpt = document.createElement('option');
+              customOpt.setAttribute('data-custom', 'true');
+              goalSel.insertBefore(customOpt, goalSel.querySelector('option[value="custom"]'));
+            }
+            customOpt.value = String(num);
+            customOpt.textContent = `🎯 ${num} từ mới / ngày`;
+            customOpt.selected = true;
+          } else {
+            goalSel.value = state.dailyGoal === Infinity ? 'all' : String(state.dailyGoal);
+          }
+        } else if (val === 'all') {
+          setDailyGoal('all');
+        } else {
+          setDailyGoal(parseInt(val, 10));
+        }
+        updateMasteryStats();
         startSession();
       });
     }
@@ -1522,10 +1666,14 @@
   function updateMasteryStats() {
     const allInScope = getScopedVocabList(state.scope, false);
     let newCount = 0, learningCount = 0, masteredCount = 0, relearningCount = 0, dueCount = 0;
+    const todayYmd = getTodayYmd();
+    let todayNewCount = 0;
 
     allInScope.forEach(item => {
       const s = getSrs(item);
       if (srsIsDue(item)) dueCount++;
+      if (isItemLearnedToday(item, todayYmd)) todayNewCount++;
+
       if (s.interval >= 14 && s.reps >= 2) {
         masteredCount++;
       } else if (s.reps === 0) {
@@ -1535,6 +1683,8 @@
         learningCount++;
       }
     });
+
+    state.todayNewCount = todayNewCount;
 
     const dueBadge = document.getElementById('vph-due-badge');
     const newEl = document.getElementById('vph-stat-new');
@@ -1550,6 +1700,28 @@
     if (relearningEl) relearningEl.textContent = relearningCount;
     if (relearningTag) {
       relearningTag.style.display = relearningCount > 0 ? 'inline-flex' : 'none';
+    }
+
+    // Cập nhật tiến độ chỉ tiêu từ mới hôm nay (M26)
+    const goalBadge = document.getElementById('vph-daily-goal-badge');
+    const todayNewEl = document.getElementById('vph-today-new');
+    const goalTargetEl = document.getElementById('vph-goal-target');
+    const goal = getDailyGoal();
+
+    if (goalBadge && todayNewEl && goalTargetEl) {
+      todayNewEl.textContent = todayNewCount;
+      if (goal === Infinity) {
+        goalTargetEl.textContent = '∞';
+        goalBadge.title = `Hôm nay đã học ${todayNewCount} từ mới (Không giới hạn chỉ tiêu)`;
+        goalBadge.classList.remove('completed');
+      } else {
+        goalTargetEl.textContent = goal;
+        const isCompleted = todayNewCount >= goal;
+        goalBadge.classList.toggle('completed', isCompleted);
+        goalBadge.title = isCompleted
+          ? `🎉 Đã hoàn thành chỉ tiêu ${goal}/${goal} từ mới hôm nay!`
+          : `Tiến độ từ mới hôm nay: ${todayNewCount}/${goal} từ`;
+      }
     }
   }
 
@@ -1649,7 +1821,8 @@
     stopMatchTimer();
     updateMasteryStats();
 
-    const items = getScopedVocabList(state.scope, state.onlyDue, state.level);
+    const rawItems = getScopedVocabList(state.scope, state.onlyDue, state.level);
+    const items = state.onlyDue ? rawItems : prioritizeSessionItems(rawItems, state.dailyGoal, state.todayNewCount);
     state.items = items;
     state.currentIndex = 0;
     state.score = 0;
@@ -3873,6 +4046,11 @@
 
   // Expose to window & CommonJS
   const exportedApi = {
+    getDailyGoal: getDailyGoal,
+    setDailyGoal: setDailyGoal,
+    isItemLearnedToday: isItemLearnedToday,
+    countTodayNewVocab: countTodayNewVocab,
+    prioritizeSessionItems: prioritizeSessionItems,
     srsCompute: srsCompute,
     srsDefault: srsDefault,
     getSrs: getSrs,
