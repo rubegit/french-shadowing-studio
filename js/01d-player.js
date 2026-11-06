@@ -836,6 +836,17 @@
               <i data-lucide="music" class="w-4 h-4"></i>
               <span id="art-side-audio-label">Kèm Audio MP3</span>
             </label>
+            <div id="art-side-file-pill" class="art-side-file-pill" style="display:none;" title="File audio đang nạp">
+              <div class="art-side-file-info">
+                <i data-lucide="volume-2" class="w-3.5 h-3.5"></i>
+                <span class="art-side-pill-name" id="art-side-pill-name">Audio.mp3</span>
+              </div>
+              <button type="button" class="art-side-pill-del" onclick="removeCurrentArticleAudio()" title="Gỡ file audio này khỏi bài viết" aria-label="Gỡ file audio">✕</button>
+            </div>
+            <button type="button" class="art-btn art-btn-sync-ai" id="art-side-sync-btn" onclick="openArtAiSyncModal()" title="Đồng bộ phụ đề & Word Timestamps từ AI" aria-label="Đồng bộ AI">
+              <i data-lucide="sparkles" class="w-4 h-4"></i>
+              <span>Sync AI Timestamps</span>
+            </button>
             <button type="button" class="art-btn" onclick="copyFullArticleText()" title="Sao chép toàn bộ nội dung bài viết">
               <i data-lucide="copy" class="w-4 h-4"></i>
               <span>Sao chép bài</span>
@@ -863,8 +874,15 @@
       if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
       getArticleAudioBlob(docId).then(rec => {
         const lbl = document.getElementById('art-side-audio-label');
-        if (lbl && rec) {
-          lbl.textContent = 'Đổi Audio MP3';
+        const pill = document.getElementById('art-side-file-pill');
+        const pillName = document.getElementById('art-side-pill-name');
+        if (rec) {
+          if (lbl) lbl.textContent = 'Đổi Audio MP3';
+          if (pill) pill.style.display = 'flex';
+          if (pillName) pillName.textContent = rec.name || rec.fileName || 'Audio.mp3';
+        } else {
+          if (lbl) lbl.textContent = 'Kèm Audio MP3';
+          if (pill) pill.style.display = 'none';
         }
       });
     }
@@ -1044,7 +1062,11 @@
         bar.style.display = 'flex';
 
         const pillName = document.getElementById('art-ab-pill-name');
-        if (pillName) pillName.textContent = record.name || 'Audio.mp3';
+        if (pillName) pillName.textContent = record.name || record.fileName || 'Audio.mp3';
+        const sidePill = document.getElementById('art-side-file-pill');
+        const sidePillName = document.getElementById('art-side-pill-name');
+        if (sidePill) sidePill.style.display = 'flex';
+        if (sidePillName) sidePillName.textContent = record.name || record.fileName || 'Audio.mp3';
 
         const slider = document.getElementById('art-audio-slider');
         const curEl = document.getElementById('art-audio-cur-time');

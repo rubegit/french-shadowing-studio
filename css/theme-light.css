@@ -5586,6 +5586,72 @@ html[data-ui="light"] .art-btn-bilingual:hover {
   filter: brightness(1.05) !important;
 }
 
+/* Thẻ hiển thị tên file audio trong cột Thông tin bài đọc */
+html[data-ui="light"] .art-side-file-pill {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+  padding: 8px 12px !important;
+  border-radius: var(--fs-radius-md) !important;
+  background: var(--fs-tint) !important;
+  border: 1px dashed var(--fs-primary) !important;
+  color: var(--fs-ink) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+}
+
+html[data-ui="light"] .art-side-file-info {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  min-width: 0 !important;
+  flex: 1 !important;
+}
+
+html[data-ui="light"] .art-side-pill-name {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+  font-size: 11.5px !important;
+  color: var(--fs-ink) !important;
+}
+
+html[data-ui="light"] .art-side-pill-del {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 20px !important;
+  height: 20px !important;
+  border-radius: var(--fs-radius-full) !important;
+  background: transparent !important;
+  border: none !important;
+  color: var(--fs-ink-muted) !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+  flex-shrink: 0 !important;
+}
+
+html[data-ui="light"] .art-side-pill-del:hover {
+  background: var(--fs-danger-bg) !important;
+  color: var(--fs-danger) !important;
+}
+
+/* Nút Sync AI trong cột Thông tin bài đọc */
+html[data-ui="light"] .art-btn-sync-ai {
+  background: var(--fs-surface-subtle) !important;
+  border-color: var(--fs-line) !important;
+}
+
+html[data-ui="light"] .art-btn-sync-ai:hover {
+  border-color: var(--fs-primary) !important;
+  background: var(--fs-tint) !important;
+  color: var(--fs-accent-text) !important;
+}
+
 /* Khối từ vựng trong bài */
 html[data-ui="light"] .art-vocab-section {
   display: flex !important;
