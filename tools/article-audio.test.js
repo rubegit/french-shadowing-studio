@@ -51,12 +51,9 @@ test('M2.3 HTML & Template Verification: Giao diện chứa đầy đủ thành 
   assert.ok(indexHtml.includes('accept=".mp3,audio/mpeg"'), 'Input khai báo accept .mp3,audio/mpeg');
   assert.ok(indexHtml.includes('id="text-audio-badge"'), 'Có badge hiển thị file audio đã đính kèm');
 
-  // 2. Thanh Article Audio Bar
-  assert.ok(indexHtml.includes('id="art-audio-bar"'), 'Có container art-audio-bar');
+  // 2. Trình phát audio bài báo (dạng thẻ câu art-cs-card theo mẫu hoặc art-audio-bar)
+  assert.ok(indexHtml.includes('id="art-cs-card"') || indexHtml.includes('id="art-audio-bar"'), 'Có container art-cs-card hoặc art-audio-bar');
   assert.ok(indexHtml.includes('id="art-audio-el"'), 'Có audio element art-audio-el');
-  assert.ok(indexHtml.includes('id="art-audio-play-btn"'), 'Có nút Play/Pause art-audio-play-btn');
-  assert.ok(indexHtml.includes('id="art-audio-slider"'), 'Có thanh scrubber art-audio-slider');
-  assert.ok(indexHtml.includes('id="art-speeds"'), 'Có bộ chọn dải tốc độ art-speeds');
 });
 
 test('M4.1 Playing Time Seconds Format: Định dạng hiển thị giây chính xác cho Audio bài báo', () => {

@@ -36,14 +36,14 @@ test('M21.1 Element Order: Tên audio nằm dưới nút Đổi Audio và nút S
   assert.ok(actionsHtml.includes('onclick="removeCurrentArticleAudio()"'), 'Pill tên audio phải có nút gỡ audio');
 });
 
-test('M21.2 Cleanup: Lược bỏ nút Sync AI và file pill cũ khỏi art-audio-bar', () => {
+test('M21.2 Cleanup: Lược bỏ nút Sync AI và file pill cũ khỏi trình phát audio bài báo', () => {
   const viewPractice = readFile('partials/view-practice.html');
-  const barMatch = viewPractice.match(/<div id="art-audio-bar"[\s\S]*?<\/div>\s*<\/div>/);
-  assert.ok(barMatch, 'Phải tìm thấy art-audio-bar trong view-practice');
-  const barHtml = barMatch[0];
+  const playerMatch = viewPractice.match(/<(div|section) id="(art-audio-bar|art-cs-card)"[\s\S]*?<\/(div|section)>/);
+  assert.ok(playerMatch, 'Phải tìm thấy art-cs-card hoặc art-audio-bar trong view-practice');
+  const playerHtml = playerMatch[0];
 
-  assert.ok(!barHtml.includes('id="art-audio-sync-btn"'), 'art-audio-bar không còn chứa nút art-audio-sync-btn');
-  assert.ok(!barHtml.includes('id="art-ab-file-pill"'), 'art-audio-bar không còn chứa pill art-ab-file-pill');
+  assert.ok(!playerHtml.includes('id="art-audio-sync-btn"'), 'Trình phát audio không còn chứa nút art-audio-sync-btn');
+  assert.ok(!playerHtml.includes('id="art-ab-file-pill"'), 'Trình phát audio không còn chứa pill art-ab-file-pill');
 });
 
 test('M21.3 Dynamic Audio Name: Cập nhật tên audio vào cột bên', () => {

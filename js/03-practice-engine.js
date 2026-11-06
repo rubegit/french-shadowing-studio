@@ -536,7 +536,7 @@
     function tsIdx() {
         if (view === 'dictation') return DC.idx;
         if (view === 'shadowing') return SH.idx;
-        if (view === 'default' && !isTextMode && sentences && sentences.length) return Math.max(0, Math.min(sentences.length - 1, currentSentenceIndex || 0));
+        if (view === 'default' && sentences && sentences.length) return Math.max(0, Math.min(sentences.length - 1, currentSentenceIndex || 0));
         return -1;
     }
     // Cho code giao diện Mặc định (script bên ngoài) đọc mốc đã chỉnh của câu i: { s, e } hoặc null nếu chưa chỉnh
@@ -550,7 +550,8 @@
         const t = tsGet(i);
         const sObj = sentences[i];
         document.querySelectorAll('.ts-ctl').forEach((ctl) => {
-            ctl.classList.toggle('pv-x', !!isTextMode);   // bài văn bản không có mốc thời gian âm thanh
+            const hasArtAudio = isTextMode && !!(document.getElementById('art-audio-el') && document.getElementById('art-audio-el').src);
+            ctl.classList.toggle('pv-x', !!(isTextMode && !hasArtAudio));   // bài văn bản không có audio thì mới ẩn mốc thời gian
             const a = ctl.querySelector('[data-ts-in="s"]'), b = ctl.querySelector('[data-ts-in="e"]');
             if (a && document.activeElement !== a) a.value = tsFmt(t.s);
             if (b && document.activeElement !== b) b.value = tsFmt(t.e);
@@ -591,7 +592,14 @@
             }
         }
         // Giao diện Mặc định: tua tới mốc bắt đầu mới nhưng KHÔNG tự ý phát nếu người dùng đang tạm dừng
-        if (view === 'default' && !isTextMode) {
+        if (view === 'default') {
+            if (isTextMode) {
+                const artEl = document.getElementById('art-audio-el');
+                if (artEl && artEl.src) {
+                    try { artEl.currentTime = tsGet(i).s; } catch (_) {}
+                }
+                return;
+            }
             let isCurrentPlaying = false;
             try {
                 const pb = document.getElementById('btn-toggle-play');
@@ -617,7 +625,10 @@
         const i = tsIdx(); if (i < 0 || !sentences[i]) return;
         let curTime = 0;
         try {
-            if (typeof ytPlayer !== 'undefined' && ytPlayer && ytPlayer.getCurrentTime) {
+            if (isTextMode) {
+                const artEl = document.getElementById('art-audio-el');
+                if (artEl && typeof artEl.currentTime === 'number') curTime = artEl.currentTime;
+            } else if (typeof ytPlayer !== 'undefined' && ytPlayer && ytPlayer.getCurrentTime) {
                 curTime = ytPlayer.getCurrentTime() || 0;
             }
         } catch (_) {}
@@ -2917,6 +2928,7 @@
 
     $('dc-ts').innerHTML = tsMarkup();
     if ($('cs-ts')) $('cs-ts').innerHTML = tsMarkup();
+    if ($('art-cs-ts')) $('art-cs-ts').innerHTML = tsMarkup();
     applyView('default');   // khởi tạo biểu tượng + tên giao diện trên nút chuyển
     // Danh sách giọng đọc của trình duyệt nạp bất đồng bộ
     try { if ('speechSynthesis' in window) speechSynthesis.getVoices(); } catch (e) {}

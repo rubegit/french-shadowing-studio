@@ -458,52 +458,18 @@
               </div>
             </div>
           </div>
-          <!-- THANH PHÁT AUDIO CHO BÀI BÁO (THIẾT KẾ ĐỒNG BỘ THEO PLAYER VIDEO) -->
-          <div id="art-audio-bar" class="art-audio-bar" style="display:none;">
+          <!-- KHỐI PHÁT AUDIO & ĐIỀU KHIỂN CÂU BÀI BÁO (THEO HÌNH MẪU) -->
+          <section id="art-cs-card" class="art-cs-card cs-card" style="display:none;" aria-label="Phụ đề câu hiện tại">
             <audio id="art-audio-el" preload="auto" style="display:none;"></audio>
-
-            <!-- HÀNG 1: TIMELINE KÈM THỜI GIAN HIỂN THỊ GIÂY -->
-            <div class="art-ab-tl-row">
-              <span id="art-audio-cur-time" class="art-ab-time cur" title="Bấm để chuyển giữa Giây và Phút:Giây" onclick="toggleArtTimeMode()">0.0s</span>
-              <div class="art-ab-slider-wrap">
-                <input type="range" id="art-audio-slider" min="0" max="100" value="0" step="0.1" oninput="onArtAudioSliderInput(this.value)" class="art-ab-slider" aria-label="Thanh thời gian âm thanh">
-              </div>
-              <span id="art-audio-dur-time" class="art-ab-time" title="Bấm để chuyển giữa Giây và Phút:Giây" onclick="toggleArtTimeMode()">0.0s</span>
+            <div id="art-cs-text" class="cs-text" data-idx="-1"></div>
+            <div class="cs-nav">
+              <button type="button" class="dc-btn" id="art-cs-prev" onclick="prevArticleSentence()" title="Câu trước"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="m15 18-6-6 6-6"/></svg>Câu trước</button>
+              <button type="button" class="cs-auto" id="art-cs-auto" onclick="toggleArticleAutoStop()" role="switch" aria-checked="false" title="Bật: hết câu thì audio tự dừng, không nhảy sang câu mới"><span>Tự dừng</span><span class="sw"></span></button>
+              <button type="button" class="dc-btn" id="art-cs-next" onclick="nextArticleSentence()" title="Câu sau">Câu sau<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="m9 18 6-6-6-6"/></svg></button>
             </div>
-
-            <!-- HÀNG 2: CÁC NÚT ĐIỀU KHIỂN & TỐC ĐỘ (KHÔNG CÓ NÚT CC) -->
-            <div class="art-ab-ctrl-row">
-              <div class="art-ab-controls">
-                <button type="button" id="art-audio-prev-btn" class="art-ab-btn" onclick="seekArtAudioBy(-5)" title="Lùi lại 5 giây" aria-label="Lùi lại 5 giây">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m11 17-5-5 5-5"/><path d="m18 17-5-5 5-5"/></svg>
-                  <span>5s</span>
-                </button>
-                <button type="button" id="art-audio-play-btn" class="art-ab-play" onclick="toggleArtAudioPlay()" title="Phát / Tạm dừng audio" aria-label="Phát hoặc tạm dừng audio">
-                  <svg class="art-ab-play-ico" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>
-                  <svg class="art-ab-pause-ico" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style="display:none;"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
-                </button>
-                <button type="button" id="art-audio-next-btn" class="art-ab-btn" onclick="seekArtAudioBy(5)" title="Tua tới 5 giây" aria-label="Tua tới 5 giây">
-                  <span>5s</span>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 17 5-5-5-5"/><path d="m13 17 5-5-5-5"/></svg>
-                </button>
-              </div>
-
-              <!-- CỤM TỐC ĐỘ PHÁT CHUẨN VIDEO PLAYER (DẢI PILL CHỌN NHANH) -->
-              <div class="art-ab-speed-group">
-                <span class="art-ab-speed-badge" title="Tốc độ phát hiện tại">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg>
-                  <span id="art-ab-speed-val">1.0x</span>
-                </span>
-                <div class="dc-seg art-speeds" id="art-speeds" role="group" aria-label="Chọn nhanh tốc độ phát">
-                  <button type="button" data-sp="0.5" onclick="setArtAudioSpeed(0.5)" title="Tốc độ 0.5x">0.5<i>x</i></button>
-                  <button type="button" data-sp="0.75" onclick="setArtAudioSpeed(0.75)" title="Tốc độ 0.75x">0.75<i>x</i></button>
-                  <button type="button" data-sp="0.9" onclick="setArtAudioSpeed(0.9)" title="Tốc độ 0.9x">0.9<i>x</i></button>
-                  <button type="button" data-sp="1.0" class="on" onclick="setArtAudioSpeed(1.0)" title="Tốc độ gốc 1.0x">1.0<i>x</i></button>
-                  <button type="button" data-sp="1.25" onclick="setArtAudioSpeed(1.25)" title="Tốc độ 1.25x">1.25<i>x</i></button>
-                </div>
-              </div>
-            </div>
-          </div>
+            <!-- Hàng chỉnh thời gian bắt đầu / kết thúc của câu hiện tại -->
+            <div class="cs-ts"><div class="ts-ctl" id="art-cs-ts"></div></div>
+          </section>
 
           <!-- MODAL ĐỒNG BỘ TIMESTAMPS TỪ AI CHO BÀI BÁO -->
           <div id="modal-art-ai-sync" class="art-sync-modal-backdrop" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="art-sync-modal-title">

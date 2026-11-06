@@ -1034,23 +1034,146 @@
         }
         audioEl.removeAttribute('src');
       }
-      const bar = document.getElementById('art-audio-bar');
-      if (bar) bar.style.display = 'none';
+      const card = document.getElementById('art-cs-card') || document.getElementById('art-audio-bar');
+      if (card) card.style.display = 'none';
+      if (typeof tsRefresh === 'function') tsRefresh();
     }
+
+    let currentArtWordEl = null;
+    function highlightArticleCurrentWord(el) {
+      if (currentArtWordEl === el) return;
+      if (currentArtWordEl) {
+        currentArtWordEl.classList.remove('cs-cur', 'karaoke-word-active');
+      }
+      if (el) {
+        el.classList.add('cs-cur', 'karaoke-word-active');
+      }
+      currentArtWordEl = el;
+    }
+
+    function renderArticleSentenceCard(idx) {
+      const card = document.getElementById('art-cs-card');
+      const box = document.getElementById('art-cs-text');
+      const btnPrev = document.getElementById('art-cs-prev');
+      const btnNext = document.getElementById('art-cs-next');
+      const btnAuto = document.getElementById('art-cs-auto');
+      const tsEl = document.getElementById('art-cs-ts');
+      if (!card || !box) return;
+
+      const n = (sentences && sentences.length) || 0;
+      const s = (idx >= 0 && idx < n) ? sentences[idx] : null;
+
+      box.setAttribute('data-idx', String(idx));
+      box.innerHTML = '';
+      currentArtWordEl = null;
+
+      if (btnPrev) btnPrev.disabled = (idx <= 0);
+      if (btnNext) btnNext.disabled = (idx < 0 || idx >= n - 1);
+      if (btnAuto) {
+        const isAuto = !!(settings && settings.sentenceAutoStop);
+        btnAuto.setAttribute('aria-checked', isAuto ? 'true' : 'false');
+        btnAuto.classList.toggle('active', isAuto);
+      }
+
+      if (tsEl && !tsEl.innerHTML) {
+        if (typeof tsMarkup === 'function') tsEl.innerHTML = tsMarkup();
+      }
+      if (typeof tsRefresh === 'function') {
+        tsRefresh();
+      }
+
+      if (!s) return;
+
+      let toks = [];
+      if (s.words && s.words.length) {
+        toks = s.words.map(w => ({
+          t: String(w.word || ''),
+          a: typeof w.startTime === 'number' ? w.startTime : (s.startTime || 0),
+          b: typeof w.endTime === 'number' ? w.endTime : (s.endTime || 1)
+        }));
+      } else {
+        const raw = String(s.text || '').split(/\s+/).filter(Boolean);
+        const dur = Math.max(0.6, (s.endTime || 1) - (s.startTime || 0));
+        const step = dur / (raw.length || 1);
+        toks = raw.map((t, i) => ({
+          t: t,
+          a: +((s.startTime || 0) + i * step).toFixed(3),
+          b: +((s.startTime || 0) + (i + 1) * step).toFixed(3)
+        }));
+      }
+
+      toks.forEach((tok, i) => {
+        const sp = document.createElement('span');
+        sp.className = 'sub-word-unit cs-w';
+        sp.textContent = tok.t;
+        sp.setAttribute('data-start', String(tok.a));
+        sp.setAttribute('data-end', String(tok.b));
+        sp.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const targetTime = Math.max(0, Number((tok.a - 0.05).toFixed(3)));
+          seekToTime(targetTime, idx, true, null, false);
+          highlightArticleCurrentWord(sp);
+        });
+        box.appendChild(sp);
+        if (i < toks.length - 1) {
+          box.appendChild(document.createTextNode(' '));
+        }
+      });
+    }
+    window.renderArticleSentenceCard = renderArticleSentenceCard;
+
+    window.prevArticleSentence = function() {
+      if (!sentences || !sentences.length) return;
+      const cur = Math.max(0, currentSentenceIndex || 0);
+      if (cur <= 0) return;
+      const prevIdx = cur - 1;
+      const s = sentences[prevIdx];
+      const startTime = (s && typeof s.startTime === 'number') ? s.startTime : 0;
+      seekToTime(startTime, prevIdx, true, null, true);
+      renderArticleSentenceCard(prevIdx);
+    };
+
+    window.nextArticleSentence = function() {
+      if (!sentences || !sentences.length) return;
+      const cur = Math.max(0, currentSentenceIndex || 0);
+      if (cur >= sentences.length - 1) return;
+      const nextIdx = cur + 1;
+      const s = sentences[nextIdx];
+      const startTime = (s && typeof s.startTime === 'number') ? s.startTime : 0;
+      seekToTime(startTime, nextIdx, true, null, true);
+      renderArticleSentenceCard(nextIdx);
+    };
+
+    window.toggleArticleAutoStop = function() {
+      if (typeof toggleSentenceAutoStop === 'function') {
+        toggleSentenceAutoStop();
+      } else {
+        settings.sentenceAutoStop = !settings.sentenceAutoStop;
+        saveSettings();
+      }
+      const isAuto = !!(settings && settings.sentenceAutoStop);
+      const btn = document.getElementById('art-cs-auto');
+      if (btn) {
+        btn.setAttribute('aria-checked', isAuto ? 'true' : 'false');
+        btn.classList.toggle('active', isAuto);
+      }
+      showVocabToast(isAuto ? 'Đã bật: Tự dừng sau mỗi câu' : 'Đã tắt: Tự dừng sau mỗi câu', true);
+    };
 
     function initArticleAudioPlayer(docId) {
       const audioEl = document.getElementById('art-audio-el');
-      const bar = document.getElementById('art-audio-bar');
-      if (!audioEl || !bar) return;
+      const card = document.getElementById('art-cs-card') || document.getElementById('art-audio-bar');
+      if (!audioEl || !card) return;
 
       getArticleAudioBlob(docId).then(record => {
         if (!record || !record.blob) {
-          bar.style.display = 'none';
+          card.style.display = 'none';
           if (currentArtAudioObjUrl) {
             URL.revokeObjectURL(currentArtAudioObjUrl);
             currentArtAudioObjUrl = null;
           }
           audioEl.removeAttribute('src');
+          if (typeof tsRefresh === 'function') tsRefresh();
           return;
         }
 
@@ -1059,30 +1182,17 @@
         }
         currentArtAudioObjUrl = URL.createObjectURL(record.blob);
         audioEl.src = currentArtAudioObjUrl;
-        bar.style.display = 'flex';
+        card.style.display = 'flex';
 
-        const pillName = document.getElementById('art-ab-pill-name');
-        if (pillName) pillName.textContent = record.name || record.fileName || 'Audio.mp3';
         const sidePill = document.getElementById('art-side-file-pill');
         const sidePillName = document.getElementById('art-side-pill-name');
         if (sidePill) sidePill.style.display = 'flex';
         if (sidePillName) sidePillName.textContent = record.name || record.fileName || 'Audio.mp3';
 
-        const slider = document.getElementById('art-audio-slider');
-        const curEl = document.getElementById('art-audio-cur-time');
-        const durEl = document.getElementById('art-audio-dur-time');
-        const badgeVal = document.getElementById('art-ab-speed-val');
-        if (badgeVal) badgeVal.textContent = (audioEl.playbackRate || 1.0).toFixed(1) + 'x';
-
-        audioEl.onloadedmetadata = () => {
-          if (durEl) durEl.textContent = formatArtTime(audioEl.duration || 0);
-          if (slider) { slider.max = String(audioEl.duration || 100); slider.value = '0'; }
-        };
+        renderArticleSentenceCard(currentSentenceIndex || 0);
 
         audioEl.ontimeupdate = () => {
           const ct = audioEl.currentTime || 0;
-          if (curEl) curEl.textContent = formatArtTime(ct);
-          if (slider && !slider._dragging) slider.value = String(ct);
 
           if (isTextMode && sentences && sentences.length) {
             // Tự dừng cuối câu khi bật sentenceAutoStop cho bài báo
@@ -1103,12 +1213,29 @@
             if (matchIdx !== -1 && matchIdx !== currentSentenceIndex) {
               currentSentenceIndex = matchIdx;
               updateActiveSentenceDisplay();
+              renderArticleSentenceCard(matchIdx);
               if (settings && settings.autoScroll && !shouldPreventAutoScroll()) {
                 triggerSmoothCenterScroll(matchIdx, false, ct);
               }
             }
 
-            // Đồng bộ highlight từ karaoke
+            // Tô từ đang phát trong thẻ #art-cs-text
+            const box = document.getElementById('art-cs-text');
+            if (box && String(currentSentenceIndex) === box.getAttribute('data-idx')) {
+              const wordEls = box.querySelectorAll('.cs-w');
+              let foundWord = null;
+              for (let i = 0; i < wordEls.length; i++) {
+                const a = parseFloat(wordEls[i].getAttribute('data-start'));
+                const b = parseFloat(wordEls[i].getAttribute('data-end'));
+                if (ct >= a - 0.02 && ct < b - 0.01) {
+                  foundWord = wordEls[i];
+                  break;
+                }
+              }
+              highlightArticleCurrentWord(foundWord);
+            }
+
+            // Đồng bộ highlight từ karaoke trong subtitle list
             if (currentSentenceIndex >= 0 && sentences[currentSentenceIndex] && sentences[currentSentenceIndex].words) {
               const ws = sentences[currentSentenceIndex].words;
               const wIdx = ws.findIndex(w => typeof w.startTime === 'number' && ct >= w.startTime && ct <= w.endTime);
@@ -1128,22 +1255,6 @@
               }
             }
           }
-        };
-
-        const playIco = bar.querySelector('.art-ab-play-ico');
-        const pauseIco = bar.querySelector('.art-ab-pause-ico');
-        audioEl.onplay = () => {
-          if (playIco) playIco.style.display = 'none';
-          if (pauseIco) pauseIco.style.display = 'block';
-        };
-        audioEl.onpause = () => {
-          if (playIco) playIco.style.display = 'block';
-          if (pauseIco) pauseIco.style.display = 'none';
-        };
-        audioEl.onended = () => {
-          if (playIco) playIco.style.display = 'block';
-          if (pauseIco) pauseIco.style.display = 'none';
-          if (slider) slider.value = '0';
         };
       });
     }
@@ -3016,6 +3127,7 @@ ${truncated}`;
       }
 
       if (isTextMode) {
+        renderArticleSentenceCard(idx);
         const artEl = document.getElementById('art-audio-el');
         if (artEl && artEl.src && !isNaN(artEl.duration) && artEl.duration > 0) {
           artEl.currentTime = Math.max(0, seconds);
@@ -3045,6 +3157,7 @@ ${truncated}`;
       const s = sentences[currentSentenceIndex];
       if (!s) return;
       if (isTextMode) {
+        renderArticleSentenceCard(currentSentenceIndex);
         const artEl = document.getElementById('art-audio-el');
         if (artEl && artEl.src && typeof s.startTime === 'number') {
           artEl.currentTime = s.startTime;
