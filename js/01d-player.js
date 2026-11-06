@@ -663,11 +663,13 @@
 
     // Điểm vào DUY NHẤT để bắt đầu luyện shadowing với văn bản (dùng chung cho cả việc dán tay lẫn mở
     // 1 bài trong "Thư viện bài viết"). articleId khác null nghĩa là bài có sẵn trong thư viện.
-    function enterTextShadowing(rawText, title, articleId) {
+    function enterTextShadowing(rawText, title, articleId, customSentences) {
       const docId = articleId ? `art_${articleId}` : `txt_${textDocHash(rawText)}`;
       const saved = getLocalHistory().find((h) => h.videoId === docId && h.isText && h.sentences && h.sentences.length);
       let parsed;
-      if (saved) {
+      if (customSentences && Array.isArray(customSentences) && customSentences.length) {
+        parsed = customSentences;
+      } else if (saved) {
         parsed = aiClone(saved.sentences);   // đã luyện trước đó: dùng lại bản đã lưu (có bản dịch song ngữ nếu đã nhập)
       } else {
         parsed = splitProseIntoSentences(rawText || '');
@@ -1500,6 +1502,251 @@ YÊU CẦU:
       }
     };
 
+    function validateAiSyncJson(data) {
+      if (!data) return { ok: false, reason: 'Dữ liệu JSON rỗng' };
+      const items = Array.isArray(data) ? data : (data.sentences || data.subtitles || data.cues || []);
+      if (!Array.isArray(items) || !items.length) {
+        return { ok: false, reason: 'JSON không chứa danh sách các câu (cần mảng array hoặc thuộc tính "sentences")' };
+      }
+      const sample = items[0];
+      if (!sample || typeof sample !== 'object') {
+        return { ok: false, reason: 'Các phần tử trong danh sách không phải đối tượng câu' };
+      }
+      const hasText = sample.text != null || sample.sentence != null || sample.t != null || sample.words != null;
+      const hasTime = sample.startTime != null || sample.start != null || (Array.isArray(sample.words) && sample.words[0] && sample.words[0].startTime != null);
+      if (!hasText) {
+        return { ok: false, reason: 'Thiếu trường nội dung câu ("text") trong các phần tử' };
+      }
+      if (!hasTime) {
+        return { ok: false, reason: 'Thiếu mốc thời gian phát âm ("startTime" hoặc "start") trong các phần tử' };
+      }
+      return { ok: true, items };
+    }
+    window.validateAiSyncJson = validateAiSyncJson;
+
+    function generateAiSyncFixPrompt(rawJsonStr) {
+      const truncated = (rawJsonStr || '').length > 3000 ? rawJsonStr.slice(0, 3000) + '\n... (đã cắt ngắn dữ liệu)' : rawJsonStr;
+      return `Tôi có một file JSON chứa phụ đề/timestamps nhưng cấu trúc hiện tại chưa đúng với chuẩn của French Shadowing Studio.
+
+YÊU CẦU:
+Hãy chuyển đổi dữ liệu JSON dưới đây sang ĐÚNG cấu trúc JSON chuẩn của French Shadowing Studio (chỉ trả về DUY NHẤT khối mã JSON, không thêm bất kỳ lời chào hay giải thích nào khác):
+
+[CẤU TRÚC CHUẨN MẪU]:
+[
+  {
+    "id": 1,
+    "startTime": 0.00,
+    "endTime": 3.20,
+    "text": "Nội dung câu tiếng Pháp.",
+    "words": [
+      { "word": "Từ1", "startTime": 0.00, "endTime": 0.60 },
+      { "word": "Từ2", "startTime": 0.65, "endTime": 1.10 }
+    ]
+  }
+]
+
+[DỮ LIỆU CẦN CHUYỂN ĐỔI]:
+${truncated}`;
+    }
+    window.generateAiSyncFixPrompt = generateAiSyncFixPrompt;
+
+    let currentArtAiSyncRawInvalid = '';
+
+    window.handleArtAiSyncFileInput = function(e) {
+      const file = e.target && e.target.files && e.target.files[0];
+      if (!file) return;
+      const fixBox = document.getElementById('art-sync-ai-fix-box');
+      const fixMsg = document.getElementById('art-sync-ai-fix-msg');
+      const statusEl = document.getElementById('art-sync-status');
+      const inputEl = document.getElementById('art-sync-input');
+      if (fixBox) fixBox.style.display = 'none';
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        const content = String(reader.result || '').trim();
+        if (inputEl) inputEl.value = content;
+
+        if (content.startsWith('{') || content.startsWith('[')) {
+          try {
+            const parsed = JSON.parse(cleanMarkdownFences(content));
+            const check = validateAiSyncJson(parsed);
+            if (!check.ok) {
+              currentArtAiSyncRawInvalid = content;
+              if (statusEl) {
+                statusEl.textContent = '⚠️ ' + check.reason;
+                statusEl.className = 'art-sync-status is-error';
+              }
+              if (fixBox) {
+                if (fixMsg) fixMsg.textContent = `⚠️ Cấu trúc JSON chưa khớp chuẩn Studio: ${check.reason}`;
+                fixBox.style.display = 'flex';
+              }
+              showVocabToast('Cấu trúc file JSON chưa khớp chuẩn. Hãy bấm sao chép Prompt nhờ AI sửa lại.', false);
+              return;
+            }
+          } catch(err) {
+            currentArtAiSyncRawInvalid = content;
+            if (statusEl) {
+              statusEl.textContent = '⚠️ Định dạng JSON không hợp lệ: ' + err.message;
+              statusEl.className = 'art-sync-status is-error';
+            }
+            if (fixBox) {
+              if (fixMsg) fixMsg.textContent = '⚠️ File JSON bị lỗi cú pháp: ' + err.message;
+              fixBox.style.display = 'flex';
+            }
+            return;
+          }
+        }
+
+        if (statusEl) {
+          statusEl.textContent = `✓ Đã nạp file "${file.name}". Bấm "Áp dụng Timestamps" để hoàn tất.`;
+          statusEl.className = 'art-sync-status is-success';
+        }
+        showVocabToast(`Đã nạp file "${file.name}"`, true);
+      };
+      reader.readAsText(file);
+    };
+
+    window.copyArtAiSyncFixPrompt = function() {
+      const raw = currentArtAiSyncRawInvalid || (document.getElementById('art-sync-input') && document.getElementById('art-sync-input').value) || '';
+      const prompt = generateAiSyncFixPrompt(raw);
+      navigator.clipboard.writeText(prompt).then(() => {
+        const lbl = document.getElementById('art-sync-copy-fix-label');
+        if (lbl) lbl.textContent = '✓ Đã sao chép Prompt!';
+        setTimeout(() => {
+          if (lbl) lbl.textContent = 'Sao chép Prompt nhờ AI sửa lại file';
+        }, 2000);
+        showVocabToast('Đã sao chép Prompt. Dán vào ChatGPT/Claude để sửa lại file!', true);
+      }).catch(err => {
+        showVocabToast('Không thể sao chép: ' + err.message, false);
+      });
+    };
+
+    function validateArticleJson(data) {
+      if (!data) return { ok: false, reason: 'Dữ liệu JSON rỗng' };
+      if (typeof data === 'string') {
+        const t = data.trim();
+        return t ? { ok: true, text: t, title: '', sentences: null } : { ok: false, reason: 'Chuỗi JSON rỗng' };
+      }
+      if (Array.isArray(data)) {
+        if (!data.length) return { ok: false, reason: 'Mảng JSON rỗng' };
+        const text = data.map(item => (typeof item === 'string' ? item : (item.text || item.sentence || item.t || ''))).filter(Boolean).join('\n\n');
+        if (!text.trim()) return { ok: false, reason: 'Mảng JSON không chứa văn bản câu tiếng Pháp nào' };
+        const hasTimings = data.some(item => typeof item === 'object' && item && (item.startTime != null || item.start != null));
+        return { ok: true, text: text.trim(), title: '', sentences: hasTimings ? data : null };
+      }
+      if (typeof data === 'object') {
+        const title = String(data.title || data.name || data.heading || '').trim();
+        let text = String(data.text || data.content || data.body || data.article || '').trim();
+        let sentences = null;
+        if (Array.isArray(data.sentences) && data.sentences.length) {
+          if (!text) {
+            text = data.sentences.map(s => (typeof s === 'string' ? s : (s.text || s.sentence || s.t || ''))).filter(Boolean).join('\n\n');
+          }
+          sentences = data.sentences;
+        }
+        if (!text.trim()) {
+          return { ok: false, reason: 'File JSON không có các trường nội dung bài báo: "text", "content" hoặc "sentences"' };
+        }
+        return { ok: true, text: text.trim(), title, sentences };
+      }
+      return { ok: false, reason: 'Định dạng JSON không tương thích' };
+    }
+    window.validateArticleJson = validateArticleJson;
+
+    function generateArticleJsonFixPrompt(rawJsonStr) {
+      const truncated = (rawJsonStr || '').length > 3000 ? rawJsonStr.slice(0, 3000) + '\n... (đã cắt ngắn dữ liệu)' : rawJsonStr;
+      return `Tôi có một file JSON chứa nội dung bài báo/bài đọc tiếng Pháp nhưng cấu trúc chưa khớp với chuẩn của French Shadowing Studio.
+
+YÊU CẦU:
+Hãy chuyển đổi dữ liệu JSON dưới đây sang ĐÚNG cấu trúc JSON chuẩn của French Shadowing Studio (chỉ trả về DUY NHẤT khối mã JSON, không thêm lời chào hay giải thích):
+
+[CẤU TRÚC CHUẨN MẪU]:
+{
+  "title": "Tiêu đề bài báo tiếng Pháp",
+  "text": "Toàn bộ nội dung bài báo tiếng Pháp được phân tách thành các đoạn hoặc các câu...",
+  "sentences": [
+    { "text": "Câu tiếng Pháp thứ nhất..." },
+    { "text": "Câu tiếng Pháp thứ hai..." }
+  ]
+}
+
+[DỮ LIỆU CẦN CHUYỂN ĐỔI]:
+${truncated}`;
+    }
+    window.generateArticleJsonFixPrompt = generateArticleJsonFixPrompt;
+
+    let currentTextJsonRawInvalid = '';
+
+    window.handleTextJsonFileInput = function(e) {
+      const file = e.target && e.target.files && e.target.files[0];
+      if (!file) return;
+      const baseName = file.name.replace(/\.[^.]+$/, '');
+      const ti = document.getElementById('text-shadow-title-input');
+      const ta = document.getElementById('text-shadow-textarea');
+      const wc = document.getElementById('text-wc');
+      const fixBox = document.getElementById('text-json-ai-fix-box');
+      const fixMsg = document.getElementById('text-json-ai-fix-msg');
+      if (fixBox) fixBox.style.display = 'none';
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        const content = String(reader.result || '').trim();
+        let parsed = null;
+        try {
+          parsed = JSON.parse(cleanMarkdownFences(content));
+        } catch(err) {
+          currentTextJsonRawInvalid = content;
+          if (fixBox) {
+            if (fixMsg) fixMsg.textContent = '⚠️ File JSON bị lỗi cú pháp: ' + err.message;
+            fixBox.style.display = 'flex';
+          }
+          showVocabToast('File JSON bị lỗi cú pháp. Bạn có thể sao chép Prompt nhờ AI sửa lại.', false);
+          return;
+        }
+
+        const check = validateArticleJson(parsed);
+        if (!check.ok) {
+          currentTextJsonRawInvalid = content;
+          if (fixBox) {
+            if (fixMsg) fixMsg.textContent = `⚠️ Cấu trúc file JSON chưa khớp: ${check.reason}`;
+            fixBox.style.display = 'flex';
+          }
+          showVocabToast('Cấu trúc file JSON chưa khớp. Hãy sao chép Prompt nhờ AI sửa lại.', false);
+          return;
+        }
+
+        if (ti && (!ti.value.trim() || check.title)) {
+          ti.value = check.title || baseName;
+        }
+        if (ta) {
+          ta.value = check.text;
+          if (wc) wc.textContent = check.text ? check.text.split(/\s+/).length : 0;
+        }
+        if (check.sentences) {
+          window.__pendingArticleJsonSentences = check.sentences;
+        } else {
+          window.__pendingArticleJsonSentences = null;
+        }
+        showVocabToast(`Đã nạp file JSON thành công: "${file.name}"`, true);
+      };
+      reader.readAsText(file);
+    };
+
+    window.copyTextJsonFixPrompt = function() {
+      const raw = currentTextJsonRawInvalid || (document.getElementById('text-shadow-textarea') && document.getElementById('text-shadow-textarea').value) || '';
+      const prompt = generateArticleJsonFixPrompt(raw);
+      navigator.clipboard.writeText(prompt).then(() => {
+        const lbl = document.getElementById('text-json-copy-fix-label');
+        if (lbl) lbl.textContent = '✓ Đã sao chép Prompt!';
+        setTimeout(() => {
+          if (lbl) lbl.textContent = 'Sao chép Prompt nhờ AI sửa lại file JSON này';
+        }, 2000);
+        showVocabToast('Đã sao chép Prompt. Dán vào ChatGPT/Claude để chuẩn hóa file JSON!', true);
+      }).catch(err => {
+        showVocabToast('Không thể sao chép: ' + err.message, false);
+      });
+    };
+
     window.resetArticleTimestamps = function() {
       if (!currentVideoId || !sentences || !sentences.length) return;
       if (!confirm('Khôi phục timestamps mặc định (1 giây/câu) cho bài báo này?')) return;
@@ -1549,7 +1796,9 @@ YÊU CẦU:
       const raw = (document.getElementById('text-shadow-textarea').value || '').trim();
       if (!raw) { showVocabToast('Hãy dán văn bản vào ô bên trên trước đã', false); return; }
       const title = (document.getElementById('text-shadow-title-input').value || '').trim();
-      enterTextShadowing(raw, title, null);
+      const customSentences = window.__pendingArticleJsonSentences || null;
+      window.__pendingArticleJsonSentences = null;
+      enterTextShadowing(raw, title, null, customSentences);
     }
 
     window.handleTextFileInput = function(e) {
@@ -1561,6 +1810,12 @@ YÊU CẦU:
       if (ti && !ti.value.trim()) ti.value = baseName;
 
       const ext = (file.name.split('.').pop() || '').toLowerCase();
+      if (ext === 'json') {
+        if (typeof window.handleTextJsonFileInput === 'function') {
+          window.handleTextJsonFileInput(e);
+          return;
+        }
+      }
       if (ext === 'docx') {
         const fr = new FileReader();
         fr.onload = async () => {

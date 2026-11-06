@@ -553,11 +553,25 @@
 
                 <div class="art-sync-step">
                   <div class="art-sync-step-head">
-                    <span class="art-sync-step-num">2</span>
-                    <span class="art-sync-step-label">Dán kết quả AI trả về (JSON có word-timestamps, WebVTT hoặc SRT)</span>
+                    <div class="art-sync-step-title-group">
+                      <span class="art-sync-step-num">2</span>
+                      <span class="art-sync-step-label">Dán kết quả AI hoặc nạp file (.json, .vtt, .srt)</span>
+                    </div>
+                    <label class="art-sync-file-btn" title="Nạp file JSON, WebVTT hoặc SRT từ máy tính">
+                      <input type="file" id="art-sync-file-input" accept=".json,.vtt,.srt,.txt" style="display:none;" onchange="handleArtAiSyncFileInput(event)">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                      <span>Nạp file</span>
+                    </label>
                   </div>
                   <textarea id="art-sync-input" class="art-sync-textarea" placeholder="Dán nội dung JSON, WebVTT hoặc SRT từ AI vào đây..."></textarea>
                   <div id="art-sync-status" class="art-sync-status"></div>
+                  <div id="art-sync-ai-fix-box" class="art-sync-ai-fix-box" style="display:none;">
+                    <div class="art-sync-ai-fix-msg" id="art-sync-ai-fix-msg">⚠️ Cấu trúc file JSON chưa khớp chuẩn của Studio.</div>
+                    <button type="button" class="art-sync-copy-btn" id="art-sync-copy-fix-btn" onclick="copyArtAiSyncFixPrompt()">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                      <span id="art-sync-copy-fix-label">Sao chép Prompt nhờ AI sửa lại file</span>
+                    </button>
+                  </div>
                 </div>
               </div>
               <div class="art-sync-modal-footer">
