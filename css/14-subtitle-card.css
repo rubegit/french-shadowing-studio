@@ -817,3 +817,212 @@
   .dc-count small, .vt-count small {
     color: var(--fs-muted) !important;
   }
+
+  /* ==================== M33: THANH PLAYER BÀI BÁO (ART PLAYER BAR) ==================== */
+  .art-player-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    margin-bottom: 12px;
+    background: var(--fs-surface-card);
+    border: 1px solid var(--fs-border-control);
+    border-radius: 16px;
+    padding: 14px 18px;
+    box-shadow: var(--fs-shadow-sm);
+  }
+
+  .art-pb-timeline {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+  }
+
+  .art-pb-time {
+    font-family: var(--fs-font-sans);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--fs-ink);
+    min-width: 48px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .art-pb-time.dur {
+    text-align: right;
+  }
+
+  .art-pb-track {
+    position: relative;
+    flex: 1;
+    height: 20px;
+    display: flex;
+    align-items: center;
+  }
+
+  .art-pb-rail {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 8px;
+    border-radius: 99px;
+    background: var(--fs-surface-subtle);
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .art-pb-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--fs-primary);
+    border-radius: 99px;
+    transition: width 0.05s linear;
+  }
+
+  .art-pb-range {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    margin: 0;
+    z-index: 2;
+  }
+
+  .art-pb-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  /* NÚT BẢN DỊCH (TRANSLATE SHOW/HIDE) */
+  .art-translate-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    height: 38px;
+    padding: 0 10px;
+    border-radius: 12px;
+    border: 1px solid var(--fs-border-control);
+    background: var(--fs-surface-card);
+    color: var(--fs-accent-text);
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  }
+
+  .art-translate-btn:hover {
+    background: var(--fs-hover);
+    border-color: var(--fs-primary-strong);
+  }
+
+  .art-translate-btn.active {
+    background: var(--fs-tint);
+    border-color: var(--fs-primary-strong);
+    color: var(--fs-accent-text);
+  }
+
+  .art-translate-icon {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+  }
+
+  /* NÚT THU ÂM */
+  .art-pb-rec .pv-rbtn {
+    height: 38px;
+    border-radius: 12px;
+    padding: 0 14px;
+    border: 1px solid var(--fs-border-control);
+    background: var(--fs-surface-card);
+    color: var(--fs-ink);
+    font-size: 13px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+  }
+
+  .art-pb-rec .pv-rbtn:hover {
+    background: var(--fs-hover);
+    border-color: var(--fs-primary-strong);
+  }
+
+  /* Ô NHẬP TỐC ĐỘ BÀI BÁO */
+  .art-rate-ctl {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .art-rate-ctl .rate-input-wrap {
+    height: 38px;
+    border-radius: 12px;
+    border: 1px solid var(--fs-border-control);
+    padding: 0 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--fs-surface-card);
+  }
+
+  /* DẢI TỐC ĐỘ BÀI BÁO */
+  .art-speeds {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 12px;
+    border: 1px solid var(--fs-border-control);
+    overflow: hidden;
+    height: 38px;
+  }
+
+  .art-speeds button {
+    height: 100%;
+    padding: 0 10px;
+    border: 0;
+    background: transparent;
+    color: var(--fs-ink);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  .art-speeds button:hover {
+    background: var(--fs-hover);
+  }
+
+  .art-speeds button.on {
+    background: var(--fs-tint);
+    color: var(--fs-accent-text);
+    font-weight: 800;
+  }
+
+  /* NÚT PHÁT / TẠM DỪNG CÂU HIỆN TẠI */
+  .art-cs-play-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 34px;
+    border-radius: 10px;
+    border: 1px solid var(--fs-border-control);
+    background: var(--fs-surface-card);
+    color: var(--fs-accent-text);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .art-cs-play-btn:hover {
+    background: var(--fs-hover);
+    border-color: var(--fs-primary-strong);
+  }
+
+  .art-cs-play-btn.playing {
+    background: var(--fs-tint);
+    border-color: var(--fs-primary-strong);
+    color: var(--fs-accent-text);
+  }

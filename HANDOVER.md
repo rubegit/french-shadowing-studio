@@ -8,18 +8,18 @@
 ---
 
 ### 1. Metadata Bàn giao (Handover Metadata)
-- **Thời điểm cập nhật:** 2026-11-06T14:26:00-06:00
+- **Thời điểm cập nhật:** 2026-11-06T15:30:00-06:00
 - **Agent bàn giao (Outgoing Agent):** Antigravity Agent
-- **Mục đích:** Bàn giao hoàn tất các module M24 (Vocab Highlight & Span Self-healing), M25 (Core SRS Upgrades), M26 (Daily New Vocab Goal Selector & Scheduler Prioritization), M27 (Acoustic Forced Alignment qua Wav2Vec2 CTC), M28 (Bộ căn chỉnh Whisper độc lập & So sánh đối đầu), M29 (Tích hợp 1-click Dual Engine Chay_Dong_Bo.command), M30 (Tái cấu trúc thư mục done/[Tên_bài]/Json & txtMp3), M31 (Tinh giản thư mục Json), và M32 (Bộ chia câu tự động đa tầng & xuất JSON đa segment theo từng câu cho CTC Aligner).
+- **Mục đích:** Bàn giao hoàn tất các module M24 (Vocab Highlight & Span Self-healing), M25 (Core SRS Upgrades), M26 (Daily New Vocab Goal Selector & Scheduler Prioritization), M27 (Acoustic Forced Alignment qua Wav2Vec2 CTC), M28 (Bộ căn chỉnh Whisper độc lập & So sánh đối đầu), M29 (Tích hợp 1-click Dual Engine Chay_Dong_Bo.command), M30 (Tái cấu trúc thư mục done/[Tên_bài]/Json & txtMp3), M31 (Tinh giản thư mục Json), M32 (Bộ chia câu tự động đa tầng & xuất JSON đa segment theo từng câu cho CTC Aligner), và M33 (Audio Player Bar & Điều khiển phát câu bài báo).
 - **Tài liệu tham chiếu bắt buộc:** [`AGENTS.md`](./AGENTS.md), [`PROJECT_STATUS.md`](./PROJECT_STATUS.md).
 
 ---
 
 ### 2. Bản chụp Trạng thái Git (Git State Snapshot)
 - **Nhánh hiện tại (Branch):** `main`
-- **HEAD Commit:** `36edc84` - `docs: update HANDOVER.md with M28 whisper aligner and comparison tool approval`
+- **HEAD Commit:** `c2e2f87` - `docs: update HANDOVER.md with M32 sentence-level segmentation approval`
 - **Tình trạng Remote:** Up-to-date with `origin/main`.
-- **Trạng thái Working Tree:** **Clean 100%** (`offline_aligner/` được bảo toàn an toàn trong `.gitignore`).
+- **Trạng thái Working Tree:** Có thay đổi của M33 đã nghiệm thu và build hoàn tất.
 
 ---
 
@@ -38,8 +38,12 @@
   - Giữ nguyên tiêu đề bài báo thành Segment 1 riêng biệt, không ngắt ở `:`, `;`, `,` hay số thập phân.
   - Gán chỉ số câu cho token trước khi chạy CTC Viterbi, nhóm lại theo câu với `startTime = words[0].startTime`, `endTime = words[-1].endTime`.
   - Tự động in báo cáo kiểm tra 6 bước ra console (bài mẫu đạt chính xác 62 segments, 688 từ, thời gian hợp lệ 100%).
+- **M33** (Giao diện Audio Player & Điều khiển phát câu bài báo - Đã nghiệm thu):
+  - Tích hợp thanh Player `#art-player-bar` phía trên thẻ câu: hiển thị tiến trình, thời gian hiện tại / tổng thời lượng, thanh trượt tua, nút thu âm, ô nhập tốc độ và dải nút chọn nhanh tốc độ (0.5x, 0.75x, 0.9x, 1.0x, 1.25x).
+  - Thay thế nút chữ "CC" bằng icon tròn bản dịch (hai mũi tên xoay tròn lồng chữ `文` và `A`): khi Bật có nền xanh nhạt (`var(--fs-tint)`), icon chữ xanh đậm (`var(--fs-accent-text)`); khi Tắt có nền trắng (`var(--fs-surface-card)`), icon màu xanh đậm.
+  - Thêm nút Play/Stop câu hiện tại (`#art-cs-play`) vào hàng điều hướng trước nút Tự dừng theo thứ tự: `< Câu trước | [Play/Stop] | Tự dừng | Câu sau >`.
 - **Bộ kiểm thử tự động:**
-  - `node --test tools/*.test.js`: **303 / 303 PASS (100%)**.
+  - `node --test tools/*.test.js`: **307 / 307 PASS (100%)**.
   - `node tools/lint-color.js`: **921 / 921 HEX**, **0 inline style**, **0 tailwind color**.
 
 ---

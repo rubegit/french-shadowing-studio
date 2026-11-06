@@ -778,6 +778,8 @@
       if (btn) btn.className = settings.bilingual ? BILINGUAL_BTN_ON : BILINGUAL_BTN_OFF;
       const editBtn = document.getElementById('btn-edit-bilingual');
       if (editBtn) editBtn.classList.toggle('show', aicHasTranslation(sentences));
+      const artTransBtn = document.getElementById('art-translate-btn');
+      if (artTransBtn) artTransBtn.classList.toggle('active', !!settings.bilingual);
     }
 
     function setBilingual(on) {

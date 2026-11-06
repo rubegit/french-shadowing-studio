@@ -537,6 +537,10 @@
       stopArticleAudio();      // tắt audio bài báo nếu đang phát
       isTextMode = false;
       document.body.classList.remove('text-mode');
+      const artCard0 = document.getElementById('art-cs-card');
+      if (artCard0) artCard0.style.display = 'none';
+      const artPb0 = document.getElementById('art-player-bar');
+      if (artPb0) artPb0.style.display = 'none';
       const backLabel = document.getElementById('practice-back-btn-label');
       if (backLabel) backLabel.textContent = 'Luyện video khác';
       const ttl = document.getElementById('pv-header-title');
@@ -728,6 +732,9 @@
       // Module M23: Luôn hiển thị thẻ câu & mốc thời gian bài báo đồng bộ
       const artCard = document.getElementById('art-cs-card');
       if (artCard) artCard.style.display = 'flex';
+      const artPb = document.getElementById('art-player-bar');
+      if (artPb) artPb.style.display = 'flex';
+      if (typeof updateBilingualButton === 'function') updateBilingualButton();
       renderArticleSentenceCard(0);
 
       // Khởi tạo trình phát Audio cho bài báo
@@ -1042,6 +1049,8 @@
       if (!isTextMode) {
         const card = document.getElementById('art-cs-card') || document.getElementById('art-audio-bar');
         if (card) card.style.display = 'none';
+        const artPb = document.getElementById('art-player-bar');
+        if (artPb) artPb.style.display = 'none';
       }
       if (typeof tsRefresh === 'function') tsRefresh();
     }
@@ -1170,10 +1179,12 @@
     function initArticleAudioPlayer(docId) {
       const audioEl = document.getElementById('art-audio-el');
       const card = document.getElementById('art-cs-card') || document.getElementById('art-audio-bar');
+      const pb = document.getElementById('art-player-bar');
       if (!audioEl || !card) return;
 
       getArticleAudioBlob(docId).then(record => {
         if (!record || !record.blob) {
+          if (pb) pb.style.display = 'flex';
           card.style.display = 'flex';
           if (currentArtAudioObjUrl) {
             URL.revokeObjectURL(currentArtAudioObjUrl);
@@ -1190,6 +1201,7 @@
         currentArtAudioObjUrl = URL.createObjectURL(record.blob);
         audioEl.src = currentArtAudioObjUrl;
         card.style.display = 'flex';
+        if (pb) pb.style.display = 'flex';
 
         const sidePill = document.getElementById('art-side-file-pill');
         const sidePillName = document.getElementById('art-side-pill-name');
@@ -1198,8 +1210,48 @@
 
         renderArticleSentenceCard(currentSentenceIndex || 0);
 
+        function updateArtCsPlayBtn(isPlaying) {
+          const playBtn = document.getElementById('art-cs-play');
+          if (!playBtn) return;
+          playBtn.classList.toggle('playing', !!isPlaying);
+          const icoPlay = playBtn.querySelector('.art-cs-play-ico');
+          const icoPause = playBtn.querySelector('.art-cs-pause-ico');
+          if (icoPlay) icoPlay.style.display = isPlaying ? 'none' : 'block';
+          if (icoPause) icoPause.style.display = isPlaying ? 'block' : 'none';
+        }
+
+        audioEl.onplay = () => updateArtCsPlayBtn(true);
+        audioEl.onpause = () => updateArtCsPlayBtn(false);
+        audioEl.onended = () => updateArtCsPlayBtn(false);
+
+        const updateDurDisplay = () => {
+          const maxD = audioEl.duration || (sentences && sentences.length ? (sentences[sentences.length - 1].endTime || 0) : 0);
+          const durEl = document.getElementById('art-pb-dur-time') || document.getElementById('art-audio-dur-time');
+          if (durEl) durEl.textContent = formatArtTime(maxD);
+          const rangeEl = document.getElementById('art-pb-range');
+          if (rangeEl && maxD > 0) rangeEl.max = maxD;
+        };
+        audioEl.onloadedmetadata = updateDurDisplay;
+        audioEl.ondurationchange = updateDurDisplay;
+        updateDurDisplay();
+
         audioEl.ontimeupdate = () => {
           const ct = audioEl.currentTime || 0;
+
+          // Cập nhật thanh timeline bài báo
+          const curEl = document.getElementById('art-pb-cur-time') || document.getElementById('art-audio-cur-time');
+          if (curEl) curEl.textContent = formatArtTime(ct);
+          const maxD = audioEl.duration || (sentences && sentences.length ? (sentences[sentences.length - 1].endTime || 0) : 0);
+          const durEl = document.getElementById('art-pb-dur-time') || document.getElementById('art-audio-dur-time');
+          if (durEl) durEl.textContent = formatArtTime(maxD);
+          const rangeEl = document.getElementById('art-pb-range');
+          const fillEl = document.getElementById('art-pb-fill');
+          if (rangeEl && maxD > 0) {
+            rangeEl.max = maxD;
+            rangeEl.value = ct;
+            const pct = Math.max(0, Math.min(100, (ct / maxD) * 100));
+            if (fillEl) fillEl.style.width = pct + '%';
+          }
 
           if (isTextMode && sentences && sentences.length) {
             // Tự dừng cuối câu khi bật sentenceAutoStop cho bài báo
@@ -1270,6 +1322,14 @@
       const audioEl = document.getElementById('art-audio-el');
       if (!audioEl || !audioEl.src) return;
       if (audioEl.paused) {
+        if (isTextMode && currentSentenceIndex >= 0 && sentences && sentences[currentSentenceIndex]) {
+          const curSent = sentences[currentSentenceIndex];
+          const sStart = typeof curSent.startTime === 'number' ? curSent.startTime : 0;
+          const sEnd = typeof curSent.endTime === 'number' ? curSent.endTime : (sStart + 15);
+          if (audioEl.currentTime < sStart || audioEl.currentTime >= sEnd - 0.05) {
+            audioEl.currentTime = sStart;
+          }
+        }
         audioEl.play().catch(e => console.warn('[Article Audio] Lỗi phát audio:', e));
       } else {
         audioEl.pause();
@@ -1306,11 +1366,11 @@
     window.toggleArtTimeMode = function() {
       artTimeDisplayMode = artTimeDisplayMode === 'sec' ? 'min' : 'sec';
       const audioEl = document.getElementById('art-audio-el');
-      const curEl = document.getElementById('art-audio-cur-time');
-      const durEl = document.getElementById('art-audio-dur-time');
+      const curEl = document.getElementById('art-pb-cur-time') || document.getElementById('art-audio-cur-time');
+      const durEl = document.getElementById('art-pb-dur-time') || document.getElementById('art-audio-dur-time');
       if (audioEl && curEl) curEl.textContent = formatArtTime(audioEl.currentTime || 0);
-      if (audioEl && durEl) {
-        const maxD = audioEl.duration || (sentences && sentences.length ? (sentences[sentences.length - 1].endTime || 0) : 0);
+      if (durEl) {
+        const maxD = (audioEl && audioEl.duration) || (sentences && sentences.length ? (sentences[sentences.length - 1].endTime || 0) : 0);
         durEl.textContent = formatArtTime(maxD);
       }
     };
@@ -1321,6 +1381,8 @@
       if (audioEl) audioEl.playbackRate = r;
       const badge = document.getElementById('art-ab-speed-val');
       if (badge) badge.textContent = r.toFixed(1) + 'x';
+      const inp = document.getElementById('art-rate-input');
+      if (inp) inp.value = r.toFixed(1);
       const btns = document.querySelectorAll('#art-speeds button');
       btns.forEach(b => {
         const sp = parseFloat(b.getAttribute('data-sp'));
@@ -1330,6 +1392,51 @@
           b.classList.remove('on');
         }
       });
+    };
+
+    window.commitArtRateInput = function() {
+      const inp = document.getElementById('art-rate-input');
+      if (!inp) return;
+      let v = parseFloat(inp.value.replace(',', '.'));
+      if (isNaN(v) || v <= 0) v = 1.0;
+      v = Math.max(0.25, Math.min(2.0, Math.round(v * 100) / 100));
+      inp.value = v.toFixed(1);
+      setArtAudioSpeed(v);
+    };
+
+    window.artRateInputKey = function(e) {
+      const inp = e.target;
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        commitArtRateInput();
+        inp.blur();
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        const audioEl = document.getElementById('art-audio-el');
+        inp.value = (audioEl ? audioEl.playbackRate || 1.0 : 1.0).toFixed(1);
+        inp.blur();
+      } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        let v = parseFloat(inp.value.replace(',', '.')) || 1.0;
+        v = Math.max(0.25, Math.min(2.0, Math.round((v + (e.key === 'ArrowUp' ? 0.1 : -0.1)) * 100) / 100));
+        inp.value = v.toFixed(1);
+        commitArtRateInput();
+        inp.select();
+      }
+    };
+
+    window.toggleArticleRec = function() {
+      const pvRecBtn = document.querySelector('#pv-rec [data-a="rec"], #pv-rec [data-a="stop"]');
+      if (pvRecBtn) {
+        pvRecBtn.click();
+        setTimeout(() => {
+          const artLbl = document.getElementById('art-rec-lbl');
+          const isRec = !!document.querySelector('#pv-rec [data-a="stop"]');
+          if (artLbl) artLbl.textContent = isRec ? 'Dừng thu' : 'Nhấn để thu âm';
+        }, 100);
+      } else {
+        if (typeof showVocabToast === 'function') showVocabToast('Tính năng thu âm sẵn sàng', true);
+      }
     };
 
     window.changeArtAudioSpeed = function(rate) {
