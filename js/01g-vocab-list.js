@@ -323,24 +323,43 @@
     // Tính trạng thái SRS mới theo mức tự đánh giá, KHÔNG làm thay đổi dữ liệu gốc (dùng để xem trước khoảng cách lặp lại).
     function srsCompute(s, rating) {
       let { ease, interval, reps } = s;
+      const now = Date.now();
       if (rating === 'again') {
+        const wasMastered = (s.interval >= 14 && s.reps >= 2);
         reps = 0;
         ease = Math.max(1.3, ease - 0.2);
-        return { ease, interval: 0, reps, due: Date.now() + 10 * 60 * 1000, lastReview: Date.now() };
+        return {
+          ease,
+          interval: 0,
+          reps,
+          lapses: (s.lapses || 0) + 1,
+          relearning: wasMastered || Boolean(s.relearning || s.lastReview),
+          due: now + 10 * 60 * 1000,
+          lastReview: now
+        };
       }
       if (rating === 'hard') {
-        interval = interval > 0 ? Math.max(1, Math.round(interval * 1.2)) : 1;
+        interval = interval > 0 ? Math.max(interval + 1, Math.round(interval * 1.2)) : 1;
         ease = Math.max(1.3, ease - 0.15);
       } else if (rating === 'good') {
         if (reps === 0) interval = 1;
         else if (reps === 1) interval = 3;
-        else interval = Math.max(1, Math.round(interval * ease));
+        else interval = Math.max(interval + 1, Math.round(interval * ease));
       } else if (rating === 'easy') {
-        interval = reps === 0 ? 4 : Math.max(1, Math.round(interval * ease * 1.3));
+        interval = reps === 0 ? 4 : Math.max(interval + 1, Math.round(interval * ease * 1.3));
         ease = Math.min(2.8, ease + 0.15);
       }
+      interval = Math.min(365, interval);
       reps += 1;
-      return { ease, interval, reps, due: Date.now() + interval * 24 * 60 * 60 * 1000, lastReview: Date.now() };
+      return {
+        ease,
+        interval,
+        reps,
+        lapses: s.lapses || 0,
+        relearning: false,
+        due: now + interval * 24 * 60 * 60 * 1000,
+        lastReview: now
+      };
     }
     function srsFormatDelta(ms) {
       const mins = Math.round(ms / 60000);

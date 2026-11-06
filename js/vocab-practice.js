@@ -142,25 +142,45 @@
     const now = Date.now();
 
     if (rating === 'again') {
+      const wasMastered = (s.interval >= 14 && s.reps >= 2);
       reps = 0;
       ease = Math.max(1.3, ease - 0.2);
-      return { ease, interval: 0, reps, due: now + 10 * 60 * 1000, lastReview: now };
+      return {
+        ease,
+        interval: 0,
+        reps,
+        lapses: (s.lapses || 0) + 1,
+        relearning: wasMastered || Boolean(s.relearning || s.lastReview),
+        due: now + 10 * 60 * 1000,
+        lastReview: now
+      };
     }
 
     if (rating === 'hard') {
-      interval = interval > 0 ? Math.max(1, Math.round(interval * 1.2)) : 1;
+      interval = interval > 0 ? Math.max(interval + 1, Math.round(interval * 1.2)) : 1;
       ease = Math.max(1.3, ease - 0.15);
     } else if (rating === 'good') {
       if (reps === 0) interval = 1;
       else if (reps === 1) interval = 3;
-      else interval = Math.max(1, Math.round(interval * ease));
+      else interval = Math.max(interval + 1, Math.round(interval * ease));
     } else if (rating === 'easy') {
-      interval = reps === 0 ? 4 : Math.max(1, Math.round(interval * ease * 1.3));
+      interval = reps === 0 ? 4 : Math.max(interval + 1, Math.round(interval * ease * 1.3));
       ease = Math.min(2.8, ease + 0.15);
     }
 
+    // Áp dụng trần tối đa (max_interval: 365 ngày)
+    interval = Math.min(365, interval);
+
     reps += 1;
-    return { ease, interval, reps, due: now + interval * 24 * 60 * 60 * 1000, lastReview: now };
+    return {
+      ease,
+      interval,
+      reps,
+      lapses: s.lapses || 0,
+      relearning: false,
+      due: now + interval * 24 * 60 * 60 * 1000,
+      lastReview: now
+    };
   }
 
   // ==================== SKILLS: TRANSLATE (SM-2 CHUYÊN BIỆT CHO DỊCH VIỆT -> PHÁP) ====================
@@ -733,6 +753,9 @@
         const target = map.get(key);
         if (!target.wordVi && it.wordVi) target.wordVi = it.wordVi;
         if ((!target.examples || !target.examples.length) && it.examples?.length) target.examples = it.examples;
+        if (it.srs && (!target.srs || (it.srs.reps || 0) > (target.srs.reps || 0))) {
+          target.srs = it.srs;
+        }
         if (it.contexts?.length) {
           if (!Array.isArray(target.contexts)) target.contexts = [];
           it.contexts.forEach(c => {
@@ -1298,7 +1321,8 @@
           <div class="vph-mastery-tags">
             <span class="vph-mastery-tag"><span class="vph-dot new"></span> Mới lưu: <b id="vph-stat-new">0</b></span>
             <span class="vph-mastery-tag"><span class="vph-dot learning"></span> Đang củng cố: <b id="vph-stat-learning">0</b></span>
-            <span class="vph-mastery-tag"><span class="vph-dot mastered"></span> Thuộc lòng: <b id="vph-stat-mastered">0</b></span>
+            <span class="vph-mastery-tag"><span class="vph-dot mastered"></span> Đã ghi nhớ: <b id="vph-stat-mastered">0</b></span>
+            <span class="vph-mastery-tag" id="vph-relearning-tag" style="display:none;"><span class="vph-dot relearning"></span> Cần học lại: <b id="vph-stat-relearning">0</b></span>
           </div>
           <div class="vph-scope-label-box" id="vph-scope-label">Đang xem: Toàn bộ bài học</div>
         </div>
@@ -1497,25 +1521,36 @@
   // Update Mastery Stats Bar & Scope Options
   function updateMasteryStats() {
     const allInScope = getScopedVocabList(state.scope, false);
-    let newCount = 0, learningCount = 0, masteredCount = 0, dueCount = 0;
+    let newCount = 0, learningCount = 0, masteredCount = 0, relearningCount = 0, dueCount = 0;
 
     allInScope.forEach(item => {
       const s = getSrs(item);
       if (srsIsDue(item)) dueCount++;
-      if (s.reps === 0) newCount++;
-      else if (s.interval >= 14 && s.reps >= 2) masteredCount++;
-      else learningCount++;
+      if (s.interval >= 14 && s.reps >= 2) {
+        masteredCount++;
+      } else if (s.reps === 0) {
+        if (s.relearning || s.lastReview) relearningCount++;
+        else newCount++;
+      } else {
+        learningCount++;
+      }
     });
 
     const dueBadge = document.getElementById('vph-due-badge');
     const newEl = document.getElementById('vph-stat-new');
     const learningEl = document.getElementById('vph-stat-learning');
     const masteredEl = document.getElementById('vph-stat-mastered');
+    const relearningTag = document.getElementById('vph-relearning-tag');
+    const relearningEl = document.getElementById('vph-stat-relearning');
 
     if (dueBadge) dueBadge.textContent = dueCount;
     if (newEl) newEl.textContent = newCount;
     if (learningEl) learningEl.textContent = learningCount;
     if (masteredEl) masteredEl.textContent = masteredCount;
+    if (relearningEl) relearningEl.textContent = relearningCount;
+    if (relearningTag) {
+      relearningTag.style.display = relearningCount > 0 ? 'inline-flex' : 'none';
+    }
   }
 
   function updateScopeOptions() {
@@ -3838,6 +3873,12 @@
 
   // Expose to window & CommonJS
   const exportedApi = {
+    srsCompute: srsCompute,
+    srsDefault: srsDefault,
+    getSrs: getSrs,
+    srsIsDue: srsIsDue,
+    updateMasteryStats: updateMasteryStats,
+    deduplicateVocabItems: deduplicateVocabItems,
     resolveTargetWordSpan: resolveTargetWordSpan,
     checkWordMatches: checkWordMatches,
     maskWordInSentence: maskWordInSentence,

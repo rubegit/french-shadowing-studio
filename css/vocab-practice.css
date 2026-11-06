@@ -407,6 +407,7 @@
 .vph-dot.new { background: var(--fs-muted); }
 .vph-dot.learning { background: var(--fs-accent); }
 .vph-dot.mastered { background: var(--fs-success-text); }
+.vph-dot.relearning { background: var(--fs-warning); }
 
 .vph-stats-strip {
   display: flex;
