@@ -725,6 +725,11 @@
       if (ttl) { ttl.textContent = currentVideoTitle; ttl.style.display = 'block'; }
       renderArticleSidePanel(docId, currentVideoTitle, parsed);
 
+      // Module M23: Luôn hiển thị thẻ câu & mốc thời gian bài báo đồng bộ
+      const artCard = document.getElementById('art-cs-card');
+      if (artCard) artCard.style.display = 'flex';
+      renderArticleSentenceCard(0);
+
       // Khởi tạo trình phát Audio cho bài báo
       if (pendingTextAudioFile) {
         const audioFile = pendingTextAudioFile;
@@ -1034,8 +1039,10 @@
         }
         audioEl.removeAttribute('src');
       }
-      const card = document.getElementById('art-cs-card') || document.getElementById('art-audio-bar');
-      if (card) card.style.display = 'none';
+      if (!isTextMode) {
+        const card = document.getElementById('art-cs-card') || document.getElementById('art-audio-bar');
+        if (card) card.style.display = 'none';
+      }
       if (typeof tsRefresh === 'function') tsRefresh();
     }
 
@@ -1167,13 +1174,13 @@
 
       getArticleAudioBlob(docId).then(record => {
         if (!record || !record.blob) {
-          card.style.display = 'none';
+          card.style.display = 'flex';
           if (currentArtAudioObjUrl) {
             URL.revokeObjectURL(currentArtAudioObjUrl);
             currentArtAudioObjUrl = null;
           }
           audioEl.removeAttribute('src');
-          if (typeof tsRefresh === 'function') tsRefresh();
+          renderArticleSentenceCard(currentSentenceIndex || 0);
           return;
         }
 

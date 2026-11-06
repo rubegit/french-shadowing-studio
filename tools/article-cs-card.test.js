@@ -42,7 +42,6 @@ test('M22.4 Timestamps: practice-engine hỗ trợ isTextMode với art-audio-el
   const engineJs = readFile('js/03-practice-engine.js');
   assert.ok(engineJs.includes('$(\'art-cs-ts\')'), 'Phải nạp tsMarkup() vào art-cs-ts');
   assert.ok(engineJs.includes('document.getElementById(\'art-audio-el\')'), 'tsCapture và tsAfter phải đọc art-audio-el khi isTextMode');
-  assert.ok(engineJs.includes('const hasArtAudio = isTextMode && !!(document.getElementById(\'art-audio-el\')'), 'tsRefresh không ẩn .ts-ctl khi có audio bài báo');
 });
 
 test('M22.5 CSS Styling: theme-light.css định dạng hoàn chỉnh thẻ câu và từ karaoke không vượt quota màu', () => {
@@ -52,4 +51,37 @@ test('M22.5 CSS Styling: theme-light.css định dạng hoàn chỉnh thẻ câu
   assert.ok(css.includes('#art-cs-text .sub-word-unit.karaoke-word-active'), 'theme-light.css phải chứa định dạng từ active');
   assert.ok(css.includes('#art-cs-card .cs-nav'), 'theme-light.css phải chứa định dạng cho .cs-nav trong art-cs-card');
   assert.ok(css.includes('#art-cs-card .cs-ts'), 'theme-light.css phải chứa định dạng cho .cs-ts trong art-cs-card');
+});
+
+test('M23.1 Initial Display: openTextSession luôn hiển thị thẻ câu #art-cs-card và render câu 0', () => {
+  const playerJs = readFile('js/01d-player.js');
+  assert.ok(playerJs.includes('const artCard = document.getElementById(\'art-cs-card\')'), 'openTextSession phải tìm art-cs-card');
+  assert.ok(playerJs.includes('artCard.style.display = \'flex\''), 'openTextSession phải đặt display flex cho art-cs-card');
+  assert.ok(playerJs.includes('renderArticleSentenceCard(0)'), 'openTextSession phải render câu số 0 ngay lập tức');
+});
+
+test('M23.2 Audio-less Fallback: initArticleAudioPlayer duy trì thẻ câu khi bài báo chưa có file MP3', () => {
+  const playerJs = readFile('js/01d-player.js');
+  // Khi không có blob, card vẫn phải hiển thị flex và render câu
+  assert.ok(playerJs.includes('card.style.display = \'flex\';\n          if (currentArtAudioObjUrl)'), 'Khi chưa có audio blob vẫn giữ card hiển thị flex');
+});
+
+test('M23.3 Timestamp Visibility: tsRefresh không gán .pv-x làm ẩn mốc thời gian', () => {
+  const engineJs = readFile('js/03-practice-engine.js');
+  assert.ok(engineJs.includes('ctl.classList.remove(\'pv-x\')'), 'tsRefresh phải bỏ class pv-x khỏi .ts-ctl');
+  assert.ok(!engineJs.includes('ctl.classList.toggle(\'pv-x\', !!(isTextMode'), 'tsRefresh không còn ẩn .ts-ctl theo isTextMode');
+});
+
+test('M23.4 Timestamp Live Tick: tick() cập nhật mốc thời gian trong isTextMode', () => {
+  const engineJs = readFile('js/03-practice-engine.js');
+  // Lấy chính xác hàm tick() trong thẻ phụ đề (trước setInterval(tick, 80))
+  const tickStart = engineJs.lastIndexOf('function tick() {');
+  assert.ok(tickStart !== -1, 'Phải tìm thấy hàm tick() của thẻ câu');
+  const tickCode = engineJs.slice(tickStart, engineJs.indexOf('setInterval(tick, 80)', tickStart));
+
+  const tsUpdatePos = tickCode.indexOf('if (tk !== lastTsKey) { lastTsKey = tk; tsRefresh(); }');
+  const textModeGuardPos = tickCode.indexOf('if (isTextMode) return;');
+  assert.ok(tsUpdatePos !== -1, 'tick() phải có khối cập nhật lastTsKey & tsRefresh');
+  assert.ok(textModeGuardPos !== -1, 'tick() phải có guard if (isTextMode) return sau phần cập nhật timestamp');
+  assert.ok(tsUpdatePos < textModeGuardPos, 'Cập nhật timestamp phải diễn ra trước guard isTextMode');
 });

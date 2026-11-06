@@ -550,8 +550,7 @@
         const t = tsGet(i);
         const sObj = sentences[i];
         document.querySelectorAll('.ts-ctl').forEach((ctl) => {
-            const hasArtAudio = isTextMode && !!(document.getElementById('art-audio-el') && document.getElementById('art-audio-el').src);
-            ctl.classList.toggle('pv-x', !!(isTextMode && !hasArtAudio));   // bài văn bản không có audio thì mới ẩn mốc thời gian
+            ctl.classList.remove('pv-x');
             const a = ctl.querySelector('[data-ts-in="s"]'), b = ctl.querySelector('[data-ts-in="e"]');
             if (a && document.activeElement !== a) a.value = tsFmt(t.s);
             if (b && document.activeElement !== b) b.value = tsFmt(t.e);
@@ -2834,13 +2833,14 @@
         }
         let lastTsKey = '';
         function tick() {
-            if (view !== 'default' || isTextMode) return;
+            if (view !== 'default') return;
             const n = (sentences && sentences.length) || 0;
             const idx = n ? Math.max(0, Math.min(n - 1, currentSentenceIndex || 0)) : -1;
             if (idx >= 0) {   // ô Thời gian: cập nhật khi đổi câu, hoặc khi mốc được chỉnh ở giao diện khác
                 const tt = tsGet(idx), tk = idx + '|' + tt.s + '|' + tt.e + '|' + currentVideoId;
                 if (tk !== lastTsKey) { lastTsKey = tk; tsRefresh(); }
             }
+            if (isTextMode) return; // Chế độ bài báo dùng card #art-cs-card riêng, không chạy logic video bên dưới
             const s = idx >= 0 ? sentences[idx] : null;
             const key = String(currentVideoId) + '\u0001' + idx + '\u0001' + (s ? s.text : '') + '\u0001' + (s && s.words ? s.words.length : 0) + '\u0001' + (ipaOn ? (IPA.map ? 1 : 0) : 2);
             if (key !== lastKey) {
