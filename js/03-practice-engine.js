@@ -815,11 +815,21 @@
         b.title = on ? 'Tạm dừng' : (DC.resumeP > 0 ? 'Phát tiếp' : (DC.sel ? 'Nghe đoạn đã chọn' : 'Nghe câu này'));
         b.setAttribute('aria-label', b.title);
     }
+    function getArticleAudioEl() {
+        if (!isTextMode) return null;
+        const el = document.getElementById('art-audio-el');
+        if (el && el.src && !isNaN(el.duration) && el.duration > 0) return el;
+        return null;
+    }
     function stopAudio(resetUI) {
         DC.resumeP = 0;   // mọi cách dừng thông thường (đổi câu, kiểm tra, rời giao diện...) đều xoá vị trí nghe tiếp; chỉ pauseAudio() mới đặt lại
         clearInterval(DC.timer); DC.timer = null;
         clearTimeout(DC.repeatTimer); DC.repeatTimer = null;
         if (DC.tts) { DC.tts = null; try { speechSynthesis.cancel(); } catch (e) {} }
+        else if (isTextMode) {
+            const artEl = getArticleAudioEl();
+            if (artEl) { try { artEl.pause(); } catch (e) {} }
+        }
         else if (!isTextMode && DC.playing) { try { ytPlayer.pauseVideo(); } catch (e) {} }
         DC.playing = false; DC.seg = null;
         if (resetUI !== false) uiPlaying(false);
@@ -831,7 +841,12 @@
         }
     }
     function finish(natural) {
-        try { if (!isTextMode) ytPlayer.pauseVideo(); } catch (e) {}
+        if (isTextMode) {
+            const artEl = getArticleAudioEl();
+            if (artEl) { try { artEl.pause(); } catch (e) {} }
+        } else {
+            try { ytPlayer.pauseVideo(); } catch (e) {}
+        }
         clearInterval(DC.timer); DC.timer = null;
         DC.playing = false; DC.seg = null;
         uiPlaying(false);
@@ -842,6 +857,16 @@
         }
     }
     function tick() {
+        const artEl = getArticleAudioEl();
+        if (artEl && isTextMode) {
+            if (!DC.seg) return;
+            const t = artEl.currentTime || 0;
+            const seg = DC.seg;
+            setProgress((t - seg.base) / ((seg.full || seg.end) - seg.base));
+            dcKaraokeT(t);
+            if (t >= seg.end - 0.03 || artEl.paused) finish(true);
+            return;
+        }
         if (!DC.seg || !ytPlayer || !ytPlayer.getCurrentTime) return;
         let t; try { t = ytPlayer.getCurrentTime(); } catch (e) { return; }
         const seg = DC.seg, now = Date.now();
@@ -897,6 +922,23 @@
         if (!s || view !== 'dictation') return;
         stopAudio(false);
         if (isTextMode) {
+            const artEl = getArticleAudioEl();
+            if (artEl) {
+                const tt = tsGet(DC.idx), start = tt.s, end = tt.e;
+                const from = start + p0 * (end - start);
+                DC.seg = { start: from, end: start + p1 * (end - start), base: start, full: end };
+                DC.segAt = Date.now();
+                setDuration(Math.max(0.5, end - start));
+                try {
+                    artEl.currentTime = from;
+                    artEl.playbackRate = Math.max(0.5, Math.min(1.6, (settings && settings.playbackRate) || 1));
+                    artEl.play();
+                } catch (e) {}
+                DC.playing = true; uiPlaying(true); setProgress(p0);
+                clearInterval(DC.timer);
+                DC.timer = setInterval(tick, 30);
+                return;
+            }
             if (p0 > 0) {
                 const ws = String(s.text).split(/\s+/).filter(Boolean);
                 const k = Math.min(ws.length - 1, Math.floor(p0 * ws.length));
@@ -1301,7 +1343,14 @@
         clearTimeout(DC.autoTimer); clearTimeout(DC.waitTimer);
         closePop();
         if (DC.vid) saveProgress();
-        try { if (!isTextMode && ytPlayer && ytPlayer.pauseVideo) ytPlayer.pauseVideo(); } catch (e) {}
+        try {
+            if (isTextMode) {
+                const artEl = getArticleAudioEl();
+                if (artEl) artEl.pause();
+            } else if (ytPlayer && ytPlayer.pauseVideo) {
+                ytPlayer.pauseVideo();
+            }
+        } catch (e) {}
     }
 
     /* ====================== GẮN SỰ KIỆN ====================== */
@@ -1785,12 +1834,26 @@
     }
 
     function shFinish(natural) {
-        try { if (!isTextMode) ytPlayer.pauseVideo(); } catch (e) {}
+        if (isTextMode) {
+            const artEl = getArticleAudioEl();
+            if (artEl) { try { artEl.pause(); } catch (e) {} }
+        } else {
+            try { ytPlayer.pauseVideo(); } catch (e) {}
+        }
         clearInterval(SH.timer); SH.timer = null; SH.playing = false; SH.seg = null; shPlayUI(false);
         if (natural) { shProg(1); shAfterEnd(); }
         else if (SH.loop) shStopLoop();
     }
     function shTick() {
+        const artEl = getArticleAudioEl();
+        if (artEl && isTextMode) {
+            if (!SH.seg) return;
+            const t = artEl.currentTime || 0;
+            const seg = SH.seg;
+            shProg((t - seg.start) / (seg.end - seg.start), t);
+            if (t >= seg.end - 0.03 || artEl.paused) shFinish(true);
+            return;
+        }
         if (!SH.seg || !ytPlayer || !ytPlayer.getCurrentTime) return;
         let t; try { t = ytPlayer.getCurrentTime(); } catch (e) { return; }
         let st = -1; try { st = ytPlayer.getPlayerState(); } catch (e) {}
@@ -1849,7 +1912,26 @@
         shStopModel(false); shStopUser();
         SH.p0 = range && range.p0 != null ? range.p0 : 0;
         SH.p1 = range && range.p1 != null ? range.p1 : Math.max(0, SH.wEls.length - 1);
-        if (isTextMode) { shSpeak(range && range.text ? range.text : s.text); return; }
+        if (isTextMode) {
+            const artEl = getArticleAudioEl();
+            if (artEl) {
+                const tt = tsGet(SH.idx);
+                let start = tt.s, end = tt.e;
+                if (range && range.start != null) { start = range.start; if (range.end != null) end = range.end; if (!(end > start + 0.25)) end = start + 0.6; }
+                SH.seg = { start: start, end: end }; SH.segAt = Date.now(); SH.started = true;
+                shProg(0);
+                try {
+                    artEl.currentTime = start;
+                    artEl.playbackRate = Math.max(0.5, Math.min(1.6, (settings && settings.playbackRate) || 1));
+                    artEl.play();
+                } catch (e) {}
+                SH.playing = true; shPlayUI(true);
+                clearInterval(SH.timer); SH.timer = setInterval(shTick, 30);
+                return;
+            }
+            shSpeak(range && range.text ? range.text : s.text);
+            return;
+        }
         if (!ytPlayer || !isPlayerReady || !ytPlayer.seekTo) { shPlayUI(false); toast('Âm thanh đang tải, thử lại sau giây lát'); return; }
         const tt = tsGet(SH.idx);
         let start = tt.s, end = tt.e;
@@ -2305,7 +2387,14 @@
         shStopModel(true); shStopUser(); shMeterStop();
         shRestoreTip();
         if (SH.vid) shSave();
-        try { if (!isTextMode && ytPlayer && ytPlayer.pauseVideo) ytPlayer.pauseVideo(); } catch (e) {}
+        try {
+            if (isTextMode) {
+                const artEl = getArticleAudioEl();
+                if (artEl) artEl.pause();
+            } else if (ytPlayer && ytPlayer.pauseVideo) {
+                ytPlayer.pauseVideo();
+            }
+        } catch (e) {}
     }
 
     /* ----- Bôi đen chữ -> popup chỉ có nút "Loop" (dùng lại popup có sẵn của giao diện Mặc định) ----- */

@@ -5174,7 +5174,6 @@ html[data-ui="light"] body.text-mode #btn-toggle-bilingual {
 }
 
 /* Ẩn các công cụ video không dùng trên thanh header */
-html[data-ui="light"] body.text-mode #pv-switch,
 html[data-ui="light"] body.text-mode #btn-toggle-karaoke,
 html[data-ui="light"] body.text-mode #btn-toggle-autostop,
 html[data-ui="light"] body.text-mode #btn-toggle-autoscroll,
