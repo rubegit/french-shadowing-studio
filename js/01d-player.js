@@ -827,6 +827,10 @@
               <i data-lucide="languages" class="w-4 h-4"></i>
               <span>Dịch song ngữ</span>
             </button>
+            <button type="button" class="art-btn art-btn-edit-bilingual" id="art-side-btn-edit-trans" onclick="openBilingualModal(true)" title="Sửa hoặc nạp đè bản dịch song ngữ mới cho bài đọc này">
+              <i data-lucide="pencil" class="w-4 h-4"></i>
+              <span>Sửa bản dịch</span>
+            </button>
             <label class="art-btn" style="cursor:pointer;" title="Đính kèm hoặc đổi file âm thanh MP3 cho bài đọc này">
               <input type="file" id="art-side-audio-file-input" accept=".mp3,audio/mpeg" style="display:none;" onchange="uploadAudioForCurrentArticle(event)">
               <i data-lucide="music" class="w-4 h-4"></i>

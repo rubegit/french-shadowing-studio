@@ -478,18 +478,41 @@
         const gid0 = (typeof g.unit === 'number' && unitGrp) ? unitGrp[g.unit] : undefined;   // nhóm "câu theo dấu chấm" chứa đoạn AI này
         pieces.forEach((ws, pi) => {
           ws[ws.length - 1].joinNext = false;
-          out.push({ words: ws, vi: (pi === pieces.length - 1 && vi) ? vi : undefined, gid: gid0 === undefined ? undefined : (pieces.length > 1 ? gid0 + '.' + pi : gid0) });
+          out.push({ unitIdx: g.unit, words: ws, vi: (pi === pieces.length - 1 && vi) ? vi : undefined, gid: gid0 === undefined ? undefined : (pieces.length > 1 ? gid0 + '.' + pi : gid0) });
         });
       });
       aicStripWrapperQuotes(out);
 
       const result = out.map((g, idx) => {
+        let text = aicComposeText(g.words);
+        let words = g.words;
+
+        // Nếu người dùng chọn thay thế câu chuẩn từ AI (replaceFrench):
+        if (opts && opts.replaceFrench && typeof g.unitIdx === 'number' && opts.units && opts.units[g.unitIdx]) {
+          const aiSource = opts.units[g.unitIdx].source;
+          if (aiSource && typeof aiSource === 'string' && aiSource.trim()) {
+            text = aiSource.trim();
+            const newTokens = text.split(/\s+/).filter(Boolean);
+            if (words && words.length > 0) {
+              const tStart = words[0].startTime;
+              const tEnd = words[words.length - 1].endTime;
+              const step = Math.max(0.01, (tEnd - tStart) / newTokens.length);
+              words = newTokens.map((nw, k) => ({
+                word: nw,
+                startTime: Number((tStart + k * step).toFixed(3)),
+                endTime: Number((tStart + (k + 1) * step).toFixed(3)),
+                corrected: true
+              }));
+            }
+          }
+        }
+
         const s = {
           id: idx + 1,
-          startTime: g.words[0].startTime,
-          endTime: g.words[g.words.length - 1].endTime,
-          text: aicComposeText(g.words),
-          words: g.words
+          startTime: words[0].startTime,
+          endTime: words[words.length - 1].endTime,
+          text: text,
+          words: words
         };
         if (g.vi) s.vi = g.vi;
         if (g.gid !== undefined) s.gid = g.gid;   // các đoạn cùng gid = cùng một câu (kết thúc bằng . ? !): giao diện Mặc định tắt song ngữ sẽ nối liền lại
@@ -530,20 +553,26 @@
       const al = aicAlign(O, A, st.i0, st.j0);
       // Xét chất lượng khớp theo MẬT ĐỘ trong đoạn đã được AI phủ tới (không phải % toàn bài): AI trả lời thiếu
       // (video dài bị cắt giữa chừng) vẫn hợp lệ; còn dán nhầm/AI diễn đạt lại thì mật độ khớp rất thấp -> từ chối.
-      let firstMapped = -1, lastMapped = -1;
+      let firstMapped = -1, lastMapped = -1, mappedCount = 0;
       for (let i = 0; i < n; i++) {
-        if (al.map[i] !== -1) { if (firstMapped < 0) firstMapped = i; lastMapped = i; }
+        if (al.map[i] !== -1) {
+          if (firstMapped < 0) firstMapped = i;
+          lastMapped = i;
+          mappedCount++;
+        }
       }
       const span = lastMapped >= 0 ? lastMapped - firstMapped + 1 : 0;
       const density = span ? al.exact / span : 0;
-      if (al.exact < Math.min(n, 6) || density < 0.6) {
+      const minExact = Math.min(n, 6);
+      const passThreshold = (al.exact >= minExact && density >= 0.6) || (n < 12 && mappedCount >= Math.ceil(n * 0.5));
+      if (!passThreshold) {
         return {
           ok: false,
           error: `Nội dung vừa dán không khớp với phụ đề gốc (chỉ khớp được ${al.exact}/${n} từ) nên chưa áp dụng. Có thể AI đã diễn đạt lại nội dung, hoặc bạn dán nhầm câu trả lời.`
         };
       }
       const dropFillers = mode === 'trans' ? { dropFillers: true, sourceWordsByUnit } : null;
-      const rebuildOpts = customRebuildOpts || (mode === 'punct' ? { splitLong: 50 } : dropFillers);
+      const rebuildOpts = Object.assign({}, mode === 'punct' ? { splitLong: 50 } : dropFillers, customRebuildOpts || {});
       const sentences = aicRebuild(flat, tokens, al, unitVi, rebuildOpts, unitGrp);
       const tailWords = n - 1 - lastMapped;
       return {
@@ -1101,7 +1130,8 @@
         unitGrp.push(u.g);
       });
       if (!unitVi.some(Boolean)) return { ok: false, error: 'Không tìm thấy phần tiếng Việt trong câu trả lời. Hãy dán cả câu tiếng Pháp lẫn bản dịch tiếng Việt của AI.' };
-      return aicRun(sents, tokens, unitVi, 'trans', (lineChunks && units[0].g !== undefined) ? unitGrp : undefined, unitFrenchWords);
+      const rebuildOpts = Object.assign({}, opts || {}, { units: units });
+      return aicRun(sents, tokens, unitVi, 'trans', (lineChunks && units[0].g !== undefined) ? unitGrp : undefined, unitFrenchWords, rebuildOpts);
     }
 
     // Tỉ lệ từ có dấu câu THẬT (không tính dấu chấm do app tự chèn theo khoảng lặng) -> phát hiện phụ đề "không dấu câu".

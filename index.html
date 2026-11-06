@@ -239,6 +239,12 @@
         <span class="ai-open-links"><a class="ai-btn ai-open-link" href="https://gemini.google.com/app" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="gmg-bl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4285f4"/><stop offset=".55" stop-color="#9b72cb"/><stop offset="1" stop-color="#d96570"/></linearGradient></defs><path fill="url(#gmg-bl)" d="M12 0C12 6.63 6.63 12 0 12c6.63 0 12 5.37 12 12 0-6.63 5.37-12 12-12-6.63 0-12-5.37-12-12z"/></svg><span>Mở Gemini</span></a><a class="ai-btn ai-open-link" href="https://claude.ai/" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><g class="fs-brand-claude" fill="currentColor"><rect x="10.8" y="1" width="2.4" height="22" rx="1.2"/><rect x="10.8" y="1" width="2.4" height="22" rx="1.2" transform="rotate(45 12 12)"/><rect x="10.8" y="1" width="2.4" height="22" rx="1.2" transform="rotate(90 12 12)"/><rect x="10.8" y="1" width="2.4" height="22" rx="1.2" transform="rotate(135 12 12)"/></g></svg><span>Mở Claude</span></a></span>
       </div>
       <textarea id="bl-textarea" class="ai-textarea" spellcheck="false" placeholder="Dán câu trả lời của AI vào đây (có thể dán nguyên cả codebox hoặc toàn bộ phản hồi xen kẽ Pháp - Việt)..."></textarea>
+      <div id="bl-replace-fr-wrap" class="mt-2.5 flex items-center gap-2 text-xs fs-text-subtle select-none">
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" id="bl-replace-fr-cb" checked class="cursor-pointer" />
+          <span>Thay thế câu tiếng Pháp bằng bản chuẩn AI (nếu AI có sửa lỗi chính tả/ngữ pháp)</span>
+        </label>
+      </div>
       <div class="ai-actions">
         <button type="button" class="ai-btn ai-btn-primary" onclick="aiApply('trans-player')">
           <i data-lucide="check"></i><span>Áp dụng &amp; bật Song ngữ</span>
@@ -3370,9 +3376,9 @@
 
   <script src="js/01-core.js?v=7c3efb56"></script>
 <script src="js/01b-catalog.js?v=68c0f1d5"></script>
-<script src="js/01c-subtitles.js?v=d69f30f8"></script>
-<script src="js/01d-player.js?v=a103b48a"></script>
-<script src="js/01e-translate-ai.js?v=a60456d6"></script>
+<script src="js/01c-subtitles.js?v=369f95ef"></script>
+<script src="js/01d-player.js?v=e0dd1efb"></script>
+<script src="js/01e-translate-ai.js?v=5c8eaa51"></script>
 <script src="js/01f-lookup.js?v=bb67c688"></script>
 <script src="js/01g-vocab-list.js?v=aea397fd"></script>
 <script src="js/01h-ebook.js?v=52c35eec"></script>

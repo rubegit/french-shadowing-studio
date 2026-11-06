@@ -532,9 +532,15 @@
     // Chạy đúng thuật toán theo loại; với bản dịch, ưu tiên nối tiếp phần đang dịch dở, không được thì thử từ đầu.
     function aiRunApply(kind, text) {
       if (kind === 'punct' || kind === 'punct-player') return applyPunctuationFromAi(sentences, text, { lineChunks: !isTextMode });
+      const replaceFrCb = document.getElementById('bl-replace-fr-cb');
+      const replaceFrench = isTextMode || blReplaceMode || (replaceFrCb ? replaceFrCb.checked : true);
       const attempt = (from) => {
         const head = sentences.slice(0, from);
-        const r = applyBilingualFromAi(sentences.slice(from), text, { lineChunks: !isTextMode });
+        const r = applyBilingualFromAi(sentences.slice(from), text, {
+          lineChunks: !isTextMode,
+          replaceFrench: replaceFrench,
+          isTextMode: isTextMode
+        });
         if (r.ok) {
           r.sentences = head.concat(r.sentences);
           r.sentences.forEach((x, i) => { x.id = i + 1; });
@@ -543,7 +549,7 @@
         }
         return r;
       };
-      const start = aiTranslateStartIndex();
+      const start = blReplaceMode ? 0 : aiTranslateStartIndex();
       let r = attempt(start);
       if (!r.ok && start > 0) {
         const r2 = attempt(0);
@@ -746,6 +752,9 @@
         if (box) box.scrollTop = keepTop;
         persistSentencesToHistory();
         syncVocabSentenceTranslations(currentVideoId, sentences);
+        if (typeof renderArticleSidePanel === 'function') {
+          renderArticleSidePanel(currentVideoId, currentVideoTitle, sentences);
+        }
         if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
         return;
       }
