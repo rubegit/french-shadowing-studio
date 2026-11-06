@@ -323,32 +323,40 @@
       return null;
     }
 
-    // Thẻ bài văn bản: cùng khung với thẻ video. Thumbnail = ảnh đầu bài; không có ảnh thì hiện chính tiêu đề bài.
+    // Thẻ bài văn bản: theo phong cách thẻ bài báo .art-sample-row sang trọng, phẳng, đồng bộ
     function buildTextHistoryCardHTML(item) {
       const id = String(item.videoId).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
       const n = item.sentences ? item.sentences.length : 0;
       const hasVi = aicHasTranslation(item.sentences);
       const title = String(item.title || '').trim() || deriveTextTitle(item.sentences);
-      const ref = txtFirstImageRef(item);
-      const imgHTML = ref
-        ? `<img class="txt-thumb-img" alt="" decoding="async" referrerpolicy="no-referrer" />`
-        : '';
-      const dataAttrs = ref ? ` data-k="${escHtml(ref.k || '')}" data-u="${escHtml(ref.u || '')}"` : '';
+      let words = item.words || 0;
+      if (!words && item.sentences) {
+        for (let i = 0; i < item.sentences.length; i++) {
+          const s = item.sentences[i];
+          if (s && s.words && Array.isArray(s.words)) words += s.words.length;
+          else if (s && s.text) words += s.text.trim().split(/\s+/).filter(Boolean).length;
+        }
+      }
+      const desc = item.desc || (item.sentences && item.sentences.slice(0, 2).map((s) => (s && s.text ? s.text.trim() : '')).filter(Boolean).join(' ')) || '';
+      const level = item.level || 'B1';
       return `
-        <div onclick="loadFromHistory('${id}')" class="yt-card txt-card btn-interactive" title="Mở lại để luyện tiếp">
-          <button type="button" class="yt-card-remove" title="Xóa khỏi lịch sử" onclick="removeHistoryItem('${id}', event)"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-          <div class="yt-thumb-wrapper txt-thumb pointer-events-none"${dataAttrs}>
-            <span class="txt-thumb-quote">“</span>
-            <div class="txt-thumb-title"><span>${escHtml(title)}</span></div>
-            ${imgHTML}
-          </div>
-          <div class="yt-meta-container pointer-events-none">
-            <div class="yt-channel-avatar"><i data-lucide="file-text" class="w-4 h-4"></i></div>
-            <div class="yt-meta-text">
-              <h5 class="yt-video-title" title="${escHtml(title)}">${escHtml(title)}</h5>
-              <div class="yt-channel-name">${n} câu</div>
-              <div class="yt-views-date"><span>${hasVi ? 'Có song ngữ' : 'Chưa có song ngữ'}</span></div>
+        <div onclick="loadFromHistory('${id}')" class="yt-card txt-card art-sample-row art-history-card btn-interactive" role="button" tabindex="0" title="Mở lại để luyện tiếp">
+          <div class="art-sample-main">
+            <div class="art-sample-hd">
+              <h5 class="art-sample-title" title="${escHtml(title)}">${escHtml(title)}</h5>
             </div>
+            <p class="art-sample-desc">${escHtml(desc)}</p>
+            <div class="art-sample-meta">
+              <span>${words ? words + ' từ · ' : ''}${n} câu</span>
+              <span>·</span>
+              <span>${hasVi ? 'Có song ngữ' : 'Tiếng Pháp thực tế'}</span>
+            </div>
+          </div>
+          <div class="art-sample-side">
+            <span class="art-level-chip level-${escHtml(level.toLowerCase())}">${escHtml(level)}</span>
+            <button type="button" class="yt-card-remove" title="Xóa khỏi lịch sử" onclick="removeHistoryItem('${id}', event)">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            </button>
           </div>
         </div>
       `;

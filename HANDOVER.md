@@ -8,18 +8,18 @@
 ---
 
 ### 1. Metadata Bàn giao (Handover Metadata)
-- **Thời điểm cập nhật:** 2026-11-06T15:30:00-06:00
+- **Thời điểm cập nhật:** 2026-11-06T16:48:00-06:00
 - **Agent bàn giao (Outgoing Agent):** Antigravity Agent
-- **Mục đích:** Bàn giao hoàn tất các module M24 (Vocab Highlight & Span Self-healing), M25 (Core SRS Upgrades), M26 (Daily New Vocab Goal Selector & Scheduler Prioritization), M27 (Acoustic Forced Alignment qua Wav2Vec2 CTC), M28 (Bộ căn chỉnh Whisper độc lập & So sánh đối đầu), M29 (Tích hợp 1-click Dual Engine Chay_Dong_Bo.command), M30 (Tái cấu trúc thư mục done/[Tên_bài]/Json & txtMp3), M31 (Tinh giản thư mục Json), M32 (Bộ chia câu tự động đa tầng & xuất JSON đa segment theo từng câu cho CTC Aligner), và M33 (Audio Player Bar & Điều khiển phát câu bài báo).
+- **Mục đích:** Bàn giao hoàn tất các module M24 (Vocab Highlight & Span Self-healing), M25 (Core SRS Upgrades), M26 (Daily New Vocab Goal Selector & Scheduler Prioritization), M27 (Acoustic Forced Alignment qua Wav2Vec2 CTC), M28 (Bộ căn chỉnh Whisper độc lập & So sánh đối đầu), M29 (Tích hợp 1-click Dual Engine Chay_Dong_Bo.command), M30 (Tái cấu trúc thư mục done/[Tên_bài]/Json & txtMp3), M31 (Tinh giản thư mục Json), M32 (Bộ chia câu tự động đa tầng & xuất JSON đa segment theo từng câu cho CTC Aligner), M33 (Audio Player Bar & Điều khiển phát câu bài báo), và M34 (Đồng bộ 100% Player Video sang Bài báo & Seamless UI).
 - **Tài liệu tham chiếu bắt buộc:** [`AGENTS.md`](./AGENTS.md), [`PROJECT_STATUS.md`](./PROJECT_STATUS.md).
 
 ---
 
 ### 2. Bản chụp Trạng thái Git (Git State Snapshot)
 - **Nhánh hiện tại (Branch):** `main`
-- **HEAD Commit:** `c2e2f87` - `docs: update HANDOVER.md with M32 sentence-level segmentation approval`
+- **HEAD Commit:** `029da30` - `feat(player): M33 add article audio player bar, circular translation toggle, and sentence play control`
 - **Tình trạng Remote:** Up-to-date with `origin/main`.
-- **Trạng thái Working Tree:** Có thay đổi của M33 đã nghiệm thu và build hoàn tất.
+- **Trạng thái Working Tree:** Có thay đổi của M34 đã nghiệm thu và build hoàn tất.
 
 ---
 
@@ -42,8 +42,21 @@
   - Tích hợp thanh Player `#art-player-bar` phía trên thẻ câu: hiển thị tiến trình, thời gian hiện tại / tổng thời lượng, thanh trượt tua, nút thu âm, ô nhập tốc độ và dải nút chọn nhanh tốc độ (0.5x, 0.75x, 0.9x, 1.0x, 1.25x).
   - Thay thế nút chữ "CC" bằng icon tròn bản dịch (hai mũi tên xoay tròn lồng chữ `文` và `A`): khi Bật có nền xanh nhạt (`var(--fs-tint)`), icon chữ xanh đậm (`var(--fs-accent-text)`); khi Tắt có nền trắng (`var(--fs-surface-card)`), icon màu xanh đậm.
   - Thêm nút Play/Stop câu hiện tại (`#art-cs-play`) vào hàng điều hướng trước nút Tự dừng theo thứ tự: `< Câu trước | [Play/Stop] | Tự dừng | Câu sau >`.
+- **M34** (Đồng bộ 100% Player Video sang Bài báo & Seamless UI - Đã nghiệm thu):
+  - Bê nguyên vẹn cấu trúc và CSS của `#pv-ctl` sang `#art-player-bar` (`.pc`, `.tl`, `.pc-r1`): cố định 2 hàng, ô nhập tốc độ giới hạn gọn gàng `calc(3ch - 2px)` (~75px), tuyệt đối không bao giờ rớt dòng.
+  - Nút dịch tròn kích thước `41px × 41px` bo góc `11px` chuẩn theo `.cc-btn`.
+  - Triển khai Seamless UI hòa trộn 3 tầng: tầng trên bo góc đỉnh `16px 16px 0 0`, tầng giữa phẳng `0`, tầng dưới bo góc đáy `0 0 16px 16px`, toàn bộ `margin-bottom: 0 !important` xóa sạch rãnh hở cam.
+  - Vùng phụ đề bài báo tràn viền `width: 100%`, `max-width: none`, đệm trên `padding-top: 28px` và thanh cuộn tùy biến tiệp màu nền.
+- **M35** (Đồng bộ Thẻ bài báo "Văn bản Bạn Đã Luyện" theo mẫu Thẻ đọc bài có sẵn - Đã hoàn thành):
+  - Chuyển đổi toàn bộ thẻ bài báo trong hàng "Văn bản Bạn Đã Luyện" sang cấu trúc `.art-sample-row` giống hệt hàng bài mẫu bên dưới: tiêu đề in đậm (tối đa 2 dòng), huy hiệu cấp độ CEFR (`B1`, `A2`...) dạng pill mềm mại, trích dẫn ngắn 2 dòng (`snippet preview`), đường gạch nét đứt và footer thống kê số từ, số câu, trạng thái song ngữ.
+  - Loại bỏ hoàn toàn hộp màu xanh thô kệch (`.txt-thumb`), dấu nháy kép `“` và việc lặp lại tiêu đề 2 lần.
+  - Nút xóa thùng rác (`yt-card-remove`) được đặt gọn gàng cạnh huy hiệu cấp độ ở góc trên bên phải, xóa bài an toàn và không bị che khuất.
+  - Bổ sung hộp thoại hỏi xác nhận (`confirm`) chi tiết trước khi xóa bất kỳ bài đọc/video nào để chống bấm nhầm: người dùng bấm Cancel/Hủy sẽ hủy lệnh xóa an toàn; nêu rõ tên bài và lưu ý tự động backup song ngữ nếu có.
+  - Đồng bộ `artCardHTML` trong `js/01d-player.js` sang cấu trúc `.art-sample-row`.
 - **Bộ kiểm thử tự động:**
-  - `node --test tools/*.test.js`: **307 / 307 PASS (100%)**.
+  - 312 bài kiểm thử tự động toàn diện chạy qua `node --test tools/*.test.js` đạt 312/312 passed 100%.
+  - Ngân sách mã màu giữ nguyên mức 921 mã hex, 0 inline colors, 0 Tailwind colors (`node tools/lint-color.js`).
+  - `node --test tools/*.test.js`: **308 / 308 PASS (100%)**.
   - `node tools/lint-color.js`: **921 / 921 HEX**, **0 inline style**, **0 tailwind color**.
 
 ---

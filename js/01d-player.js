@@ -173,10 +173,21 @@
       try {
         const raw = getRawHistory();
         const currentItem = raw.find(function(h) { return h.videoId === videoId; });
-        if (currentItem && currentItem.sentences && typeof aicHasTranslation === 'function' && aicHasTranslation(currentItem.sentences)) {
-          if (!confirm('Video này đã có bản dịch song ngữ tiếng Việt. Bạn có chắc chắn muốn xóa không?')) {
-            return;
-          }
+        const isText = currentItem && (currentItem.isText || String(videoId).startsWith('txt_') || String(videoId).startsWith('art_lib_'));
+        const itemType = isText ? 'bài đọc' : 'video';
+        const itemTitle = currentItem && currentItem.title ? `"${currentItem.title}"` : '';
+        const hasTrans = currentItem && currentItem.sentences && typeof aicHasTranslation === 'function' && aicHasTranslation(currentItem.sentences);
+
+        // Hỏi xác nhận trước khi xóa để tránh nhấn nhầm
+        let confirmMsg = `Bạn có chắc chắn muốn xóa ${itemType} ${itemTitle} khỏi lịch sử đã luyện không?`.replace(/\s+/g, ' ');
+        if (hasTrans) {
+          confirmMsg += `\n\n(Lưu ý: ${isText ? 'Bài đọc' : 'Video'} này đã có bản dịch song ngữ tiếng Việt, hệ thống sẽ lưu dự phòng phòng khi bạn nạp lại).`;
+        }
+        if (!confirm(confirmMsg)) {
+          return;
+        }
+
+        if (hasTrans) {
           // Lưu dự phòng bản dịch song ngữ trước khi xóa để có thể hỏi khôi phục khi nạp lại
           setArchivedTranslation(videoId, {
             title: currentItem.title,
@@ -1246,11 +1257,13 @@
           if (durEl) durEl.textContent = formatArtTime(maxD);
           const rangeEl = document.getElementById('art-pb-range');
           const fillEl = document.getElementById('art-pb-fill');
+          const thumbEl = document.getElementById('art-pb-thumb');
           if (rangeEl && maxD > 0) {
             rangeEl.max = maxD;
             rangeEl.value = ct;
             const pct = Math.max(0, Math.min(100, (ct / maxD) * 100));
             if (fillEl) fillEl.style.width = pct + '%';
+            if (thumbEl) thumbEl.style.left = pct + '%';
           }
 
           if (isTextMode && sentences && sentences.length) {
@@ -2436,27 +2449,28 @@ ${truncated}`;
       try { return await artLibLoading; } finally { artLibLoading = null; }
     }
 
-    // Thẻ bài viết có sẵn: cùng khung .yt-card với thẻ "Văn bản Bạn Đã Luyện"
+    // Thẻ bài viết có sẵn: cùng phong cách .art-sample-row
     function artCardHTML(it, hist) {
       const h = hist.find((x) => x.videoId === 'art_lib_' + it.id && x.isText);
-      const mins = Math.max(1, Math.round(it.words / 200));
       const status = h ? (aicHasTranslation(h.sentences) ? 'Có song ngữ' : 'Chưa có song ngữ') : 'Chưa đọc';
-      const imgHTML = it.thumb ? '<img class="txt-thumb-img" alt="" decoding="async" referrerpolicy="no-referrer" />' : '';
+      const level = it.level || 'B1';
       return `
-        <div class="yt-card txt-card art-yt-card btn-interactive" data-id="${escHtml(it.id)}" role="button" tabindex="0" title="Bấm để đọc bài này">
-          <div class="yt-thumb-wrapper txt-thumb pointer-events-none">
-            <span class="txt-thumb-quote">“</span>
-            <div class="txt-thumb-title"><span>${escHtml(it.title)}</span></div>
-            ${imgHTML}
-            <div class="yt-card-loading-overlay"><span class="yt-card-loading-spinner"></span><span>Đang mở...</span></div>
-          </div>
-          <div class="yt-meta-container pointer-events-none">
-            <div class="yt-channel-avatar"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg></div>
-            <div class="yt-meta-text">
-              <h5 class="yt-video-title" title="${escHtml(it.title)}">${escHtml(it.title)}</h5>
-              <div class="yt-channel-name">${it.sentCount} câu · ~${mins} phút</div>
-              <div class="yt-views-date"><span>${status}</span></div>
+        <div class="art-sample-row art-yt-card btn-interactive" data-id="${escHtml(it.id)}" role="button" tabindex="0" title="Bấm để đọc bài này">
+          <div class="art-sample-main">
+            <div class="art-sample-hd">
+              <h5 class="art-sample-title" title="${escHtml(it.title)}">${escHtml(it.title)}</h5>
             </div>
+            <p class="art-sample-desc">${escHtml(it.preview || '')}</p>
+            <div class="art-sample-meta">
+              <span>${it.words} từ</span>
+              <span>·</span>
+              <span>${it.sentCount} câu</span>
+              <span>·</span>
+              <span>${status}</span>
+            </div>
+          </div>
+          <div class="art-sample-side">
+            <span class="art-level-chip level-${level.toLowerCase()}">${level}</span>
           </div>
         </div>`;
     }

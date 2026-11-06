@@ -4782,80 +4782,66 @@ html[data-ui="light"] #text-history-container .netflix-scroll-inner {
   -webkit-overflow-scrolling: touch !important;
 }
 
-html[data-ui="light"] #text-history-container .yt-card.txt-card {
-  flex: 0 0 250px !important;
-  min-width: 250px !important;
-  max-width: 280px !important;
+html[data-ui="light"] #text-history-container .art-sample-row {
+  flex: 0 0 290px !important;
+  min-width: 290px !important;
+  max-width: 320px !important;
+  min-height: 170px !important;
+  padding: 18px 20px !important;
   background: var(--fs-surface) !important;
   border: 1px solid var(--fs-line) !important;
   border-radius: 16px !important;
-  padding: 14px 16px !important;
   box-shadow: var(--fs-shadow-xs) !important;
   display: flex !important;
   flex-direction: column !important;
   justify-content: space-between !important;
   cursor: pointer !important;
   position: relative !important;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
   box-sizing: border-box !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
-html[data-ui="light"] #text-history-container .yt-card.txt-card:hover {
+html[data-ui="light"] #text-history-container .art-sample-row:hover {
   transform: translateY(-2px) !important;
   border-color: var(--fs-primary) !important;
   box-shadow: var(--fs-shadow) !important;
 }
 
-html[data-ui="light"] #text-history-container .yt-thumb-wrapper.txt-thumb {
-  height: 72px !important;
-  border-radius: 12px !important;
-  background: var(--fs-tint) !important;
+html[data-ui="light"] #text-history-container .art-history-card .art-sample-title {
+  padding-right: 75px !important;
+}
+
+html[data-ui="light"] #text-history-container .art-sample-side {
+  position: absolute !important;
+  top: 16px !important;
+  right: 16px !important;
   display: flex !important;
   align-items: center !important;
-  justify-content: center !important;
-  padding: 10px !important;
-  overflow: hidden !important;
-  margin-bottom: 10px !important;
-  box-sizing: border-box !important;
-}
-
-html[data-ui="light"] #text-history-container .txt-thumb-quote {
-  display: none !important;
-}
-
-html[data-ui="light"] #text-history-container .txt-thumb-title span {
-  font-size: 13px !important;
-  font-weight: 700 !important;
-  color: var(--fs-accent-text) !important;
-  line-height: 1.4 !important;
-  text-align: center !important;
-  display: -webkit-box !important;
-  -webkit-line-clamp: 2 !important;
-  -webkit-box-orient: vertical !important;
-  overflow: hidden !important;
+  gap: 8px !important;
 }
 
 html[data-ui="light"] #text-history-container .yt-card-remove {
-  position: absolute !important;
-  top: 10px !important;
-  right: 10px !important;
-  width: 28px !important;
-  height: 28px !important;
-  border-radius: 8px !important;
-  background: var(--fs-surface) !important;
+  position: static !important;
+  width: 24px !important;
+  height: 24px !important;
+  border-radius: var(--fs-radius-sm) !important;
+  background: transparent !important;
   border: 1px solid var(--fs-line) !important;
   color: var(--fs-muted) !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  opacity: 0.8 !important;
+  cursor: pointer !important;
+  opacity: 0.75 !important;
   transition: all 0.2s ease !important;
+  padding: 0 !important;
 }
 
 html[data-ui="light"] #text-history-container .yt-card-remove:hover {
+  opacity: 1 !important;
   color: var(--fs-danger) !important;
   border-color: var(--fs-danger) !important;
-  opacity: 1 !important;
+  background: var(--fs-surface-subtle) !important;
 }
 
 html[data-ui="light"] #text-history-container .yt-video-title {
@@ -5245,11 +5231,11 @@ html[data-ui="light"] body.text-mode #keyvocab-panel-container {
   display: none !important;
 }
 
-/* Vùng cuộn đọc bài max-width 720px căn giữa */
+/* Vùng cuộn đọc bài tràn viền theo Seamless UI */
 html[data-ui="light"] body.text-mode #subtitles-scroll-container {
-  max-width: 720px !important;
-  margin: 0 auto !important;
-  padding: 32px 28px !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 28px 24px !important;
   width: 100% !important;
   box-sizing: border-box !important;
   flex: 1 !important;
@@ -12124,7 +12110,7 @@ html[data-ui="light"][data-theme="dark"] .home-sub {
   display: flex;
   flex-direction: column;
   width: 100%;
-  margin-bottom: 12px;
+  margin-bottom: 0;
 }
 
 html[data-ui="light"] #art-cs-text {

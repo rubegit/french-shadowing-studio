@@ -211,13 +211,13 @@
 <link rel="stylesheet" href="css/10-ios-fix.css?v=d3dc0391" id="ios-fix">
 <link rel="stylesheet" href="css/11-view-translate.css?v=4e966b8a" id="vt-style">
 <link rel="stylesheet" href="css/12-video-timeline.css?v=6a4f7d5e" id="vp-style">
-<link rel="stylesheet" href="css/13-default-controls.css?v=8429a5c8" id="pv-ctl-style">
+<link rel="stylesheet" href="css/13-default-controls.css?v=6e7a3072" id="pv-ctl-style">
 
-  <link rel="stylesheet" href="css/14-subtitle-card.css?v=bd1d44b9" id="cs-style">
+  <link rel="stylesheet" href="css/14-subtitle-card.css?v=e35af262" id="cs-style">
 <link rel="stylesheet" href="css/15-ipa-highlight.css?v=5b8c6b2b" id="ipa-hl-style">
 <link rel="stylesheet" href="css/16-own-video.css?v=e27c9e09" id="own-yt-style">
   <!-- Redesign Theme: Mint Pastel & Dark Mode (Spec 2026) -->
-  <link rel="stylesheet" href="css/theme-light.css?v=a216d540">
+  <link rel="stylesheet" href="css/theme-light.css?v=671aec1b">
 </head>
 <body class="fs-surface-base fs-text-primary min-h-screen flex flex-col antialiased" onclick="ensurePageFocus()">
 
@@ -3035,55 +3035,64 @@
               </div>
             </div>
           </div>
-          <!-- THANH PLAYER BÀI BÁO (THEO HÌNH MẪU 1) -->
-          <div id="art-player-bar" class="art-player-bar fs-surface-card border fs-border-base rounded-2xl px-4 py-2.5 shadow-md shrink-0" style="display:none;" aria-label="Thanh điều khiển âm thanh bài đọc">
-            <div class="art-pb-timeline">
-              <span class="art-pb-time cur" id="art-pb-cur-time" onclick="toggleArtTimeMode()" title="Bấm để đổi Giây / Phút">0.0s</span>
-              <div class="art-pb-track" id="art-pb-track" role="slider" aria-label="Tua audio bài báo" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0">
-                <div class="art-pb-rail">
-                  <div class="art-pb-fill" id="art-pb-fill"></div>
+          <!-- THANH PLAYER BÀI BÁO (THEO THIẾT KẾ VIDEO & SEAMLESS UI) -->
+          <div id="art-player-bar" class="art-player-bar fs-surface-card border fs-border-base px-4 py-2.5 shadow-md shrink-0" style="display:none;" aria-label="Thanh điều khiển âm thanh bài đọc">
+            <div class="pc">
+              <!-- HÀNG 1: TIMELINE THEO CHUẨN VIDEO -->
+              <div id="art-tl" class="tl" aria-label="Thanh thời gian bài đọc">
+                <span class="tl-time cur" id="art-pb-cur-time" onclick="toggleArtTimeMode()" title="Bấm để đổi Giây / Phút">0.0s</span>
+                <div class="tl-track" id="art-pb-track" role="slider" aria-label="Tua audio bài báo" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0">
+                  <div class="tl-rail">
+                    <div class="tl-buf" id="art-pb-buf"></div>
+                    <div class="tl-fill" id="art-pb-fill"></div>
+                  </div>
+                  <div class="tl-thumb" id="art-pb-thumb"></div>
+                  <input type="range" class="art-pb-range" id="art-pb-range" min="0" max="100" step="0.1" value="0" aria-label="Tua audio bài báo" oninput="onArtAudioSliderInput(this.value)">
                 </div>
-                <input type="range" class="art-pb-range" id="art-pb-range" min="0" max="100" step="0.1" value="0" aria-label="Tua audio bài báo" oninput="onArtAudioSliderInput(this.value)">
-              </div>
-              <span class="art-pb-time dur" id="art-pb-dur-time" onclick="toggleArtTimeMode()" title="Bấm để đổi Giây / Phút">0.0s</span>
-            </div>
-            <div class="art-pb-controls">
-              <!-- NÚT DỊCH (TRANSLATE ICON SHOW/HIDE) -->
-              <button type="button" class="art-translate-btn" id="art-translate-btn" onclick="toggleBilingual()" title="Hiện / Ẩn bản dịch tiếng Việt" aria-label="Bản dịch tiếng Việt">
-                <svg viewBox="0 0 24 24" fill="none" class="art-translate-icon" aria-hidden="true" style="width:20px;height:20px;">
-                  <path d="M4.5 10.5C5.2 6.8 8.3 4 12 4c3.4 0 6.3 2.4 7.2 5.7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  <path d="m17 11 3-1.3.8-3.2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M19.5 13.5C18.8 17.2 15.7 20 12 20c-3.4 0-6.3-2.4-7.2-5.7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  <path d="m7 13-3 1.3-.8 3.2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <text x="8.5" y="10.8" font-size="6.8" font-weight="800" fill="currentColor" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">文</text>
-                  <text x="15.2" y="16.5" font-size="7.2" font-weight="800" fill="currentColor" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">A</text>
-                </svg>
-              </button>
-
-              <!-- NÚT THU ÂM -->
-              <div class="art-pb-rec" id="art-pb-rec">
-                <button type="button" class="pv-rbtn redo" id="art-rec-btn" onclick="toggleArticleRec()" title="Nhấn để thu âm giọng của bạn" aria-label="Thu âm">
-                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style="width:16px;height:16px"><path d="M12 14.5a3.5 3.5 0 0 0 3.5-3.5V6a3.5 3.5 0 0 0-7 0v5a3.5 3.5 0 0 0 3.5 3.5z"/><path d="M6 11a1 1 0 1 0-2 0 8 8 0 0 0 7 7.94V21H8.5a1 1 0 1 0 0 2h7a1 1 0 1 0 0-2H13v-2.06A8 8 0 0 0 20 11a1 1 0 1 0-2 0 6 6 0 0 1-12 0z"/></svg>
-                  <span class="lbl" id="art-rec-lbl">Nhấn để thu âm</span>
-                </button>
+                <span class="tl-time" id="art-pb-dur-time" onclick="toggleArtTimeMode()" title="Bấm để đổi Giây / Phút">0.0s</span>
               </div>
 
-              <!-- Ô NHẬP TỐC ĐỘ -->
-              <div class="rate-ctl big art-rate-ctl" title="Tốc độ phát">
-                <span class="rate-input-wrap">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg>
-                  <input id="art-rate-input" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" maxlength="5" value="1.0" aria-label="Tốc độ phát" onfocus="this.select()" onkeydown="artRateInputKey(event)" onblur="commitArtRateInput()">
-                  <span class="rate-input-x">x</span>
-                </span>
-              </div>
+              <!-- HÀNG 2: [CC/DỊCH] [THU ÂM] [TỐC ĐỘ] [CHỌN NHANH] NẰM TRÊN 1 HÀNG KHÔNG BAO GIỜ RỚT DÒNG -->
+              <div class="pc-r1">
+                <!-- NÚT DỊCH (kế thừa cc-btn) -->
+                <div class="cc-wrap" id="art-translate-wrap">
+                  <button type="button" class="art-translate-btn cc-btn" id="art-translate-btn" onclick="toggleBilingual()" title="Hiện / Ẩn bản dịch tiếng Việt" aria-label="Bản dịch tiếng Việt">
+                    <svg viewBox="0 0 24 24" fill="none" class="art-translate-icon" aria-hidden="true" style="width:20px;height:20px;">
+                      <path d="M4.5 10.5C5.2 6.8 8.3 4 12 4c3.4 0 6.3 2.4 7.2 5.7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                      <path d="m17 11 3-1.3.8-3.2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path d="M19.5 13.5C18.8 17.2 15.7 20 12 20c-3.4 0-6.3-2.4-7.2-5.7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                      <path d="m7 13-3 1.3-.8 3.2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      <text x="8.5" y="10.8" font-size="6.8" font-weight="800" fill="currentColor" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">文</text>
+                      <text x="15.2" y="16.5" font-size="7.2" font-weight="800" fill="currentColor" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">A</text>
+                    </svg>
+                  </button>
+                </div>
 
-              <!-- DẢI NÚT CHỌN NHANH TỐC ĐỘ -->
-              <div class="dc-seg pv-speeds art-speeds" id="art-speeds" role="group" aria-label="Chọn nhanh tốc độ phát bài báo">
-                <button type="button" data-sp="0.5" onclick="setArtAudioSpeed(0.5)" title="Tốc độ 0.5x">0.5<i>x</i></button>
-                <button type="button" data-sp="0.75" onclick="setArtAudioSpeed(0.75)" title="Tốc độ 0.75x">0.75<i>x</i></button>
-                <button type="button" data-sp="0.9" onclick="setArtAudioSpeed(0.9)" title="Tốc độ 0.9x">0.9<i>x</i></button>
-                <button type="button" data-sp="1" class="on" onclick="setArtAudioSpeed(1)" title="Tốc độ gốc 1.0x">1.0<i>x</i></button>
-                <button type="button" data-sp="1.25" onclick="setArtAudioSpeed(1.25)" title="Tốc độ 1.25x">1.25<i>x</i></button>
+                <!-- NÚT THU ÂM -->
+                <div class="pv-rec" id="art-pb-rec">
+                  <button type="button" class="pv-rbtn redo" id="art-rec-btn" onclick="toggleArticleRec()" title="Nhấn để thu âm giọng của bạn" aria-label="Thu âm">
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style="width:16px;height:16px"><path d="M12 14.5a3.5 3.5 0 0 0 3.5-3.5V6a3.5 3.5 0 0 0-7 0v5a3.5 3.5 0 0 0 3.5 3.5z"/><path d="M6 11a1 1 0 1 0-2 0 8 8 0 0 0 7 7.94V21H8.5a1 1 0 1 0 0 2h7a1 1 0 1 0 0-2H13v-2.06A8 8 0 0 0 20 11a1 1 0 1 0-2 0 6 6 0 0 1-12 0z"/></svg>
+                    <span class="lbl" id="art-rec-lbl">Nhấn để thu âm</span>
+                  </button>
+                </div>
+
+                <!-- Ô NHẬP TỐC ĐỘ (chuẩn rate-ctl big của video) -->
+                <div class="rate-ctl big" title="Tốc độ phát">
+                  <span class="rate-input-wrap">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg>
+                    <input id="art-rate-input" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" maxlength="5" value="1.0" aria-label="Tốc độ phát" onfocus="this.select()" onkeydown="artRateInputKey(event)" onblur="commitArtRateInput()">
+                    <span class="rate-input-x">x</span>
+                  </span>
+                </div>
+
+                <!-- DẢI NÚT CHỌN NHANH TỐC ĐỘ (chuẩn dc-seg pv-speeds của video) -->
+                <div class="dc-seg pv-speeds" id="art-speeds" role="group" aria-label="Chọn nhanh tốc độ phát bài báo">
+                  <button type="button" data-sp="0.5" onclick="setArtAudioSpeed(0.5)" title="Tốc độ 0.5x">0.5<i>x</i></button>
+                  <button type="button" data-sp="0.75" onclick="setArtAudioSpeed(0.75)" title="Tốc độ 0.75x">0.75<i>x</i></button>
+                  <button type="button" data-sp="0.9" onclick="setArtAudioSpeed(0.9)" title="Tốc độ 0.9x">0.9<i>x</i></button>
+                  <button type="button" data-sp="1" class="on" onclick="setArtAudioSpeed(1)" title="Tốc độ gốc 1.0x">1.0<i>x</i></button>
+                  <button type="button" data-sp="1.25" onclick="setArtAudioSpeed(1.25)" title="Tốc độ 1.25x">1.25<i>x</i></button>
+                </div>
               </div>
             </div>
           </div>
@@ -3386,9 +3395,9 @@
   </div>
 
   <script src="js/01-core.js?v=7c3efb56"></script>
-<script src="js/01b-catalog.js?v=68c0f1d5"></script>
+<script src="js/01b-catalog.js?v=5cb86750"></script>
 <script src="js/01c-subtitles.js?v=3af8985c"></script>
-<script src="js/01d-player.js?v=e2efdb8b"></script>
+<script src="js/01d-player.js?v=526c4249"></script>
 <script src="js/01e-translate-ai.js?v=ac4420d6"></script>
 <script src="js/01f-lookup.js?v=bb67c688"></script>
 <script src="js/01g-vocab-list.js?v=f5308197"></script>
@@ -3400,7 +3409,7 @@
 <script id="vt-script" src="js/05-translate-engine.js?v=053f6b41"></script>
 <!-- ============ ĐÁNH DẤU NHẸ TỪ / CỤM / CÂU ĐÃ LƯU (chỉ tính các mục lưu từ chính video / bài viết đang mở) ============ -->
 <link rel="stylesheet" href="css/17-mobile-tweaks.css?v=9552bb4c" id="mobile-tweaks">
-<link rel="stylesheet" href="css/18-controls-layout.css?v=aa8f810b" id="pv-ctl-layout">
+<link rel="stylesheet" href="css/18-controls-layout.css?v=25985164" id="pv-ctl-layout">
 <link rel="stylesheet" href="css/19-vs-style.css?v=3933b013" id="vs-style">
 <link rel="stylesheet" href="css/20-mobile-polish.css?v=8a08f1a3" id="mobile-polish">
 <script id="vs-script" src="js/06-audio-sync.js?v=24bc93c7"></script>
