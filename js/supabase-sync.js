@@ -606,6 +606,9 @@
     } finally {
       isFullSyncing = false;
       renderModalContent();
+      if (typeof window.syncAllLocalArticleAudiosToCloud === 'function') {
+        window.syncAllLocalArticleAudiosToCloud().catch(function () {});
+      }
     }
   }
 
@@ -700,6 +703,9 @@
     updateSyncStatus('syncing', 'Đang ghi đè dữ liệu lên Cloud…');
     try {
       await pushAllDataToCloud(getLocalVocab(), getLocalHistory(), getLocalProgress());
+      if (typeof window.syncAllLocalArticleAudiosToCloud === 'function') {
+        await window.syncAllLocalArticleAudiosToCloud();
+      }
       alert('✓ Đã ghi đè dữ liệu máy này lên Cloud thành công!');
       if (typeof showVocabToast === 'function') showVocabToast('Đã ghi đè Cloud thành công', true);
     } catch (err) {
@@ -1266,8 +1272,17 @@
       return;
     }
     pullAllDataFromCloud().then(function () {
-      if (typeof showVocabToast === 'function') {
-        showVocabToast('Đã đồng bộ toàn bộ Từ vựng & Video thành công', true);
+      if (typeof window.syncAllLocalArticleAudiosToCloud === 'function') {
+        window.syncAllLocalArticleAudiosToCloud().then(function (audioRes) {
+          var audioMsg = (audioRes && audioRes.synced > 0) ? (' và ' + audioRes.synced + ' file audio') : '';
+          if (typeof showVocabToast === 'function') {
+            showVocabToast('Đã đồng bộ toàn bộ Từ vựng, Video' + audioMsg + ' thành công', true);
+          }
+        });
+      } else {
+        if (typeof showVocabToast === 'function') {
+          showVocabToast('Đã đồng bộ toàn bộ Từ vựng & Video thành công', true);
+        }
       }
     });
   };

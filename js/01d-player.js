@@ -948,7 +948,7 @@
       return artAudioDbPromise;
     }
 
-    function saveArticleAudioBlob(docId, file) {
+    function saveArticleAudioBlob(docId, file, skipUpload = false) {
       if (!docId || !file) return Promise.resolve(false);
       return getArtAudioDb().then(db => new Promise((resolve, reject) => {
         const tx = db.transaction('audios', 'readwrite');
@@ -959,16 +959,20 @@
           size: file.size,
           type: file.type || 'audio/mpeg',
           blob: file,
+          syncedAt: skipUpload ? Date.now() : undefined,
           updatedAt: Date.now()
         });
         tx.oncomplete = () => {
-          // Tự động đẩy file MP3 lên Supabase Storage (nếu đã đăng nhập)
-          if (window.FSS_SUPABASE && typeof window.FSS_SUPABASE.uploadArticleAudio === 'function') {
+          // Tự động đẩy file MP3 lên Supabase Storage (nếu đã đăng nhập và không phải skipUpload)
+          if (!skipUpload && window.FSS_SUPABASE && typeof window.FSS_SUPABASE.uploadArticleAudio === 'function') {
             if (typeof window.FSS_SUPABASE.isReady === 'function' && window.FSS_SUPABASE.isReady()) {
               if (typeof showVocabToast === 'function') showVocabToast('Đang đồng bộ audio bài báo lên Cloud...', true);
               window.FSS_SUPABASE.uploadArticleAudio(docId, file).then(res => {
-                if (res && res.path && typeof showVocabToast === 'function') {
-                  showVocabToast('Đã đồng bộ audio bài báo lên Cloud (sẵn sàng mở ở máy khác)', true);
+                if (res && res.path) {
+                  markArticleAudioSynced(docId);
+                  if (typeof showVocabToast === 'function') {
+                    showVocabToast('Đã đồng bộ audio bài báo lên Cloud (sẵn sàng mở ở máy khác)', true);
+                  }
                 }
               }).catch(() => {});
             } else {
@@ -983,6 +987,56 @@
       }));
     }
 
+    function markArticleAudioSynced(docId) {
+      if (!docId) return Promise.resolve(false);
+      return getArtAudioDb().then(db => new Promise((resolve) => {
+        const tx = db.transaction('audios', 'readwrite');
+        const store = tx.objectStore('audios');
+        const req = store.get(docId);
+        req.onsuccess = () => {
+          const item = req.result;
+          if (item) {
+            item.syncedAt = Date.now();
+            store.put(item);
+          }
+          resolve(true);
+        };
+        req.onerror = () => resolve(false);
+      })).catch(() => false);
+    }
+
+    function getAllLocalArticleAudios() {
+      return getArtAudioDb().then(db => new Promise((resolve) => {
+        const tx = db.transaction('audios', 'readonly');
+        const store = tx.objectStore('audios');
+        const req = store.getAll();
+        req.onsuccess = () => resolve(req.result || []);
+        req.onerror = () => resolve([]);
+      })).catch(() => []);
+    }
+
+    async function syncAllLocalArticleAudiosToCloud() {
+      if (!window.FSS_SUPABASE || typeof window.FSS_SUPABASE.isReady !== 'function' || !window.FSS_SUPABASE.isReady() || typeof window.FSS_SUPABASE.uploadArticleAudio !== 'function') {
+        return { total: 0, synced: 0 };
+      }
+      const audios = await getAllLocalArticleAudios();
+      if (!audios || !audios.length) return { total: 0, synced: 0 };
+      let syncedCount = 0;
+      for (const item of audios) {
+        if (!item || !item.id || !item.blob) continue;
+        try {
+          const res = await window.FSS_SUPABASE.uploadArticleAudio(item.id, item.blob);
+          if (res && res.path) {
+            await markArticleAudioSynced(item.id);
+            syncedCount++;
+          }
+        } catch (e) {
+          console.warn('[Sync Audio Batch] Lỗi đồng bộ audio:', item.id, e);
+        }
+      }
+      return { total: audios.length, synced: syncedCount };
+    }
+
     function getArticleAudioBlob(docId) {
       if (!docId) return Promise.resolve(null);
       return getArtAudioDb().then(db => new Promise((resolve) => {
@@ -992,6 +1046,19 @@
         req.onsuccess = () => {
           const res = req.result || null;
           if (res && res.blob) {
+            // Tự động đẩy file MP3 có sẵn lên Cloud nếu chưa được sync và user đang đăng nhập
+            if (window.FSS_SUPABASE && typeof window.FSS_SUPABASE.uploadArticleAudio === 'function' && typeof window.FSS_SUPABASE.isReady === 'function' && window.FSS_SUPABASE.isReady()) {
+              if (!res.syncedAt) {
+                window.FSS_SUPABASE.uploadArticleAudio(docId, res.blob).then(upRes => {
+                  if (upRes && upRes.path) {
+                    markArticleAudioSynced(docId);
+                    if (typeof showVocabToast === 'function') {
+                      showVocabToast('Đã tự động đồng bộ audio bài báo lên Cloud', true);
+                    }
+                  }
+                }).catch(() => {});
+              }
+            }
             resolve(res);
             return;
           }
@@ -999,13 +1066,14 @@
           if (window.FSS_SUPABASE && typeof window.FSS_SUPABASE.downloadArticleAudio === 'function') {
             window.FSS_SUPABASE.downloadArticleAudio(docId).then((blob) => {
               if (blob) {
-                saveArticleAudioBlob(docId, blob);
+                saveArticleAudioBlob(docId, blob, true);
                 resolve({
                   id: docId,
                   name: docId + '.mp3',
                   size: blob.size,
                   type: blob.type || 'audio/mpeg',
                   blob: blob,
+                  syncedAt: Date.now(),
                   updatedAt: Date.now()
                 });
               } else {
@@ -1034,6 +1102,9 @@
     window.getArticleAudioBlob = getArticleAudioBlob;
     window.saveArticleAudioBlob = saveArticleAudioBlob;
     window.deleteArticleAudioBlob = deleteArticleAudioBlob;
+    window.markArticleAudioSynced = markArticleAudioSynced;
+    window.getAllLocalArticleAudios = getAllLocalArticleAudios;
+    window.syncAllLocalArticleAudiosToCloud = syncAllLocalArticleAudiosToCloud;
 
     function isMp3File(file) {
       if (!file || !file.name) return false;

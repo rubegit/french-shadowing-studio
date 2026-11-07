@@ -69,8 +69,13 @@
     - Trong `startTextShadowingFromPaste()`, gọi `clearTextInputFields(false)` để bảo toàn biến `pendingTextAudioFile` trước khi chuyển sang phòng luyện thay vì xóa trắng sớm trước khi nạp.
     - Làm sạch và chuẩn hóa ký tự `cleanDocId` trong `js/supabase-sync.js` (`uploadArticleAudioToSupabase` / `downloadArticleAudioFromSupabase`) chống ký tự đặc biệt.
     - Bổ sung thông báo trực quan (Toast) khi lưu audio: nếu đã đăng nhập Cloud sẽ tự động đẩy lên Supabase Storage và báo thành công; nếu chưa đăng nhập sẽ nhắc người dùng đăng nhập để đồng bộ sang thiết bị khác.
+- **M39** (Đồng bộ hàng loạt MP3 có sẵn trong IndexedDB lên Cloud Storage - Đã hoàn thành):
+  - Cung cấp các hàm quét toàn bộ audios trong IndexedDB: `getAllLocalArticleAudios()`, `syncAllLocalArticleAudiosToCloud()`, `markArticleAudioSynced(docId)`.
+  - Tự động đẩy file MP3 có sẵn lên Cloud Storage khi mở lại bài cũ có audio trong `getArticleAudioBlob(docId)` (kèm gắn cờ `syncedAt` tránh upload lặp lại).
+  - Tích hợp quét và đẩy toàn bộ audio vào nút **"Đồng bộ ngay"** (`window.fssManualSync`), chức năng Ghi đè lên Cloud (`window.fssForcePushLocalToCloud`) và sau khi hoàn tất kéo dữ liệu (`pullAllDataFromCloud`).
+  - Tải audio từ Cloud về máy mới với cờ `skipUpload = true` để không gây vòng lặp upload ngược lại.
 - **Bộ kiểm thử tự động:**
-  - 323 bài kiểm thử tự động toàn diện chạy qua `node --test tools/*.test.js` đạt **323 / 323 PASS (100%)**.
+  - 326 bài kiểm thử tự động toàn diện chạy qua `node --test tools/*.test.js` đạt **326 / 326 PASS (100%)**.
   - Ngân sách mã màu giữ nguyên mức **921 / 921 HEX**, **0 inline style**, **0 tailwind color** (`node tools/lint-color.js`).
 
 ---
