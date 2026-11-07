@@ -392,6 +392,7 @@
               else mergedL.sentences = (revertItem && revertItem.sentences) ? revertItem.sentences : [];
             }
             if (!lH.userTrans && cH.userTrans) mergedL.userTrans = cH.userTrans;
+            if (lH.audio && !cH.audio) hasLocalNew = true;
             map.set(cH.videoId, mergedL);
             if (lUpTime > cUpTime) hasLocalNew = true;
           } else {
@@ -415,6 +416,10 @@
               else mergedC.sentences = (revertItem && revertItem.sentences) ? revertItem.sentences : [];
             }
             if (!cH.userTrans && lH.userTrans) mergedC.userTrans = lH.userTrans;
+            if (lH.audio && !cH.audio) {
+              mergedC.audio = lH.audio;
+              hasLocalNew = true;
+            }
             map.set(cH.videoId, mergedC);
             hasCloudNew = true;
           }
@@ -908,7 +913,32 @@
     'drop policy if exists "Users can insert own data" on public.fss_user_data;',
     'create policy "Users can insert own data" on public.fss_user_data for insert with check (auth.uid() = user_id);',
     'drop policy if exists "Users can update own data" on public.fss_user_data;',
-    'create policy "Users can update own data" on public.fss_user_data for update using (auth.uid() = user_id);'
+    'create policy "Users can update own data" on public.fss_user_data for update using (auth.uid() = user_id);',
+    '',
+    '-- Kho lưu trữ Audio bài báo (Storage Bucket & RLS)',
+    'insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)',
+    'values (\'article-audios\', \'article-audios\', false, 26214400, array[\'audio/mpeg\', \'audio/mp3\'])',
+    'on conflict (id) do update set',
+    '  public = false,',
+    '  file_size_limit = 26214400,',
+    '  allowed_mime_types = array[\'audio/mpeg\', \'audio/mp3\'];',
+    '',
+    'drop policy if exists "Users can upload their own article audios" on storage.objects;',
+    'create policy "Users can upload their own article audios" on storage.objects for insert',
+    'with check (bucket_id = \'article-audios\' and auth.uid()::text = (storage.foldername(name))[1]);',
+    '',
+    'drop policy if exists "Users can view their own article audios" on storage.objects;',
+    'create policy "Users can view their own article audios" on storage.objects for select',
+    'using (bucket_id = \'article-audios\' and auth.uid()::text = (storage.foldername(name))[1]);',
+    '',
+    'drop policy if exists "Users can update their own article audios" on storage.objects;',
+    'create policy "Users can update their own article audios" on storage.objects for update',
+    'using (bucket_id = \'article-audios\' and auth.uid()::text = (storage.foldername(name))[1])',
+    'with check (bucket_id = \'article-audios\' and auth.uid()::text = (storage.foldername(name))[1]);',
+    '',
+    'drop policy if exists "Users can delete their own article audios" on storage.objects;',
+    'create policy "Users can delete their own article audios" on storage.objects for delete',
+    'using (bucket_id = \'article-audios\' and auth.uid()::text = (storage.foldername(name))[1]);'
   ].join('\n');
 
   function renderModalContent(activeTab) {
@@ -1289,43 +1319,101 @@
 
   // ==================== SUPABASE STORAGE: ARTICLE AUDIO MP3 ====================
   var AUDIO_BUCKET = 'article-audios';
+  var MAX_AUDIO_BYTES = 26214400; // 25 MB
 
-  function uploadArticleAudioToSupabase(docId, fileOrBlob) {
-    if (!client || !currentUser || !docId || !fileOrBlob) {
+  function uploadArticleAudioToSupabase(docId, fileOrBlob, fileName) {
+    if (!client || !currentUser) {
+      uploadArticleAudioToSupabase.lastError = 'Chưa đăng nhập Supabase';
       return Promise.resolve(null);
     }
+    if (!docId || !fileOrBlob) {
+      uploadArticleAudioToSupabase.lastError = 'Thiếu thông tin docId hoặc file audio';
+      return Promise.resolve(null);
+    }
+
+    // 1. Kiểm tra giới hạn 25MB ở client
+    var size = fileOrBlob.size || 0;
+    if (size > MAX_AUDIO_BYTES) {
+      var mb = (size / (1024 * 1024)).toFixed(1);
+      var errOver = 'File dung lượng ' + mb + 'MB vượt quá giới hạn 25MB';
+      uploadArticleAudioToSupabase.lastError = errOver;
+      return Promise.resolve({ success: false, error: errOver });
+    }
+
+    // 2. Kiểm tra MIME type và đuôi file
+    var mime = (fileOrBlob.type || 'audio/mpeg').toLowerCase();
+    var rawName = fileName || fileOrBlob.name || 'audio.mp3';
+    if (!/\.mp3$/i.test(rawName) && mime !== 'audio/mpeg' && mime !== 'audio/mp3') {
+      var errMime = 'Chỉ chấp nhận file âm thanh định dạng .mp3';
+      uploadArticleAudioToSupabase.lastError = errMime;
+      return Promise.resolve({ success: false, error: errMime });
+    }
+    if (mime !== 'audio/mpeg' && mime !== 'audio/mp3') mime = 'audio/mpeg';
+
+    // 3. Đường dẫn duy nhất theo docId chống ghi đè chéo
     var cleanDocId = String(docId).replace(/^yt:/, '').replace(/^local:/, '').replace(/^text:/, '').trim().replace(/[^a-zA-Z0-9_\-]/g, '_');
     var filePath = currentUser.id + '/' + cleanDocId + '.mp3';
-    var mime = fileOrBlob.type || 'audio/mpeg';
 
     return client.storage.from(AUDIO_BUCKET).upload(filePath, fileOrBlob, {
       upsert: true,
       contentType: mime
     }).then(function (res) {
       if (res.error) {
-        console.warn('[Supabase Storage] Lỗi upload audio bài báo:', res.error.message || res.error);
-        return null;
+        var msg = res.error.message || String(res.error);
+        if (/bucket not found/i.test(msg)) {
+          msg = 'Supabase chưa tạo bucket "article-audios". Hãy copy mã SQL mẫu trong bảng Cloud để chạy.';
+        }
+        uploadArticleAudioToSupabase.lastError = msg;
+        return { success: false, error: msg };
       }
-      return { path: filePath };
+      var out = { path: filePath };
+      Object.defineProperty(out, 'success', { value: true, enumerable: false, writable: true, configurable: true });
+      Object.defineProperty(out, 'bucket', { value: AUDIO_BUCKET, enumerable: false, writable: true, configurable: true });
+      Object.defineProperty(out, 'size', { value: size, enumerable: false, writable: true, configurable: true });
+      Object.defineProperty(out, 'mime', { value: mime, enumerable: false, writable: true, configurable: true });
+      Object.defineProperty(out, 'name', { value: rawName, enumerable: false, writable: true, configurable: true });
+      return out;
     }).catch(function (err) {
-      console.warn('[Supabase Storage] Lỗi mạng khi upload audio bài báo:', err);
-      return null;
+      var msg = (err && err.message) || 'Lỗi mạng khi tải audio';
+      uploadArticleAudioToSupabase.lastError = msg;
+      return { success: false, error: msg };
     });
   }
 
-  function downloadArticleAudioFromSupabase(docId) {
+  function downloadArticleAudioFromSupabase(docId, customPath) {
     if (!client || !currentUser || !docId) {
+      downloadArticleAudioFromSupabase.lastError = 'Chưa đăng nhập hoặc thiếu docId';
       return Promise.resolve(null);
     }
     var cleanDocId = String(docId).replace(/^yt:/, '').replace(/^local:/, '').replace(/^text:/, '').trim().replace(/[^a-zA-Z0-9_\-]/g, '_');
-    var filePath = currentUser.id + '/' + cleanDocId + '.mp3';
+    var filePath = customPath || (currentUser.id + '/' + cleanDocId + '.mp3');
 
     return client.storage.from(AUDIO_BUCKET).download(filePath).then(function (res) {
       if (res.error) {
+        // Fallback đường dẫn phụ: currentUser.id + '/' + cleanDocId + '/audio.mp3'
+        if (!customPath) {
+          var altPath = currentUser.id + '/' + cleanDocId + '/audio.mp3';
+          return client.storage.from(AUDIO_BUCKET).download(altPath).then(function (altRes) {
+            if (altRes.error) {
+              var msg = altRes.error.message || 'Không tìm thấy file audio trên Cloud';
+              downloadArticleAudioFromSupabase.lastError = msg;
+              return null;
+            }
+            return altRes.data;
+          }).catch(function () {
+            var msg = res.error.message || 'Lỗi tải audio từ Cloud';
+            downloadArticleAudioFromSupabase.lastError = msg;
+            return null;
+          });
+        }
+        var msg = res.error.message || 'Lỗi tải audio từ Cloud';
+        downloadArticleAudioFromSupabase.lastError = msg;
         return null;
       }
-      return res.data || null;
-    }).catch(function () {
+      return res.data;
+    }).catch(function (err) {
+      var msg = (err && err.message) || 'Lỗi kết nối khi tải audio';
+      downloadArticleAudioFromSupabase.lastError = msg;
       return null;
     });
   }
@@ -1354,4 +1442,13 @@
       initClient();
     });
   });
+
+  // Tự động đồng bộ lại khi kết nối mạng phục hồi
+  if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+    window.addEventListener('online', function () {
+      if (client && currentUser) {
+        pullAllDataFromCloud();
+      }
+    });
+  }
 })();

@@ -32,8 +32,8 @@ test('M21.1 Element Order: Tên audio nằm dưới nút Đổi Audio và nút S
 
   // Kiểm tra nút Sync AI gọi đúng modal
   assert.ok(actionsHtml.includes('onclick="openArtAiSyncModal()"'), 'Nút Sync AI phải gọi openArtAiSyncModal()');
-  // Kiểm tra tên audio pill có nút xóa
-  assert.ok(actionsHtml.includes('onclick="removeCurrentArticleAudio()"'), 'Pill tên audio phải có nút gỡ audio');
+  // Kiểm tra tên audio pill không còn nút xóa (M40: đã lược bỏ theo yêu cầu người dùng)
+  assert.ok(!actionsHtml.includes('class="art-side-pill-del"'), 'Pill tên audio không còn nút xóa ✕');
 });
 
 test('M21.2 Cleanup: Lược bỏ nút Sync AI và file pill cũ khỏi trình phát audio bài báo', () => {

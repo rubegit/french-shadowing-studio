@@ -350,6 +350,11 @@
       const levelChipHTML = level
         ? `<span class="art-level-chip level-${escHtml(level.toLowerCase())}">${escHtml(level)}</span>`
         : '';
+      let audioMetaHTML = '';
+      if (item.audio && item.audio.name) {
+        const isCloud = item.audio.cloudStatus === 'available';
+        audioMetaHTML = `<span>·</span><span class="art-sample-audio" title="${escHtml(item.audio.name)}">🎵 Audio ${isCloud ? '☁️' : '💾'}</span>`;
+      }
       return `
         <div onclick="loadFromHistory('${id}')" class="yt-card txt-card art-sample-row art-history-card btn-interactive" role="button" tabindex="0" title="Mở lại để luyện tiếp">
           <div class="art-sample-main">
@@ -361,6 +366,7 @@
               <span>${words ? words + ' từ · ' : ''}${n} câu</span>
               <span>·</span>
               <span>${hasVi ? 'Có song ngữ' : 'Tiếng Pháp thực tế'}</span>
+              ${audioMetaHTML}
             </div>
           </div>
           <div class="art-sample-side">

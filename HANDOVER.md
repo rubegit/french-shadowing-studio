@@ -8,9 +8,9 @@
 ---
 
 ### 1. Metadata Bàn giao (Handover Metadata)
-- **Thời điểm cập nhật:** 2026-11-06T16:48:00-06:00
+- **Thời điểm cập nhật:** 2026-11-06T21:28:00-06:00
 - **Agent bàn giao (Outgoing Agent):** Antigravity Agent
-- **Mục đích:** Bàn giao hoàn tất các module M24 (Vocab Highlight & Span Self-healing), M25 (Core SRS Upgrades), M26 (Daily New Vocab Goal Selector & Scheduler Prioritization), M27 (Acoustic Forced Alignment qua Wav2Vec2 CTC), M28 (Bộ căn chỉnh Whisper độc lập & So sánh đối đầu), M29 (Tích hợp 1-click Dual Engine Chay_Dong_Bo.command), M30 (Tái cấu trúc thư mục done/[Tên_bài]/Json & txtMp3), M31 (Tinh giản thư mục Json), M32 (Bộ chia câu tự động đa tầng & xuất JSON đa segment theo từng câu cho CTC Aligner), M33 (Audio Player Bar & Điều khiển phát câu bài báo), và M34 (Đồng bộ 100% Player Video sang Bài báo & Seamless UI).
+- **Mục đích:** Bàn giao hoàn tất các module M38, M39 và M40 (Tái thiết kế Kiến trúc Audio Cloud Sync, Phân định rõ ràng Cloud vs Local, Huy hiệu Trạng thái, Báo lỗi Thực tế & Tự phục hồi Metadata).
 - **Tài liệu tham chiếu bắt buộc:** [`AGENTS.md`](./AGENTS.md), [`PROJECT_STATUS.md`](./PROJECT_STATUS.md).
 
 ---
@@ -74,8 +74,25 @@
   - Tự động đẩy file MP3 có sẵn lên Cloud Storage khi mở lại bài cũ có audio trong `getArticleAudioBlob(docId)` (kèm gắn cờ `syncedAt` tránh upload lặp lại).
   - Tích hợp quét và đẩy toàn bộ audio vào nút **"Đồng bộ ngay"** (`window.fssManualSync`), chức năng Ghi đè lên Cloud (`window.fssForcePushLocalToCloud`) và sau khi hoàn tất kéo dữ liệu (`pullAllDataFromCloud`).
   - Tải audio từ Cloud về máy mới với cờ `skipUpload = true` để không gây vòng lặp upload ngược lại.
+- **M40** (Tái thiết kế Kiến trúc Audio Cloud Sync, Huy hiệu Trạng thái & Báo lỗi Thực tế - Đã hoàn thành):
+  - **Xóa bỏ nút xóa ✕** (`.art-side-pill-del`) khỏi thẻ audio pill trong sidebar bài đọc theo đúng phản biện của người dùng ("Đã nạp bài lên rồi, không cần nút xóa đính kèm gây rủi ro").
+  - **Sửa lỗi hiển thị tên giả `Audio.mp3`:** Gỡ bỏ quy tắc `display: flex !important` vô điều kiện trong `css/theme-light.css`; chỉ hiển thị `.art-side-file-pill` khi thực sự có file audio, ẩn triệt để khi `display: none`.
+  - **Tách biệt metadata Cloud và trạng thái Local:** `history` lưu metadata chuẩn Cloud (`name`, `size`, `mimeType`, `storage.path`, `cloudStatus: "available"`); IndexedDB đóng vai trò nguồn chân lý cho bộ nhớ cache ngoại tuyến của từng thiết bị.
+  - **Huy hiệu trạng thái trực quan minh bạch:** Thêm huy hiệu động trên thanh pill sidebar (`#art-side-audio-badge`):
+    - ☁️ Sẵn sàng Cloud (khi đã upload lên Supabase Storage)
+    - 💾 Chỉ có trên máy này (khi chưa đăng nhập Cloud hoặc file chỉ lưu nội bộ)
+    - 🔄 Đang tải... (khi mở trên máy tính bảng và đang kéo MP3 từ Cloud về IndexedDB)
+    - ⚠️ Lỗi tải / Lỗi Cloud (kèm tooltip chi tiết khi gặp lỗi)
+  - Thêm huy hiệu `🎵 Audio ☁️` / `🎵 Audio 💾` trên thẻ bài đọc ở trang chủ (`buildTextHistoryCardHTML`).
+  - **Kiểm soát dung lượng 25MB và định dạng:** Kiểm tra kích thước <= 25MB (26,214,400 bytes) và đuôi `.mp3` ở cả client và Supabase Storage Bucket.
+  - **Chống nuốt lỗi / Thông báo lỗi thực tế:** Bắt chính xác lỗi từ Supabase (`bucket not found`, RLS violation, network error...) và hiển thị Toast cảnh báo chi tiết thay cho các thông báo thành công ảo.
+  - **Đầy đủ 4 RLS Policies cho Storage:** Cập nhật `supabase-schema.sql` và `SCHEMA_SQL` với INSERT (with check), SELECT (using), UPDATE (using + with check), và DELETE (using).
+  - **Đường dẫn duy nhất theo docId:** Lưu theo `${currentUser.id}/${cleanDocId}.mp3` chống trùng lặp ghi đè giữa các bài báo có cùng tên file gốc, tương thích ngược với fallback tải tự động.
+  - **Cơ chế hòa giải & tự phục hồi đa tầng (Reconciliation):**
+    - Chống `QuotaExceededError`: Fallback sang `sessionStorage` và IndexedDB `art_audio_db`, đồng thời gửi trực tiếp `raw` in-memory lên Supabase qua `syncHistoryDebounced(raw)`.
+    - Tự phục hồi sau lỗi mạng / timeout: Gắn cờ `hasLocalNew = true` khi Local có audio mà Cloud chưa có trong `mergeHistoryLists`, tự động kích hoạt `pullAllDataFromCloud` khi kết nối phục hồi (`online` event) hoặc khi reload trang.
 - **Bộ kiểm thử tự động:**
-  - 326 bài kiểm thử tự động toàn diện chạy qua `node --test tools/*.test.js` đạt **326 / 326 PASS (100%)**.
+  - 337 bài kiểm thử tự động toàn diện chạy qua `node --test tools/*.test.js` đạt **337 / 337 PASS (100%)**.
   - Ngân sách mã màu giữ nguyên mức **921 / 921 HEX**, **0 inline style**, **0 tailwind color** (`node tools/lint-color.js`).
 
 ---

@@ -50,7 +50,8 @@ create policy "Users can upload their own article audios"
 drop policy if exists "Users can update their own article audios" on storage.objects;
 create policy "Users can update their own article audios"
   on storage.objects for update
-  using (bucket_id = 'article-audios' and auth.uid()::text = (storage.foldername(name))[1]);
+  using (bucket_id = 'article-audios' and auth.uid()::text = (storage.foldername(name))[1])
+  with check (bucket_id = 'article-audios' and auth.uid()::text = (storage.foldername(name))[1]);
 
 drop policy if exists "Users can view their own article audios" on storage.objects;
 create policy "Users can view their own article audios"

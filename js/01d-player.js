@@ -88,6 +88,7 @@
           isText: !!item.isText,
           sentences: keepSentences ? (item.sentences !== undefined ? item.sentences : (prevItem && prevItem.sentences) || []) : [],
           level: (item.level !== undefined ? (item.level || undefined) : (prevItem && prevItem.level)) || undefined,
+          audio: (item.audio !== undefined ? item.audio : (prevItem && prevItem.audio)) || undefined,
           lib: isLib ? true : undefined,
           userTrans: userTrans ? true : undefined,
           userPunct: userPunct ? true : undefined,
@@ -867,12 +868,12 @@
               <i data-lucide="music" class="w-4 h-4"></i>
               <span id="art-side-audio-label">Kèm Audio MP3</span>
             </label>
-            <div id="art-side-file-pill" class="art-side-file-pill" style="display:none;" title="File audio đang nạp">
+            <div id="art-side-file-pill" class="art-side-file-pill" style="display:none;" title="File audio của bài đọc">
               <div class="art-side-file-info">
                 <i data-lucide="volume-2" class="w-3.5 h-3.5"></i>
-                <span class="art-side-pill-name" id="art-side-pill-name">Audio.mp3</span>
+                <span class="art-side-pill-name" id="art-side-pill-name"></span>
               </div>
-              <button type="button" class="art-side-pill-del" onclick="removeCurrentArticleAudio()" title="Gỡ file audio này khỏi bài viết" aria-label="Gỡ file audio">✕</button>
+              <span id="art-side-audio-badge" class="art-audio-badge"></span>
             </div>
             <button type="button" class="art-btn art-btn-sync-ai" id="art-side-sync-btn" onclick="openArtAiSyncModal()" title="Đồng bộ phụ đề & Word Timestamps từ AI" aria-label="Đồng bộ AI">
               <i data-lucide="sparkles" class="w-4 h-4"></i>
@@ -907,20 +908,172 @@
         </div>
       `;
       if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
-      getArticleAudioBlob(docId).then(rec => {
-        const lbl = document.getElementById('art-side-audio-label');
-        const pill = document.getElementById('art-side-file-pill');
-        const pillName = document.getElementById('art-side-pill-name');
-        if (rec) {
+      refreshArticleSideAudioUI(docId);
+    }
+
+    // Cập nhật trạng thái hiển thị của Audio Pill trong Sidebar theo trạng thái thực tế
+    function refreshArticleSideAudioUI(docId) {
+      if (!docId) return;
+      const lbl = document.getElementById('art-side-audio-label');
+      const pill = document.getElementById('art-side-file-pill');
+      const pillName = document.getElementById('art-side-pill-name');
+      const badge = document.getElementById('art-side-audio-badge');
+      if (!pill) return;
+
+      const savedItem = getLocalHistory().find(h => h.videoId === docId);
+      const audioMeta = savedItem && savedItem.audio;
+
+      getArtAudioDb().then(db => new Promise((resolve) => {
+        const tx = db.transaction('audios', 'readonly');
+        const store = tx.objectStore('audios');
+        const req = store.get(docId);
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror = () => resolve(null);
+      })).then(rec => {
+        if (currentVideoId !== docId) return;
+        if (rec && rec.blob) {
+          // File đã cache tại máy này -> Sẵn sàng phát offline
           if (lbl) lbl.textContent = 'Đổi Audio MP3';
-          if (pill) pill.style.display = 'flex';
-          if (pillName) pillName.textContent = rec.name || rec.fileName || 'Audio.mp3';
+          pill.style.display = 'flex';
+          const name = rec.name || (audioMeta && audioMeta.name) || 'audio.mp3';
+          if (pillName) pillName.textContent = name;
+          if (badge) {
+            const isCloud = (audioMeta && audioMeta.cloudStatus === 'available') || rec.syncedAt;
+            badge.className = 'art-audio-badge ' + (isCloud ? 'is-cloud' : 'is-local');
+            badge.innerHTML = isCloud ? '☁️ Sẵn sàng' : '💾 Cục bộ';
+            badge.title = isCloud ? 'File đã lưu Cloud và có cache offline trên máy này' : 'File chỉ lưu trên máy này';
+          }
+        } else if (audioMeta && audioMeta.cloudStatus === 'available') {
+          // Bài có audio trên Cloud nhưng máy này chưa cache
+          if (lbl) lbl.textContent = 'Đổi Audio MP3';
+          pill.style.display = 'flex';
+          if (pillName) pillName.textContent = audioMeta.name || 'audio.mp3';
+          if (badge) {
+            badge.className = 'art-audio-badge is-cloud';
+            badge.innerHTML = '☁️ Trên Cloud';
+            badge.title = 'Bài có audio trên Cloud. Mở bài để tự động tải về nghe.';
+          }
         } else {
+          // Chưa có audio
           if (lbl) lbl.textContent = 'Kèm Audio MP3';
-          if (pill) pill.style.display = 'none';
+          pill.style.display = 'none';
+          if (pillName) pillName.textContent = '';
+          if (badge) badge.innerHTML = '';
         }
       });
     }
+
+    // Cập nhật metadata audio vào history (Nguồn chân lý dữ liệu Cloud)
+    function updateArticleAudioMetadata(docId, audioMeta) {
+      if (!docId || !audioMeta) return;
+      const raw = getRawHistory();
+      const idx = raw.findIndex(h => h.videoId === docId && !h._deleted);
+      if (idx !== -1) {
+        raw[idx].audio = Object.assign({}, raw[idx].audio, audioMeta);
+        raw[idx].updatedAt = Date.now();
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(raw));
+        } catch (e) {
+          // Bắt QuotaExceededError trên localStorage và chuyển sang hàng chờ reconciliation an toàn
+          savePendingAudioReconciliation(docId, audioMeta);
+        }
+        // Vẫn gửi raw (đã cập nhật audio trong bộ nhớ) lên Supabase Cloud để Cloud nhận bản mới nhất
+        if (window.FSS_SUPABASE && typeof window.FSS_SUPABASE.syncHistoryDebounced === 'function') {
+          window.FSS_SUPABASE.syncHistoryDebounced(raw);
+        }
+      } else {
+        // Nếu bài viết chưa kịp nạp vào raw history, lưu vào danh sách chờ reconciliation
+        savePendingAudioReconciliation(docId, audioMeta);
+      }
+    }
+
+    function savePendingAudioReconciliation(docId, audioMeta) {
+      let savedLocal = false;
+      try {
+        const key = 'fss_pending_audio_meta';
+        const pending = JSON.parse(localStorage.getItem(key) || '{}');
+        pending[docId] = Object.assign({}, pending[docId], audioMeta);
+        localStorage.setItem(key, JSON.stringify(pending));
+        savedLocal = true;
+      } catch (e) {
+        // QuotaExceededError trên localStorage -> lưu dự phòng vào sessionStorage
+        try {
+          const key = 'fss_pending_audio_meta';
+          const pending = JSON.parse(sessionStorage.getItem(key) || '{}');
+          pending[docId] = Object.assign({}, pending[docId], audioMeta);
+          sessionStorage.setItem(key, JSON.stringify(pending));
+        } catch (eSes) {}
+      }
+
+      // Đồng thời lưu vào IndexedDB (art_audio_db) - không bao giờ bị giới hạn 5MB QuotaExceededError
+      if (typeof getArtAudioDb === 'function') {
+        getArtAudioDb().then(db => {
+          try {
+            const tx = db.transaction('audios', 'readwrite');
+            const store = tx.objectStore('audios');
+            const req = store.get(docId);
+            req.onsuccess = () => {
+              const rec = req.result;
+              if (rec) {
+                rec.storage = audioMeta.storage;
+                rec.cloudStatus = audioMeta.cloudStatus || 'available';
+                rec.audioMeta = audioMeta;
+                store.put(rec);
+              }
+            };
+          } catch (eDb) {}
+        }).catch(() => {});
+      }
+    }
+
+    function reconcilePendingAudioMetadata() {
+      try {
+        const key = 'fss_pending_audio_meta';
+        let pending = {};
+        try {
+          const lData = localStorage.getItem(key);
+          if (lData) pending = Object.assign(pending, JSON.parse(lData));
+        } catch (e) {}
+        try {
+          const sData = sessionStorage.getItem(key);
+          if (sData) pending = Object.assign(pending, JSON.parse(sData));
+        } catch (e) {}
+
+        const docIds = Object.keys(pending);
+        if (!docIds.length) return;
+        const raw = getRawHistory();
+        let changed = false;
+        docIds.forEach(id => {
+          const idx = raw.findIndex(h => h.videoId === id && !h._deleted);
+          if (idx !== -1) {
+            raw[idx].audio = Object.assign({}, raw[idx].audio, pending[id]);
+            delete pending[id];
+            changed = true;
+          }
+        });
+        if (changed) {
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(raw));
+            localStorage.setItem(key, JSON.stringify(pending));
+            try { sessionStorage.removeItem(key); } catch (e) {}
+          } catch (e) {
+            try { sessionStorage.setItem(key, JSON.stringify(pending)); } catch (e2) {}
+          }
+          if (window.FSS_SUPABASE && typeof window.FSS_SUPABASE.syncHistoryDebounced === 'function') {
+            window.FSS_SUPABASE.syncHistoryDebounced(raw);
+          }
+        }
+      } catch (e) {}
+    }
+
+    // Tự động khôi phục metadata còn treo (reconciliation) khi nạp trang / reload
+    try {
+      reconcilePendingAudioMetadata();
+      if (typeof window !== 'undefined') {
+        window.reconcilePendingAudioMetadata = reconcilePendingAudioMetadata;
+        window.addEventListener('DOMContentLoaded', reconcilePendingAudioMetadata);
+      }
+    } catch (e) {}
 
     // =========================================================================
     // ARTICLE AUDIO ENGINE: QUẢN LÝ ÂM THANH MP3 CHO BÀI BÁO (INDEXEDDB)
@@ -953,33 +1106,79 @@
       return getArtAudioDb().then(db => new Promise((resolve, reject) => {
         const tx = db.transaction('audios', 'readwrite');
         const store = tx.objectStore('audios');
+        const fileName = file.name || (docId + '.mp3');
+        const fileSize = file.size || 0;
+        const mimeType = file.type || 'audio/mpeg';
+
         store.put({
           id: docId,
-          name: file.name || (docId + '.mp3'),
-          size: file.size,
-          type: file.type || 'audio/mpeg',
+          name: fileName,
+          size: fileSize,
+          type: mimeType,
           blob: file,
           syncedAt: skipUpload ? Date.now() : undefined,
           updatedAt: Date.now()
         });
+
         tx.oncomplete = () => {
+          // Lưu metadata cơ bản vào history
+          updateArticleAudioMetadata(docId, {
+            name: fileName,
+            size: fileSize,
+            mimeType: mimeType,
+            cloudStatus: skipUpload ? 'available' : 'none',
+            updatedAt: new Date().toISOString()
+          });
+
           // Tự động đẩy file MP3 lên Supabase Storage (nếu đã đăng nhập và không phải skipUpload)
           if (!skipUpload && window.FSS_SUPABASE && typeof window.FSS_SUPABASE.uploadArticleAudio === 'function') {
             if (typeof window.FSS_SUPABASE.isReady === 'function' && window.FSS_SUPABASE.isReady()) {
-              if (typeof showVocabToast === 'function') showVocabToast('Đang đồng bộ audio bài báo lên Cloud...', true);
-              window.FSS_SUPABASE.uploadArticleAudio(docId, file).then(res => {
-                if (res && res.path) {
+              if (typeof showVocabToast === 'function') showVocabToast('Đang tải audio lên Cloud Storage...', true);
+              window.FSS_SUPABASE.uploadArticleAudio(docId, file, fileName).then(res => {
+                if (res && (res.success || res.path)) {
                   markArticleAudioSynced(docId);
+                  updateArticleAudioMetadata(docId, {
+                    name: fileName,
+                    size: fileSize,
+                    mimeType: mimeType,
+                    storage: {
+                      provider: 'supabase',
+                      bucket: res.bucket || 'article-audios',
+                      path: res.path
+                    },
+                    cloudStatus: 'available',
+                    updatedAt: new Date().toISOString()
+                  });
                   if (typeof showVocabToast === 'function') {
-                    showVocabToast('Đã đồng bộ audio bài báo lên Cloud (sẵn sàng mở ở máy khác)', true);
+                    showVocabToast('✓ Đã lưu audio lên Cloud: sẵn sàng cho máy tính bảng', true);
+                  }
+                  refreshArticleSideAudioUI(docId);
+                } else {
+                  const errMsg = (res && res.error) || (window.FSS_SUPABASE && window.FSS_SUPABASE.uploadArticleAudio && window.FSS_SUPABASE.uploadArticleAudio.lastError) || 'Lỗi tải audio lên Cloud';
+                  if (typeof showVocabToast === 'function') {
+                    showVocabToast('⚠️ ' + errMsg, false);
+                  }
+                  const badge = document.getElementById('art-side-audio-badge');
+                  if (badge && currentVideoId === docId) {
+                    badge.className = 'art-audio-badge is-error';
+                    badge.innerHTML = '⚠️ Lỗi Cloud';
+                    badge.title = errMsg;
                   }
                 }
-              }).catch(() => {});
+              }).catch(err => {
+                const errMsg = (err && err.message) || 'Lỗi mạng khi tải audio';
+                if (typeof showVocabToast === 'function') {
+                  showVocabToast('⚠️ ' + errMsg, false);
+                }
+              });
             } else {
               if (typeof showVocabToast === 'function') {
-                showVocabToast('Audio đã lưu trên máy này. Đăng nhập Cloud để đồng bộ sang máy khác.', true);
+                showVocabToast('Audio đã lưu trên máy này. Đăng nhập để đồng bộ sang máy khác.', true);
               }
+              refreshArticleSideAudioUI(docId);
             }
+          } else {
+            refreshArticleSideAudioUI(docId);
           }
           resolve(true);
         };
@@ -1017,28 +1216,53 @@
 
     async function syncAllLocalArticleAudiosToCloud() {
       if (!window.FSS_SUPABASE || typeof window.FSS_SUPABASE.isReady !== 'function' || !window.FSS_SUPABASE.isReady() || typeof window.FSS_SUPABASE.uploadArticleAudio !== 'function') {
-        return { total: 0, synced: 0 };
+        return { total: 0, synced: 0, failed: 0 };
       }
+      reconcilePendingAudioMetadata();
       const audios = await getAllLocalArticleAudios();
-      if (!audios || !audios.length) return { total: 0, synced: 0 };
+      if (!audios || !audios.length) return { total: 0, synced: 0, failed: 0 };
       let syncedCount = 0;
+      let failedCount = 0;
+      let lastError = null;
+
       for (const item of audios) {
         if (!item || !item.id || !item.blob) continue;
         try {
-          const res = await window.FSS_SUPABASE.uploadArticleAudio(item.id, item.blob);
-          if (res && res.path) {
+          const res = await window.FSS_SUPABASE.uploadArticleAudio(item.id, item.blob, item.name);
+          if (res && (res.success || res.path)) {
             await markArticleAudioSynced(item.id);
+            updateArticleAudioMetadata(item.id, {
+              name: item.name || 'audio.mp3',
+              size: item.size || item.blob.size,
+              mimeType: item.type || item.blob.type || 'audio/mpeg',
+              storage: {
+                provider: 'supabase',
+                bucket: res.bucket || 'article-audios',
+                path: res.path
+              },
+              cloudStatus: 'available',
+              updatedAt: new Date().toISOString()
+            });
             syncedCount++;
+          } else {
+            failedCount++;
+            lastError = (res && res.error) || (window.FSS_SUPABASE && window.FSS_SUPABASE.uploadArticleAudio && window.FSS_SUPABASE.uploadArticleAudio.lastError) || 'Upload thất bại';
           }
         } catch (e) {
+          failedCount++;
+          lastError = (e && e.message) || String(e);
           console.warn('[Sync Audio Batch] Lỗi đồng bộ audio:', item.id, e);
         }
       }
-      return { total: audios.length, synced: syncedCount };
+      return { total: audios.length, synced: syncedCount, failed: failedCount, lastError: lastError };
     }
 
     function getArticleAudioBlob(docId) {
       if (!docId) return Promise.resolve(null);
+      const savedItem = getLocalHistory().find(h => h.videoId === docId);
+      const audioMeta = savedItem && savedItem.audio;
+      const customPath = audioMeta && audioMeta.storage && audioMeta.storage.path;
+
       return getArtAudioDb().then(db => new Promise((resolve) => {
         const tx = db.transaction('audios', 'readonly');
         const store = tx.objectStore('audios');
@@ -1046,30 +1270,42 @@
         req.onsuccess = () => {
           const res = req.result || null;
           if (res && res.blob) {
-            // Tự động đẩy file MP3 có sẵn lên Cloud nếu chưa được sync và user đang đăng nhập
-            if (window.FSS_SUPABASE && typeof window.FSS_SUPABASE.uploadArticleAudio === 'function' && typeof window.FSS_SUPABASE.isReady === 'function' && window.FSS_SUPABASE.isReady()) {
-              if (!res.syncedAt) {
-                window.FSS_SUPABASE.uploadArticleAudio(docId, res.blob).then(upRes => {
-                  if (upRes && upRes.path) {
-                    markArticleAudioSynced(docId);
-                    if (typeof showVocabToast === 'function') {
-                      showVocabToast('Đã tự động đồng bộ audio bài báo lên Cloud', true);
-                    }
-                  }
-                }).catch(() => {});
-              }
+            // File đã có trong IndexedDB máy này (Ready offline)
+            if ((!audioMeta || audioMeta.cloudStatus !== 'available') && window.FSS_SUPABASE && typeof window.FSS_SUPABASE.uploadArticleAudio === 'function' && window.FSS_SUPABASE.isReady()) {
+              window.FSS_SUPABASE.uploadArticleAudio(docId, res.blob, res.name).then(upRes => {
+                if (upRes && (upRes.success || upRes.path)) {
+                  markArticleAudioSynced(docId);
+                  updateArticleAudioMetadata(docId, {
+                    name: res.name || 'audio.mp3',
+                    size: res.size || res.blob.size,
+                    mimeType: res.type || res.blob.type,
+                    storage: { provider: 'supabase', bucket: upRes.bucket || 'article-audios', path: upRes.path },
+                    cloudStatus: 'available',
+                    updatedAt: new Date().toISOString()
+                  });
+                  refreshArticleSideAudioUI(docId);
+                }
+              }).catch(() => {});
             }
             resolve(res);
             return;
           }
-          // Nếu máy mới chưa có trong IndexedDB -> Tự động kéo từ Supabase Storage về nạp vào máy
-          if (window.FSS_SUPABASE && typeof window.FSS_SUPABASE.downloadArticleAudio === 'function') {
-            window.FSS_SUPABASE.downloadArticleAudio(docId).then((blob) => {
-              if (blob) {
+
+          // Chưa có trong IndexedDB máy này (ví dụ Máy tính bảng) -> tải theo storage.path từ Supabase
+          if (window.FSS_SUPABASE && typeof window.FSS_SUPABASE.downloadArticleAudio === 'function' && audioMeta && audioMeta.cloudStatus === 'available') {
+            const badge = document.getElementById('art-side-audio-badge');
+            if (badge && currentVideoId === docId) {
+              badge.className = 'art-audio-badge is-downloading';
+              badge.innerHTML = '🔄 Đang tải...';
+            }
+            window.FSS_SUPABASE.downloadArticleAudio(docId, customPath).then((downRes) => {
+              const blob = (downRes && downRes.data) ? downRes.data : downRes;
+              if (blob && (blob.size !== undefined || (typeof Blob !== 'undefined' && blob instanceof Blob))) {
+                const fileName = (audioMeta && audioMeta.name) || (docId + '.mp3');
                 saveArticleAudioBlob(docId, blob, true);
                 resolve({
                   id: docId,
-                  name: docId + '.mp3',
+                  name: fileName,
                   size: blob.size,
                   type: blob.type || 'audio/mpeg',
                   blob: blob,
@@ -1077,9 +1313,23 @@
                   updatedAt: Date.now()
                 });
               } else {
+                const errMsg = (downRes && downRes.error) || (window.FSS_SUPABASE && window.FSS_SUPABASE.downloadArticleAudio && window.FSS_SUPABASE.downloadArticleAudio.lastError) || 'Không tải được audio';
+                if (badge && currentVideoId === docId) {
+                  badge.className = 'art-audio-badge is-error';
+                  badge.innerHTML = '⚠️ Lỗi tải';
+                  badge.title = errMsg;
+                }
                 resolve(null);
               }
-            }).catch(() => resolve(null));
+            }).catch((err) => {
+              const errMsg = (err && err.message) || 'Lỗi mạng khi tải audio';
+              if (badge && currentVideoId === docId) {
+                badge.className = 'art-audio-badge is-error';
+                badge.innerHTML = '⚠️ Lỗi mạng';
+                badge.title = errMsg;
+              }
+              resolve(null);
+            });
           } else {
             resolve(null);
           }
@@ -1105,6 +1355,7 @@
     window.markArticleAudioSynced = markArticleAudioSynced;
     window.getAllLocalArticleAudios = getAllLocalArticleAudios;
     window.syncAllLocalArticleAudiosToCloud = syncAllLocalArticleAudiosToCloud;
+    window.refreshArticleSideAudioUI = refreshArticleSideAudioUI;
 
     function isMp3File(file) {
       if (!file || !file.name) return false;
@@ -1117,6 +1368,12 @@
       if (!file) return;
       if (!isMp3File(file)) {
         showVocabToast('Chỉ cho phép tải lên file âm thanh định dạng .mp3', false);
+        e.target.value = '';
+        return;
+      }
+      if (file.size > 26214400) {
+        const mb = (file.size / (1024 * 1024)).toFixed(1);
+        showVocabToast('File dung lượng ' + mb + 'MB vượt quá giới hạn 25MB', false);
         e.target.value = '';
         return;
       }
@@ -1555,6 +1812,12 @@
       if (!file || !currentVideoId) return;
       if (!isMp3File(file)) {
         showVocabToast('Chỉ cho phép tải lên file âm thanh định dạng .mp3', false);
+        e.target.value = '';
+        return;
+      }
+      if (file.size > 26214400) {
+        const mb = (file.size / (1024 * 1024)).toFixed(1);
+        showVocabToast('File dung lượng ' + mb + 'MB vượt quá giới hạn 25MB', false);
         e.target.value = '';
         return;
       }

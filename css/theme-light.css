@@ -5630,7 +5630,7 @@ html[data-ui="light"] .art-btn-bilingual:hover {
 }
 
 /* Thẻ hiển thị tên file audio trong cột Thông tin bài đọc */
-html[data-ui="light"] .art-side-file-pill {
+html[data-ui="light"] .art-side-file-pill:not(.hidden):not([style*="display: none"]):not([style*="display:none"]) {
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
@@ -5642,6 +5642,48 @@ html[data-ui="light"] .art-side-file-pill {
   color: var(--fs-ink) !important;
   font-size: 12px !important;
   font-weight: 600 !important;
+}
+
+html[data-ui="light"] .art-side-file-pill.hidden,
+html[data-ui="light"] .art-side-file-pill[style*="display: none"],
+html[data-ui="light"] .art-side-file-pill[style*="display:none"] {
+  display: none !important;
+}
+
+html[data-ui="light"] .art-audio-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  padding: 2px 7px !important;
+  border-radius: var(--fs-radius-full) !important;
+  font-size: 10.5px !important;
+  font-weight: 700 !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+}
+
+html[data-ui="light"] .art-audio-badge.is-cloud {
+  background: var(--fs-surface-card) !important;
+  color: var(--fs-accent-text) !important;
+  border: 1px solid var(--fs-border-control) !important;
+}
+
+html[data-ui="light"] .art-audio-badge.is-local {
+  background: var(--fs-surface-card) !important;
+  color: var(--fs-warning) !important;
+  border: 1px solid var(--fs-border-control) !important;
+}
+
+html[data-ui="light"] .art-audio-badge.is-downloading {
+  background: var(--fs-surface-card) !important;
+  color: var(--fs-primary) !important;
+  border: 1px solid var(--fs-border-control) !important;
+}
+
+html[data-ui="light"] .art-audio-badge.is-error {
+  background: var(--fs-surface-card) !important;
+  color: var(--fs-danger) !important;
+  border: 1px solid var(--fs-border-control) !important;
 }
 
 html[data-ui="light"] .art-side-file-info {
