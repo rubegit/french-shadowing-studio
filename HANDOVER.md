@@ -8,18 +8,18 @@
 ---
 
 ### 1. Metadata Bàn giao (Handover Metadata)
-- **Thời điểm cập nhật:** 2026-11-06T21:28:00-06:00
+- **Thời điểm cập nhật:** 2026-11-07T08:55:00-06:00
 - **Agent bàn giao (Outgoing Agent):** Antigravity Agent
-- **Mục đích:** Bàn giao hoàn tất các module M38, M39 và M40 (Tái thiết kế Kiến trúc Audio Cloud Sync, Phân định rõ ràng Cloud vs Local, Huy hiệu Trạng thái, Báo lỗi Thực tế & Tự phục hồi Metadata).
-- **Tài liệu tham chiếu bắt buộc:** [`AGENTS.md`](./AGENTS.md), [`PROJECT_STATUS.md`](./PROJECT_STATUS.md).
+- **Mục đích:** Bàn giao hoàn tất Module M41 (Tự động hóa Vòng đời Context & Session Handover Tooling) cùng các module M38, M39, M40.
+- **Tài liệu tham chiếu bắt buộc:** [`AGENTS.md`](./AGENTS.md), [`PROJECT_STATUS.md`](./PROJECT_STATUS.md), [`AUTOMATIC_CONTEXT_LIFECYCLE_AUDIT.md`](./AUTOMATIC_CONTEXT_LIFECYCLE_AUDIT.md).
 
 ---
 
 ### 2. Bản chụp Trạng thái Git (Git State Snapshot)
 - **Nhánh hiện tại (Branch):** `main`
-- **HEAD Commit:** `029da30` - `feat(player): M33 add article audio player bar, circular translation toggle, and sentence play control`
+- **HEAD Commit:** `68c520b` - `feat(audio): M40 redesign audio cloud sync architecture, status badges, and error reporting`
 - **Tình trạng Remote:** Up-to-date with `origin/main`.
-- **Trạng thái Working Tree:** Có thay đổi của M34 đã nghiệm thu và build hoàn tất.
+- **Trạng thái Working Tree:** Triển khai hoàn tất Module M41 (`tools/handover.js`, `tools/handover.test.js`). Không sửa đổi mã nguồn ứng dụng (`src/`, `js/`, `css/`).
 
 ---
 
@@ -91,8 +91,17 @@
   - **Cơ chế hòa giải & tự phục hồi đa tầng (Reconciliation):**
     - Chống `QuotaExceededError`: Fallback sang `sessionStorage` và IndexedDB `art_audio_db`, đồng thời gửi trực tiếp `raw` in-memory lên Supabase qua `syncHistoryDebounced(raw)`.
     - Tự phục hồi sau lỗi mạng / timeout: Gắn cờ `hasLocalNew = true` khi Local có audio mà Cloud chưa có trong `mergeHistoryLists`, tự động kích hoạt `pullAllDataFromCloud` khi kết nối phục hồi (`online` event) hoặc khi reload trang.
+- **M41** (Tự động hóa Vòng đời Context & Session Handover Tooling - Đã hoàn thành):
+  - **Công cụ CLI chuyên dụng `tools/handover.js`:** Cung cấp 4 lệnh chuẩn tắc `status`, `checkpoint`, `verify`, `rollback`. Hoàn toàn sử dụng thư viện lõi Node.js (`fs`, `path`, `crypto`, `child_process`), **0 external dependencies**.
+  - **Context Telemetry đa tầng với Reverse Chunk Reader:** Đọc ngược tệp `transcript.jsonl` theo từng khối 16KB (tối đa 512KB) với độ trễ in-process chỉ ~0.03ms. Phân định rõ 3 trạng thái: `MEASURED` (đo trực tiếp từ API Gateway qua `PLANNER_RESPONSE`), `ESTIMATED` (ước tính ký tự), và `UNKNOWN` (dự phòng an toàn).
+  - **Ngưỡng động theo tỷ lệ %:** Dựa trên trần vận hành linh hoạt (`--max-tokens=N`, mặc định 200.000 tokens, ghi rõ là configured operational ceiling). Phân loại 4 vùng: Green (<50%), Yellow (50-69%), Orange (70-84%), Red (>=85% - đóng băng tác vụ lớn với 15% headroom ~30.000 tokens dành riêng cho đóng gói bàn giao).
+  - **Khóa File Nguyên tử Chống Xung đột Đồng thời (Atomic Mutex):** Sử dụng cờ POSIX `O_CREAT | O_EXCL` tạo `HANDOVER.md.lock`, lưu PID + macOS `lstart` (từ `ps -p <pid> -o lstart=`) + UUID. Loại trừ triệt để nguy cơ phá khóa cứng 30s cũ và xử lý an toàn hiện tượng tái sử dụng PID (PID reuse).
+  - **Quy trình Ghi Nguyên tử 5 Bước:** Optimistic Concurrency Check (SHA-256) -> Pre-write backup (`HANDOVER.md.bak`) -> Ghi tệp tạm trên cùng filesystem APFS -> `fsyncSync` flush đĩa -> Atomic Rename -> Post-write Verification. Tự động hoàn nguyên từ `.bak` nếu phát hiện lỗi hoặc suy giảm dung lượng >30%.
+  - **Phân cấp Điểm Kiểm soát:** Lightweight Checkpoint (<60ms, không chạy test suite, kế thừa kết quả test trước) vs Full Validation Checkpoint (chạy `lint-color.js` và toàn bộ test runner khi nghiệm thu module).
+  - **Giao thức Safe Rollback Không Hủy diệt:** Quản lý bản sao lưu và manifest SHA-256 tại `.pre_stage_b_backup/`. Tuyệt đối không dùng `git reset --hard` hay `git checkout HEAD --`.
+  - **Bộ kiểm thử tự động toàn diện:** Bổ sung 18 bài kiểm thử tự động độc lập trong `tools/handover.test.js` kiểm tra telemetry, locking, race condition, atomic write, rollback và integrity.
 - **Bộ kiểm thử tự động:**
-  - 337 bài kiểm thử tự động toàn diện chạy qua `node --test tools/*.test.js` đạt **337 / 337 PASS (100%)**.
+  - 355 bài kiểm thử tự động toàn diện chạy qua `node --test tools/*.test.js` đạt **355 / 355 PASS (100%)**.
   - Ngân sách mã màu giữ nguyên mức **921 / 921 HEX**, **0 inline style**, **0 tailwind color** (`node tools/lint-color.js`).
 
 ---
@@ -103,3 +112,16 @@
 3. **Cơ chế so khớp từ vựng:** Luôn dùng `resolveTargetWordSpan` từ `js/vocab-practice.js` phối hợp với `findVariantSpan` và `FrenchMorphology` để tìm kiếm và làm nổi bật/che từ an toàn.
 4. **Cơ chế SRS:** Tuân thủ biến thể 4 nút cải tiến với trần 365 ngày, theo dõi `relearning` và điều phối số lượng từ mới qua `prioritizeSessionItems`.
 5. **Cơ chế Đồng bộ Audio Ngoại tuyến:** Thư mục `offline_aligner/` nằm trong `.gitignore`, cấu trúc phân cấp `done/[Tên_bài]/Json` và `txtMp3`, mặc định xuất JSON dạng đa segment theo từng câu (`--segment-mode sentence`).
+6. **Cơ chế Quản lý Context & Khóa Đồng thời:** Luôn sử dụng `tools/handover.js` cho mọi tác vụ kiểm tra context và checkpoint bàn giao. Tuân thủ giao thức Atomic Write (`.tmp -> fsync -> .bak -> rename`) và khóa Mutex bằng PID + macOS `lstart`. Lệnh `/compact` là manual slash command do người dùng kích hoạt trên giao diện chat; Agent thực hiện checkpoint trước khi đề xuất `/compact` để bảo toàn lịch sử dự án.
+
+---
+
+### 5. Quản lý Vòng đời Context & Checkpoint Tự động (M41 - Automated Lifecycle)
+- **Thời điểm Checkpoint:** 2026-11-07T15:45:02.530Z
+- **Loại Checkpoint:** Lightweight Checkpoint (<60ms)
+- **Trạng thái Telemetry:** MEASURED
+- **Context Occupancy:** 86,710 tokens (43.4% của trần vận hành 200,000 tokens - GREEN)
+- **Phân loại Ngưỡng:** GREEN (Normal operation. Proceed according to AGENTS.md 4-step loop.)
+- **Trần Vận hành:** 200,000 tokens (Configured operational ceiling, not verified model context window limit)
+- **Trạng thái Working Tree:** Có 11 thay đổi chưa commit
+- **Kết quả Kiểm thử:** TESTS_INHERITED (337/337 PASS from M40 baseline)

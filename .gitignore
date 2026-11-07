@@ -11,6 +11,9 @@ mockup-ref/
 
 # Local backups
 backup/
+.pre_stage_b_backup/
+HANDOVER.md.bak
+HANDOVER.md.lock
 
 # Offline Whisper Forced Aligner (Side project, local only)
 offline_aligner/

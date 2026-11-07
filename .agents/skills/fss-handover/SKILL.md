@@ -61,8 +61,14 @@ Khi người dùng kích hoạt lệnh `/fss-handover`:
      - Tuyệt đối **KHÔNG được bỏ qua** bất kỳ lệnh kiểm tra nào có trạng thái khác `PASS` trong báo cáo bàn giao.
      - Tuyệt đối **KHÔNG tự suy diễn kết quả PASS** khi lệnh chưa chạy, bị lỗi hoặc không hoàn tất.
      - Tuyệt đối **KHÔNG tuyên bố toàn bộ kiểm tra thành công** nếu có bất kỳ trạng thái nào khác `PASS` (`FAIL`, `NOT RUN` hoặc `INCOMPLETE`).
-4. **Cập nhật `HANDOVER.md` bằng dữ liệu đã xác minh:**
-   - Cập nhật [`HANDOVER.md`](../../../HANDOVER.md) với timestamp mới nhất và các số liệu đo lường thực tế vừa chạy (chỉ ghi dữ liệu có bằng chứng xác minh).
+4. **Cập nhật `HANDOVER.md` bằng công cụ tự động hóa:**
+   - Chạy lệnh: `node tools/handover.js checkpoint --full`
+   - Lệnh này tự động thực hiện quy trình ghi nguyên tử 5 bước:
+     + Chiếm khóa Mutex `HANDOVER.md.lock` (kiểm tra PID và macOS `lstart`, chống PID reuse).
+     + Kiểm tra mã băm SHA-256 lạc quan.
+     + Tạo bản sao lưu dự phòng an toàn `HANDOVER.md.bak`.
+     + Ghi tệp tạm thời trên cùng phân vùng APFS và ép ghi `fsyncSync`.
+     + Đổi tên nguyên tử (`atomic rename`) và chạy xác minh tính toàn vẹn hậu kỳ (Post-write Verification).
    - **Xử lý Working Tree:**
      - Nếu working tree sạch: Ghi nhận trạng thái clean dựa trên kết quả lệnh thực tế.
      - Nếu có thay đổi chưa commit (dirty): Liệt kê trung thực danh sách tệp bị thay đổi và cảnh báo người dùng.
@@ -81,9 +87,10 @@ Khi người dùng kích hoạt lệnh `/fss-handover`:
    - Đọc [`AGENTS.md`](../../../AGENTS.md) Mục 7.2.
    - Đọc [`PROJECT_STATUS.md`](../../../PROJECT_STATUS.md) và [`PROJECT_STRUCTURE.md`](../../../PROJECT_STRUCTURE.md).
 2. **Xác minh trạng thái thực tế bằng các lệnh chỉ đọc:**
+   - Chạy: `node tools/handover.js verify` (xác minh tính toàn vẹn của file bàn giao, kiểm tra kích thước, mã băm và các section bắt buộc).
+   - Chạy: `node tools/handover.js status` (kiểm tra context telemetry thực tế, đo lường mức độ sử dụng context ban đầu).
    - Chạy: `git branch --show-current` (xác định chính xác branch hiện tại).
-   - Chạy: `git status --porcelain` (kiểm tra trạng thái working tree dạng máy đọc được; phát hiện và liệt kê đầy đủ các tệp modified, untracked, deleted hoặc có trạng thái khác).
-   - Chạy: `git status`
+   - Chạy: `git status --porcelain` (kiểm tra trạng thái working tree dạng máy đọc được).
    - Chạy: `git log -1 --oneline`
    - Chạy: `node tools/lint-color.js`
    - Chạy: `node --test tools/*.test.js`

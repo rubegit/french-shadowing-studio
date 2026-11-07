@@ -95,18 +95,20 @@ Quy trình chuẩn hóa việc chuyển giao ca làm việc giữa các tài kho
 ### 7.1. Chuẩn bị bàn giao (Outgoing Agent - Agent A)
 Khi người dùng yêu cầu chuẩn bị bàn giao (ví dụ: *"chuẩn bị bàn giao tài khoản"*, *"lập bàn giao"*...):
 1. **Kiểm tra trạng thái thực tế tại chỗ:** Chạy các lệnh kiểm tra Git (`git status`, `git branch`, `git log -1`) và các lệnh kiểm thử hiện hành.
-2. **Cập nhật `HANDOVER.md`:** Ghi đè toàn bộ tệp `HANDOVER.md` với dữ liệu mới nhất, nhãn thời gian thực tế, các module đã nghiệm thu, nợ kỹ thuật tồn đọng và các giới hạn kỹ thuật đã duyệt.
+2. **Cập nhật `HANDOVER.md` qua công cụ tự động hóa:** Chạy lệnh `node tools/handover.js checkpoint --full` để thực hiện quy trình ghi nguyên tử 5 bước (Mutex Lock với PID + macOS `lstart`, kiểm tra hash SHA-256 lạc quan, sao lưu `.bak`, ghi tệp tạm trên cùng phân vùng APFS, `fsyncSync` và atomic rename, kèm xác minh toàn vẹn hậu kỳ). Tuyệt đối không sửa tay gây thiếu các đề mục bắt buộc hoặc làm mất lịch sử M24–M40.
 3. **Xử lý Working Tree:**
    - Nếu working tree sạch: Ghi nhận trạng thái clean dựa trên kết quả lệnh thực tế.
    - Nếu working tree có thay đổi chưa commit (dirty): Liệt kê trung thực danh sách tệp bị thay đổi và cảnh báo người dùng. **TUYỆT ĐỐI KHÔNG tự ý commit, stash, reset hoặc xóa file.**
 4. **Nguyên tắc an toàn:**
    - Tuyệt đối không tự ý `git push`.
    - Tuyệt đối không lưu mật khẩu, token, API key hay thông tin bảo mật vào tài liệu bàn giao.
+   - Luôn kiểm tra context usage bằng `node tools/handover.js status` để bảo đảm hoàn tất bàn giao trước khi vượt ngưỡng 85%.
 
 ### 7.2. Tự động tiếp nhận khi mở phiên mới (Incoming Agent - Agent B)
 1. **Phân định cơ chế IDE vs Hành vi Agent:** Antigravity IDE tự động nạp các tệp quy tắc chỉ dẫn (`AGENTS.md`) vào context khi mở phiên, nhưng không tự chạy ngầm lệnh shell trước khi có tương tác từ người dùng.
 2. **Quy tắc tự kích hoạt:** Ngay khi nhận được tin nhắn đầu tiên của người dùng (kể cả chỉ là lời chào ngắn gọn như *"tiếp tục"*, *"chào bạn"*, *"bắt đầu"* mà không cần prompt dài):
-   - Chủ động kiểm tra sự tồn tại của `HANDOVER.md`.
+   - Chủ động kiểm tra sự tồn tại và tính toàn vẹn của `HANDOVER.md` bằng `node tools/handover.js verify`.
+   - Kiểm tra mức độ chiếm dụng context ban đầu bằng `node tools/handover.js status`.
    - Đọc kỹ `HANDOVER.md`, `AGENTS.md` và `PROJECT_STATUS.md`.
    - Chạy các lệnh xác minh trạng thái chỉ đọc (`git status`, `git log -1`, `node tools/lint-color.js`, `node --test tools/*.test.js`).
    - Lập **Báo cáo Tiếp nhận (Intake Report)** ngắn gọn (3-5 dòng) gửi tới người dùng.
