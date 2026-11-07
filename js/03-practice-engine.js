@@ -130,6 +130,7 @@
         const m = $('practice-sandwich-menu');
         const btn = $('practice-sandwich-btn');
         if (!m || !btn) return;
+        if (open && menuOpen()) closeMenu();
         m.classList.toggle('pv-x', !open);
         btn.setAttribute('aria-expanded', open ? 'true' : 'false');
         if (open) {
@@ -182,6 +183,9 @@
     window.pvToggleMenu = function (e) {
         if (e) e.stopPropagation();
         const open = !menuOpen();
+        if (open && window.practiceMobileMenuOpen && window.practiceMobileMenuOpen()) {
+            window.closePracticeMobileMenu();
+        }
         $('pv-menu').classList.toggle('pv-x', !open);
         $('pv-switch-btn').setAttribute('aria-expanded', open ? 'true' : 'false');
         if (open) window.pvPlaceFloating($('pv-menu'), $('pv-switch-btn'), 'right');
