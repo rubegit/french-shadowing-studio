@@ -235,16 +235,28 @@
     }
     async function copyTranscript() {
       const btn = document.getElementById('btn-copy-transcript');
+      const psmBtn = document.getElementById('psm-btn-copy-transcript');
       const { text, count } = buildTranscriptText();
-      if (!text.trim()) { showVocabToast('Chưa có phụ đề nào để copy', false); return; }
+      if (!text.trim()) {
+        showVocabToast('Chưa có phụ đề nào để copy', false);
+        return false;
+      }
       try {
         await copyTextToClipboard(text);
-        if (btn) { btn.classList.add('copied'); clearTimeout(btn._t); btn._t = setTimeout(() => btn.classList.remove('copied'), 1600); }
+        [btn, psmBtn].forEach((b) => {
+          if (!b) return;
+          b.classList.add('copied');
+          clearTimeout(b._t);
+          b._t = setTimeout(() => b.classList.remove('copied'), 1600);
+        });
         showVocabToast(settings.bilingual ? `Đã copy ${count} câu phụ đề (Anh + Việt)` : `Đã copy ${count} câu phụ đề`, false);
+        return true;
       } catch (e) {
         showVocabToast('Không copy được: trình duyệt chặn quyền clipboard', false);
+        return false;
       }
     }
+    window.copyTranscript = copyTranscript;
 
     function copyTextToClipboard(text) {
       return new Promise((resolve, reject) => {
