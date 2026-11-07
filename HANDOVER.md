@@ -58,8 +58,13 @@
   - Chuyển đổi hàng "Văn bản Bạn Đã Luyện" từ thanh cuộn ngang Netflix row đơn hàng sang lưới Responsive Grid đa cột (`art-history-grid` sử dụng `.art-sample-list`), tự động dàn 1 cột trên mobile và 2–3 cột trên desktop.
   - Thu gọn mặc định khung "Nhập hoặc dán bài báo tiếng Pháp" thành một thanh accordion gọn gàng (`.txt-collapsible-card`), nhấn vào thì trượt mở form ra, tự động mở khi tải file.
   - Tự động xóa sạch nội dung trong các ô tiêu đề, textarea, file audio đính kèm và thu gọn form sau khi bấm "Bắt đầu đọc bài viết" để người dùng không phải xóa thủ công khi quay lại.
+- **M37** (Khắc phục triệt để lỗi CSS thu gọn khung nhập bài báo - Đã hoàn thành):
+  - Khắc phục xung đột CSS `!important`: Thiết lập rule rõ ràng `.txt-collapsible-card:not(.is-expanded) .txt-collapse-body { display: none !important; }` để ẩn triệt để 100% tất cả các ô input, textarea, nút file và nút "Bắt đầu đọc bài viết" khi ở trạng thái thu gọn.
+  - Khi có class `.is-expanded`: mở form bằng `display: flex !important;` hiển thị trọn vẹn và xoay mũi tên chỉ báo.
+  - Cập nhật hàm `toggleTextInputCollapse` toggle đồng bộ class `.is-expanded`, class `.hidden`, style inline và nội dung nhãn chỉ dẫn `(Bấm để thu gọn)` / `(Bấm để mở khung nhập bài)`.
 - **Bộ kiểm thử tự động:**
-  - 316 bài kiểm thử tự động toàn diện chạy qua `node --test tools/*.test.js` đạt 316/316 passed 100%.
+  - 319 bài kiểm thử tự động toàn diện chạy qua `node --test tools/*.test.js` đạt 319/319 passed 100%.
+  - Ngân sách mã màu giữ nguyên mức 921 mã hex, 0 inline colors, 0 Tailwind colors (`node tools/lint-color.js`).
   - Ngân sách mã màu giữ nguyên mức 921 mã hex, 0 inline colors, 0 Tailwind colors (`node tools/lint-color.js`).
   - Ngân sách mã màu giữ nguyên mức 921 mã hex, 0 inline colors, 0 Tailwind colors (`node tools/lint-color.js`).
   - `node --test tools/*.test.js`: **308 / 308 PASS (100%)**.

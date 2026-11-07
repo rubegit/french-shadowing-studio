@@ -4596,7 +4596,11 @@ html[data-ui="light"] .txt-collapsible-card.is-expanded .txt-collapse-icon {
   color: var(--fs-primary) !important;
 }
 
-html[data-ui="light"] .txt-collapse-body {
+html[data-ui="light"] .txt-collapsible-card:not(.is-expanded) .txt-collapse-body {
+  display: none !important;
+}
+
+html[data-ui="light"] .txt-collapsible-card.is-expanded .txt-collapse-body {
   display: flex !important;
   flex-direction: column !important;
   gap: 14px !important;
