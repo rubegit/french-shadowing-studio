@@ -604,6 +604,54 @@
             </div>
           </div>
 
+          <!-- MODAL GÁN TRÌNH ĐỘ BÀI ĐỌC (M38) -->
+          <div id="modal-art-level" class="art-sync-modal-backdrop" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="art-level-modal-title">
+            <div class="art-sync-modal art-level-modal">
+              <div class="art-sync-modal-header">
+                <div class="art-sync-title-wrap">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="art-sync-title-ico" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                  <h3 id="art-level-modal-title" class="art-sync-title">Gán trình độ cho bài viết</h3>
+                </div>
+                <button type="button" class="art-sync-close-btn" onclick="closeArticleLevelModal()" title="Đóng" aria-label="Đóng hộp thoại">✕</button>
+              </div>
+              <div class="art-sync-modal-body">
+                <p class="art-level-modal-desc">Chọn khung năng lực chuẩn Châu Âu (CEFR) phù hợp với độ khó của bài viết này:</p>
+                <div class="art-level-grid">
+                  <button type="button" class="art-level-opt btn-interactive" onclick="setArticleLevel('A1')">
+                    <span class="art-level-chip art-level-opt-badge level-a1">A1</span>
+                    <span class="art-level-opt-title">Mới bắt đầu</span>
+                  </button>
+                  <button type="button" class="art-level-opt btn-interactive" onclick="setArticleLevel('A2')">
+                    <span class="art-level-chip art-level-opt-badge level-a2">A2</span>
+                    <span class="art-level-opt-title">Sơ cấp</span>
+                  </button>
+                  <button type="button" class="art-level-opt btn-interactive" onclick="setArticleLevel('B1')">
+                    <span class="art-level-chip art-level-opt-badge level-b1">B1</span>
+                    <span class="art-level-opt-title">Trung cấp</span>
+                  </button>
+                  <button type="button" class="art-level-opt btn-interactive" onclick="setArticleLevel('B2')">
+                    <span class="art-level-chip art-level-opt-badge level-b2">B2</span>
+                    <span class="art-level-opt-title">Trung cao</span>
+                  </button>
+                  <button type="button" class="art-level-opt btn-interactive" onclick="setArticleLevel('C1')">
+                    <span class="art-level-chip art-level-opt-badge level-c1">C1</span>
+                    <span class="art-level-opt-title">Cao cấp</span>
+                  </button>
+                  <button type="button" class="art-level-opt btn-interactive" onclick="setArticleLevel('C2')">
+                    <span class="art-level-chip art-level-opt-badge level-c2">C2</span>
+                    <span class="art-level-opt-title">Thành thạo</span>
+                  </button>
+                </div>
+              </div>
+              <div class="art-sync-modal-footer">
+                <button type="button" class="art-sync-btn-secondary" onclick="setArticleLevel(null)" title="Xóa nhãn trình độ cho bài đọc này">Bỏ gán trình độ</button>
+                <div class="art-sync-footer-right">
+                  <button type="button" class="art-sync-btn-secondary" onclick="closeArticleLevelModal()">Đóng</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Vùng cuộn phụ đề -->
           <div
             id="subtitles-scroll-container"

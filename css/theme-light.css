@@ -5075,6 +5075,7 @@ html[data-ui="light"] .art-level-chip {
   letter-spacing: 0.02em !important;
 }
 
+html[data-ui="light"] .art-level-chip.level-a1,
 html[data-ui="light"] .art-level-chip.level-a2 {
   background: #E1F5EC !important;
   color: #0B5A3C !important;

@@ -694,4 +694,53 @@
     .art-sync-btn-primary:active {
       transform: scale(0.98);
     }
+
+    /* =====================================================================
+       MODAL GÁN TRÌNH ĐỘ CEFR CHO BÀI BÁO (MODULE M38)
+       ===================================================================== */
+    .art-level-modal {
+      max-width: 480px;
+    }
+    .art-level-modal-desc {
+      margin: 0;
+      font-size: 13.5px;
+      line-height: 1.5;
+      color: var(--fs-text-subtle);
+    }
+    .art-level-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 6px;
+    }
+    .art-level-opt {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      background: var(--fs-surface-subtle);
+      border: 1.5px solid var(--fs-border-control);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-align: left;
+    }
+    .art-level-opt:hover {
+      border-color: var(--fs-accent);
+      background: var(--fs-card);
+      transform: translateY(-1px);
+    }
+    .art-level-opt.active {
+      border-color: var(--fs-accent);
+      background: var(--fs-card);
+      box-shadow: 0 0 0 2px var(--fs-accent-light);
+    }
+    .art-level-opt-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--fs-text-primary);
+    }
+    .art-side-level-btn {
+      font-weight: 600;
+    }
   

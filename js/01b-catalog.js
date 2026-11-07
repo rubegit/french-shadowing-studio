@@ -323,6 +323,14 @@
       return null;
     }
 
+    // Nhận diện trình độ CEFR từ chuỗi văn bản (ví dụ: trong tiêu đề bài báo)
+    function detectCefrLevel(text) {
+      if (!text) return null;
+      const m = String(text).match(/\b(A1|A2|B1|B2|C1|C2)\b/i);
+      return m ? m[1].toUpperCase() : null;
+    }
+    window.detectCefrLevel = detectCefrLevel;
+
     // Thẻ bài văn bản: theo phong cách thẻ bài báo .art-sample-row sang trọng, phẳng, đồng bộ
     function buildTextHistoryCardHTML(item) {
       const id = String(item.videoId).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
@@ -338,7 +346,10 @@
         }
       }
       const desc = item.desc || (item.sentences && item.sentences.slice(0, 2).map((s) => (s && s.text ? s.text.trim() : '')).filter(Boolean).join(' ')) || '';
-      const level = item.level || 'B1';
+      const level = item.level || (typeof detectCefrLevel === 'function' ? detectCefrLevel(title) : (typeof window !== 'undefined' && window.detectCefrLevel ? window.detectCefrLevel(title) : null));
+      const levelChipHTML = level
+        ? `<span class="art-level-chip level-${escHtml(level.toLowerCase())}">${escHtml(level)}</span>`
+        : '';
       return `
         <div onclick="loadFromHistory('${id}')" class="yt-card txt-card art-sample-row art-history-card btn-interactive" role="button" tabindex="0" title="Mở lại để luyện tiếp">
           <div class="art-sample-main">
@@ -353,7 +364,7 @@
             </div>
           </div>
           <div class="art-sample-side">
-            <span class="art-level-chip level-${escHtml(level.toLowerCase())}">${escHtml(level)}</span>
+            ${levelChipHTML}
             <button type="button" class="yt-card-remove" title="Xóa khỏi lịch sử" onclick="removeHistoryItem('${id}', event)">
               <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
             </button>

@@ -29,6 +29,7 @@ test('M35.1: buildTextHistoryCardHTML sinh thẻ bài chuẩn art-sample-row, kh
   const mockItem = {
     videoId: 'txt_test_123',
     title: 'Une année dans ma vie',
+    level: 'B1',
     desc: 'Ceci est un extrait de test.',
     sentences: [
       { text: 'Une année dans ma vie.', vi: 'Một năm trong đời tôi.' },

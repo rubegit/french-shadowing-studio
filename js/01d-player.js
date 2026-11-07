@@ -87,6 +87,7 @@
           format: item.format || 'srt',
           isText: !!item.isText,
           sentences: keepSentences ? (item.sentences !== undefined ? item.sentences : (prevItem && prevItem.sentences) || []) : [],
+          level: (item.level !== undefined ? (item.level || undefined) : (prevItem && prevItem.level)) || undefined,
           lib: isLib ? true : undefined,
           userTrans: userTrans ? true : undefined,
           userPunct: userPunct ? true : undefined,
@@ -711,13 +712,17 @@
       document.body.classList.add('text-mode');
       resetBilingualForNewVideo();
 
+      const existingHistItem = getLocalHistory().find(h => h.videoId === docId);
+      const initialLevel = (existingHistItem && existingHistItem.level) || (typeof window.detectCefrLevel === 'function' ? window.detectCefrLevel(currentVideoTitle) : null);
+
       saveToLocalHistory({
         videoId: docId,
         title: currentVideoTitle,
         duration: 0,
         format: 'text',
         isText: true,
-        sentences: sentences
+        sentences: sentences,
+        level: initialLevel || undefined
       });
 
       document.getElementById('screen-vocab').classList.add('hidden');
@@ -817,6 +822,9 @@
         return list;
       })();
 
+      const savedHistItem = getLocalHistory().find(h => h.videoId === docId);
+      const curLevel = (savedHistItem && savedHistItem.level) || (typeof window.detectCefrLevel === 'function' ? window.detectCefrLevel(currentVideoTitle) : null);
+
       p.innerHTML = `
         <div class="art-side-card">
           <div class="art-side-hd">
@@ -877,6 +885,10 @@
             <button type="button" class="art-btn" onclick="openKeyVocabModal()" title="Lọc và giải nghĩa từ khó với AI">
               <i data-lucide="sparkles" class="w-4 h-4"></i>
               <span>Từ khó AI</span>
+            </button>
+            <button type="button" class="art-btn art-side-level-btn" id="art-side-level-btn" onclick="openArticleLevelModal()" title="Gán hoặc điều chỉnh cấp độ CEFR cho bài viết này">
+              <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
+              <span id="art-side-level-text">${curLevel ? ('Cấp độ: ' + curLevel) : 'Gán trình độ'}</span>
             </button>
           </div>
 
@@ -952,7 +964,18 @@
         tx.oncomplete = () => {
           // Tự động đẩy file MP3 lên Supabase Storage (nếu đã đăng nhập)
           if (window.FSS_SUPABASE && typeof window.FSS_SUPABASE.uploadArticleAudio === 'function') {
-            try { window.FSS_SUPABASE.uploadArticleAudio(docId, file); } catch (e) {}
+            if (typeof window.FSS_SUPABASE.isReady === 'function' && window.FSS_SUPABASE.isReady()) {
+              if (typeof showVocabToast === 'function') showVocabToast('Đang đồng bộ audio bài báo lên Cloud...', true);
+              window.FSS_SUPABASE.uploadArticleAudio(docId, file).then(res => {
+                if (res && res.path && typeof showVocabToast === 'function') {
+                  showVocabToast('Đã đồng bộ audio bài báo lên Cloud (sẵn sàng mở ở máy khác)', true);
+                }
+              }).catch(() => {});
+            } else {
+              if (typeof showVocabToast === 'function') {
+                showVocabToast('Audio đã lưu trên máy này. Đăng nhập Cloud để đồng bộ sang máy khác.', true);
+              }
+            }
           }
           resolve(true);
         };
@@ -1686,6 +1709,57 @@ YÊU CẦU:
       if (modal) modal.style.display = 'none';
     };
 
+    window.openArticleLevelModal = function() {
+      const modal = document.getElementById('modal-art-level');
+      if (!modal) return;
+      const saved = getLocalHistory().find(h => h.videoId === currentVideoId);
+      const cur = (saved && saved.level) || (typeof window.detectCefrLevel === 'function' ? window.detectCefrLevel(currentVideoTitle) : null);
+      const opts = modal.querySelectorAll('.art-level-opt');
+      opts.forEach(btn => {
+        const badge = btn.querySelector('.art-level-opt-badge');
+        const lvl = badge ? badge.textContent.trim().toUpperCase() : '';
+        if (cur && lvl === cur.toUpperCase()) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+      modal.style.display = 'flex';
+      if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+    };
+
+    window.closeArticleLevelModal = function() {
+      const modal = document.getElementById('modal-art-level');
+      if (modal) modal.style.display = 'none';
+    };
+
+    window.setArticleLevel = function(newLevel) {
+      if (!currentVideoId) return;
+      const raw = getRawHistory();
+      const idx = raw.findIndex(h => h.videoId === currentVideoId && !h._deleted);
+      if (idx !== -1) {
+        if (newLevel) {
+          raw[idx].level = newLevel.toUpperCase();
+        } else {
+          delete raw[idx].level;
+        }
+        raw[idx].updatedAt = Date.now();
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(raw));
+        if (window.FSS_SUPABASE && typeof window.FSS_SUPABASE.syncHistoryDebounced === 'function') {
+          window.FSS_SUPABASE.syncHistoryDebounced();
+        }
+      }
+      const lvlText = document.getElementById('art-side-level-text');
+      if (lvlText) {
+        lvlText.textContent = newLevel ? ('Cấp độ: ' + newLevel.toUpperCase()) : 'Gán trình độ';
+      }
+      if (typeof showVocabToast === 'function') {
+        showVocabToast(newLevel ? ('Đã gán trình độ: ' + newLevel.toUpperCase()) : 'Đã bỏ nhãn trình độ cho bài đọc', true);
+      }
+      closeArticleLevelModal();
+      if (typeof renderHistory === 'function') renderHistory();
+    };
+
     window.copyArtAiPrompt = function() {
       const promptText = currentArtPromptMode === 'transcribe'
         ? generateAiTranscriptionPrompt(currentVideoTitle)
@@ -2071,7 +2145,7 @@ ${truncated}`;
       if (hint) hint.textContent = isOpening ? '(Bấm để thu gọn)' : '(Bấm để mở khung nhập bài)';
     };
 
-    window.clearTextInputFields = function() {
+    window.clearTextInputFields = function(clearAudio = true) {
       const ta = document.getElementById('text-shadow-textarea');
       const ti = document.getElementById('text-shadow-title-input');
       const fi = document.getElementById('text-file-input');
@@ -2082,7 +2156,7 @@ ${truncated}`;
       if (fi) fi.value = '';
       if (ji) ji.value = '';
       if (wc) wc.textContent = '0';
-      if (typeof clearTextAudioInput === 'function') clearTextAudioInput();
+      if (clearAudio && typeof clearTextAudioInput === 'function') clearTextAudioInput();
       const fixBox = document.getElementById('text-json-ai-fix-box');
       if (fixBox) fixBox.style.display = 'none';
     };
@@ -2094,8 +2168,8 @@ ${truncated}`;
       const customSentences = window.__pendingArticleJsonSentences || null;
       window.__pendingArticleJsonSentences = null;
 
-      // Xóa nội dung trong các ô đã điền và thu gọn để người dùng nhập bài mới mà không phải xóa thủ công
-      if (typeof window.clearTextInputFields === 'function') window.clearTextInputFields();
+      // Xóa nội dung trong các ô đã điền (giữ audio để nạp) và thu gọn
+      if (typeof window.clearTextInputFields === 'function') window.clearTextInputFields(false);
       if (typeof window.toggleTextInputCollapse === 'function') window.toggleTextInputCollapse(false);
 
       enterTextShadowing(raw, title, null, customSentences);
@@ -2490,7 +2564,10 @@ ${truncated}`;
     function artCardHTML(it, hist) {
       const h = hist.find((x) => x.videoId === 'art_lib_' + it.id && x.isText);
       const status = h ? (aicHasTranslation(h.sentences) ? 'Có song ngữ' : 'Chưa có song ngữ') : 'Chưa đọc';
-      const level = it.level || 'B1';
+      const level = (h && h.level) || it.level || (typeof window !== 'undefined' && window.detectCefrLevel ? window.detectCefrLevel(it.title) : null);
+      const levelChipHTML = level
+        ? `<span class="art-level-chip level-${level.toLowerCase()}">${level}</span>`
+        : '';
       return `
         <div class="art-sample-row art-yt-card btn-interactive" data-id="${escHtml(it.id)}" role="button" tabindex="0" title="Bấm để đọc bài này">
           <div class="art-sample-main">
@@ -2507,7 +2584,7 @@ ${truncated}`;
             </div>
           </div>
           <div class="art-sample-side">
-            <span class="art-level-chip level-${level.toLowerCase()}">${level}</span>
+            ${levelChipHTML}
           </div>
         </div>`;
     }

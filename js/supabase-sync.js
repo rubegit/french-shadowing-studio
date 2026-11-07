@@ -1279,7 +1279,7 @@
     if (!client || !currentUser || !docId || !fileOrBlob) {
       return Promise.resolve(null);
     }
-    var cleanDocId = String(docId).replace(/^yt:/, '').replace(/^local:/, '').replace(/^text:/, '').trim();
+    var cleanDocId = String(docId).replace(/^yt:/, '').replace(/^local:/, '').replace(/^text:/, '').trim().replace(/[^a-zA-Z0-9_\-]/g, '_');
     var filePath = currentUser.id + '/' + cleanDocId + '.mp3';
     var mime = fileOrBlob.type || 'audio/mpeg';
 
@@ -1302,7 +1302,7 @@
     if (!client || !currentUser || !docId) {
       return Promise.resolve(null);
     }
-    var cleanDocId = String(docId).replace(/^yt:/, '').replace(/^local:/, '').replace(/^text:/, '').trim();
+    var cleanDocId = String(docId).replace(/^yt:/, '').replace(/^local:/, '').replace(/^text:/, '').trim().replace(/[^a-zA-Z0-9_\-]/g, '_');
     var filePath = currentUser.id + '/' + cleanDocId + '.mp3';
 
     return client.storage.from(AUDIO_BUCKET).download(filePath).then(function (res) {

@@ -62,13 +62,16 @@
   - Khắc phục xung đột CSS `!important`: Thiết lập rule rõ ràng `.txt-collapsible-card:not(.is-expanded) .txt-collapse-body { display: none !important; }` để ẩn triệt để 100% tất cả các ô input, textarea, nút file và nút "Bắt đầu đọc bài viết" khi ở trạng thái thu gọn.
   - Khi có class `.is-expanded`: mở form bằng `display: flex !important;` hiển thị trọn vẹn và xoay mũi tên chỉ báo.
   - Cập nhật hàm `toggleTextInputCollapse` toggle đồng bộ class `.is-expanded`, class `.hidden`, style inline và nội dung nhãn chỉ dẫn `(Bấm để thu gọn)` / `(Bấm để mở khung nhập bài)`.
+- **M38** (Khắc phục gán nhãn trình độ tự động/thủ công & Bảo toàn đồng bộ MP3 lên Cloud - Đã hoàn thành):
+  - Không còn ép mặc định `B1`: Hàm `detectCefrLevel(text)` tự động nhận diện cấp độ CEFR (`A1`–`C2`) từ tiêu đề bài viết. Nếu không có cấp độ trong tiêu đề hoặc lịch sử, bỏ qua hoàn toàn và không hiển thị huy hiệu `.art-level-chip`.
+  - Nút "Gán trình độ": Bổ sung nút `#art-side-level-btn` ngay dưới nút "Từ khó AI" trong sidebar thông tin bài đọc (`renderArticleSidePanel`). Bấm nút sẽ mở `#modal-art-level` cho phép người dùng chọn 6 cấp độ CEFR (`A1`–`C2`) hoặc "Bỏ gán trình độ". Lựa chọn được lưu vào lịch sử bài đọc và tự động đồng bộ lên Supabase Cloud (`syncHistoryDebounced`).
+  - Khắc phục triệt để lỗi mất file Audio MP3 không sync lên Cloud:
+    - Trong `startTextShadowingFromPaste()`, gọi `clearTextInputFields(false)` để bảo toàn biến `pendingTextAudioFile` trước khi chuyển sang phòng luyện thay vì xóa trắng sớm trước khi nạp.
+    - Làm sạch và chuẩn hóa ký tự `cleanDocId` trong `js/supabase-sync.js` (`uploadArticleAudioToSupabase` / `downloadArticleAudioFromSupabase`) chống ký tự đặc biệt.
+    - Bổ sung thông báo trực quan (Toast) khi lưu audio: nếu đã đăng nhập Cloud sẽ tự động đẩy lên Supabase Storage và báo thành công; nếu chưa đăng nhập sẽ nhắc người dùng đăng nhập để đồng bộ sang thiết bị khác.
 - **Bộ kiểm thử tự động:**
-  - 319 bài kiểm thử tự động toàn diện chạy qua `node --test tools/*.test.js` đạt 319/319 passed 100%.
-  - Ngân sách mã màu giữ nguyên mức 921 mã hex, 0 inline colors, 0 Tailwind colors (`node tools/lint-color.js`).
-  - Ngân sách mã màu giữ nguyên mức 921 mã hex, 0 inline colors, 0 Tailwind colors (`node tools/lint-color.js`).
-  - Ngân sách mã màu giữ nguyên mức 921 mã hex, 0 inline colors, 0 Tailwind colors (`node tools/lint-color.js`).
-  - `node --test tools/*.test.js`: **308 / 308 PASS (100%)**.
-  - `node tools/lint-color.js`: **921 / 921 HEX**, **0 inline style**, **0 tailwind color**.
+  - 323 bài kiểm thử tự động toàn diện chạy qua `node --test tools/*.test.js` đạt **323 / 323 PASS (100%)**.
+  - Ngân sách mã màu giữ nguyên mức **921 / 921 HEX**, **0 inline style**, **0 tailwind color** (`node tools/lint-color.js`).
 
 ---
 
