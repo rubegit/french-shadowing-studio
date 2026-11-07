@@ -213,7 +213,7 @@
 <link rel="stylesheet" href="css/12-video-timeline.css?v=6a4f7d5e" id="vp-style">
 <link rel="stylesheet" href="css/13-default-controls.css?v=6e7a3072" id="pv-ctl-style">
 
-  <link rel="stylesheet" href="css/14-subtitle-card.css?v=e35af262" id="cs-style">
+  <link rel="stylesheet" href="css/14-subtitle-card.css?v=709c6678" id="cs-style">
 <link rel="stylesheet" href="css/15-ipa-highlight.css?v=5b8c6b2b" id="ipa-hl-style">
 <link rel="stylesheet" href="css/16-own-video.css?v=e27c9e09" id="own-yt-style">
   <!-- Redesign Theme: Mint Pastel & Dark Mode (Spec 2026) -->
@@ -2798,12 +2798,12 @@
             <div class="practice-sandwich-menu pv-x" id="practice-sandwich-menu" role="menu" aria-label="Menu chức năng luyện tập">
               <div class="psm-title">Chức năng & Tiện ích</div>
               <div class="psm-section">
-                <button type="button" class="psm-item" onclick="openCloudSyncModal(); closePracticeMobileMenu();">
+                <button type="button" class="psm-item psm-mobile-only" id="psm-btn-cloud" onclick="openCloudSyncModal(); closePracticeMobileMenu();">
                   <i data-lucide="cloud" class="w-4 h-4 fs-text-accent"></i>
                   <span>Đồng bộ đám mây</span>
                   <span class="cloud-sync-dot disconnected ml-auto"></span>
                 </button>
-                <button type="button" class="psm-item" onclick="toggleFsTheme(); closePracticeMobileMenu();">
+                <button type="button" class="psm-item psm-mobile-only" id="psm-btn-theme" onclick="toggleFsTheme(); closePracticeMobileMenu();">
                   <svg class="fs-theme-icon-moon w-4 h-4 fs-text-warn" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
                   <svg class="fs-theme-icon-sun w-4 h-4 fs-text-warn" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
                   <span>Chuyển chế độ Sáng / Tối</span>

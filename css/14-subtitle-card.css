@@ -341,6 +341,19 @@
     background: var(--fs-hover) !important;
     color: var(--fs-ink);
   }
+  .psm-item .cloud-sync-dot {
+    margin-left: auto;
+  }
+  @media (min-width: 768.02px) {
+    #practice-sandwich-menu .psm-mobile-only {
+      display: none !important;
+    }
+  }
+  @media (width > 768px) {
+    #practice-sandwich-menu .psm-mobile-only {
+      display: none !important;
+    }
+  }
   .psm-sep {
     height: 1px;
     background: var(--fs-line);
