@@ -2024,9 +2024,20 @@ YÊU CẦU:
       }
     };
 
-    window.openArtAiSyncModal = function() {
+    let _artSyncSnapshot = null;
+    function isArtAiSyncDirty() {
+      if (!_artSyncSnapshot) return false;
+      const inputEl = document.getElementById('art-sync-input');
+      const curVal = inputEl ? inputEl.value : '';
+      // So sánh chính xác chuỗi thô, không dùng trim()
+      return curVal !== _artSyncSnapshot.val;
+    }
+    window.isArtAiSyncDirty = isArtAiSyncDirty;
+
+    window.openArtAiSyncModal = function(trigger) {
       const modal = document.getElementById('modal-art-ai-sync');
       if (!modal) return;
+      const trig = trigger || (document.activeElement && document.activeElement !== document.body ? document.activeElement : document.getElementById('art-side-sync-btn'));
       switchArtPromptTab(currentArtPromptMode || 'align');
       const statusEl = document.getElementById('art-sync-status');
       if (statusEl) {
@@ -2035,17 +2046,51 @@ YÊU CẦU:
       }
       const copyLbl = document.getElementById('art-sync-copy-label');
       if (copyLbl) copyLbl.textContent = 'Sao chép Prompt';
+
+      const inputEl = document.getElementById('art-sync-input');
+      const curVal = inputEl ? inputEl.value : '';
+      _artSyncSnapshot = { val: curVal };
+
+      modal.classList.add('open');
       modal.style.display = 'flex';
+      modal.inert = false;
+
+      if (window.FSSModal) {
+        window.FSSModal.open('modal-art-ai-sync', {
+          trigger: trig,
+          fallbackTrigger: document.getElementById('art-side-sync-btn') || document.getElementById('screen-practice'),
+          escapePolicy: 'prompt-if-dirty',
+          isDirty: isArtAiSyncDirty,
+          closeFn: function() { closeArtAiSyncModal(true); },
+          initialFocus: '#art-sync-input'
+        });
+      }
     };
 
-    window.closeArtAiSyncModal = function() {
+    window.closeArtAiSyncModal = function(force) {
+      if (!force && isArtAiSyncDirty()) {
+        const confirmed = window.confirm('Bạn có nội dung chưa áp dụng. Bạn có chắc chắn muốn đóng và hủy bỏ?');
+        if (!confirmed) return;
+      }
       const modal = document.getElementById('modal-art-ai-sync');
-      if (modal) modal.style.display = 'none';
+      if (modal) {
+        modal.classList.remove('open');
+        modal.style.display = 'none';
+      }
+      _artSyncSnapshot = null;
+      if (window.FSSModal) window.FSSModal.close('modal-art-ai-sync');
+
+      // Phục hồi focus bằng cách tìm lại trigger mới tại thời điểm đóng nếu trigger gốc bị re-render
+      const syncBtn = document.getElementById('art-side-sync-btn');
+      if (syncBtn && typeof syncBtn.focus === 'function') {
+        try { syncBtn.focus(); } catch (_) {}
+      }
     };
 
-    window.openArticleLevelModal = function() {
+    window.openArticleLevelModal = function(trigger) {
       const modal = document.getElementById('modal-art-level');
       if (!modal) return;
+      const trig = trigger || (document.activeElement && document.activeElement !== document.body ? document.activeElement : document.getElementById('art-side-level-btn'));
       const saved = getLocalHistory().find(h => h.videoId === currentVideoId);
       const cur = (saved && saved.level) || (typeof window.detectCefrLevel === 'function' ? window.detectCefrLevel(currentVideoTitle) : null);
       const opts = modal.querySelectorAll('.art-level-opt');
@@ -2058,13 +2103,34 @@ YÊU CẦU:
           btn.classList.remove('active');
         }
       });
+      modal.classList.add('open');
       modal.style.display = 'flex';
+      modal.inert = false;
       if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+
+      if (window.FSSModal) {
+        window.FSSModal.open('modal-art-level', {
+          trigger: trig,
+          fallbackTrigger: document.getElementById('art-side-level-btn') || document.getElementById('screen-practice'),
+          closeFn: closeArticleLevelModal,
+          initialFocus: '.art-level-opt.active, .art-level-opt'
+        });
+      }
     };
 
     window.closeArticleLevelModal = function() {
       const modal = document.getElementById('modal-art-level');
-      if (modal) modal.style.display = 'none';
+      if (modal) {
+        modal.classList.remove('open');
+        modal.style.display = 'none';
+      }
+      if (window.FSSModal) window.FSSModal.close('modal-art-level');
+
+      // Phục hồi focus bằng cách tìm lại trigger mới tại thời điểm đóng nếu trigger gốc bị re-render
+      const lvlBtn = document.getElementById('art-side-level-btn');
+      if (lvlBtn && typeof lvlBtn.focus === 'function') {
+        try { lvlBtn.focus(); } catch (_) {}
+      }
     };
 
     window.setArticleLevel = function(newLevel) {
@@ -2164,7 +2230,7 @@ YÊU CẦU:
         }
         showVocabToast(`Đã đồng bộ ${parsed.count} câu với mốc thời gian AI!`, true);
         setTimeout(() => {
-          closeArtAiSyncModal();
+          closeArtAiSyncModal(true);
         }, 1200);
       } catch (err) {
         if (statusEl) {
@@ -2442,7 +2508,7 @@ ${truncated}`;
 
       renderSubtitleList();
       renderArticleSidePanel(currentVideoId, currentVideoTitle, sentences);
-      closeArtAiSyncModal();
+      closeArtAiSyncModal(true);
       showVocabToast('Đã khôi phục timestamps mặc định cho bài viết', true);
     };
 

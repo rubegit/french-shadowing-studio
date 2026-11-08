@@ -192,22 +192,36 @@ test('M18.4 Article Fixer Prompt: Sinh prompt chuẩn hóa bài báo chứa sche
   assert.ok(prompt.includes('unformatted_article'));
 });
 
-test('M18.5 Giao diện & Template HTML: Chứa đầy đủ các nút nạp file JSON và hộp trợ giúp AI', () => {
-  const practiceHtml = fs.readFileSync(path.resolve('partials/view-practice.html'), 'utf-8');
+test('M18.5 Giao diện & Template HTML: Chứa đầy đủ các nút nạp file JSON và hộp trợ giúp AI (Body-Level Portal M45B2)', () => {
+  const modalArticleHtml = fs.readFileSync(path.resolve('partials/modal-article.html'), 'utf-8');
   const homeHtml = fs.readFileSync(path.resolve('partials/view-home.html'), 'utf-8');
+  const srcIndexHtml = fs.readFileSync(path.resolve('src/index.src.html'), 'utf-8');
   const indexHtml = fs.readFileSync(path.resolve('index.html'), 'utf-8');
 
-  // AI Sync modal
-  assert.ok(practiceHtml.includes('id="art-sync-file-input"'), 'Modal có input nạp file');
-  assert.ok(practiceHtml.includes('id="art-sync-ai-fix-box"'), 'Modal có box hỗ trợ sửa AI');
-  assert.ok(practiceHtml.includes('copyArtAiSyncFixPrompt()'), 'Modal có hàm copy prompt AI');
+  // 1. AI Sync modal trong partials/modal-article.html (Body-Level Portal)
+  assert.ok(modalArticleHtml.includes('id="art-sync-file-input"'), 'Modal có input nạp file');
+  assert.ok(modalArticleHtml.includes('id="art-sync-ai-fix-box"'), 'Modal có box hỗ trợ sửa AI');
+  assert.ok(modalArticleHtml.includes('copyArtAiSyncFixPrompt()'), 'Modal có hàm copy prompt AI');
 
-  // Article Input
+  // 2. Article Input trong partials/view-home.html
   assert.ok(homeHtml.includes('id="text-json-input"'), 'Nhập bài báo có input file JSON');
   assert.ok(homeHtml.includes('id="text-json-ai-fix-box"'), 'Nhập bài báo có box hỗ trợ sửa AI');
   assert.ok(homeHtml.includes('copyTextJsonFixPrompt()'), 'Nhập bài báo có hàm copy prompt AI');
 
-  // index.html đồng bộ
+  // 3. src/index.src.html include đúng partial mới
+  assert.ok(srcIndexHtml.includes('<!-- @include partials/modal-article.html -->'), 'src/index.src.html include partials/modal-article.html');
+
+  // 4. index.html sau build đồng bộ đầy đủ các modal và input
   assert.ok(indexHtml.includes('id="art-sync-file-input"'), 'index.html chứa input art-sync');
   assert.ok(indexHtml.includes('id="text-json-input"'), 'index.html chứa input text-json');
+
+  // 5. Kiểm tra tính duy nhất (không duplicate ID)
+  const syncMatches = indexHtml.match(/id="modal-art-ai-sync"/g) || [];
+  assert.strictEqual(syncMatches.length, 1, '#modal-art-ai-sync xuất hiện đúng một lần trong index.html');
+
+  const levelMatches = indexHtml.match(/id="modal-art-level"/g) || [];
+  assert.strictEqual(levelMatches.length, 1, '#modal-art-level xuất hiện đúng một lần trong index.html');
+
+  const syncInputMatches = indexHtml.match(/id="art-sync-file-input"/g) || [];
+  assert.strictEqual(syncInputMatches.length, 1, '#art-sync-file-input xuất hiện đúng một lần trong index.html');
 });
