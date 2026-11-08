@@ -1,7 +1,7 @@
 <div id="share-modal" class="ai-modal-backdrop" onmousedown="if (event.target === this) closeShareModal()">
-    <div class="ai-modal" role="dialog" aria-modal="true">
+    <div class="ai-modal" role="dialog" aria-modal="true" aria-labelledby="share-modal-title">
       <div class="ai-modal-head">
-        <div class="ai-modal-title">Chia sẻ video này</div>
+        <div class="ai-modal-title" id="share-modal-title">Chia sẻ video này</div>
         <button type="button" class="ai-modal-close" onclick="closeShareModal()" title="Đóng (Esc)"><i data-lucide="x"></i></button>
       </div>
       <p class="ai-step-text">Link ngắn (đã copy sẵn):</p>
@@ -10,7 +10,7 @@
       <p id="share-extra" class="ai-step-text"></p>
       <p id="share-file-warn" class="ai-step-text fs-text-warn" style="display:none">Lưu ý: trang đang mở trực tiếp từ file trên máy nên người khác chưa mở được link, cần đưa cả thư mục lên hosting.</p>
       <div class="ai-actions">
-        <button type="button" class="ai-btn ai-btn-primary" onclick="copyShareLink(this)"><i data-lucide="copy"></i><span>Copy link</span></button>
+        <button type="button" id="btn-copy-share-url" class="ai-btn ai-btn-primary" onclick="copyShareLink(this)"><i data-lucide="copy"></i><span>Copy link</span></button>
         <button type="button" class="ai-btn ai-btn-ghost" onclick="closeShareModal()">Đóng</button>
       </div>
     </div>

@@ -1978,10 +1978,18 @@
       aiSetStatus(document.getElementById('vm-status'), '', '');
       modal.classList.add('open');
       if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+      if (window.FSSModal) {
+        window.FSSModal.open('vocab-meaning-modal', {
+          trigger: document.activeElement && document.activeElement !== document.body ? document.activeElement : null,
+          closeFn: closeVocabMeaningModal,
+          initialFocus: '#vm-textarea'
+        });
+      }
     }
     function closeVocabMeaningModal() {
       const modal = document.getElementById('vocab-meaning-modal');
       if (modal) modal.classList.remove('open');
+      if (window.FSSModal) window.FSSModal.close('vocab-meaning-modal');
     }
 
     function openManualPromptModal(text) {
@@ -2325,19 +2333,27 @@
       });
     }
 
-    function openKeyVocabModal() {
+    function openKeyVocabModal(trigger) {
       if (!sentences || !sentences.length) { alert('Chưa có nội dung để tổng hợp.'); return; }
+      const trig = trigger || (document.activeElement && document.activeElement !== document.body ? document.activeElement : null);
       resetCopyButtons();
       document.getElementById('kv-textarea').value = '';
       aiSetStatus(document.getElementById('kv-status'), '', '');
       document.getElementById('keyvocab-modal').classList.add('open');
       kvRenderLevels();
+      if (window.FSSModal) {
+        window.FSSModal.open('keyvocab-modal', {
+          trigger: trig,
+          closeFn: closeKeyVocabModal,
+          initialFocus: '#kv-btn-filter, .ai-btn-copy, #kv-textarea'
+        });
+      }
     }
     function closeKeyVocabModal() {
       const m = document.getElementById('keyvocab-modal');
       if (m) m.classList.remove('open');
+      if (window.FSSModal) window.FSSModal.close('keyvocab-modal');
     }
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeKeyVocabModal(); });
 
     function kvHandleFileSelect(input) {
       if (!input || !input.files || !input.files[0]) return;
@@ -3342,6 +3358,7 @@
 
     async function shareCurrentVideo() {
       if (!currentVideoId || !sentences.length) return;
+      const trig = document.activeElement && document.activeElement !== document.body ? document.activeElement : (document.getElementById('psm-btn-share') || document.getElementById('btn-share-video'));
       const withVi = aicHasTranslation(sentences);
       const bilingualOn = !!(settings.bilingual && withVi);
       const fileName = `${currentVideoId}.share.json`;
@@ -3355,12 +3372,13 @@
       shareDownloadFile(fileName, JSON.stringify(payload));
       const link = shareBaseUrl() + '?v=' + encodeURIComponent(currentVideoId) + (bilingualOn ? '&b=1' : '');
       try { await copyTextToClipboard(link); } catch (e) {}
-      openShareModal(link, fileName, bilingualOn, withVi);
+      openShareModal(link, fileName, bilingualOn, withVi, trig);
     }
 
-    function openShareModal(link, fileName, bilingualOn, withVi) {
+    function openShareModal(link, fileName, bilingualOn, withVi, trigger) {
       const m = document.getElementById('share-modal');
       if (!m) return;
+      const trig = trigger || (document.activeElement && document.activeElement !== document.body ? document.activeElement : (document.getElementById('psm-btn-share') || document.getElementById('btn-share-video')));
       document.getElementById('share-link-input').value = link;
       document.getElementById('share-file-name').textContent = fileName;
       const f2 = document.getElementById('share-file-name2');
@@ -3372,15 +3390,26 @@
       warn.style.display = location.protocol === 'file:' ? 'block' : 'none';
       m.classList.add('open');
       if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+      if (window.FSSModal) {
+        window.FSSModal.open('share-modal', {
+          trigger: trig,
+          fallbackTrigger: document.getElementById('btn-share-video') || document.getElementById('practice-sandwich-btn') || document.getElementById('btn-practice-sandwich'),
+          closeFn: closeShareModal,
+          initialFocus: '#btn-copy-share-url, #share-link-input'
+        });
+      }
     }
-    function closeShareModal() { const m = document.getElementById('share-modal'); if (m) m.classList.remove('open'); }
+    function closeShareModal() {
+      const m = document.getElementById('share-modal');
+      if (m) m.classList.remove('open');
+      if (window.FSSModal) window.FSSModal.close('share-modal');
+    }
     function copyShareLink(btn) {
       const v = document.getElementById('share-link-input').value;
       copyTextToClipboard(v).then(() => {
         flashCopied(btn, 1600);
       }).catch(() => { document.getElementById('share-link-input').select(); });
     }
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeShareModal(); });
 
     function shareEnterPractice() {
       document.getElementById('screen-vocab').classList.add('hidden');

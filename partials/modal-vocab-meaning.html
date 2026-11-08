@@ -1,7 +1,7 @@
 <div id="vocab-meaning-modal" class="ai-modal-backdrop" onmousedown="if (event.target === this) closeVocabMeaningModal()">
-    <div class="ai-modal" role="dialog" aria-modal="true">
+    <div class="ai-modal" role="dialog" aria-modal="true" aria-labelledby="vm-title">
       <div class="ai-modal-head">
-        <div class="ai-modal-title">Điền nghĩa riêng cho từ vựng</div>
+        <div class="ai-modal-title" id="vm-title">Điền nghĩa riêng cho từ vựng</div>
         <button type="button" class="ai-modal-close" onclick="closeVocabMeaningModal()" title="Đóng (Esc)"><i data-lucide="x"></i></button>
       </div>
       <p id="vm-desc" class="ai-step-text">Đang kiểm tra...</p>

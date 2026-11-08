@@ -362,9 +362,9 @@
   </div>
 
   <div id="share-modal" class="ai-modal-backdrop" onmousedown="if (event.target === this) closeShareModal()">
-    <div class="ai-modal" role="dialog" aria-modal="true">
+    <div class="ai-modal" role="dialog" aria-modal="true" aria-labelledby="share-modal-title">
       <div class="ai-modal-head">
-        <div class="ai-modal-title">Chia sẻ video này</div>
+        <div class="ai-modal-title" id="share-modal-title">Chia sẻ video này</div>
         <button type="button" class="ai-modal-close" onclick="closeShareModal()" title="Đóng (Esc)"><i data-lucide="x"></i></button>
       </div>
       <p class="ai-step-text">Link ngắn (đã copy sẵn):</p>
@@ -373,15 +373,16 @@
       <p id="share-extra" class="ai-step-text"></p>
       <p id="share-file-warn" class="ai-step-text fs-text-warn" style="display:none">Lưu ý: trang đang mở trực tiếp từ file trên máy nên người khác chưa mở được link, cần đưa cả thư mục lên hosting.</p>
       <div class="ai-actions">
-        <button type="button" class="ai-btn ai-btn-primary" onclick="copyShareLink(this)"><i data-lucide="copy"></i><span>Copy link</span></button>
+        <button type="button" id="btn-copy-share-url" class="ai-btn ai-btn-primary" onclick="copyShareLink(this)"><i data-lucide="copy"></i><span>Copy link</span></button>
         <button type="button" class="ai-btn ai-btn-ghost" onclick="closeShareModal()">Đóng</button>
       </div>
     </div>
   </div>
 
+
   <!-- ==================== CỬA SỔ TỪ VỰNG KHÓ TRONG BÀI (AI) ==================== -->
   <div id="keyvocab-modal" class="ai-modal-backdrop" onmousedown="if (event.target === this) closeKeyVocabModal()">
-    <div class="ai-modal" role="dialog" aria-modal="true">
+    <div class="ai-modal" role="dialog" aria-modal="true" aria-labelledby="kv-title">
       <div class="ai-modal-head">
         <div id="kv-title" class="ai-modal-title">Trích xuất từ vựng khó trong bài</div>
         <button type="button" class="ai-modal-close" onclick="closeKeyVocabModal()" title="Đóng (Esc)"><i data-lucide="x"></i></button>
@@ -430,9 +431,9 @@
 
   <!-- ==================== CỬA SỔ ĐIỀN NGHĨA TỪ VỰNG HÀNG LOẠT (AI) ==================== -->
   <div id="vocab-meaning-modal" class="ai-modal-backdrop" onmousedown="if (event.target === this) closeVocabMeaningModal()">
-    <div class="ai-modal" role="dialog" aria-modal="true">
+    <div class="ai-modal" role="dialog" aria-modal="true" aria-labelledby="vm-title">
       <div class="ai-modal-head">
-        <div class="ai-modal-title">Điền nghĩa riêng cho từ vựng</div>
+        <div class="ai-modal-title" id="vm-title">Điền nghĩa riêng cho từ vựng</div>
         <button type="button" class="ai-modal-close" onclick="closeVocabMeaningModal()" title="Đóng (Esc)"><i data-lucide="x"></i></button>
       </div>
       <p id="vm-desc" class="ai-step-text">Đang kiểm tra...</p>
@@ -452,6 +453,7 @@
       <div id="vm-status" class="ai-status"></div>
     </div>
   </div>
+
   <!-- Modal Import Từ vựng & Quản lý Dữ liệu (Schema 0.2 - M40/M42) -->
 <style>
   #fss-import-modal {
@@ -3448,13 +3450,14 @@
     </div>
   </div>
 
+  <script src="js/00-modal-manager.js"></script>
   <script src="js/01-core.js?v=7c3efb56"></script>
 <script src="js/01b-catalog.js?v=b7a83e82"></script>
 <script src="js/01c-subtitles.js?v=3af8985c"></script>
 <script src="js/01d-player.js?v=177637ac"></script>
 <script src="js/01e-translate-ai.js?v=89dac0e1"></script>
 <script src="js/01f-lookup.js?v=bb67c688"></script>
-<script src="js/01g-vocab-list.js?v=f5308197"></script>
+<script src="js/01g-vocab-list.js?v=0d5211f0"></script>
 <script src="js/01h-ebook.js?v=52c35eec"></script>
 
   <script src="js/02-pv-helper.js?v=d2adcc44"></script>
