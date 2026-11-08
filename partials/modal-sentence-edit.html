@@ -2,7 +2,7 @@
   <div class="ai-modal" role="dialog" aria-modal="true" aria-labelledby="se-title" style="max-width:540px">
     <div class="ai-modal-head">
       <div id="se-title" class="ai-modal-title">Sửa câu phụ đề</div>
-      <button type="button" class="ai-modal-close" onclick="closeSentenceEditModal()" title="Đóng (Esc)">
+      <button type="button" id="se-btn-close" class="ai-modal-close" onclick="closeSentenceEditModal()" title="Đóng (Esc)">
         <i data-lucide="x"></i>
       </button>
     </div>
@@ -37,10 +37,10 @@
 
     <div class="ai-actions" style="margin-top:16px;align-items:center;justify-content:space-between">
       <div class="flex items-center gap-2">
-        <button type="button" class="ai-btn ai-btn-primary" onclick="saveSentenceEdit()">
+        <button type="button" id="se-btn-save" class="ai-btn ai-btn-primary" onclick="saveSentenceEdit()">
           <i data-lucide="check"></i><span>Lưu thay đổi</span>
         </button>
-        <button type="button" class="ai-btn ai-btn-ghost" onclick="closeSentenceEditModal()">Hủy</button>
+        <button type="button" id="se-btn-cancel" class="ai-btn ai-btn-ghost" onclick="closeSentenceEditModal()">Hủy</button>
       </div>
       <span class="text-[11px] fs-text-muted hidden sm:inline">Phím tắt: <b>Cmd/Ctrl + Enter</b> để lưu</span>
     </div>

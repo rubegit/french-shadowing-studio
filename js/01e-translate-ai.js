@@ -141,10 +141,11 @@
           editBtn.className = 'sent-edit-btn';
           editBtn.title = 'Sửa chính tả câu này';
           editBtn.setAttribute('aria-label', 'Sửa chính tả câu này');
+          editBtn.setAttribute('data-sent-id', sentence.id);
           editBtn.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>';
           editBtn.onclick = (e) => {
             e.stopPropagation();
-            openSentenceEditModal(sentence.id);
+            openSentenceEditModal(sentence.id, editBtn);
           };
           sentLine.appendChild(editBtn);
 
@@ -865,9 +866,10 @@
     }
 
     // ---------- Cửa sổ dán bản dịch ----------
-    function openBilingualModal(replace) {
+    function openBilingualModal(replace, trigger) {
       const modal = document.getElementById('bilingual-modal');
       if (!modal) return;
+      const trig = trigger || (document.activeElement && document.activeElement !== document.body ? document.activeElement : (document.getElementById('psm-btn-bilingual') || document.getElementById('btn-bilingual')));
       const title = document.getElementById('bl-title');
       const desc = document.getElementById('bl-desc');
       blReplaceMode = replace === true;
@@ -889,12 +891,21 @@
       aiSetStatus(document.getElementById('bl-status'), '', '');
       modal.classList.add('open');
       if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+      if (window.FSSModal) {
+        window.FSSModal.open('bilingual-modal', {
+          trigger: trig,
+          fallbackTrigger: document.getElementById('psm-btn-bilingual') || document.getElementById('practice-sandwich-btn'),
+          closeFn: closeBilingualModal,
+          initialFocus: '#bl-textarea'
+        });
+      }
     }
 
     function closeBilingualModal() {
       const modal = document.getElementById('bilingual-modal');
       if (modal) modal.classList.remove('open');
       blReplaceMode = false;
+      if (window.FSSModal) window.FSSModal.close('bilingual-modal');
     }
 
     // Xóa toàn bộ bản dịch của video đang mở (và cập nhật bản đã lưu) để có thể nạp bản mới.
@@ -995,10 +1006,11 @@
     }
     window.aiApplyManualMerge = aiApplyManualMerge;
 
-    function openPunctModal() {
+    function openPunctModal(trigger) {
       const modal = document.getElementById('punct-modal');
       if (!modal) return;
       if (!sentences.length) { alert('Chưa có phụ đề để tạo prompt.'); return; }
+      const trig = trigger || (document.activeElement && document.activeElement !== document.body ? document.activeElement : (document.getElementById('btn-ai-punct') || document.getElementById('practice-sandwich-btn')));
       const ta = document.getElementById('pc-textarea');
       if (ta) {
         ta.value = '';
@@ -1017,6 +1029,14 @@
       aiSetStatus(document.getElementById('pc-status'), '', '');
       modal.classList.add('open');
       if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+      if (window.FSSModal) {
+        window.FSSModal.open('punct-modal', {
+          trigger: trig,
+          fallbackTrigger: document.getElementById('btn-ai-punct') || document.getElementById('practice-sandwich-btn'),
+          closeFn: closePunctModal,
+          initialFocus: '#pc-textarea'
+        });
+      }
     }
 
     window.pcRevertAsrOriginal = function() {
@@ -1050,17 +1070,51 @@
       resetPunctModalPreview();
       const modal = document.getElementById('punct-modal');
       if (modal) modal.classList.remove('open');
+      if (window.FSSModal) window.FSSModal.close('punct-modal');
     }
 
     // ---------- Cửa sổ "Sửa câu phụ đề" ----------
     let _editingSentenceId = null;
+    let _sentenceEditSnapshot = null;
 
-    function openSentenceEditModal(sentenceId) {
+    function isSentenceEditDirty() {
+      if (!_editingSentenceId || !_sentenceEditSnapshot) return false;
+      const txtFr = document.getElementById('se-text-fr');
+      const txtVi = document.getElementById('se-text-vi');
+      const txtSt = document.getElementById('se-start-time');
+      const txtEn = document.getElementById('se-end-time');
+
+      const curFr = txtFr ? txtFr.value : '';
+      const curVi = txtVi ? txtVi.value : '';
+      // So sánh chính xác giá trị văn bản, không dùng trim()
+      if (curFr !== _sentenceEditSnapshot.text) return true;
+      if (curVi !== _sentenceEditSnapshot.vi) return true;
+
+      const parseF = typeof tsParse === 'function' ? tsParse : parseFloat;
+      const curSt = txtSt && txtSt.value ? parseF(txtSt.value) : 0;
+      const curEn = txtEn && txtEn.value ? parseF(txtEn.value) : 0;
+
+      // Chuẩn hóa timestamp về centiseconds (phần trăm giây) để triệt tiêu sai số số thực
+      const snapStCs = Math.round((_sentenceEditSnapshot.startTime || 0) * 100);
+      const snapEnCs = Math.round((_sentenceEditSnapshot.endTime || 0) * 100);
+      const curStCs = Math.round((curSt || 0) * 100);
+      const curEnCs = Math.round((curEn || 0) * 100);
+
+      if (curStCs !== snapStCs) return true;
+      if (curEnCs !== snapEnCs) return true;
+
+      return false;
+    }
+    window.isSentenceEditDirty = isSentenceEditDirty;
+
+    function openSentenceEditModal(sentenceId, trigger) {
       const s = sentences.find((x) => x.id === sentenceId);
       if (!s) return;
       _editingSentenceId = sentenceId;
       const modal = document.getElementById('sentence-edit-modal');
       if (!modal) return;
+
+      const trig = trigger || (document.activeElement && document.activeElement !== document.body ? document.activeElement : document.querySelector('.sent-edit-btn[data-sent-id="' + sentenceId + '"]'));
 
       const idx = sentences.findIndex((x) => x.id === sentenceId);
       const title = document.getElementById('se-title');
@@ -1070,30 +1124,54 @@
       }
 
       const txtFr = document.getElementById('se-text-fr');
+      const valFr = String(s.text || '');
       if (txtFr) {
-        txtFr.value = String(s.text || '').trim();
+        txtFr.value = valFr;
       }
 
       const txtVi = document.getElementById('se-text-vi');
+      const valVi = String(s.vi || '');
       if (txtVi) {
-        txtVi.value = String(s.vi || '').trim();
+        txtVi.value = valVi;
       }
 
       const txtSt = document.getElementById('se-start-time');
       const txtEn = document.getElementById('se-end-time');
       const fmtF = typeof tsFmt === 'function' ? tsFmt : (x) => String(x);
+      const parseF = typeof tsParse === 'function' ? tsParse : parseFloat;
+      const numSt = typeof s.startTime === 'number' ? s.startTime : 0;
+      const numEn = typeof s.endTime === 'number' ? s.endTime : 0;
+
       if (txtSt) {
-        txtSt.value = fmtF(typeof s.startTime === 'number' ? s.startTime : 0);
+        txtSt.value = fmtF(numSt);
       }
       if (txtEn) {
-        txtEn.value = fmtF(typeof s.endTime === 'number' ? s.endTime : 0);
+        txtEn.value = fmtF(numEn);
       }
+
+      _sentenceEditSnapshot = {
+        text: valFr,
+        vi: valVi,
+        startTime: txtSt && txtSt.value ? parseF(txtSt.value) : numSt,
+        endTime: txtEn && txtEn.value ? parseF(txtEn.value) : numEn
+      };
 
       modal.classList.add('open');
       if (txtFr) {
         setTimeout(() => { txtFr.focus(); txtFr.select(); }, 60);
       }
       if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+
+      if (window.FSSModal) {
+        window.FSSModal.open('sentence-edit-modal', {
+          trigger: trig,
+          fallbackTrigger: document.querySelector('.sent-edit-btn[data-sent-id="' + sentenceId + '"]') || document.getElementById('sub-scroll') || document.getElementById('screen-practice'),
+          escapePolicy: 'prompt-if-dirty',
+          isDirty: isSentenceEditDirty,
+          closeFn: function() { closeSentenceEditModal(true); },
+          initialFocus: '#se-text-fr'
+        });
+      }
     }
     window.openSentenceEditModal = openSentenceEditModal;
 
@@ -1138,10 +1216,16 @@
     }
     window.previewTimeInModal = previewTimeInModal;
 
-    function closeSentenceEditModal() {
+    function closeSentenceEditModal(force) {
+      if (!force && isSentenceEditDirty()) {
+        const confirmed = window.confirm('Bạn có thay đổi chưa lưu. Bạn có chắc chắn muốn đóng và hủy bỏ thay đổi?');
+        if (!confirmed) return;
+      }
       const modal = document.getElementById('sentence-edit-modal');
       if (modal) modal.classList.remove('open');
       _editingSentenceId = null;
+      _sentenceEditSnapshot = null;
+      if (window.FSSModal) window.FSSModal.close('sentence-edit-modal');
     }
     window.closeSentenceEditModal = closeSentenceEditModal;
 
@@ -1158,82 +1242,117 @@
       if (!newFr) {
         alert('Câu tiếng Pháp không được để trống.');
         if (txtFr) txtFr.focus();
-        return;
+        return; // Giữ nguyên modal và form data khi validation không đạt
       }
 
-      s.text = newFr;
-      if (newVi) {
-        s.vi = newVi;
-      } else {
-        delete s.vi;
-      }
-
-      // Xử lý cập nhật mốc thời gian nếu có nhập mốc mới
       const txtSt = document.getElementById('se-start-time');
       const txtEn = document.getElementById('se-end-time');
       const parseF = typeof tsParse === 'function' ? tsParse : parseFloat;
       const parsedStart = txtSt && txtSt.value ? parseF(txtSt.value) : null;
       const parsedEnd = txtEn && txtEn.value ? parseF(txtEn.value) : null;
-      let timeChanged = false;
 
-      if (parsedStart != null && !isNaN(parsedStart) && parsedEnd != null && !isNaN(parsedEnd)) {
-        if (parsedEnd > parsedStart + 0.1) {
-          if (s.origStartTime === undefined) s.origStartTime = s.startTime;
-          if (s.origEndTime === undefined) s.origEndTime = s.endTime;
-          if (Array.isArray(s.words) && s.words.length > 0 && !s.origWords) {
-            s.origWords = JSON.parse(JSON.stringify(s.words));
-          }
-          const oldStart = s.startTime, oldEnd = s.endTime;
-          s.startTime = Math.round(parsedStart * 1000) / 1000;
-          s.endTime = Math.round(parsedEnd * 1000) / 1000;
-          timeChanged = true;
+      const backupSentence = {
+        text: s.text,
+        vi: s.vi,
+        startTime: s.startTime,
+        endTime: s.endTime,
+        origStartTime: s.origStartTime,
+        origEndTime: s.origEndTime,
+        words: s.words ? JSON.parse(JSON.stringify(s.words)) : undefined,
+        origWords: s.origWords ? JSON.parse(JSON.stringify(s.origWords)) : undefined
+      };
 
-          // Tái phân bổ mốc thời gian từng từ con (words)
-          if (Array.isArray(s.words) && s.words.length > 0) {
-            const oldDur = Math.max(0.1, (oldEnd || s.endTime) - (oldStart || s.startTime));
-            const newDur = Math.max(0.2, s.endTime - s.startTime);
-            s.words.forEach((w) => {
-              if (typeof w.startTime === 'number') {
-                const ratio = Math.max(0, Math.min(1, (w.startTime - oldStart) / oldDur));
-                w.startTime = Number((s.startTime + ratio * newDur).toFixed(3));
-              }
-              if (typeof w.endTime === 'number') {
-                const ratio = Math.max(0, Math.min(1, (w.endTime - oldStart) / oldDur));
-                w.endTime = Number((s.startTime + ratio * newDur).toFixed(3));
-              }
-            });
-          }
-        }
-      }
-
-      // Cập nhật lại danh sách từ (words) nếu câu chữ thay đổi số lượng từ
-      if (Array.isArray(s.words) && s.words.length > 0) {
-        const rawTokens = newFr.split(/\s+/).filter(Boolean);
-        if (rawTokens.length === s.words.length) {
-          rawTokens.forEach((tk, i) => {
-            s.words[i].word = tk;
-          });
+      try {
+        s.text = newFr;
+        if (newVi) {
+          s.vi = newVi;
         } else {
-          const sStart = Number(s.startTime) || 0;
-          const sEnd = Number(s.endTime) || (sStart + Math.max(1, rawTokens.length * 0.4));
-          const dur = Math.max(0.4, sEnd - sStart);
-          const step = dur / rawTokens.length;
-          s.words = rawTokens.map((tk, i) => ({
-            word: tk,
-            startTime: Number((sStart + i * step).toFixed(3)),
-            endTime: Number((sStart + (i + 1) * step).toFixed(3))
-          }));
+          delete s.vi;
         }
+
+        // Xử lý cập nhật mốc thời gian nếu có nhập mốc mới
+        if (parsedStart != null && !isNaN(parsedStart) && parsedEnd != null && !isNaN(parsedEnd)) {
+          if (parsedEnd > parsedStart + 0.1) {
+            if (s.origStartTime === undefined) s.origStartTime = s.startTime;
+            if (s.origEndTime === undefined) s.origEndTime = s.endTime;
+            if (Array.isArray(s.words) && s.words.length > 0 && !s.origWords) {
+              s.origWords = JSON.parse(JSON.stringify(s.words));
+            }
+            const oldStart = s.startTime, oldEnd = s.endTime;
+            s.startTime = Math.round(parsedStart * 1000) / 1000;
+            s.endTime = Math.round(parsedEnd * 1000) / 1000;
+
+            // Tái phân bổ mốc thời gian từng từ con (words)
+            if (Array.isArray(s.words) && s.words.length > 0) {
+              const oldDur = Math.max(0.1, (oldEnd || s.endTime) - (oldStart || s.startTime));
+              const newDur = Math.max(0.2, s.endTime - s.startTime);
+              s.words.forEach((w) => {
+                if (typeof w.startTime === 'number') {
+                  const ratio = Math.max(0, Math.min(1, (w.startTime - oldStart) / oldDur));
+                  w.startTime = Number((s.startTime + ratio * newDur).toFixed(3));
+                }
+                if (typeof w.endTime === 'number') {
+                  const ratio = Math.max(0, Math.min(1, (w.endTime - oldStart) / oldDur));
+                  w.endTime = Number((s.startTime + ratio * newDur).toFixed(3));
+                }
+              });
+            }
+          }
+        }
+
+        // Cập nhật lại danh sách từ (words) nếu câu chữ thay đổi số lượng từ
+        if (Array.isArray(s.words) && s.words.length > 0) {
+          const rawTokens = newFr.split(/\s+/).filter(Boolean);
+          if (rawTokens.length === s.words.length) {
+            rawTokens.forEach((tk, i) => {
+              s.words[i].word = tk;
+            });
+          } else {
+            const sStart = Number(s.startTime) || 0;
+            const sEnd = Number(s.endTime) || (sStart + Math.max(1, rawTokens.length * 0.4));
+            const dur = Math.max(0.4, sEnd - sStart);
+            const step = dur / rawTokens.length;
+            s.words = rawTokens.map((tk, i) => ({
+              word: tk,
+              startTime: Number((sStart + i * step).toFixed(3)),
+              endTime: Number((sStart + (i + 1) * step).toFixed(3))
+            }));
+          }
+        }
+
+        // Lưu dữ liệu vào lịch sử
+        persistSentencesToHistory();
+        if (typeof syncVocabSentenceTranslations === 'function') {
+          syncVocabSentenceTranslations(currentVideoId, sentences);
+        }
+        if (window.FSS_SUPABASE && typeof window.FSS_SUPABASE.syncHistoryDebounced === 'function') {
+          window.FSS_SUPABASE.syncHistoryDebounced(getRawHistory());
+        }
+      } catch (err) {
+        // Rollback lại đối tượng câu trong bộ nhớ để bảo toàn dữ liệu trước khi lỗi xảy ra
+        s.text = backupSentence.text;
+        if (backupSentence.vi !== undefined) s.vi = backupSentence.vi; else delete s.vi;
+        s.startTime = backupSentence.startTime;
+        s.endTime = backupSentence.endTime;
+        s.origStartTime = backupSentence.origStartTime;
+        s.origEndTime = backupSentence.origEndTime;
+        if (backupSentence.words !== undefined) s.words = backupSentence.words; else delete s.words;
+        if (backupSentence.origWords !== undefined) s.origWords = backupSentence.origWords; else delete s.origWords;
+
+        console.error('[saveSentenceEdit] Failed to persist:', err);
+        alert('Không thể lưu câu phụ đề: ' + (err && err.message ? err.message : 'Lỗi bộ nhớ lưu trữ'));
+        return; // Đảm bảo modal không đóng và dữ liệu form không mất khi lưu thất bại!
       }
 
-      closeSentenceEditModal();
+      // Chỉ đóng modal SAU KHI lưu dữ liệu thành công
+      const savedSentenceId = _editingSentenceId;
+      closeSentenceEditModal(true);
       renderSubtitleList();
-      persistSentencesToHistory();
-      if (typeof syncVocabSentenceTranslations === 'function') {
-        syncVocabSentenceTranslations(currentVideoId, sentences);
-      }
-      if (window.FSS_SUPABASE && typeof window.FSS_SUPABASE.syncHistoryDebounced === 'function') {
-        window.FSS_SUPABASE.syncHistoryDebounced(getRawHistory());
+      if (savedSentenceId) {
+        const reRenderedBtn = document.querySelector('.sent-edit-btn[data-sent-id="' + savedSentenceId + '"]');
+        if (reRenderedBtn) {
+          try { reRenderedBtn.focus(); } catch (_) {}
+        }
       }
       showVocabToast('✓ Đã lưu thay đổi câu phụ đề', false);
     }
@@ -1249,14 +1368,6 @@
             saveSentenceEdit();
           }
         });
-      }
-    });
-
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        closeBilingualModal();
-        closePunctModal();
-        closeSentenceEditModal();
       }
     });
 

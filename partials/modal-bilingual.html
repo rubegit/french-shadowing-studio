@@ -2,7 +2,7 @@
     <div class="ai-modal" role="dialog" aria-modal="true" aria-labelledby="bl-title">
       <div class="ai-modal-head">
         <div id="bl-title" class="ai-modal-title">Chưa có bản dịch tiếng Việt</div>
-        <button type="button" class="ai-modal-close" onclick="closeBilingualModal()" title="Đóng (Esc)">
+        <button type="button" id="bl-btn-close" class="ai-modal-close" onclick="closeBilingualModal()" title="Đóng (Esc)">
           <i data-lucide="x"></i>
         </button>
       </div>
@@ -21,10 +21,10 @@
         </label>
       </div>
       <div class="ai-actions">
-        <button type="button" class="ai-btn ai-btn-primary" onclick="aiApply('trans-player')">
+        <button type="button" id="bl-btn-apply" class="ai-btn ai-btn-primary" onclick="aiApply('trans-player')">
           <i data-lucide="check"></i><span>Áp dụng &amp; bật Song ngữ</span>
         </button>
-        <button type="button" class="ai-btn ai-btn-ghost" onclick="closeBilingualModal()">Để sau</button>
+        <button type="button" id="bl-btn-cancel" class="ai-btn ai-btn-ghost" onclick="closeBilingualModal()">Để sau</button>
         <button type="button" id="bl-delete" class="ai-btn ai-btn-ghost ai-hide fs-text-danger" onclick="deleteBilingual()">
           <i data-lucide="trash-2"></i><span>Xóa bản dịch</span>
         </button>
