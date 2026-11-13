@@ -41,7 +41,7 @@ The search script lives inside this skill's own directory, not the project direc
 ```bash
 python3 .agents/skills/ui-ux-pro-max/scripts/search.py "<query>" --domain <domain>
 # Hoặc đường dẫn tuyệt đối:
-python3 "/Users/linhvu/AI Project/Shadowing/.agents/skills/ui-ux-pro-max/scripts/search.py" "<query>" --domain <domain>
+python3 "/Users/linhvu/AIProject/Shadowing/.agents/skills/ui-ux-pro-max/scripts/search.py" "<query>" --domain <domain>
 ```
 
 If `python` is not found, try `python3`, then `py -3`. Requires Python 3.x, no external dependencies (see README for install instructions if Python is missing).

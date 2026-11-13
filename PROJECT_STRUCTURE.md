@@ -71,7 +71,7 @@ graph TD
 ## 2. Sơ đồ Cây Thư mục Toàn diện (Directory Tree)
 
 ```text
-/Users/linhvu/AI Project/Shadowing/
+/Users/linhvu/AIProject/Shadowing/
 ├── .agents/                                # Cấu hình và Custom Skills cho AI Assistant
 │   ├── rules/
 │   │   └── ANTIGRAVITY.md                  # Quy tắc đặc thù cho Antigravity IDE
