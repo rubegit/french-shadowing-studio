@@ -1,0 +1,892 @@
+[
+  {
+    "viewport": {
+      "name": "Small Mobile",
+      "width": 320,
+      "height": 568,
+      "deviceScaleFactor": 2,
+      "mobile": true
+    },
+    "metrics": {
+      "scrollW": 320,
+      "clientW": 320,
+      "hasOverflowX": false,
+      "overflowCount": 1,
+      "topOverflowElements": [
+        {
+          "tag": "div",
+          "id": "",
+          "class": "view-mode-toggle-group flex items-center fs-surfac",
+          "right": 322,
+          "excess": 2
+        }
+      ],
+      "menuChecks": {
+        "homeBrand": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 229,
+          "height": 28,
+          "visible": true
+        },
+        "homeVocabBtn": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 150,
+          "height": 44,
+          "visible": true
+        },
+        "homeSyncBtn": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 44,
+          "height": 44,
+          "visible": true
+        },
+        "homeThemeToggle": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 44,
+          "height": 44,
+          "visible": true
+        },
+        "homeMobileMenuBtn": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 44,
+          "height": 44,
+          "visible": true
+        },
+        "mobileNavDrawer": {
+          "found": true,
+          "display": "none",
+          "visibility": "visible",
+          "width": 0,
+          "height": 0,
+          "visible": false
+        },
+        "catalogToolbar": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 274,
+          "height": 100,
+          "visible": true
+        },
+        "searchField": {
+          "found": true,
+          "display": "inline-block",
+          "visibility": "visible",
+          "width": 272,
+          "height": 47,
+          "visible": true
+        },
+        "sortSelect": {
+          "found": true,
+          "display": "inline-block",
+          "visibility": "visible",
+          "width": 161,
+          "height": 32,
+          "visible": true
+        },
+        "viewModeToggle": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 127,
+          "height": 38,
+          "visible": true
+        }
+      }
+    }
+  },
+  {
+    "viewport": {
+      "name": "Mobile",
+      "width": 375,
+      "height": 667,
+      "deviceScaleFactor": 2,
+      "mobile": true
+    },
+    "metrics": {
+      "scrollW": 375,
+      "clientW": 375,
+      "hasOverflowX": false,
+      "overflowCount": 0,
+      "topOverflowElements": [],
+      "menuChecks": {
+        "homeBrand": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 229,
+          "height": 28,
+          "visible": true
+        },
+        "homeVocabBtn": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 202,
+          "height": 44,
+          "visible": true
+        },
+        "homeSyncBtn": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 47,
+          "height": 44,
+          "visible": true
+        },
+        "homeThemeToggle": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 44,
+          "height": 44,
+          "visible": true
+        },
+        "homeMobileMenuBtn": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 44,
+          "height": 44,
+          "visible": true
+        },
+        "mobileNavDrawer": {
+          "found": true,
+          "display": "none",
+          "visibility": "visible",
+          "width": 0,
+          "height": 0,
+          "visible": false
+        },
+        "catalogToolbar": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 329,
+          "height": 100,
+          "visible": true
+        },
+        "searchField": {
+          "found": true,
+          "display": "inline-block",
+          "visibility": "visible",
+          "width": 327,
+          "height": 47,
+          "visible": true
+        },
+        "sortSelect": {
+          "found": true,
+          "display": "inline-block",
+          "visibility": "visible",
+          "width": 161,
+          "height": 32,
+          "visible": true
+        },
+        "viewModeToggle": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 127,
+          "height": 38,
+          "visible": true
+        }
+      }
+    }
+  },
+  {
+    "viewport": {
+      "name": "Large Mobile",
+      "width": 430,
+      "height": 932,
+      "deviceScaleFactor": 3,
+      "mobile": true
+    },
+    "metrics": {
+      "scrollW": 430,
+      "clientW": 430,
+      "hasOverflowX": false,
+      "overflowCount": 0,
+      "topOverflowElements": [],
+      "menuChecks": {
+        "homeBrand": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 229,
+          "height": 28,
+          "visible": true
+        },
+        "homeVocabBtn": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 216,
+          "height": 44,
+          "visible": true
+        },
+        "homeSyncBtn": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 48,
+          "height": 44,
+          "visible": true
+        },
+        "homeThemeToggle": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 44,
+          "height": 44,
+          "visible": true
+        },
+        "homeMobileMenuBtn": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 44,
+          "height": 44,
+          "visible": true
+        },
+        "mobileNavDrawer": {
+          "found": true,
+          "display": "none",
+          "visibility": "visible",
+          "width": 0,
+          "height": 0,
+          "visible": false
+        },
+        "catalogToolbar": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 384,
+          "height": 100,
+          "visible": true
+        },
+        "searchField": {
+          "found": true,
+          "display": "inline-block",
+          "visibility": "visible",
+          "width": 382,
+          "height": 47,
+          "visible": true
+        },
+        "sortSelect": {
+          "found": true,
+          "display": "inline-block",
+          "visibility": "visible",
+          "width": 161,
+          "height": 32,
+          "visible": true
+        },
+        "viewModeToggle": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 127,
+          "height": 38,
+          "visible": true
+        }
+      }
+    }
+  },
+  {
+    "viewport": {
+      "name": "Small Tablet",
+      "width": 600,
+      "height": 960,
+      "deviceScaleFactor": 2,
+      "mobile": true
+    },
+    "metrics": {
+      "scrollW": 600,
+      "clientW": 600,
+      "hasOverflowX": false,
+      "overflowCount": 0,
+      "topOverflowElements": [],
+      "menuChecks": {
+        "homeBrand": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 229,
+          "height": 28,
+          "visible": true
+        },
+        "homeVocabBtn": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 216,
+          "height": 44,
+          "visible": true
+        },
+        "homeSyncBtn": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 48,
+          "height": 44,
+          "visible": true
+        },
+        "homeThemeToggle": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 44,
+          "height": 44,
+          "visible": true
+        },
+        "homeMobileMenuBtn": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 44,
+          "height": 44,
+          "visible": true
+        },
+        "mobileNavDrawer": {
+          "found": true,
+          "display": "none",
+          "visibility": "visible",
+          "width": 0,
+          "height": 0,
+          "visible": false
+        },
+        "catalogToolbar": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 554,
+          "height": 100,
+          "visible": true
+        },
+        "searchField": {
+          "found": true,
+          "display": "inline-block",
+          "visibility": "visible",
+          "width": 552,
+          "height": 47,
+          "visible": true
+        },
+        "sortSelect": {
+          "found": true,
+          "display": "inline-block",
+          "visibility": "visible",
+          "width": 161,
+          "height": 32,
+          "visible": true
+        },
+        "viewModeToggle": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 127,
+          "height": 38,
+          "visible": true
+        }
+      }
+    }
+  },
+  {
+    "viewport": {
+      "name": "Tablet Portrait",
+      "width": 768,
+      "height": 1024,
+      "deviceScaleFactor": 2,
+      "mobile": true
+    },
+    "metrics": {
+      "scrollW": 768,
+      "clientW": 768,
+      "hasOverflowX": false,
+      "overflowCount": 0,
+      "topOverflowElements": [],
+      "menuChecks": {
+        "homeBrand": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 261,
+          "height": 28,
+          "visible": true
+        },
+        "homeVocabBtn": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 216,
+          "height": 44,
+          "visible": true
+        },
+        "homeSyncBtn": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 48,
+          "height": 44,
+          "visible": true
+        },
+        "homeThemeToggle": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 44,
+          "height": 44,
+          "visible": true
+        },
+        "homeMobileMenuBtn": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 44,
+          "height": 44,
+          "visible": true
+        },
+        "mobileNavDrawer": {
+          "found": true,
+          "display": "none",
+          "visibility": "visible",
+          "width": 0,
+          "height": 0,
+          "visible": false
+        },
+        "catalogToolbar": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 694,
+          "height": 100,
+          "visible": true
+        },
+        "searchField": {
+          "found": true,
+          "display": "inline-block",
+          "visibility": "visible",
+          "width": 692,
+          "height": 47,
+          "visible": true
+        },
+        "sortSelect": {
+          "found": true,
+          "display": "inline-block",
+          "visibility": "visible",
+          "width": 161,
+          "height": 32,
+          "visible": true
+        },
+        "viewModeToggle": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 127,
+          "height": 38,
+          "visible": true
+        }
+      }
+    }
+  },
+  {
+    "viewport": {
+      "name": "Tablet Landscape",
+      "width": 1024,
+      "height": 768,
+      "deviceScaleFactor": 2,
+      "mobile": false
+    },
+    "metrics": {
+      "scrollW": 1024,
+      "clientW": 1024,
+      "hasOverflowX": false,
+      "overflowCount": 0,
+      "topOverflowElements": [],
+      "menuChecks": {
+        "homeBrand": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 261,
+          "height": 28,
+          "visible": true
+        },
+        "homeVocabBtn": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 219,
+          "height": 42,
+          "visible": true
+        },
+        "homeSyncBtn": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 165,
+          "height": 42,
+          "visible": true
+        },
+        "homeThemeToggle": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 42,
+          "height": 42,
+          "visible": true
+        },
+        "homeMobileMenuBtn": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 42,
+          "height": 42,
+          "visible": true
+        },
+        "mobileNavDrawer": {
+          "found": true,
+          "display": "none",
+          "visibility": "visible",
+          "width": 0,
+          "height": 0,
+          "visible": false
+        },
+        "catalogToolbar": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 894,
+          "height": 100,
+          "visible": true
+        },
+        "searchField": {
+          "found": true,
+          "display": "inline-block",
+          "visibility": "visible",
+          "width": 892,
+          "height": 47,
+          "visible": true
+        },
+        "sortSelect": {
+          "found": true,
+          "display": "inline-block",
+          "visibility": "visible",
+          "width": 161,
+          "height": 32,
+          "visible": true
+        },
+        "viewModeToggle": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 127,
+          "height": 38,
+          "visible": true
+        }
+      }
+    }
+  },
+  {
+    "viewport": {
+      "name": "Small Laptop",
+      "width": 1280,
+      "height": 720,
+      "deviceScaleFactor": 1,
+      "mobile": false
+    },
+    "metrics": {
+      "scrollW": 1280,
+      "clientW": 1280,
+      "hasOverflowX": false,
+      "overflowCount": 0,
+      "topOverflowElements": [],
+      "menuChecks": {
+        "homeBrand": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 261,
+          "height": 28,
+          "visible": true
+        },
+        "homeVocabBtn": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 219,
+          "height": 42,
+          "visible": true
+        },
+        "homeSyncBtn": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 165,
+          "height": 42,
+          "visible": true
+        },
+        "homeThemeToggle": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 42,
+          "height": 42,
+          "visible": true
+        },
+        "homeMobileMenuBtn": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 42,
+          "height": 42,
+          "visible": true
+        },
+        "mobileNavDrawer": {
+          "found": true,
+          "display": "none",
+          "visibility": "visible",
+          "width": 0,
+          "height": 0,
+          "visible": false
+        },
+        "catalogToolbar": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 1070,
+          "height": 100,
+          "visible": true
+        },
+        "searchField": {
+          "found": true,
+          "display": "inline-block",
+          "visibility": "visible",
+          "width": 1068,
+          "height": 47,
+          "visible": true
+        },
+        "sortSelect": {
+          "found": true,
+          "display": "inline-block",
+          "visibility": "visible",
+          "width": 161,
+          "height": 32,
+          "visible": true
+        },
+        "viewModeToggle": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 127,
+          "height": 38,
+          "visible": true
+        }
+      }
+    }
+  },
+  {
+    "viewport": {
+      "name": "Desktop",
+      "width": 1440,
+      "height": 900,
+      "deviceScaleFactor": 1,
+      "mobile": false
+    },
+    "metrics": {
+      "scrollW": 1440,
+      "clientW": 1440,
+      "hasOverflowX": false,
+      "overflowCount": 0,
+      "topOverflowElements": [],
+      "menuChecks": {
+        "homeBrand": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 261,
+          "height": 28,
+          "visible": true
+        },
+        "homeVocabBtn": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 219,
+          "height": 42,
+          "visible": true
+        },
+        "homeSyncBtn": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 165,
+          "height": 42,
+          "visible": true
+        },
+        "homeThemeToggle": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 42,
+          "height": 42,
+          "visible": true
+        },
+        "homeMobileMenuBtn": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 42,
+          "height": 42,
+          "visible": true
+        },
+        "mobileNavDrawer": {
+          "found": true,
+          "display": "none",
+          "visibility": "visible",
+          "width": 0,
+          "height": 0,
+          "visible": false
+        },
+        "catalogToolbar": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 1070,
+          "height": 100,
+          "visible": true
+        },
+        "searchField": {
+          "found": true,
+          "display": "inline-block",
+          "visibility": "visible",
+          "width": 1068,
+          "height": 47,
+          "visible": true
+        },
+        "sortSelect": {
+          "found": true,
+          "display": "inline-block",
+          "visibility": "visible",
+          "width": 161,
+          "height": 32,
+          "visible": true
+        },
+        "viewModeToggle": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 127,
+          "height": 38,
+          "visible": true
+        }
+      }
+    }
+  },
+  {
+    "viewport": {
+      "name": "Large Desktop",
+      "width": 1920,
+      "height": 1080,
+      "deviceScaleFactor": 1,
+      "mobile": false
+    },
+    "metrics": {
+      "scrollW": 1920,
+      "clientW": 1920,
+      "hasOverflowX": false,
+      "overflowCount": 0,
+      "topOverflowElements": [],
+      "menuChecks": {
+        "homeBrand": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 261,
+          "height": 28,
+          "visible": true
+        },
+        "homeVocabBtn": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 219,
+          "height": 42,
+          "visible": true
+        },
+        "homeSyncBtn": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 165,
+          "height": 42,
+          "visible": true
+        },
+        "homeThemeToggle": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 42,
+          "height": 42,
+          "visible": true
+        },
+        "homeMobileMenuBtn": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 42,
+          "height": 42,
+          "visible": true
+        },
+        "mobileNavDrawer": {
+          "found": true,
+          "display": "none",
+          "visibility": "visible",
+          "width": 0,
+          "height": 0,
+          "visible": false
+        },
+        "catalogToolbar": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 1070,
+          "height": 100,
+          "visible": true
+        },
+        "searchField": {
+          "found": true,
+          "display": "inline-block",
+          "visibility": "visible",
+          "width": 1068,
+          "height": 47,
+          "visible": true
+        },
+        "sortSelect": {
+          "found": true,
+          "display": "inline-block",
+          "visibility": "visible",
+          "width": 161,
+          "height": 32,
+          "visible": true
+        },
+        "viewModeToggle": {
+          "found": true,
+          "display": "flex",
+          "visibility": "visible",
+          "width": 127,
+          "height": 38,
+          "visible": true
+        }
+      }
+    }
+  }
+]

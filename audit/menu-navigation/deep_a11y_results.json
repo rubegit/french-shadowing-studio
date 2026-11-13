@@ -1,0 +1,98 @@
+{
+  "a11yAudit": {
+    "totalInteractive": 344,
+    "missingAccessibleName": [],
+    "smallTouchTargets": [
+      {
+        "id": "",
+        "class": "text-xs fs-text-muted hover:fs-text-dang",
+        "width": 54,
+        "height": 16,
+        "accName": "Xóa tất cả"
+      }
+    ],
+    "missingAriaExpanded": [],
+    "missingAriaControls": [],
+    "invalidAriaControls": []
+  },
+  "modalChecks": [
+    {
+      "id": "bilingual-modal",
+      "hasAriaModal": true,
+      "hasRoleDialog": true,
+      "hasAriaLabel": true
+    },
+    {
+      "id": "sentence-edit-modal",
+      "hasAriaModal": true,
+      "hasRoleDialog": true,
+      "hasAriaLabel": true
+    },
+    {
+      "id": "punct-modal",
+      "hasAriaModal": true,
+      "hasRoleDialog": true,
+      "hasAriaLabel": true
+    },
+    {
+      "id": "share-modal",
+      "hasAriaModal": true,
+      "hasRoleDialog": true,
+      "hasAriaLabel": false
+    },
+    {
+      "id": "keyvocab-modal",
+      "hasAriaModal": true,
+      "hasRoleDialog": true,
+      "hasAriaLabel": false
+    },
+    {
+      "id": "vocab-meaning-modal",
+      "hasAriaModal": true,
+      "hasRoleDialog": true,
+      "hasAriaLabel": false
+    },
+    {
+      "id": "mobile-nav-drawer",
+      "hasAriaModal": false,
+      "hasRoleDialog": false,
+      "hasAriaLabel": true
+    },
+    {
+      "id": "vt-ai-modal",
+      "hasAriaModal": true,
+      "hasRoleDialog": true,
+      "hasAriaLabel": false
+    },
+    {
+      "id": "bk-import-modal",
+      "hasAriaModal": false,
+      "hasRoleDialog": false,
+      "hasAriaLabel": false
+    },
+    {
+      "id": "bk-tr-modal",
+      "hasAriaModal": false,
+      "hasRoleDialog": false,
+      "hasAriaLabel": false
+    },
+    {
+      "id": "modal-art-ai-sync",
+      "hasAriaModal": true,
+      "hasRoleDialog": true,
+      "hasAriaLabel": true
+    },
+    {
+      "id": "modal-art-level",
+      "hasAriaModal": true,
+      "hasRoleDialog": true,
+      "hasAriaLabel": true
+    },
+    {
+      "id": "vph-backdrop",
+      "hasAriaModal": true,
+      "hasRoleDialog": true,
+      "hasAriaLabel": true
+    }
+  ]
+}
