@@ -443,7 +443,7 @@
     if (hasVid()) { ensurePlayer(); cueCurrent(); }
     if (!readAll) playLater();
   }
-  window.vtClose = function () { save(); stopAudio(true); closePop(); closeAI(); show(false); rec = null; renderLanding(); };
+  window.vtClose = function () { save(); stopAudio(true); closePop(); closeAI(true); show(false); rec = null; renderLanding(); };
   function stats() { const t = rec.sents.length, d = seenCount(rec); return { t, d, tr: rec.sents.filter(hasTr).length }; }
   const SPEAKER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>';
   const GAUGE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg>';
@@ -608,8 +608,8 @@
   document.addEventListener('keydown', (e) => {
     if ($('screen-vt').classList.contains('hidden')) return;
     if (e.key === 'Escape') {
-      if ($('vt-ai-modal').classList.contains('open')) closeAI();
-      else if (!$('vt-pop').classList.contains('pv-x')) closePop();
+      if (window.FSSModal && window.FSSModal.getActiveStack && window.FSSModal.getActiveStack().length > 0) return;
+      if (!$('vt-pop').classList.contains('pv-x')) closePop();
       return;
     }
     // Tab: nghe lại câu hiện tại (giống Chép chính tả) — chỉ khi đang ở ô gõ hoặc không focus vào nút nào
@@ -664,24 +664,135 @@ T: ...
 Các câu cần dịch:
 ${list}`;
   }
-  window.vtOpenAI = function () {
+  let _vtAiSnapshot = null;
+  let _vtAiSessionId = 0;
+  let _vtAiCloseTimer = null;
+
+  function isVtAiDirty() {
+    if (!_vtAiSnapshot) return false;
+    const textEl = $('vt-ai-text');
+    const curVal = textEl ? textEl.value : '';
+    // So sánh chuỗi thô chính xác, không dùng trim()
+    return curVal !== _vtAiSnapshot.val;
+  }
+  window.isVtAiDirty = isVtAiDirty;
+
+  function openAI(trigger) {
     if (!rec) return;
+    const modal = $('vt-ai-modal');
+    if (!modal) return;
+
+    // 1. RE-OPEN GUARD: Nếu modal đang mở (kể cả đang ở CLOSING_SUCCESS trong 900ms),
+    // tuyệt đối KHÔNG reset textarea và KHÔNG tạo phiên mới!
+    if (modal.classList.contains('open')) {
+      const textEl = $('vt-ai-text');
+      if (textEl && typeof textEl.focus === 'function') {
+        try { textEl.focus(); } catch (_) {}
+      }
+      return;
+    }
+
+    // 2. Dọn dẹp timer đóng trễ cũ (nếu có)
+    if (_vtAiCloseTimer) {
+      clearTimeout(_vtAiCloseTimer);
+      _vtAiCloseTimer = null;
+    }
+
+    // 3. Khởi tạo phiên mới với session ID riêng biệt
+    const currentSession = ++_vtAiSessionId;
+
+    // 4. Đóng popover #vt-pop trước khi mở modal để tránh popover mồ côi
+    if (typeof closePop === 'function') closePop();
+
+    const trig = trigger || (document.activeElement && document.activeElement !== document.body ? document.activeElement : $('vt-ai-btn'));
     const a = startIdx(), b = Math.min(rec.sents.length, a + BATCH);
     $('vt-ai-desc').innerHTML = `Bấm Copy prompt, gửi cho AI (ChatGPT, Claude, Gemini…), rồi dán kết quả vào ô bên dưới. Đợt này dịch <b>câu ${a + 1}–${b}</b> trên tổng ${rec.sents.length} câu${b < rec.sents.length ? '; xong đợt này hãy mở lại để lấy đợt tiếp theo' : ''}.`;
-    $('vt-ai-text').value = ''; aiSetStatus($('vt-ai-status'), '', ''); $('vt-ai-modal').classList.add('open');
-  };
-  function closeAI() { $('vt-ai-modal').classList.remove('open'); }
+
+    const textEl = $('vt-ai-text');
+    if (textEl) textEl.value = '';
+    aiSetStatus($('vt-ai-status'), '', '');
+    _vtAiSnapshot = { val: '' };
+
+    modal.classList.add('open');
+    modal.style.display = 'flex';
+    modal.inert = false;
+
+    if (window.FSSModal) {
+      window.FSSModal.open('vt-ai-modal', {
+        trigger: trig,
+        fallbackTrigger: $('vt-ai-btn') || $('screen-vt'),
+        escapePolicy: 'prompt-if-dirty',
+        isDirty: isVtAiDirty,
+        closeFn: function() { closeAI(true); },
+        initialFocus: '#vt-ai-text'
+      });
+    }
+  }
+  window.vtOpenAI = openAI;
+
+  function closeAI(force) {
+    // Khi không có cờ force (X, backdrop, "Để sau"), kiểm tra dirty state
+    if (!force && isVtAiDirty()) {
+      const confirmed = window.confirm('Bạn có nội dung chưa áp dụng. Bạn có chắc chắn muốn đóng và hủy bỏ?');
+      if (!confirmed) return;
+    }
+
+    // Hủy timer đóng trễ nếu đang chạy
+    if (_vtAiCloseTimer) {
+      clearTimeout(_vtAiCloseTimer);
+      _vtAiCloseTimer = null;
+    }
+
+    const modal = $('vt-ai-modal');
+    if (modal) {
+      modal.classList.remove('open');
+      modal.style.display = 'none';
+    }
+
+    // Dọn dẹp snapshot và vô hiệu hóa phiên cũ
+    _vtAiSnapshot = null;
+    _vtAiSessionId++;
+
+    if (window.FSSModal) window.FSSModal.close('vt-ai-modal');
+
+    // Phục hồi focus về trigger
+    const btn = $('vt-ai-btn');
+    if (btn && typeof btn.focus === 'function') {
+      try { btn.focus(); } catch (_) {}
+    }
+  }
   window.vtCloseAI = closeAI;
+
   window.vtCopyPrompt = function (btn) {
     copyTextToClipboard(buildPrompt()).then(() => flashCopied(btn, 1800)).catch((e) => alert('Không thể sao chép: ' + e));
   };
+
   window.vtApplyAI = function () {
-    const m = parseTr($('vt-ai-text').value); let n = 0;
+    const textEl = $('vt-ai-text');
+    const m = parseTr(textEl ? textEl.value : '');
+    let n = 0;
     Object.keys(m).forEach((k) => { const s = rec.sents[k - 1]; if (s) { s.lit = m[k].lit || s.lit; s.nat = m[k].nat || s.nat; n++; } });
-    if (!n) { aiSetStatus($('vt-ai-status'), 'err', 'Không nhận ra bản dịch nào. Hãy dán đúng kết quả của AI (mỗi câu gồm số thứ tự, dòng S:, dòng T:).'); return; }
+    if (!n) {
+      aiSetStatus($('vt-ai-status'), 'err', 'Không nhận ra bản dịch nào. Hãy dán đúng kết quả của AI (mỗi câu gồm số thứ tự, dòng S:, dòng T:).');
+      return; // Thất bại: Giữ nguyên modal, giữ nguyên text
+    }
     save(); render(false);
     aiSetStatus($('vt-ai-status'), 'ok', `Đã áp dụng bản dịch cho <b>${n}</b> câu.`);
-    setTimeout(closeAI, 900);
+
+    // Cập nhật snapshot bằng giá trị hiện tại để modal không còn bị xem là dirty
+    if (_vtAiSnapshot && textEl) {
+      _vtAiSnapshot.val = textEl.value;
+    }
+
+    // Đóng tự động sau 900ms có kiểm tra session generation counter
+    const applySession = _vtAiSessionId;
+    if (_vtAiCloseTimer) clearTimeout(_vtAiCloseTimer);
+    _vtAiCloseTimer = setTimeout(() => {
+      _vtAiCloseTimer = null;
+      if (_vtAiSessionId === applySession) {
+        closeAI(true);
+      }
+    }, 900);
   };
 
   // ---------- Nhận video / văn bản từ extension "Luyện dịch Việt → Pháp" ----------
