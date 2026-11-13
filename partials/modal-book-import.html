@@ -1,8 +1,8 @@
-<div id="bk-import-modal" class="ai-modal-backdrop" onmousedown="if (event.target === this) bkImportCancel()">
-    <div class="ai-modal bk-imp">
+<div id="bk-import-modal" class="ai-modal-backdrop" style="display:none;" onmousedown="if (event.target === this) bkImportCancel()">
+    <div class="ai-modal bk-imp" role="dialog" aria-modal="true" aria-labelledby="bk-imp-modal-title">
       <div class="ai-modal-head">
-        <div class="ai-modal-title">Nhập sách</div>
-        <button type="button" class="ai-modal-close" onclick="bkImportCancel()" title="Đóng"><i data-lucide="x"></i></button>
+        <h3 class="ai-modal-title" id="bk-imp-modal-title">Nhập sách</h3>
+        <button type="button" id="bk-imp-btn-close" class="ai-modal-close" onclick="bkImportCancel()" title="Đóng (Esc)" aria-label="Đóng hộp thoại nhập sách"><i data-lucide="x" aria-hidden="true"></i></button>
       </div>
       <div class="bk-row2">
         <div class="bk-field"><label for="bk-imp-title">Tên sách</label><input id="bk-imp-title" type="text" /></div>
@@ -20,8 +20,8 @@
       <div class="bk-sumline"><span id="bk-imp-sum"></span><span><button type="button" class="bk-link" onclick="bkImpAll(true)">Chọn tất cả</button><button type="button" class="bk-link" onclick="bkImpAll(false)">Bỏ chọn</button></span></div>
       <div id="bk-imp-list" class="bk-chlist"></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button type="button" class="ai-btn ai-btn-primary" onclick="bkImportConfirm()">Nhập sách và đọc ngay</button>
-        <button type="button" class="ai-btn ai-btn-ghost" onclick="bkImportCancel()">Huỷ</button>
+        <button type="button" id="bk-imp-btn-confirm" class="ai-btn ai-btn-primary" onclick="bkImportConfirm()">Nhập sách và đọc ngay</button>
+        <button type="button" id="bk-imp-btn-cancel" class="ai-btn ai-btn-ghost" onclick="bkImportCancel()">Huỷ</button>
       </div>
       <p class="ai-step-text fs-text-muted" style="margin:10px 0 0;">Bỏ chọn những mục không cần (mục lục, bản quyền, lời khen…). Chương nào quá dài sẽ tự được chia nhỏ để đọc nhẹ hơn.</p>
     </div>

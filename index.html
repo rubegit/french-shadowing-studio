@@ -2505,11 +2505,11 @@
   <!-- ==================== ĐỌC SÁCH: MÀN HÌNH ĐỌC ==================== -->
   <div id="bk-loading" class="bk-loading"><div class="bk-loading-box"><div class="bk-spin"></div><div id="bk-loading-text">Đang xử lý...</div></div></div>
 
-  <div id="bk-import-modal" class="ai-modal-backdrop" onmousedown="if (event.target === this) bkImportCancel()">
-    <div class="ai-modal bk-imp">
+  <div id="bk-import-modal" class="ai-modal-backdrop" style="display:none;" onmousedown="if (event.target === this) bkImportCancel()">
+    <div class="ai-modal bk-imp" role="dialog" aria-modal="true" aria-labelledby="bk-imp-modal-title">
       <div class="ai-modal-head">
-        <div class="ai-modal-title">Nhập sách</div>
-        <button type="button" class="ai-modal-close" onclick="bkImportCancel()" title="Đóng"><i data-lucide="x"></i></button>
+        <h3 class="ai-modal-title" id="bk-imp-modal-title">Nhập sách</h3>
+        <button type="button" id="bk-imp-btn-close" class="ai-modal-close" onclick="bkImportCancel()" title="Đóng (Esc)" aria-label="Đóng hộp thoại nhập sách"><i data-lucide="x" aria-hidden="true"></i></button>
       </div>
       <div class="bk-row2">
         <div class="bk-field"><label for="bk-imp-title">Tên sách</label><input id="bk-imp-title" type="text" /></div>
@@ -2527,18 +2527,19 @@
       <div class="bk-sumline"><span id="bk-imp-sum"></span><span><button type="button" class="bk-link" onclick="bkImpAll(true)">Chọn tất cả</button><button type="button" class="bk-link" onclick="bkImpAll(false)">Bỏ chọn</button></span></div>
       <div id="bk-imp-list" class="bk-chlist"></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button type="button" class="ai-btn ai-btn-primary" onclick="bkImportConfirm()">Nhập sách và đọc ngay</button>
-        <button type="button" class="ai-btn ai-btn-ghost" onclick="bkImportCancel()">Huỷ</button>
+        <button type="button" id="bk-imp-btn-confirm" class="ai-btn ai-btn-primary" onclick="bkImportConfirm()">Nhập sách và đọc ngay</button>
+        <button type="button" id="bk-imp-btn-cancel" class="ai-btn ai-btn-ghost" onclick="bkImportCancel()">Huỷ</button>
       </div>
       <p class="ai-step-text fs-text-muted" style="margin:10px 0 0;">Bỏ chọn những mục không cần (mục lục, bản quyền, lời khen…). Chương nào quá dài sẽ tự được chia nhỏ để đọc nhẹ hơn.</p>
     </div>
   </div>
 
-  <div id="bk-tr-modal" class="ai-modal-backdrop" onmousedown="if (event.target === this) bkCloseTranslate()">
-    <div class="ai-modal bk-tr">
+
+  <div id="bk-tr-modal" class="ai-modal-backdrop" style="display:none;" onmousedown="if (event.target === this) bkCloseTranslate()">
+    <div class="ai-modal bk-tr" role="dialog" aria-modal="true" aria-labelledby="bk-tr-title">
       <div class="ai-modal-head">
-        <div class="ai-modal-title" id="bk-tr-title">Dịch song ngữ</div>
-        <button type="button" class="ai-modal-close" onclick="bkCloseTranslate()" title="Đóng"><i data-lucide="x"></i></button>
+        <h3 class="ai-modal-title" id="bk-tr-title">Dịch song ngữ</h3>
+        <button type="button" id="bk-tr-btn-close" class="ai-modal-close" onclick="bkCloseTranslate()" title="Đóng (Esc)" aria-label="Đóng hộp thoại dịch song ngữ"><i data-lucide="x" aria-hidden="true"></i></button>
       </div>
       <div class="bk-sumline"><span id="bk-tr-prog-text"></span></div>
       <div class="bk-trmeter"><i id="bk-tr-meter"></i></div>
@@ -2563,13 +2564,14 @@
       </div>
       <div id="bk-tr-info" class="bk-trinfo"></div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <button type="button" id="bk-tr-copy" class="ai-btn ai-btn-primary" onclick="bkTrCopy(this)"><i data-lucide="copy"></i><span>Copy prompt</span></button>
+        <button type="button" id="bk-tr-copy" class="ai-btn ai-btn-primary" onclick="bkTrCopy(this)"><i data-lucide="copy" aria-hidden="true"></i><span>Copy prompt</span></button>
         <button type="button" class="bk-link" onclick="bkTrTogglePrev()">Xem prompt</button>
       </div>
       <pre id="bk-tr-prev" class="bk-prevbox"></pre>
       <textarea id="bk-tr-text" class="ai-textarea" spellcheck="false" placeholder="Dán câu trả lời của AI vào đây (xen kẽ câu tiếng Pháp và câu tiếng Việt)..."></textarea>
       <div class="bk-trfoot">
-        <button type="button" class="ai-btn ai-btn-primary" onclick="bkTrApply()">Áp dụng bản dịch</button>
+        <button type="button" id="bk-tr-btn-apply" class="ai-btn ai-btn-primary" onclick="bkTrApply()">Áp dụng bản dịch</button>
+        <button type="button" id="bk-tr-btn-cancel" class="ai-btn ai-btn-ghost" onclick="bkCloseTranslate()">Để sau</button>
         <span class="fs-text-muted" style="font-size:.72rem;">Nếu AI bị cắt giữa chừng, cứ áp dụng phần đã có, đợt kế tiếp sẽ tự bắt đầu từ chỗ AI dừng.</span>
       </div>
       <div id="bk-tr-status" class="ai-status"></div>
@@ -2586,6 +2588,7 @@
       </details>
     </div>
   </div>
+
 
   <div id="screen-book" class="hidden" data-theme="night" data-font="serif">
     <header class="bk-top">
@@ -3466,12 +3469,12 @@
 <script src="js/01e-translate-ai.js?v=f61a6b55"></script>
 <script src="js/01f-lookup.js?v=bb67c688"></script>
 <script src="js/01g-vocab-list.js?v=0d5211f0"></script>
-<script src="js/01h-ebook.js?v=52c35eec"></script>
+<script src="js/01h-ebook.js?v=5f6f7a3d"></script>
 
   <script src="js/02-pv-helper.js?v=d2adcc44"></script>
   <script id="pv-script" src="js/03-practice-engine.js?v=49747605"></script>
 <script src="js/04-vt-helper.js?v=3d49b6ed"></script>
-<script id="vt-script" src="js/05-translate-engine.js?v=0f41db89"></script>
+<script id="vt-script" src="js/05-translate-engine.js?v=40d02b28"></script>
 <!-- ============ ĐÁNH DẤU NHẸ TỪ / CỤM / CÂU ĐÃ LƯU (chỉ tính các mục lưu từ chính video / bài viết đang mở) ============ -->
 <link rel="stylesheet" href="css/17-mobile-tweaks.css?v=9552bb4c" id="mobile-tweaks">
 <link rel="stylesheet" href="css/18-controls-layout.css?v=25985164" id="pv-ctl-layout">

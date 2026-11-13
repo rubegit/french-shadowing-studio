@@ -1,8 +1,8 @@
-<div id="bk-tr-modal" class="ai-modal-backdrop" onmousedown="if (event.target === this) bkCloseTranslate()">
-    <div class="ai-modal bk-tr">
+<div id="bk-tr-modal" class="ai-modal-backdrop" style="display:none;" onmousedown="if (event.target === this) bkCloseTranslate()">
+    <div class="ai-modal bk-tr" role="dialog" aria-modal="true" aria-labelledby="bk-tr-title">
       <div class="ai-modal-head">
-        <div class="ai-modal-title" id="bk-tr-title">Dịch song ngữ</div>
-        <button type="button" class="ai-modal-close" onclick="bkCloseTranslate()" title="Đóng"><i data-lucide="x"></i></button>
+        <h3 class="ai-modal-title" id="bk-tr-title">Dịch song ngữ</h3>
+        <button type="button" id="bk-tr-btn-close" class="ai-modal-close" onclick="bkCloseTranslate()" title="Đóng (Esc)" aria-label="Đóng hộp thoại dịch song ngữ"><i data-lucide="x" aria-hidden="true"></i></button>
       </div>
       <div class="bk-sumline"><span id="bk-tr-prog-text"></span></div>
       <div class="bk-trmeter"><i id="bk-tr-meter"></i></div>
@@ -27,13 +27,14 @@
       </div>
       <div id="bk-tr-info" class="bk-trinfo"></div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <button type="button" id="bk-tr-copy" class="ai-btn ai-btn-primary" onclick="bkTrCopy(this)"><i data-lucide="copy"></i><span>Copy prompt</span></button>
+        <button type="button" id="bk-tr-copy" class="ai-btn ai-btn-primary" onclick="bkTrCopy(this)"><i data-lucide="copy" aria-hidden="true"></i><span>Copy prompt</span></button>
         <button type="button" class="bk-link" onclick="bkTrTogglePrev()">Xem prompt</button>
       </div>
       <pre id="bk-tr-prev" class="bk-prevbox"></pre>
       <textarea id="bk-tr-text" class="ai-textarea" spellcheck="false" placeholder="Dán câu trả lời của AI vào đây (xen kẽ câu tiếng Pháp và câu tiếng Việt)..."></textarea>
       <div class="bk-trfoot">
-        <button type="button" class="ai-btn ai-btn-primary" onclick="bkTrApply()">Áp dụng bản dịch</button>
+        <button type="button" id="bk-tr-btn-apply" class="ai-btn ai-btn-primary" onclick="bkTrApply()">Áp dụng bản dịch</button>
+        <button type="button" id="bk-tr-btn-cancel" class="ai-btn ai-btn-ghost" onclick="bkCloseTranslate()">Để sau</button>
         <span class="fs-text-muted" style="font-size:.72rem;">Nếu AI bị cắt giữa chừng, cứ áp dụng phần đã có, đợt kế tiếp sẽ tự bắt đầu từ chỗ AI dừng.</span>
       </div>
       <div id="bk-tr-status" class="ai-status"></div>

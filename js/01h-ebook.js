@@ -640,7 +640,20 @@
       bkOpenImportPreview({ fmt: 'txt', blocks }, (document.getElementById('bk-paste-title').value || '').trim() || 'Sách của tôi');
     }
 
-    function bkOpenImportPreview(parsed, fallbackTitle) {
+    let _bkImpSnapshot = null;
+    function isBkImpDirty() {
+      if (!bkImp || !_bkImpSnapshot) return false;
+      const titleEl = document.getElementById('bk-imp-title');
+      const authorEl = document.getElementById('bk-imp-author');
+      const curTitle = titleEl ? titleEl.value : '';
+      const curAuthor = authorEl ? authorEl.value : '';
+      if (curTitle !== _bkImpSnapshot.title || curAuthor !== _bkImpSnapshot.author) return true;
+      const curOn = bkImp.chapters.map((c) => !!c.on).join(',');
+      return curOn !== _bkImpSnapshot.chaptersOn;
+    }
+    window.isBkImpDirty = isBkImpDirty;
+
+    function bkOpenImportPreview(parsed, fallbackTitle, trigger) {
       bkImp = { blocks: parsed.blocks, fmt: parsed.fmt, mode: 'auto', chapters: [] };
       document.getElementById('bk-imp-title').value = parsed.title || '';
       document.getElementById('bk-imp-author').value = parsed.author || '';
@@ -653,9 +666,29 @@
           if (m) { document.getElementById('bk-imp-author').value = m[1].trim(); break; }
         }
       }
-      document.getElementById('bk-import-modal').classList.add('open');
+      const modal = document.getElementById('bk-import-modal');
+      modal.classList.add('open');
+      modal.style.display = 'flex';
+      modal.inert = false;
+      _bkImpSnapshot = {
+        title: document.getElementById('bk-imp-title').value,
+        author: document.getElementById('bk-imp-author').value,
+        chaptersOn: bkImp.chapters.map((c) => !!c.on).join(',')
+      };
       if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+      if (window.FSSModal) {
+        const trig = trigger || (document.activeElement && document.activeElement !== document.body ? document.activeElement : null);
+        window.FSSModal.open('bk-import-modal', {
+          trigger: trig,
+          fallbackTrigger: document.getElementById('bk-btn-import') || document.getElementById('screen-input'),
+          escapePolicy: 'prompt-if-dirty',
+          isDirty: isBkImpDirty,
+          closeFn: function() { bkImportCancel(true); },
+          initialFocus: '#bk-imp-title'
+        });
+      }
     }
+    window.bkOpenImportPreview = bkOpenImportPreview;
 
     function bkImportRechunk() {
       if (!bkImp) return;
@@ -677,7 +710,21 @@
       document.getElementById('bk-imp-sum').textContent = `${on.length}/${bkImp.chapters.length} phần được chọn · ${w.toLocaleString('en-US')} từ · đọc khoảng ${Math.max(1, Math.round(w / 200 / 60 * 10) / 10)} giờ`;
     }
     function bkImpAll(on) { bkImp.chapters.forEach((c) => { c.on = on; }); bkImportRenderList(); }
-    function bkImportCancel() { document.getElementById('bk-import-modal').classList.remove('open'); bkImp = null; }
+    function bkImportCancel(force) {
+      if (!force && isBkImpDirty()) {
+        const confirmed = window.confirm('Bạn có thay đổi chưa lưu. Bạn có chắc chắn muốn đóng và hủy bỏ?');
+        if (!confirmed) return;
+      }
+      const modal = document.getElementById('bk-import-modal');
+      if (modal) {
+        modal.classList.remove('open');
+        modal.style.display = 'none';
+      }
+      bkImp = null;
+      _bkImpSnapshot = null;
+      if (window.FSSModal) window.FSSModal.close('bk-import-modal');
+    }
+    window.bkImportCancel = bkImportCancel;
 
     async function bkBuildBook(chosen, info) {
       const id = info.id || bkUid(), recs = [];
@@ -701,7 +748,7 @@
       const title = (document.getElementById('bk-imp-title').value || '').trim() || 'Sách không tên';
       const author = (document.getElementById('bk-imp-author').value || '').trim();
       const fmt = bkImp.fmt;
-      document.getElementById('bk-import-modal').classList.remove('open');
+      bkImportCancel(true);
       bkLoading(true, 'Đang tách câu và lưu sách...');
       await bkTick();
       try {
@@ -922,7 +969,7 @@
       if (!bkBook) return;
       bkSavePosNow();
       hideLookupTooltip(); bkCloseDrawer(); bkToggleSettings(false);
-      document.getElementById('bk-tr-modal').classList.remove('open');
+      bkCloseTranslate(true);
       document.getElementById('screen-book').classList.add('hidden');
       document.body.classList.remove('book-mode');
       document.getElementById('screen-input').classList.remove('hidden');
@@ -1246,9 +1293,10 @@
       if (!bkActive()) return;
       const k = e.key;
       if (k === 'Escape') {
+        if (window.FSSModal && window.FSSModal.getActiveStack && window.FSSModal.getActiveStack().length > 0) return;
         const trm = document.getElementById('bk-tr-modal'), imp = document.getElementById('bk-import-modal');
-        if (trm.classList.contains('open')) { bkCloseTranslate(); e.stopImmediatePropagation(); return; }
-        if (imp.classList.contains('open')) { bkImportCancel(); e.stopImmediatePropagation(); return; }
+        if (trm && trm.classList.contains('open')) { bkCloseTranslate(); e.stopImmediatePropagation(); return; }
+        if (imp && imp.classList.contains('open')) { bkImportCancel(); e.stopImmediatePropagation(); return; }
         if (document.getElementById('bk-drawer').classList.contains('open')) { bkCloseDrawer(); e.stopImmediatePropagation(); return; }
         if (document.getElementById('bk-set').classList.contains('open')) { bkToggleSettings(false); e.stopImmediatePropagation(); return; }
         const s = document.getElementById('screen-book'); if (s.classList.contains('bk-focus')) { s.classList.remove('bk-focus'); e.stopImmediatePropagation(); }
@@ -1381,22 +1429,68 @@
     }
 
     // ---------- cửa sổ dịch ----------
-    function bkOpenTranslate(mode) {
+    let _bkTrSnapshot = null;
+    function isBkTrDirty() {
+      const textEl = document.getElementById('bk-tr-text');
+      const curVal = textEl ? textEl.value : '';
+      if (!_bkTrSnapshot) return curVal !== '';
+      return curVal !== _bkTrSnapshot.val;
+    }
+    window.isBkTrDirty = isBkTrDirty;
+
+    function bkOpenTranslate(mode, trigger) {
       if (!bkBook) return;
       document.getElementById('bk-tr-from').value = mode || 'read';
       document.getElementById('bk-tr-size').value = bkBook.batch || 'M';
       document.getElementById('bk-tr-gloss').value = bkBook.glossary || '';
       document.getElementById('bk-tr-title').textContent = `Dịch song ngữ · ${bkBook.title}`;
       document.getElementById('bk-tr-text').value = '';
+      _bkTrSnapshot = { val: '' };
       aiSetStatus(document.getElementById('bk-tr-status'), '', '');
       document.getElementById('bk-tr-prev').classList.remove('open');
       bkTr.copied = null;
       resetCopyButtons();
       bkTrRefresh();
-      document.getElementById('bk-tr-modal').classList.add('open');
+      const modal = document.getElementById('bk-tr-modal');
+      modal.classList.add('open');
+      modal.style.display = 'flex';
+      modal.inert = false;
       if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+      if (window.FSSModal) {
+        const trig = trigger || (document.activeElement && document.activeElement !== document.body ? document.activeElement : document.getElementById('bk-btn-tr'));
+        window.FSSModal.open('bk-tr-modal', {
+          trigger: trig,
+          fallbackTrigger: document.getElementById('bk-btn-tr') || document.getElementById('screen-book'),
+          escapePolicy: 'prompt-if-dirty',
+          isDirty: isBkTrDirty,
+          closeFn: function() { bkCloseTranslate(true); },
+          initialFocus: '#bk-tr-text'
+        });
+      }
     }
-    function bkCloseTranslate() { document.getElementById('bk-tr-modal').classList.remove('open'); const sc = bkScrollEl(); if (sc && bkActive()) sc.focus({ preventScroll: true }); }
+    window.bkOpenTranslate = bkOpenTranslate;
+    window.__bkSetTestBook = function(book, chs) {
+      bkBook = book;
+      bkChs = chs || [];
+      bkCh = 0;
+    };
+
+    function bkCloseTranslate(force) {
+      if (!force && isBkTrDirty()) {
+        const confirmed = window.confirm('Bạn có bản dịch chưa áp dụng. Bạn có chắc chắn muốn đóng và hủy bỏ?');
+        if (!confirmed) return;
+      }
+      const modal = document.getElementById('bk-tr-modal');
+      if (modal) {
+        modal.classList.remove('open');
+        modal.style.display = 'none';
+      }
+      _bkTrSnapshot = null;
+      if (window.FSSModal) window.FSSModal.close('bk-tr-modal');
+      const sc = bkScrollEl();
+      if (sc && bkActive()) sc.focus({ preventScroll: true });
+    }
+    window.bkCloseTranslate = bkCloseTranslate;
     function bkTrSizeChange() { bkBook.batch = document.getElementById('bk-tr-size').value; bkDbSaveBook(bkBook).catch(() => {}); bkTrRefresh(); }
     function bkTrSaveGloss() { bkBook.glossary = document.getElementById('bk-tr-gloss').value.trim(); bkDbSaveBook(bkBook).catch(() => {}); bkTrRefresh(); }
 
@@ -1496,6 +1590,7 @@
       if (out.res.stats.tailPct < 96) { cls = 'warn'; html += `<br>AI mới trả lời tới khoảng ${out.res.stats.tailPct}% đợt này. Bấm “Copy prompt” lần nữa: đợt kế tiếp sẽ tự bắt đầu đúng chỗ AI dừng.`; }
       else html += '<br>Đợt kế tiếp đã sẵn sàng bên dưới.';
       document.getElementById('bk-tr-text').value = '';
+      _bkTrSnapshot = { val: '' };
       bkTr.copied = null;
       resetCopyButtons();
       bkTrRefresh();
