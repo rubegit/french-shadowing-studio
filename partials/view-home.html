@@ -507,12 +507,12 @@
                 <span class="text-xs font-mono fs-text-muted fs-surface-card px-2.5 py-1 rounded-lg border fs-border-base">
                   Tổng: <strong id="library-total-count" class="fs-text-accent font-bold">0</strong> video
                 </span>
-                <button type="button" onclick="clearAllHistory()" class="text-xs fs-text-muted hover:fs-text-danger transition-colors cursor-pointer" title="Xóa toàn bộ lịch sử">Xóa tất cả</button>
+                <button type="button" id="btn-clear-history" onclick="clearAllHistory()" class="text-xs fs-text-muted hover:fs-text-danger transition-colors cursor-pointer py-1.5 px-2.5 rounded-lg min-h-[28px] inline-flex items-center justify-center font-medium" title="Xóa toàn bộ lịch sử">Xóa tất cả</button>
               </div>
             </div>
 
             <!-- Toolbar: Tìm kiếm, Bộ chọn View Mode (Grid 2 / Grid 3 / List) & Sắp xếp -->
-            <div class="video-catalog-toolbar flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3.5 pt-1.5">
+            <div class="video-catalog-toolbar flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3.5 pt-1.5 max-w-full overflow-hidden">
               <!-- Ô tìm kiếm -->
               <div class="search-container flex-1">
                 <div class="search-icon-box">
@@ -528,7 +528,7 @@
               </div>
 
               <!-- Cụm Điều khiển: Chế độ hiển thị & Sắp xếp -->
-              <div class="flex items-center justify-between sm:justify-end gap-3 shrink-0">
+              <div class="flex items-center justify-between sm:justify-end gap-2 sm:gap-3 shrink-0 max-w-full">
                 <!-- Dropdown Sắp xếp -->
                 <div class="sort-select-wrap relative">
                   <select id="video-sort-select" onchange="changeVideoSort(this.value)" class="video-sort-select" aria-label="Sắp xếp video">

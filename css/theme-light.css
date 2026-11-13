@@ -11884,6 +11884,18 @@ html[data-ui="light"] .page-nav-btn:hover:not(:disabled) {
   gap: 14px !important;
 }
 
+@media (max-width: 360px) {
+  .video-catalog-toolbar {
+    gap: 8px !important;
+  }
+  .video-sort-select {
+    padding: 6px 8px !important;
+  }
+  .view-mode-btn {
+    padding: 6px 7px !important;
+  }
+}
+
 .view-mode-toggle-group {
   gap: 5px !important;
   padding: 4px !important;

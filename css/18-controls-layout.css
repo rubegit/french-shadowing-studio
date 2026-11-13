@@ -29,7 +29,7 @@
 #pv-ctl .rate-ctl.big #rate-input, #art-player-bar .rate-ctl.big #art-rate-input { flex: none; width: calc(3ch - 2px); min-width: 0; margin: 0; padding: 0; border: 0; background: transparent; font-family: inherit; font-weight: 700; font-size: var(--pc-fs); line-height: 1; font-variant-numeric: tabular-nums; text-align: left; }
 #pv-ctl .rate-ctl.big .rate-input-x, #art-player-bar .rate-ctl.big .rate-input-x { font-family: inherit; font-weight: 700; font-size: var(--pc-fs); line-height: 1; margin-left: -1px; }
 /* Chọn nhanh tốc độ: nút theo đúng chiều cao viên thuốc (luật cảm ứng chung ép cao >= 38px làm nút lòi ra viền) */
-#pv-ctl .pv-speeds button, #art-player-bar .pv-speeds button { min-height: 0; }
+#pv-ctl .pv-speeds button, #art-player-bar .pv-speeds button { min-height: 0; min-width: 28px; }
 #pv-ctl .pv-meter, #art-player-bar .pv-meter { display: flex; }
 
 /* ---------- Các bậc thu nhỏ ---------- */
@@ -50,7 +50,7 @@
 #pv-ctl .pc.a4 .rate-ctl.big, #art-player-bar .pc.a4 .rate-ctl.big { padding: 0 9px; }
 /* a5: sát nhất, cho phép mọi thứ co thêm một chút để không bao giờ tràn */
 #pv-ctl .pc.a5 .pc-r1, #art-player-bar .pc.a5 .pc-r1 { --rate-h: 32px; --pc-gap: 4px; --pc-fs: 10.5px; }
-#pv-ctl .pc.a5 .pv-speeds button, #art-player-bar .pc.a5 .pv-speeds button { padding: 0 4px; font-size: 10.5px; }
+#pv-ctl .pc.a5 .pv-speeds button, #art-player-bar .pc.a5 .pv-speeds button { padding: 0 4px; font-size: 10.5px; min-width: 28px; }
 #pv-ctl .pc.a5 .pv-speeds button i, #art-player-bar .pc.a5 .pv-speeds button i { display: none; }
 #pv-ctl .pc.a5 .rate-ctl.big, #art-player-bar .pc.a5 .rate-ctl.big { padding: 0 7px; }
 #pv-ctl .pc.a5 .pc-r1 > *, #art-player-bar .pc.a5 .pc-r1 > * { flex: 0 1 auto !important; min-width: 0; }

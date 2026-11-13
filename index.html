@@ -217,7 +217,7 @@
 <link rel="stylesheet" href="css/15-ipa-highlight.css?v=5b8c6b2b" id="ipa-hl-style">
 <link rel="stylesheet" href="css/16-own-video.css?v=e27c9e09" id="own-yt-style">
   <!-- Redesign Theme: Mint Pastel & Dark Mode (Spec 2026) -->
-  <link rel="stylesheet" href="css/theme-light.css?v=7a8c28da">
+  <link rel="stylesheet" href="css/theme-light.css?v=c14a52ae">
 </head>
 <body class="fs-surface-base fs-text-primary min-h-screen flex flex-col antialiased" onclick="ensurePageFocus()">
 
@@ -2255,12 +2255,12 @@
                 <span class="text-xs font-mono fs-text-muted fs-surface-card px-2.5 py-1 rounded-lg border fs-border-base">
                   Tổng: <strong id="library-total-count" class="fs-text-accent font-bold">0</strong> video
                 </span>
-                <button type="button" onclick="clearAllHistory()" class="text-xs fs-text-muted hover:fs-text-danger transition-colors cursor-pointer" title="Xóa toàn bộ lịch sử">Xóa tất cả</button>
+                <button type="button" id="btn-clear-history" onclick="clearAllHistory()" class="text-xs fs-text-muted hover:fs-text-danger transition-colors cursor-pointer py-1.5 px-2.5 rounded-lg min-h-[28px] inline-flex items-center justify-center font-medium" title="Xóa toàn bộ lịch sử">Xóa tất cả</button>
               </div>
             </div>
 
             <!-- Toolbar: Tìm kiếm, Bộ chọn View Mode (Grid 2 / Grid 3 / List) & Sắp xếp -->
-            <div class="video-catalog-toolbar flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3.5 pt-1.5">
+            <div class="video-catalog-toolbar flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3.5 pt-1.5 max-w-full overflow-hidden">
               <!-- Ô tìm kiếm -->
               <div class="search-container flex-1">
                 <div class="search-icon-box">
@@ -2276,7 +2276,7 @@
               </div>
 
               <!-- Cụm Điều khiển: Chế độ hiển thị & Sắp xếp -->
-              <div class="flex items-center justify-between sm:justify-end gap-3 shrink-0">
+              <div class="flex items-center justify-between sm:justify-end gap-2 sm:gap-3 shrink-0 max-w-full">
                 <!-- Dropdown Sắp xếp -->
                 <div class="sort-select-wrap relative">
                   <select id="video-sort-select" onchange="changeVideoSort(this.value)" class="video-sort-select" aria-label="Sắp xếp video">
@@ -3477,7 +3477,7 @@
 <script id="vt-script" src="js/05-translate-engine.js?v=40d02b28"></script>
 <!-- ============ ĐÁNH DẤU NHẸ TỪ / CỤM / CÂU ĐÃ LƯU (chỉ tính các mục lưu từ chính video / bài viết đang mở) ============ -->
 <link rel="stylesheet" href="css/17-mobile-tweaks.css?v=9552bb4c" id="mobile-tweaks">
-<link rel="stylesheet" href="css/18-controls-layout.css?v=25985164" id="pv-ctl-layout">
+<link rel="stylesheet" href="css/18-controls-layout.css?v=ffa7761f" id="pv-ctl-layout">
 <link rel="stylesheet" href="css/19-vs-style.css?v=3933b013" id="vs-style">
 <link rel="stylesheet" href="css/20-mobile-polish.css?v=8a08f1a3" id="mobile-polish">
 <script id="vs-script" src="js/06-audio-sync.js?v=24bc93c7"></script>
