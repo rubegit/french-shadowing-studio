@@ -555,7 +555,7 @@
       const artPb0 = document.getElementById('art-player-bar');
       if (artPb0) artPb0.style.display = 'none';
       const backLabel = document.getElementById('practice-back-btn-label');
-      if (backLabel) backLabel.textContent = 'Luyện video khác';
+      if (backLabel) backLabel.textContent = 'Trang chủ';
       const ttl = document.getElementById('pv-header-title');
       if (ttl) { ttl.textContent = ''; ttl.style.display = ''; }
       const sidePanel = document.getElementById('article-side-panel');
@@ -741,7 +741,7 @@
 
       // Module L4: Đồng bộ giao diện Đọc báo (Article)
       const backLabel = document.getElementById('practice-back-btn-label');
-      if (backLabel) backLabel.textContent = 'Đọc báo';
+      if (backLabel) backLabel.textContent = 'Trang chủ';
       const ttl = document.getElementById('pv-header-title');
       if (ttl) { ttl.textContent = currentVideoTitle; ttl.style.display = 'block'; }
       renderArticleSidePanel(docId, currentVideoTitle, parsed);
