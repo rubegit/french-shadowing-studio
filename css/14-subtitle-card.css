@@ -757,18 +757,18 @@
     }
   }
 
-  /* Nới rộng chiều cao danh sách câu tối đa trên mobile */
+  /* Nới rộng chiều cao danh sách câu tối đa trên mobile (chỉ áp dụng video, không áp dụng text-mode) */
   @media (max-width: 768px) {
-    html[data-ui="light"] #panel-right,
-    #panel-right {
+    body:not(.text-mode) html[data-ui="light"] #panel-right,
+    body:not(.text-mode) #panel-right {
       min-height: 0 !important;
       height: auto !important;
       flex: 1 1 auto !important;
       display: flex !important;
       flex-direction: column !important;
     }
-    html[data-ui="light"] #subtitles-scroll-container,
-    #subtitles-scroll-container {
+    body:not(.text-mode) html[data-ui="light"] #subtitles-scroll-container,
+    body:not(.text-mode) #subtitles-scroll-container {
       max-height: 65vh !important;
       min-height: 260px !important;
       padding-bottom: 24px !important;

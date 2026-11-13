@@ -2670,13 +2670,13 @@ html[data-ui="light"] #pv-shadowing .sh-wrap {
     border-color: var(--fs-line) !important;
   }
 
-  html[data-ui="light"] #panel-right {
+  body:not(.text-mode) html[data-ui="light"] #panel-right {
     height: auto !important;
     overflow: visible !important;
     min-height: 480px !important;
   }
 
-  html[data-ui="light"] #subtitles-scroll-container {
+  body:not(.text-mode) html[data-ui="light"] #subtitles-scroll-container {
     max-height: 480px !important;
   }
 
@@ -5235,6 +5235,7 @@ html[data-ui="light"] body.text-mode #pv-default {
   max-width: 1240px !important;
   margin: 0 auto !important;
   height: calc(100vh - 56px) !important;
+  height: calc(100dvh - 56px) !important;
   overflow: hidden !important;
 }
 
@@ -5247,6 +5248,7 @@ html[data-ui="light"] body.text-mode #split-container {
   margin: 0 auto !important;
   padding: 24px 40px !important;
   height: calc(100vh - 56px) !important;
+  height: calc(100dvh - 56px) !important;
   overflow: hidden !important;
   box-sizing: border-box !important;
 }
@@ -5292,7 +5294,7 @@ html[data-ui="light"] body.text-mode #keyvocab-panel-container {
 html[data-ui="light"] body.text-mode #subtitles-scroll-container {
   max-width: none !important;
   margin: 0 !important;
-  padding: 28px 24px !important;
+  padding: 28px 24px calc(60px + env(safe-area-inset-bottom, 20px)) 24px !important;
   width: 100% !important;
   box-sizing: border-box !important;
   flex: 1 !important;
@@ -5805,9 +5807,13 @@ html[data-ui="light"] .art-vocab-empty {
 
 /* Responsive <= 900px co về 1 cột dọc: Thẻ thông tin thu gọn đặt trên bài đọc */
 @media (max-width: 900px) {
+  html[data-ui="light"] body.text-mode {
+    padding-bottom: 0 !important;
+  }
   html[data-ui="light"] body.text-mode #pv-default {
-    padding: 12px !important;
+    padding: 12px 12px calc(80px + env(safe-area-inset-bottom, 20px)) 12px !important;
     height: calc(100vh - 56px) !important;
+    height: calc(100dvh - 56px) !important;
     overflow-y: auto !important;
     box-sizing: border-box !important;
   }
@@ -5834,15 +5840,21 @@ html[data-ui="light"] .art-vocab-empty {
     display: none !important;
   }
   html[data-ui="light"] body.text-mode #panel-right {
+    display: block !important;
     order: 2 !important;
     width: 100% !important;
     height: auto !important;
-    min-height: 480px !important;
+    min-height: 0 !important;
+    max-height: none !important;
     overflow: visible !important;
   }
   html[data-ui="light"] body.text-mode #subtitles-scroll-container {
+    display: block !important;
+    flex: none !important;
     max-width: 100% !important;
-    padding: 16px !important;
+    max-height: none !important;
+    min-height: 0 !important;
+    padding: 16px 16px calc(32px + env(safe-area-inset-bottom, 16px)) 16px !important;
     overflow: visible !important;
     height: auto !important;
   }
@@ -10977,7 +10989,7 @@ html[data-ui="light"][data-theme="dark"] #vocab-toast .vt-input {
   }
 
   /* Padding at bottom of body so bottom nav bar does not overlap content */
-  html[data-ui="light"] body {
+  html[data-ui="light"] body:not(.text-mode) {
     padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important;
   }
 
