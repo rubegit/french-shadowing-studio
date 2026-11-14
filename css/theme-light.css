@@ -5239,18 +5239,30 @@ html[data-ui="light"] body.text-mode #pv-default {
   overflow: hidden !important;
 }
 
-/* LƯỚI 2 CỘT: Cột đọc (720px căn giữa) + Thẻ thông tin (340px) */
-html[data-ui="light"] body.text-mode #split-container {
-  display: grid !important;
-  grid-template-columns: minmax(0, 1fr) 340px !important;
-  gap: 24px !important;
-  max-width: 1200px !important;
+/* M49: GIAO DIỆN ĐỌC BÀI 1 CỘT DUY NHẤT CĂN GIỮA (SINGLE-COLUMN CLEAN READER) */
+html[data-ui="light"] body.text-mode #split-container,
+body.text-mode #split-container {
+  display: block !important;
+  max-width: 960px !important;
   margin: 0 auto !important;
-  padding: 24px 40px !important;
+  padding: 16px 20px 48px 20px !important;
+  height: auto !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+  box-sizing: border-box !important;
+}
+
+html[data-ui="light"] body.text-mode #pv-default {
   height: calc(100vh - 56px) !important;
   height: calc(100dvh - 56px) !important;
-  overflow: hidden !important;
+  overflow-y: auto !important;
   box-sizing: border-box !important;
+}
+
+/* Ẩn hoàn toàn thẻ thông tin phụ #article-side-panel trên mọi màn hình (đã đưa vào Sandwich Menu) */
+html[data-ui="light"] body.text-mode #article-side-panel,
+body.text-mode #article-side-panel {
+  display: none !important;
 }
 
 /* Ẩn thanh phân cách kéo thả trong Article */
@@ -5263,8 +5275,9 @@ html[data-ui="light"] body.text-mode #panel-left {
   display: none !important;
 }
 
-/* --- CỘT TRÁI: Cột đọc bài (#panel-right) --- */
-html[data-ui="light"] body.text-mode #panel-right {
+/* Cột đọc bài (#panel-right) chiếm trọn 1 cột căn giữa */
+html[data-ui="light"] body.text-mode #panel-right,
+body.text-mode #panel-right {
   order: 1 !important;
   background: var(--fs-surface) !important;
   border: 1px solid var(--fs-line) !important;
@@ -5272,11 +5285,20 @@ html[data-ui="light"] body.text-mode #panel-right {
   box-shadow: var(--fs-shadow) !important;
   display: flex !important;
   flex-direction: column !important;
-  height: 100% !important;
+  height: auto !important;
   min-height: 0 !important;
-  overflow: hidden !important;
+  overflow: visible !important;
   padding: 0 !important;
-  width: auto !important;
+  width: 100% !important;
+}
+
+/* Thanh Player (#art-player-bar) ghim sticky trên cùng */
+html[data-ui="light"] body.text-mode #art-player-bar,
+body.text-mode #art-player-bar {
+  display: flex !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 30 !important;
 }
 
 /* Ẩn header tab danh sách câu trong chế độ đọc bài */
@@ -5818,30 +5840,20 @@ html[data-ui="light"] .art-vocab-empty {
     box-sizing: border-box !important;
   }
   html[data-ui="light"] body.text-mode #split-container {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 16px !important;
-    padding: 0 !important;
+    display: block !important;
+    max-width: 100% !important;
+    padding: 0 0 calc(60px + env(safe-area-inset-bottom, 20px)) 0 !important;
+    gap: 0 !important;
     height: auto !important;
     overflow: visible !important;
   }
   html[data-ui="light"] body.text-mode #article-side-panel {
-    order: 1 !important;
-    width: 100% !important;
-    max-height: none !important;
-    height: auto !important;
-    overflow: visible !important;
-    padding: 18px !important;
-    box-sizing: border-box !important;
-    flex-shrink: 0 !important;
-  }
-  /* Bản thu gọn dưới 900px: ẩn khối từ vựng dài dằng dặc, giữ tên báo, số từ, nút hành động */
-  html[data-ui="light"] body.text-mode #article-side-panel .art-vocab-section {
     display: none !important;
   }
   html[data-ui="light"] body.text-mode #panel-right {
-    display: block !important;
-    order: 2 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    order: 1 !important;
     width: 100% !important;
     height: auto !important;
     min-height: 0 !important;

@@ -135,6 +135,11 @@
         btn.setAttribute('aria-expanded', open ? 'true' : 'false');
         if (open) {
             window.updatePracticeMobileMenuBadges();
+            if (document.body.classList.contains('text-mode') && typeof window.syncArticleSandwichMenu === 'function') {
+                try {
+                    window.syncArticleSandwichMenu(window.currentVideoId, window.currentVideoTitle, window.sentences);
+                } catch (err) {}
+            }
             if (window.lucide && typeof lucide.createIcons === 'function') {
                 try { lucide.createIcons(); } catch (err) {}
             }

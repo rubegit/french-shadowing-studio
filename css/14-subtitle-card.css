@@ -359,6 +359,17 @@
     background: var(--fs-line);
     margin: 4px 6px;
   }
+
+  /* M49: Phân định ngữ cảnh Video vs Bài báo trong Sandwich Menu */
+  body:not(.text-mode) .psm-article-only {
+    display: none !important;
+  }
+  body.text-mode .psm-video-only {
+    display: none !important;
+  }
+  body.text-mode .psm-article-only {
+    display: block !important;
+  }
   .psm-badge {
     margin-left: auto;
     font-size: 10.5px;

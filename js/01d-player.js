@@ -54,6 +54,7 @@
     function getLocalHistory() {
       return getRawHistory().filter(function(h) { return !h._deleted; });
     }
+    window.getLocalHistory = getLocalHistory;
 
     function saveToLocalHistory(item) {
       try {
@@ -541,8 +542,10 @@
       ensurePageFocus();
       trackAndShowVideoStats(currentVideoId);
     }
+    window.loadFromHistory = loadFromHistory;
 
     function backToInputScreen() {
+      const wasTextMode = isTextMode;
       sharedNoSaveId = '';
       if (window.pvReset) pvReset();
       stopSubtitleLoop();      // tắt loop + ẩn popup "Đang loop" vì không còn luyện video này nữa
@@ -572,6 +575,12 @@
       // 2) Hiện trang chủ và khôi phục vị trí cuộn ĐỒNG BỘ ngay tại đây, trước khi trình duyệt vẽ khung hình đầu tiên:
       //    không còn cảnh hiện đầu trang rồi mới nhảy xuống, và trình duyệt chỉ phải tính layout + vẽ đúng 1 lần.
       document.getElementById('screen-input').classList.remove('hidden');
+
+      // M49: Nếu quay về từ chế độ đọc báo -> chuyển đúng tab "Đọc báo tiếng Pháp" ở trang chủ
+      if (wasTextMode && typeof setInputMode === 'function') {
+        setInputMode('text');
+      }
+
       window.scrollTo({ top: savedHomeScrollY, behavior: 'instant' });
       restoreRowScrollPositions();
       // Bù độ lệch nếu hàng "Video Bạn Đã Luyện Gần Đây" vừa xuất hiện/đổi chiều cao: đo lại mốc neo so với lúc rời đi
@@ -587,12 +596,15 @@
       });
       ensurePageFocus();
     }
+    window.backToInputScreen = backToInputScreen;
 
     // ==================== CHUYỂN ĐỔI TAB "LUYỆN VỚI VIDEO" / "LUYỆN VỚI VĂN BẢN" ====================
     let currentInputMode = 'video';   // tab đang mở ở trang chủ: video | text | book | vt | custom-yt
+    window.currentInputMode = currentInputMode;
     function setInputMode(mode) {
       const isText = mode === 'text', isBook = mode === 'book', isVt = mode === 'vt', isCustomYt = mode === 'custom-yt', isVideo = !isText && !isBook && !isVt && !isCustomYt;
       currentInputMode = isText ? 'text' : isBook ? 'book' : isVt ? 'vt' : isCustomYt ? 'custom-yt' : 'video';
+      window.currentInputMode = currentInputMode;
       const set = (tab, pane, on) => {
         const t = document.getElementById(tab), p = document.getElementById(pane);
         if (t) t.classList.toggle('active', on);
@@ -739,12 +751,13 @@
       if (scrollBox0) scrollBox0.scrollTop = 0;
       updateActiveSentenceDisplay();
 
-      // Module L4: Đồng bộ giao diện Đọc báo (Article)
+      // Module L4 & M49: Đồng bộ giao diện Đọc báo (Article)
       const backLabel = document.getElementById('practice-back-btn-label');
-      if (backLabel) backLabel.textContent = 'Trang chủ';
+      if (backLabel) backLabel.textContent = 'Bài đọc';
       const ttl = document.getElementById('pv-header-title');
       if (ttl) { ttl.textContent = currentVideoTitle; ttl.style.display = 'block'; }
       renderArticleSidePanel(docId, currentVideoTitle, parsed);
+      syncArticleSandwichMenu(docId, currentVideoTitle, parsed);
 
       // Module M23: Luôn hiển thị thẻ câu & mốc thời gian bài báo đồng bộ
       const artCard = document.getElementById('art-cs-card');
@@ -773,6 +786,8 @@
       if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
       ensurePageFocus();
     }
+    window.backToInputScreen = backToInputScreen;
+    window.openTextSession = openTextSession;
 
     function renderArticleSidePanel(docId, title, parsed) {
       const p = document.getElementById('article-side-panel');
@@ -909,7 +924,51 @@
       `;
       if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
       refreshArticleSideAudioUI(docId);
+      syncArticleSandwichMenu(docId, title, parsed);
     }
+
+    // M49: Đồng bộ dữ liệu bài báo vào Menu Sandwich (Contextual Menu)
+    function syncArticleSandwichMenu(docId, title, parsed) {
+      if (!docId) return;
+      const srcEl = document.getElementById('psm-art-source');
+      const levelEl = document.getElementById('psm-art-level');
+      const wcEl = document.getElementById('psm-art-wc');
+      const scEl = document.getElementById('psm-art-sc');
+      const levelBtnText = document.getElementById('psm-art-level-btn-text');
+
+      const totalWords = (function() {
+        if (!parsed || !parsed.length) return 0;
+        let count = 0;
+        for (const s of parsed) {
+          if (s.text) count += s.text.trim().split(/\s+/).filter(Boolean).length;
+        }
+        return count;
+      })();
+      const totalSentences = parsed ? parsed.length : 0;
+      const sourceName = (function() {
+        const lower = ((docId || '') + ' ' + (title || '')).toLowerCase();
+        if (lower.includes('rfi')) return 'RFI Français Facile';
+        if (lower.includes('lemonde') || lower.includes('le monde')) return 'Le Monde';
+        if (lower.includes('france24') || lower.includes('france 24')) return 'France 24';
+        if (lower.includes('lefigaro') || lower.includes('le figaro')) return 'Le Figaro';
+        if (lower.includes('tv5') || lower.includes('tv5monde')) return 'TV5Monde';
+        if (lower.includes('courrier')) return 'Courrier International';
+        if (lower.startsWith('art_') || lower.startsWith('sample_') || lower.endsWith('.txt') || lower.endsWith('.md') || lower.endsWith('.docx')) return 'Thư viện bài viết';
+        return 'Văn bản tiếng Pháp';
+      })();
+
+      const savedHistItem = getLocalHistory().find(h => h.videoId === docId);
+      const curLevel = (savedHistItem && savedHistItem.level) || (typeof window.detectCefrLevel === 'function' ? window.detectCefrLevel(title) : null);
+
+      if (srcEl) srcEl.textContent = sourceName;
+      if (levelEl) levelEl.textContent = curLevel || 'Chưa gán';
+      if (wcEl) wcEl.textContent = totalWords;
+      if (scEl) scEl.textContent = totalSentences;
+      if (levelBtnText) levelBtnText.textContent = curLevel ? ('Cấp độ: ' + curLevel) : 'Gán trình độ CEFR';
+
+      refreshArticleSideAudioUI(docId);
+    }
+    window.syncArticleSandwichMenu = syncArticleSandwichMenu;
 
     // Cập nhật trạng thái hiển thị của Audio Pill trong Sidebar theo trạng thái thực tế
     function refreshArticleSideAudioUI(docId) {
@@ -918,7 +977,10 @@
       const pill = document.getElementById('art-side-file-pill');
       const pillName = document.getElementById('art-side-pill-name');
       const badge = document.getElementById('art-side-audio-badge');
-      if (!pill) return;
+
+      const psmLbl = document.getElementById('psm-art-audio-label');
+      const psmPill = document.getElementById('psm-art-file-pill');
+      const psmPillName = document.getElementById('psm-art-pill-name');
 
       const savedItem = getLocalHistory().find(h => h.videoId === docId);
       const audioMeta = savedItem && savedItem.audio;
@@ -934,9 +996,12 @@
         if (rec && rec.blob) {
           // File đã cache tại máy này -> Sẵn sàng phát offline
           if (lbl) lbl.textContent = 'Đổi Audio MP3';
-          pill.style.display = 'flex';
+          if (psmLbl) psmLbl.textContent = 'Đổi Audio MP3';
+          if (pill) pill.style.display = 'flex';
+          if (psmPill) psmPill.style.display = 'flex';
           const name = rec.name || (audioMeta && audioMeta.name) || 'audio.mp3';
           if (pillName) pillName.textContent = name;
+          if (psmPillName) psmPillName.textContent = name;
           if (badge) {
             const isCloud = (audioMeta && audioMeta.cloudStatus === 'available') || rec.syncedAt;
             badge.className = 'art-audio-badge ' + (isCloud ? 'is-cloud' : 'is-local');
@@ -946,8 +1011,12 @@
         } else if (audioMeta && audioMeta.cloudStatus === 'available') {
           // Bài có audio trên Cloud nhưng máy này chưa cache
           if (lbl) lbl.textContent = 'Đổi Audio MP3';
-          pill.style.display = 'flex';
-          if (pillName) pillName.textContent = audioMeta.name || 'audio.mp3';
+          if (psmLbl) psmLbl.textContent = 'Đổi Audio MP3';
+          if (pill) pill.style.display = 'flex';
+          if (psmPill) psmPill.style.display = 'flex';
+          const name = audioMeta.name || 'audio.mp3';
+          if (pillName) pillName.textContent = name;
+          if (psmPillName) psmPillName.textContent = name;
           if (badge) {
             badge.className = 'art-audio-badge is-cloud';
             badge.innerHTML = '☁️ Trên Cloud';
@@ -956,8 +1025,11 @@
         } else {
           // Chưa có audio
           if (lbl) lbl.textContent = 'Kèm Audio MP3';
-          pill.style.display = 'none';
+          if (psmLbl) psmLbl.textContent = 'Kèm Audio MP3';
+          if (pill) pill.style.display = 'none';
+          if (psmPill) psmPill.style.display = 'none';
           if (pillName) pillName.textContent = '';
+          if (psmPillName) psmPillName.textContent = '';
           if (badge) badge.innerHTML = '';
         }
       });
